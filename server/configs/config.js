@@ -116,7 +116,7 @@ Config.prototype.default = {
   mongodb: {
     enabled: true,                            // Enable or disable the user of a Mongo datastore.
     
-    database: 'sdl'                           // Name of the database in the Mongo datastore.
+    database: 'sdl',                          // Name of the database in the Mongo datastore.
     host: 'localhost',                        // IP address of the Mongo datastore.
     port: '27017',                            // Port to connect to the Mongo datastore over.
     
@@ -277,7 +277,7 @@ Config.prototype.development = {
   // Mongo DB can be used as a datastore.  All settings
   // related to the Mongo database are listed here.
   mongodb: {   
-    database: 'sdl_dev'                       // Name of the database in the Mongo datastore.
+    database: 'sdl_dev',                      // Name of the database in the Mongo datastore.
     host: 'localhost',                        // IP address of the Mongo datastore.
     port: '27017',                            // Port to connect to the Mongo datastore over.
     
@@ -307,7 +307,7 @@ Config.prototype.production = {
   // Mongo DB can be used as a datastore.  All settings
   // related to the Mongo database are listed here.
   mongodb: {   
-    database: 'sdl_dev'                       // Name of the database in the Mongo datastore.
+    database: 'sdl_dev',                      // Name of the database in the Mongo datastore.
     host: 'localhost',                        // IP address of the Mongo datastore.
     port: '27017',                            // Port to connect to the Mongo datastore over.
     
