@@ -1,0 +1,362 @@
+<div class="vehicle-container" class="">
+	<div class="row">
+
+    <!-- Side Navigation -->
+    <div class="col-sm-3 sidebar">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <ul class="nav nav-pills nav-stacked">
+            <li ng-repeat="form in vehicle.forms" ng-class=""><button ng-class="{active : vehicle.activeForm.id == form.id, disabled: vehicle.isNew && form.isDisabledOnCreate}" class="btn btn-pill" ng-click="switchForm(form.id)">{{form.name}}</button></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+		<div class="col-sm-9" ng-switch="vehicle.activeForm.id">
+
+			<!-- Vehicle Info Form -->
+			<form ng-switch-when="vehicleInfoForm" name="vehicleInfoForm" class="form-horizontal" role="form" novalidate>
+        <legend>{{vehicle.activeForm.name}}</legend>
+
+				<div class="form-group" show-errors>
+					<label for="vinTxt" class="col-sm-2 control-label">VIN:</label>
+					<div class="col-sm-10">
+						<input required type="text" class="form-control" name="vinTxt" id="vinTxt" placeholder="VIN" ng-model="vehicle.item.vin"></input>
+						<p class="help-block" ng-if="vehicleInfoForm.vinTxt.$error.required">VIN is required.</p>
+					</div>
+				</div>
+
+				<div class="form-group" show-errors>
+					<label for="makeTxt" class="col-sm-2 control-label">Make:</label>
+					<div class="col-sm-10">
+						<input required type="text" class="form-control" name="makeTxt" id="makeTxt" placeholder="Make" ng-model="vehicle.item.make"></input>
+						<p class="help-block" ng-if="vehicleInfoForm.makeTxt.$error.required">Make is required.</p>
+					</div>
+				</div>
+
+				<div class="form-group" show-errors>
+					<label for="modelTxt" class="col-sm-2 control-label">Model:</label>
+					<div class="col-sm-10">
+						<input required type="text" class="form-control" name="modelTxt" id="modelTxt" placeholder="Model" ng-model="vehicle.item.model"></input>
+						<p class="help-block" ng-if="vehicleInfoForm.modelTxt.$error.required">Model is required.</p>
+					</div>
+				</div>
+
+				<div class="form-group" show-errors>
+					<label for="yearTxt" class="col-sm-2 control-label">Year:</label>
+					<div class="col-sm-10">
+						<input required type="text" class="form-control" name="yearTxt" id="yearTxt" placeholder="Year" ng-model="vehicle.item.year"></input>
+						<p class="help-block" ng-if="vehicleInfoForm.yearTxt.$error.required">Year is required.</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<!-- Save -->
+						<button ng-disabled="vehicleInfoForm.$pristine" ng-click="submit(vehicleInfoForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+
+						<!-- Clear -->
+						<button ng-hide="vehicleInfoForm.$pristine" ng-click="clearForm(vehicleInfoForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+					</div>
+				</div>
+			</form>
+
+
+      <!-- Module Info Form -->
+      <form ng-switch-when="moduleInfoForm" name="moduleInfoForm" class="form-horizontal" role="form" novalidate>
+        <legend>{{vehicle.activeForm.name}}</legend>
+
+        <!-- Country Code -->
+        <div class="form-group" show-errors>
+          <label for="countryCodeTxt" class="col-sm-2 control-label">Country Code:</label>
+          <div class="col-sm-10">
+            <input required type="text" class="form-control" name="countryCodeTxt" id="countryCodeTxt" placeholder="Unique identifier for a country." ng-model="vehicle.item.module.countryCode"></input>
+            <p class="help-block" ng-if="infoForm.countryCodeTxt.$error.required">A country code is required.</p>
+          </div>
+        </div>
+
+        <!-- Firmware Version -->
+        <div class="form-group" show-errors>
+          <label for="firmwareVersionTxt" class="col-sm-2 control-label">Firmware Version:</label>
+          <div class="col-sm-10">
+            <input required type="text" class="form-control" id="firmwareVersionTxt" name="firmwareVersionTxt" placeholder="Module's hardware version." ng-model="vehicle.item.module.firmwareVersion"></input>
+            <p class="help-block" ng-if="infoForm.firmwareVersionTxt.$error.required">The module's hardware version is required.</p>
+          </div>
+        </div>
+
+        <!-- Software Version -->
+        <div class="form-group" show-errors>
+          <label for="softwareVersionTxt" class="col-sm-2 control-label">Software Version:</label>
+          <div class="col-sm-10">
+            <input required type="text" class="form-control" id="softwareVersionTxt" name="softwareVersionTxt" placeholder="Module's software version." ng-model="vehicle.item.module.softwareVersion"></input>
+            <p class="help-block" ng-if="infoForm.softwareVersionTxt.$error.required">The module's software version is required.</p>
+          </div>
+        </div>
+
+        <!-- Language -->
+        <div class="form-group" show-errors>
+          <label for="languageVersionTxt" class="col-sm-2 control-label">Language:</label>
+          <div class="col-sm-10">
+            <input required type="text" class="form-control" id="languageVersionTxt" name="languageVersionTxt" placeholder="Module's default language." ng-model="vehicle.item.module.language"></input>
+            <p class="help-block" ng-if="infoForm.languageVersionTxt.$error.required">The module's default language is required.</p>
+          </div>
+        </div>
+
+        <!-- Type -->
+        <div class="form-group" show-errors>
+          <label for="typeTxt" class="col-sm-2 control-label">Type:</label>
+          <div class="col-sm-10">
+            <input required type="text" class="form-control" id="typeTxt" name="typeTxt" placeholder="Type of module." ng-model="vehicle.item.module.type"></input>
+            <p class="help-block" ng-if="infoForm.typeTxt.$error.required">The module's type is required</p>
+          </div>
+        </div>
+
+        <!-- Symmetric Key -->
+        <div class="form-group">
+          <label for="keyTxt" class="col-sm-2 control-label">Symmetric Key:</label>
+          <div class="col-sm-10">
+            <div id="keyTxt" class="well well-sm">
+              {{vehicle.item.module.symmetricKey || 'Symmetric Key Generated by Server'}}
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- Form Controls -->
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <!-- Save -->
+            <button ng-disabled="moduleInfoForm.$pristine" ng-click="submit(moduleInfoForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+            <!-- Clear -->
+            <button ng-hide="moduleInfoForm.$pristine" ng-click="clearForm(moduleInfoForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+          </div>
+        </div>
+
+
+      </form>
+
+      <!-- Module Consumer Friendly Messages Form -->
+      <form ng-switch-when="moduleCfmForm" name="moduleCfmForm" class="form-horizontal" role="form" novalidate>
+        <legend>{{vehicle.activeForm.name}}</legend>
+
+        <H1>TODO: Show list of Consumer Friendly Messages to choo choo choose</H1>
+
+
+
+        <!-- Form Controls -->
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <!-- Save -->
+            <button ng-disabled="moduleCfmForm.$pristine" ng-click="submit(moduleCfmForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+            <!-- Clear -->
+            <button ng-hide="moduleCfmForm.$pristine" ng-click="clearForm(moduleCfmForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+          </div>
+        </div>
+
+
+      </form>
+
+      <!-- Module Consumer Friendly Messages Form -->
+      <form ng-switch-when="moduleFunctionalGroupsForm" name="moduleFunctionalGroupsForm" class="form-horizontal" role="form" novalidate>
+        <legend>{{vehicle.activeForm.name}}</legend>
+
+        <H1>TODO: Show list of Functional Groups to choo choo choose</H1>
+
+
+
+        <!-- Form Controls -->
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <!-- Save -->
+            <button ng-disabled="moduleFunctionalGroupsForm.$pristine" ng-click="submit(moduleFunctionalGroupsForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+            <!-- Clear -->
+            <button ng-hide="moduleFunctionalGroupsForm.$pristine" ng-click="clearForm(moduleFunctionalGroupsForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+          </div>
+        </div>
+
+
+      </form>
+
+
+      <!-- Module Notification Settings Form -->
+      <form ng-switch-when="moduleNotificationForm" name="moduleNotificationForm" class="form-horizontal" role="form" novalidate>
+        <legend>{{vehicle.activeForm.name}}</legend>
+
+        <!-- Communication -->
+        <div class="form-group" show-errors>
+          <label for="communicationNum" class="col-sm-2 control-label">Communication:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="communicationNum" id="communicationNum" placeholder="Communication" ng-model="vehicle.item.module.notificationSettings.communication"></input>
+            <p class="help-block" ng-if="moduleNotificationForm.communicationNum.$error.required">Communication number is required.</p>
+          </div>
+        </div>
+
+        <!-- Emergency -->
+        <div class="form-group" show-errors>
+          <label for="emergencyNum" class="col-sm-2 control-label">Emergency:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="emergencyNum" id="emergencyNum" placeholder="Emergency" ng-model="vehicle.item.module.notificationSettings.emergency"></input>
+            <p class="help-block" ng-if="moduleNotificationForm.emergencyNum.$error.required">Emergency number is required.</p>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="form-group" show-errors>
+          <label for="navigationNum" class="col-sm-2 control-label">Navigation:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="navigationNum" id="navigationNum" placeholder="Navigation" ng-model="vehicle.item.module.notificationSettings.navigation"></input>
+            <p class="help-block" ng-if="moduleNotificationForm.navigationNum.$error.required">Navigation number is required.</p>
+          </div>
+        </div>
+
+        <!-- None -->
+        <div class="form-group" show-errors>
+          <label for="noneNum" class="col-sm-2 control-label">None:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="noneNum" id="noneNum" placeholder="None" ng-model="vehicle.item.module.notificationSettings.none"></input>
+            <p class="help-block" ng-if="moduleNotificationForm.noneNum.$error.required">None number is required.</p>
+          </div>
+        </div>
+
+        <!-- Normal -->
+        <div class="form-group" show-errors>
+          <label for="normalNum" class="col-sm-2 control-label">Normal:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="normalNum" id="normalNum" placeholder="Normal" ng-model="vehicle.item.module.notificationSettings.normal"></input>
+            <p class="help-block" ng-if="moduleNotificationForm.normalNum.$error.required">Normal number is required.</p>
+          </div>
+        </div>
+
+        <!-- Days -->
+        <div class="form-group" show-errors>
+          <label for="daysNum" class="col-sm-2 control-label">Voice:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="voiceNum" id="voiceNum" placeholder="Voice" ng-model="vehicle.item.module.notificationSettings.voice"></input>
+            <p class="help-block" ng-if="moduleNotificationForm.voiceNum.$error.required">Voice number is required.</p>
+          </div>
+        </div>
+
+
+        <!-- Form Controls -->
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <!-- Save -->
+            <button ng-disabled="moduleNotificationForm.$pristine" ng-click="submit(moduleNotificationForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+            <!-- Clear -->
+            <button ng-hide="moduleNotificationForm.$pristine" ng-click="clearForm(moduleNotificationForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Module Update Settings Form -->
+      <form ng-switch-when="moduleUpdateForm" name="moduleUpdateForm" class="form-horizontal" role="form" novalidate>
+        <legend>{{vehicle.activeForm.name}}</legend>
+
+        <!-- Ignition Cycles -->
+        <div class="form-group" show-errors>
+          <label for="ignitionCyclesNum" class="col-sm-2 control-label">Ignition Cycles:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="ignitionCyclesNum" id="ignitionCyclesNum" placeholder="Ignition Cycles" ng-model="vehicle.item.module.updateSettings.ignitionCycles"></input>
+            <p class="help-block" ng-if="moduleUpdateForm.ignitionCyclesNum.$error.required">Voice number is required.</p>
+          </div>
+        </div>
+
+        <!-- Kilometers -->
+        <div class="form-group" show-errors>
+          <label for="kilometersNum" class="col-sm-2 control-label">Kilometers:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="kilometersNum" id="kilometersNum" placeholder="Kilometers" ng-model="vehicle.item.module.updateSettings.kilometers"></input>
+            <p class="help-block" ng-if="moduleUpdateForm.kilometersNum.$error.required">Kilometers number is required.</p>
+          </div>
+        </div>
+
+        <!-- Retry Attempts -->
+        <div class="form-group" show-errors>
+          <label for="retryAttemptsNum" class="col-sm-2 control-label">Retry Attempts:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="retryAttemptsNum" id="retryAttemptsNum" placeholder="Voice" ng-model="vehicle.item.module.updateSettings.retryAttempts"></input>
+            <p class="help-block" ng-if="moduleUpdateForm.retryAttemptsNum.$error.required">Retry attempt number is required.</p>
+          </div>
+        </div>
+
+        <!-- Timeout -->
+        <div class="form-group" show-errors>
+          <label for="timeoutNum" class="col-sm-2 control-label">Timeout:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="timeoutNum" id="timeoutNum" placeholder="Timeout" ng-model="vehicle.item.module.updateSettings.timeout"></input>
+            <p class="help-block" ng-if="moduleUpdateForm.timeoutNum.$error.required">Timeout number is required.</p>
+          </div>
+        </div>
+
+        <!-- Days -->
+        <div class="form-group" show-errors>
+          <label for="daysNum" class="col-sm-2 control-label">Days:</label>
+          <div class="col-sm-10">
+            <input required type="number" class="form-control" name="daysNum" id="daysNum" placeholder="Days" ng-model="vehicle.item.module.updateSettings.days"></input>
+            <p class="help-block" ng-if="moduleUpdateForm.daysNum.$error.required">Days number is required.</p>
+          </div>
+        </div>
+
+
+        <!-- Form Controls -->
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <!-- Save -->
+            <button ng-disabled="moduleUpdateForm.$pristine" ng-click="submit(moduleUpdateForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+            <!-- Clear -->
+            <button ng-hide="moduleUpdateForm.$pristine" ng-click="clearForm(moduleUpdateForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Module Configuration Form -->
+      <form ng-switch-when="moduleConfigurationForm" name="moduleConfigurationForm" class="form-horizontal" role="form" novalidate>
+        <legend>{{vehicle.activeForm.name}}</legend>
+
+        <h1>TODO: Module Configuration</h1>
+
+        <!-- Name -->
+        <div class="form-group" show-errors>
+          <label for="nameTxt" class="col-sm-2 control-label">Name:</label>
+          <div class="col-sm-10">
+            <input required type="text" class="form-control" name="nameTxt" id="nameTxt" placeholder="Consumer Friendly Message Group Name" ng-model="vehicle.item.module.item.name"></input>
+            <p class="help-block" ng-if="moduleConfigurationForm.nameTxt.$error.required">A name is required.</p>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="descriptionTxt" class="col-sm-2 control-label">Description:</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="descriptionTxt" placeholder="Consumer Friendly Message Group Description" ng-model="vehicle.item.module.item.description"></input>
+          </div>
+        </div>
+
+        <!-- Version -->
+        <div class="form-group">
+          <label for="versionTxt" class="col-sm-2 control-label">Version:</label>
+          <div class="col-sm-10">
+            <input required type="text" class="form-control" id="versionTxt" placeholder="Consumer Friendly Message Group Version" ng-model="vehicle.item.module.item.version"></input>
+            <p class="help-block" ng-if="moduleConfigurationForm.moduleName.$error.required">A valid version is required.</p>
+          </div>
+        </div>
+
+
+        <!-- Form Controls -->
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <!-- Save -->
+            <button ng-disabled="moduleConfigurationForm.$pristine" ng-click="submit(moduleConfigurationForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+            <!-- Clear -->
+            <button ng-hide="moduleConfigurationForm.$pristine" ng-click="clearForm(moduleConfigurationForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+          </div>
+        </div>
+
+      </form>
+
+		</div>
+	</div>
+</div>

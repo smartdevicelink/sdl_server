@@ -1,0 +1,119 @@
+<html ng-app="SDL">
+	<head>
+        <!--Fav Icon-->
+        <link rel="shortcut icon"  href="/assets/img/favicon.ico">
+
+		<!-- jQuery -->
+		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="/libs/bootstrap/dist/css/bootstrap.min.css" />
+		<script src="/libs/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
+
+		<!-- Angular JS -->
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+
+		<!-- Font Awesome -->
+		<link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+		<!-- Angular Modules -->
+
+			<!-- ngCookies -->
+			<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-cookies.js"></script>
+
+			<!-- Restangular -->
+			<!--<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>-->
+			<script type="text/javascript" src="//cdn.jsdelivr.net/lodash/2.1.0/lodash.compat.min.js"></script>
+			<!--<script src="//cdnjs.cloudflare.com/ajax/libs/restangular/1.4.0/restangular.min.js"></script>-->
+			<script type="text/javascript" src="http://cdn.jsdelivr.net/restangular/latest/restangular.min.js"></script>
+
+			<!-- Angular Route -->
+			<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.16/angular-route.min.js"></script>
+
+			<!-- ng-Table -->
+			<script type="text/javascript" src="/libs/ng-table/ng-table.js"></script>
+			<link rel="stylesheet" href="/libs/ng-table/ng-table.css" />
+
+			<!-- Angular UI Router-->
+			<script src="/libs/angular-ui-router/release/angular-ui-router.min.js" type="text/javascript"></script>
+
+			<!-- Angular File Upload -->
+			<script src="/libs/angular-file-upload/angular-file-upload.min.js" type="text/javascript"></script>
+
+			<!-- Angular Toggle Switch -->
+			<link rel="stylesheet" href="/libs/angular-toggle-switch/angular-toggle-switch.css" />
+			<link rel="stylesheet" href="/libs/angular-toggle-switch/angular-toggle-switch-bootstrap.css" />
+			<script type="text/javascript" src="/libs/angular-toggle-switch/angular-toggle-switch.min.js"></script>
+
+		<!-- Angular UI -->
+		<script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js"></script>
+
+		<!-- ngGrid -->
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/ng-grid/2.0.11/ng-grid.min.js"></script>
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/ng-grid/2.0.11/ng-grid.min.css" />
+
+		<!-- Styles -->
+		<link rel="stylesheet" href="/assets/css/styles.css" />
+		<link rel="stylesheet" href="/assets/css/livio_theme.css" />
+
+		<title>SDL</title>
+	</head>
+	<body style="zoom: 1" ng-controller="bodyCtrl">
+
+		<div id="container">
+			<!-- Load header -->
+			<ng-include src="'header/header.html'"></ng-include>
+
+			<!-- Alerts -->
+			<ng-include src="'header/alerts.html'"></ng-include>
+
+			<!-- Place holder for body content. -->
+			<div id="body" ui-view></div>
+
+			<!-- Load footer -->
+			<ng-include src="'footer/footer.html'"></ng-include>
+		</div>
+
+		<!-- Load the SDL app -->
+		<script src="app.js"></script>
+
+        <!-- TODO: Auto-Generate service includes using grunt -->
+        <script src="./services/session_service.js"></script>
+        <script src="./services/cache_service.js"></script>
+        <script src="./services/auth_service.js"></script>
+        <script src="./services/user_service.js"></script>
+        <script src="./services/dataForm_service.js"></script>
+        <script src="./services/dataTable_service.js"></script>
+        <script src="./services/subNav_service.js"></script>
+        <script src="./services/httpRequestInterceptor_service.js"></script>
+        <script src="./services/alert_service.js"></script>
+        <script src="./services/language_service.js"></script>
+        <script src="./services/error_service.js"></script>
+
+        <!-- TODO:  Auto-Generate controller includes using grunt -->
+        <script src="./login/login_controller.js"></script>
+        <script src="./app/apps_controller.js"></script>
+        <script src="./app/app_controller.js"></script>
+        <script src="./vehicle/vehicles_controller.js"></script>
+        <script src="./vehicle/vehicle_controller.js"></script>
+        <script src="./user/users_controller.js"></script>
+        <script src="./user/user_controller.js"></script>
+        <script src="./user/register_controller.js"></script>
+        <script src="./policy/consumerFriendlyMessage_controller.js"></script>
+        <script src="./policy/consumerFriendlyMessages_controller.js"></script>
+        <script src="./policy/functionalGroups_controller.js"></script>
+        <script src="./policy/functionalGroup_controller.js"></script>
+        <script src="./policy/messageType_controller.js"></script>
+        <script src="./body/body_controller.js"></script>
+        <script src="./header/header_controller.js"></script>
+        <script src="./user/userCreate_controller.js"></script>
+
+        <!-- TODO:  Auto-Generate filter includes using grunt -->
+        <script src="./filters/iff.js"></script>
+
+        <!-- TODO: Auto-Generate directive includes using grunt -->
+        <script src="./directives/showErrors_directive.js"></script>
+        <script src="./directives/ngThumb_directive.js"></script>
+	</body>
+</html>

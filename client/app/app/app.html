@@ -1,0 +1,260 @@
+<div class="user-container" class="">
+	<div class="row">
+		
+		<!-- Side Navigation -->
+		<div class="col-sm-3 sidebar">
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<ul class="nav nav-pills nav-stacked">
+						<li ng-repeat="form in app.forms" ng-class=""><button ng-class="{active : app.activeForm.id == form.id, disabled: app.isNew && form.isDisabledOnCreate}" class="btn btn-pill" ng-click="switchForm(form.id)">{{form.name}}</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<!-- Forms -->
+		<div class="col-sm-9" ng-switch="app.activeForm.id">
+	
+			<!-- Application Info Form -->
+			<form ng-switch-when="appInfoForm" name="appInfoForm" class="form-horizontal" role="form" novalidate>
+				<legend>{{app.item.name}} Info</legend>
+				<div class="form-group" show-errors>
+					<label for="appName" class="col-sm-2 control-label">Name:</label>
+					<div class="col-sm-10">
+						<input required type="text" class="form-control" name="appName" id="appName" placeholder="Application Name" ng-model="app.item.name"></input>
+						<p class="help-block" ng-if="appInfoForm.appName.$error.required">An application name is required.</p>
+					</div>
+				</div>
+
+        <!--App Activated-->
+				<div class="form-group">
+					<label for="activatedSwitch" class="col-sm-2 control-label">Activated:</label>
+					<div class="col-sm-10">
+						<toggle-switch name="activatedSwitch" class="form-toggle-switch" model="app.item.activated"><toggle-switch>
+					</div>
+				</div>
+
+        <!--SDL Category-->
+				<div class="form-group" show-errors>
+					<label for="sdlCategorySelect" class="col-sm-2 control-label">SDL Category:</label>
+					<div class="col-sm-10">
+						<select required class="form-control" name="sdlCategorySelect" id="sdlCategorySelect" placeholder="Application category assigned by SDL." ng-model="app.item.sdlCategory" ng-options="category.name for category in sdlCategories track by category.value | orderBy:'category.name'">
+							<option value="">--- choose SDL Category ---</option>
+						</select>
+						<p class="help-block" ng-if="appInfoForm.sdlCategorySelect.$error.required">SDL category is required.</p>
+					</div>
+				</div>
+
+        <!--App Description-->
+				<div class="form-group">
+					<label for="descriptionTxt" class="col-sm-2 control-label">Description:</label>
+					<div class="col-sm-10">
+						<input type="text" class="form-control" id="descriptionTxt" placeholder="Application Description" ng-model="app.item.description"></input>
+					</div>
+				</div>
+
+        <!--App Development Enabled-->
+				<div class="form-group">
+					<label for="developmentEnabled" class="col-sm-2 control-label">Development:</label>
+					<div class="col-sm-10">
+						<toggle-switch id="developmentEnabled" class="form-toggle-switch" id="developmentBool" model="app.item.development"><toggle-switch>
+					</div>
+				</div>
+
+        <!--Application Icon Upload-->
+				<div class="form-group">
+					<label for="iconUrl" class="col-sm-2 control-label">Icon:</label>
+					<div class="col-sm-10">
+            <div class="applicationIcon">
+              <div ng-if="uploader.queue[0]">
+                <div ng-repeat="item in uploader.queue">
+                  <div id="uploaderPreview" class="applicationIcon inline" ng-thumb="{ file: item.file, height: 30, width: 30 }"></div>
+                </div>
+              </div>
+              <div ng-if="!uploader.queue[0]">
+                <img class="applicationIcon" ng-src="{{app.item.iconUrl}}">
+              </div>
+            </div>
+
+            <div class="fileUpload btn btn-primary">
+              <i class="fa fa-upload"></i>
+              <span> Upload</span>
+              <input ng-file-select type="file"  name="iconUrl" id="iconUrl" ng-click="appInfoForm.$setDirty()" class="upload" ng-model="app.item.iconUrl"></input>
+            </div>
+
+            <button class="btn btn-primary inline" ng-click="restoreDefaultIcon(app); appInfoForm.$setDirty()">Default</button>
+					</div>
+
+				</div>
+
+      <!--Application Icon URL-->
+      <div class="form-group">
+        <label for="iconWebUrl" class="col-sm-2 control-label" >Icon URL:</label>
+        <div class="col-sm-10">
+          <input id="iconWebUrl"  type="text" class="form-control" ng-disabled="uploader.queue.length > 0" ng-model="app.item.iconUrl" placeholder="Icon URL"/>
+        </div>
+      </div>
+
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<!-- Save -->
+						<button ng-disabled="appInfoForm.$pristine" ng-click="submit(appInfoForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+						<!-- Clear -->
+						<button ng-hide="appInfoForm.$pristine" ng-click="clearForm(appInfoForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+					</div>
+				</div>
+			</form>
+
+			<!-- Android Info Form -->
+			<form ng-switch-when="androidForm" name="androidForm" class="form-horizontal" role="form" novalidate>
+				<legend>Android</legend>
+
+				<div class="form-group">
+					<label for="androidEnabled" class="col-sm-2 control-label">Enabled:</label>
+					<div class="col-sm-10">
+						<toggle-switch id="androidEnabled" class="form-toggle-switch" model="app.item.android.enabled"><toggle-switch>
+					</div>
+				</div>
+
+				<!-- Show android info form if android is enabled -->
+				<div ng-show="app.item.android.enabled">
+					<div class="form-group" show-errors>
+						<label for="packageNameTxt" class="col-sm-2 control-label">Name:</label>
+						<div class="col-sm-10">
+							<input required ng-required="app.item.android.enabled" type="text" class="form-control" name="packageNameTxt" id="packageNameTxt" placeholder="Android Package Name" ng-model="app.item.android.packageName"></input>
+							<p class="help-block" ng-if="androidForm.packageNameTxt.$error.required">Android package name is required.</p>
+						</div>
+					</div>
+
+					<div class="form-group" show-errors>
+						<label for="androidCategory" class="col-sm-2 control-label">Category:</label>
+						<div class="col-sm-10">
+							<select required ng-required="app.item.android.enabled" class="form-control" name="androidCategory" id="androidCategory" placeholder="Application Store Category" ng-model="app.item.android.category" ng-options="category for category in androidCategories">
+								<option value="">--- choose android category ---</option>
+							</select>
+							<p class="help-block" ng-if="androidForm.androidCategory.$error.required">Android application category is requried.</p>
+						</div>
+					</div>
+
+					<div class="form-group" show-errors>
+						<label for="playStoreUrl" class="col-sm-2 control-label">URL:</label>
+						<div class="col-sm-10">
+							<input required ng-required="app.item.android.enabled" type="url" class="form-control" name="playStoreUrl" placeholder="Android Playstore URL" ng-model="app.item.android.playStoreUrl"></input>
+							<p class="help-block" ng-if="androidForm.playStoreUrl.$error.required">Android play store URL is required.</p>
+							<p class="help-block" ng-if="androidForm.playStoreUrl.$error.url">Android play store URL is invalid.</p>
+						</div>
+
+					</div>
+
+					<div class="form-group" show-errors>
+						<label for="sdlVersionTxt" class="col-sm-2 control-label">SDL Version:</label>
+						<div class="col-sm-10">
+							<select required ng-required="app.item.android.enabled" class="form-control" name="sdlVersionTxt" placeholder="Highest version of SDL supported" ng-model="app.item.android.sdlVersion" ng-options="sdlversion._id as sdlversion.version for sdlversion in sdlVersions">
+								<option value="">--- choose Highest supported SDL version ---</option>
+							</select>
+							<p class="help-block" ng-if="androidForm.sdlVersionTxt.$error.required">Highest supported SDL version is required.</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<!-- Save -->
+						<button ng-disabled="androidForm.$pristine || (app.item.android.enabled === false && appReadOnly.android.enabled === false)" ng-click="submit(androidForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+
+						<!-- Clear -->
+						<button ng-hide="androidForm.$pristine" ng-click="clearForm(androidForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+					</div>
+				</div>
+			</form>
+
+			<!-- iOS Info Form -->
+			<form ng-switch-when="iosForm" name="iosForm" class="form-horizontal" role="form" novalidate>
+				<legend>iOS</legend>
+
+				<div class="form-group">
+					<label for="iosEnabled" class="col-sm-2 control-label">iOS App:</label>
+					<div class="col-sm-10">
+						<toggle-switch id="iosEnabled" class="form-toggle-switch" model="app.item.ios.enabled"><toggle-switch>
+					</div>
+				</div>
+
+				<!-- Show iOS info form if iOS is enabled -->
+				<div ng-show="app.item.ios.enabled">
+
+					<div class="form-group" show-errors>
+						<label for="iosCategory" class="col-sm-2 control-label">Category:</label>
+						<div class="col-sm-10">
+							<select required ng-required="app.item.ios.enabled" class="form-control" name="iosCategory" placeholder="App Store Category" ng-model="app.item.ios.category" ng-options="category for category in iosCategories | orderBy:'category'">
+								<option value="">--- choose iOS category ---</option>
+							</select>
+							<p class="help-block" ng-if="iosForm.iosCategory.$error.required">iOS application category is required.</p>
+						</div>
+					</div>
+
+					<div class="form-group" show-errors>
+						<label for="itunesUrl" class="col-sm-2 control-label">URL:</label>
+						<div class="col-sm-10">
+							<input required ng-required="app.item.ios.enabled" type="url" class="form-control" name="itunesUrl" placeholder="iTunes store URL" ng-model="app.item.ios.itunesUrl"></input>
+							<p class="help-block" ng-if="iosForm.itunesUrl.$error.required">iTunes store URL is reqruied.</p>
+							<p class="help-block" ng-if="iosForm.itunesUrl.$error.url">iTunes store URL is invalid.</p>
+						</div>
+					</div>
+
+					<div class="form-group" show-errors>
+						<label for="urlSchema" class="col-sm-2 control-label">URL Schema:</label>
+						<div class="col-sm-10">
+							<input required ng-required="app.item.ios.enabled" type="url" class="form-control" name="urlSchema" placeholder="iOS url schema" ng-model="app.item.ios.urlSchema"></input>
+							<p class="help-block" ng-if="iosForm.urlSchema.$error.required">iOS URL schema is required.</p>
+							<p class="help-block" ng-if="iosForm.urlSchema.$error.url">iOS URL schema is invalid.</p>
+						</div>
+					</div>
+
+					<div class="form-group" show-errors>
+						<label for="iosSdlVersionTxt" class="col-sm-2 control-label">SDL Version:</label>
+						<div class="col-sm-10">
+							<select required ng-required="app.item.ios.enabled" class="form-control" name="iosSdlVersionTxt" placeholder="Highest version of SDL supported" ng-model="app.item.ios.sdlVersion" ng-options="sdlversion._id as sdlversion.version for sdlversion in sdlVersions">
+								<option value="">--- choose Highest supported SDL version ---</option>
+							</select>
+							<p class="help-block" ng-if="iosForm.iosSdlVersionTxt.$error.required">Highest version of SDL supported is required.</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<!-- Save -->
+						<button ng-disabled="iosForm.$pristine || (app.item.ios.enabled === false && appReadOnly.ios.enabled === false)" ng-click="submit(iosForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+
+						<!-- Clear -->
+						<button ng-hide="iosForm.$pristine" ng-click="clearForm(iosForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+					</div>
+				</div>
+			</form>
+
+			<!-- Security Form -->
+			<form ng-switch-when="securityForm" name="securityForm" class="form-horizontal" role="form" novalidate>
+				<legend>Security</legend>
+
+				<div class="form-group">
+					<label for="keyTxt" class="col-sm-2 control-label">Key:</label>
+					<div class="col-sm-10">
+						<div id="keyTxt" class="well well-sm">
+							{{app.item.key}}
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<!-- Save -->
+						<button ng-disabled="securityForm.$invalid || securityForm.$pristine" ng-click="submit(securityForm);" class="btn btn-primary btn-default col-sm-2 pull-left"><i class="fa fa-save"/> Save</button>
+
+						<!-- Clear -->
+						<button ng-hide="securityForm.$pristine" ng-click="clearForm(securityForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

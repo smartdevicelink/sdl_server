@@ -1,0 +1,121 @@
+<div class="cfm-container">
+
+    <div ng-show="showDeleteMessageTypes && messagesTable.selected.enabled && messagesTable.selected.count <= 0" class="alert alert-warning action-confirm">
+        <span>Select the message types to be deleted.</span>
+    </div>
+
+    <div ng-show="showDeleteMessageTypes && messagesTable.selected.enabled && messagesTable.selected.count > 0" class="alert alert-danger action-confirm">
+        <span>Permanently delete the {{messagesTable.selected.count}} selected message type{{messagesTable.selected.count > 1 ? 's' : ""}}? </span>
+        <button type="button" class="btn btn-danger action-confirm-btn" ng-click="deleteSelected()">Confirm Delete</button>
+    </div>
+
+	<div class="row">
+		
+		<!-- Side Navigation -->
+		<div class="col-sm-3 sidebar">
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<ul class="nav nav-pills nav-stacked">
+						<li ng-repeat="form in cfm.forms" ng-class=""><button ng-class="{active : cfm.activeForm.id == form.id, disabled: cfm.isNew && form.isDisabledOnCreate}" class="btn btn-pill" ng-click="switchForm(form.id)">{{form.name}}</button></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<!-- Forms -->
+		<div class="col-sm-9" ng-switch="cfm.activeForm.id">
+
+			<!-- Info Form -->
+			<form ng-switch-when="infoForm" name="infoForm" class="form-horizontal" role="form" novalidate>
+				<legend>{{cfm.item.name}} Info</legend>
+
+				<!-- Name -->
+				<div class="form-group" show-errors>
+					<label for="nameTxt" class="col-sm-2 control-label">Name:</label>
+					<div class="col-sm-10">
+						<input required type="text" class="form-control" name="nameTxt" id="nameTxt" placeholder="Consumer Friendly Message Group Name" ng-model="cfm.item.name" />
+						<p class="help-block" ng-if="infoForm.nameTxt.$error.required">A name is required.</p>
+					</div>
+				</div>
+
+				<!-- Description -->
+				<div class="form-group">
+					<label for="descriptionTxt" class="col-sm-2 control-label">Description:</label>
+					<div class="col-sm-10">
+						<input type="text" class="form-control" id="descriptionTxt" placeholder="Consumer Friendly Message Group Description" ng-model="cfm.item.description"/>
+					</div>
+				</div>
+
+				<!-- Version -->
+				<div class="form-group">
+					<label for="versionTxt" class="col-sm-2 control-label">Version:</label>
+					<div class="col-sm-10">
+						<input required type="text" class="form-control" id="versionTxt" placeholder="Consumer Friendly Message Group Version" ng-model="cfm.item.version"/>
+						<p class="help-block" ng-if="infoForm.cfmName.$error.required">A valid version is required.</p>
+					</div>
+				</div>
+
+
+				<!-- Form Controls -->
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<!-- Save -->
+						<button ng-disabled="infoForm.$pristine" ng-click="submit(infoForm);" class="btn btn-primary btn-default pull-left"><i class="fa fa-save"></i> Save</button>
+						<!-- Clear -->
+						<button ng-hide="infoForm.$pristine" ng-click="clearForm(infoForm)" class="btn btn-primary btn-default pull-right"> Clear Changes</button>
+					</div>
+				</div>
+			</form>
+
+
+
+            <span ng-switch-when="messagesForm">
+
+                <legend>{{cfm.item.name}} {{cfm.activeForm.name}}</legend>
+
+                <div class="btn-group btn-group-justified btn-group-nav" style="margin-bottom: 10px;">
+                    <div class="btn-group">
+                        <button ng-click="createNewMessageType()" class="btn btn-success"><i class="fa fa-plus"/>&nbsp;&nbsp;New Message Type</button>
+                    </div>
+                    <div class="btn-group">
+                        <button ng-if="! showDeleteMessageTypes" ng-click="deleteMessageTypes()" class="btn btn-danger"><i class="fa fa-times"/>&nbsp;&nbsp;Delete Message Types</button>
+                        <button ng-if="showDeleteMessageTypes" ng-click="deleteMessageTypes()" class="btn btn-danger"><i class="fa fa-rotate-right"/>&nbsp;&nbsp;Cancel</button>
+                    </div>
+                </div>
+
+			<!-- Messages Form -->
+			<form name="messagesForm" class="form-horizontal" role="form" novalidate>
+
+                <table ng-table="messagesTable.ngTableParams" class="table table-hover table-livio ng-table-rowselected">
+                    <tr ng-repeat="item in $data" ng-click="selectItem(item)" ng-class="{'active': item.selected && messagesTable.selected.enabled}">
+
+                        <!-- Select All in Header -->
+                        <td header="'ng-table/headers/checkbox.html'" ng-show="messagesTable.selected.enabled" class="">
+                            <input type="checkbox" ng-model="item.selectedCheckbox" name="selected" />
+                        </td>
+
+                        <!-- Name -->
+                        <td data-title="'Name'" sortable="'key'" filter="{'key': 'text'}" class="table-livio-icon-text">
+                            <a ng-click="goToMessageType(item._id)">{{item.key}}</a>
+                        </td>
+
+                        <!-- Description -->
+                        <td data-title="'Description'" sortable="'description'" filter="{'description': 'text'}">
+                            {{item.description}}
+                        </td>
+
+                        <!-- Controls -->
+                        <td data-title="'Control'">
+                            <button type="button" class="btn btn-primary" ng-click="goToMessageType(item._id)"><i class="fa fa-pencil-square-o"></i>&nbsp;&nbsp;Edit</button>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Template for Select All in Header -->
+                <script type="text/ng-template" id="ng-table/headers/checkbox.html">
+                    <input id="selectAllItemsCheckbox" type="checkbox" ng-model="messagesTable.selected.isAllCheckbox" ng-click="selectAllItems()" />
+                </script>
+            </form>
+        </div>
+	</div>
+</div>

@@ -1,0 +1,74 @@
+{
+  "author": {
+    "email": "scott@livioconnect.com",
+    "name": "Scott Smereka",
+    "url": "https://github.com/ssmereka"
+  },
+  "bugs": {
+    "url": "https://github.com/smartdevicelink/sdl_server/issues"
+  },
+  "contributors": [{
+    "name": "Chris Rokita",
+    "email":"chris.rokita@livioconnect.com"
+  }],
+  "dependencies": {
+    "async": "x.x.x",
+    "bcrypt": "0.7.7",
+    "colors": "0.6.x",
+    "connect-flash": "0.1.x",
+    "connect-mongo": "0.3.x",
+    "crypto": "0.0.3",
+    "express": "3.4.x",
+    "express-validator": "0.8.x",
+    "forever-monitor": "1.2.2",
+    "foxjs": "git+https://github.com/ssmereka/foxjs.git#HEAD",
+    "jade": "0.35.x",
+    "mkdirp": "^0.5.0",
+    "mocha": "x.x.x",
+    "mongodb": "1.2.x",
+    "mongoose": "3.8.x",
+    "multiparty": "^3.2.8",
+    "passport": "0.1.x",
+    "passport-http-bearer": "x.x.x",
+    "passport-local": "0.1.x",
+    "sanitize-it": "x.x.x",
+    "supertest": "x.x.x",
+    "underscore": "x.x.x",
+    "validator": "1.5.1"
+  },
+  "devDependencies": {
+
+  },
+  "description": "SmartDeviceLink (SDL) server handles authentication, data collection, and basic configurations for SDL connected vehicles.",
+  "engine": "node >= 0.10.x",
+  "homepage": "https://github.com/smartdevicelink/sdl_server",
+  "keywords": [
+    "SDL",
+    "SmartDeviceLink",
+    "Vehicles",
+    "Cars",
+    "Infotainment"
+  ],
+  "license": {
+    "type": "",
+    "url": "https://github.com/smartdevicelink/sdl_server/blob/master/LICENSE"
+  },
+  "maintainers": [{
+      "name": "Scott Smereka",
+      "email": "scott@livioconnect.com"
+    },{
+      "name": "Corey Maylone",
+      "email": "corey@livioconnect.com"
+    }
+  ],
+  "name": "SDL Server",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smartdevicelink/sdl_server.git"
+  },
+  "scripts": {
+    "test": "NODE_ENV=\"test\" npm run test-server",
+    "test-server": "mocha -t 10000 -R spec ./tests/index.js"
+  },
+  "version": "0.0.1"
+}

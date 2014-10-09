@@ -1,0 +1,11 @@
+<div id="subnav" class="btn-group btn-group-justified btn-group-nav" ng-if="isSubNavEnabled">
+	<div ng-if="subNav.leftBtn.enabled" class="btn-group">
+		<button type="button" class="btn btn-success btn-group-btn" ng-class="{'active': subNav.leftBtn.isActive}" ng-click="subNav.leftBtn.onClick()"><i class="fa" ng-class="subNav.leftBtn.iconClass"></i>&nbsp;&nbsp;{{subNav.leftBtn.text}}</button>
+	</div>
+	<div ng-if="subNav.middleBtn.enabled" class="btn-group">
+		<button type="button" class="btn btn-primary btn-group-btn" ng-class="{'active': subNav.middleBtn.isActive}" ng-click="subNav.middleBtn.onClick()"><i class="fa " ng-class="subNav.middleBtn.iconClass"></i>&nbsp;&nbsp;{{subNav.middleBtn.text}}</button>
+	</div>
+	<div ng-if="subNav.rightBtn.enabled" class="btn-group">
+		<button type="button" class="btn btn-danger btn-group-btn" ng-class="{'active': subNav.rightBtn.isActive}" ng-click="subNav.rightBtn.onClick()"><i class="fa" ng-class="subNav.rightBtn.iconClass"></i>&nbsp;&nbsp;{{subNav.rightBtn.text}}</button>
+	</div>
+</div>

@@ -1,0 +1,258 @@
+/**
+ * Livio Theme
+ * Colors, styles, and fonts are defined here for
+ * the Livio theme.
+ */
+
+/*
+ * Theme Colors
+ * Livio Blue: 4C8BC4
+ * Livio Orange: FCC52F
+ */
+
+/* ************************************************** *
+ * ******************** Navigation Bar
+ * ************************************************** */
+
+/**
+ * A a bootstrap navbar with the livio color theme.
+ */
+
+#header > div {
+	background-color: #FCC52F;
+    border-color: #E7E7E7;
+}
+
+/* navbar */
+.navbar-livio {
+    /*background-color: #FCC52F;
+    border-color: #E7E7E7;*/
+}
+
+/* title */
+.navbar-livio .navbar-brand {
+    color: black;
+}
+.navbar-livio .navbar-brand:hover,
+.navbar-livio .navbar-brand:focus {
+    color: white;
+    background-color: #4C8BC4;
+}
+
+/* link */
+.navbar-livio .navbar-nav > li > a {
+    color: black;
+}
+.navbar-livio .navbar-nav > li > a:hover,
+.navbar-livio .navbar-nav > li > a:focus {
+    color: white;
+    background-color: #4C8BC4;
+}
+.navbar-livio .navbar-nav > .active > a,
+.navbar-livio .navbar-nav > .active > a:hover,
+.navbar-livio .navbar-nav > .active > a:focus {
+    color: white;
+    background-color: #4C8BC4;
+}
+.navbar-livio .navbar-nav > .open > a,
+.navbar-livio .navbar-nav > .open > a:hover,
+.navbar-livio .navbar-nav > .open > a:focus {
+    color: white;
+    background-color: #4C8BC4;
+}
+
+/* Drop Down menus */
+.navbar-livio .navbar-nav .dropdown-menu {
+    color: black;
+    background-color: #FCC52F;
+    text-align: center;
+}
+.navbar-livio .navbar-nav .dropdown-menu a:hover,
+.navbar-livio .navbar-nav .dropdown-menu a:focus {
+    color: white;
+    background-color: #4C8BC4;
+}
+
+/* caret */
+.navbar-livio .navbar-nav > .dropdown > a .caret {
+    border-top-color: #777;
+    border-bottom-color: #777;
+}
+.navbar-livio .navbar-nav > .dropdown > a:hover .caret,
+.navbar-livio .navbar-nav > .dropdown > a:focus .caret {
+    border-top-color: #333;
+    border-bottom-color: #333;
+}
+.navbar-livio .navbar-nav > .open > a .caret,
+.navbar-livio .navbar-nav > .open > a:hover .caret,
+.navbar-livio .navbar-nav > .open > a:focus .caret {
+    border-top-color: #555;
+    border-bottom-color: #555;
+}
+
+/* mobile version */
+.navbar-livio .navbar-toggle {
+    border-color: black;
+}
+.navbar-livio .navbar-toggle:hover {
+		background-color: #4C8BC4;
+}
+.navbar-livio .navbar-toggle:focus {
+
+}
+.navbar-livio .navbar-toggle .icon-bar {
+    background-color: black;
+}
+@media (max-width: 767px) {
+    .navbar-livio .navbar-nav .open .dropdown-menu > li > a {
+        color: #777;
+    }
+    .navbar-livio .navbar-nav .open .dropdown-menu > li > a:hover,
+    .navbar-livio .navbar-nav .open .dropdown-menu > li > a:focus {
+        color: #333;
+    }
+}
+
+
+/* ************************************************** *
+ * ******************** Sub Navigation
+ * ************************************************** */
+
+#subnav button {
+    color: black;
+}
+
+#subnav .active {
+    color: white;
+}
+
+#subnav button:hover {
+    color: white;
+}
+
+
+/* ************************************************** *
+ * ******************** Footer
+ * ************************************************** */
+
+/* Color of the footer seperator */
+#footer .footer-seperator {
+	background-color: #000000;
+}
+
+/* Footer body */
+#footer .footer-body {
+	background-color: #808084;
+	color: #ffffff; /*333333*/
+}
+
+/* Footer links */
+#footer a,
+#footer a:hover,
+#footer a:active,
+#footer a:visited {
+	color: white;
+}
+
+/* ************************************************** *
+ * ******************** Login
+ * ************************************************** */
+
+#login .error {
+	font: 12pt Helvetica;
+	color: #bd4242;
+}
+
+#login .borderless-table {
+	font: bold 14pt Helvetica;
+}
+
+
+/* ************************************************** *
+ * ******************** Sidebar
+ * ************************************************** */
+
+.sidebar ul li:hover a {
+	background-color: #EEE;
+	text-decoration: none;
+}
+
+.sidebar a {
+	color: #0088cc;
+	text-decoration: none;
+}
+
+/* ************************************************** *
+ * ******************** Tables
+ * ************************************************** */
+
+.table-livio td {
+    vertical-align: middle !important;
+    text-align: center;
+}
+
+.table-livio-icon-text a {
+    line-height: 30px;
+}
+
+.table-livio-icon-text img {
+    width:30px;
+    height:30px;
+    float:left;
+}
+
+
+/* ************************************************** *
+ * ******************** Drop Down Menus
+ * ************************************************** */
+
+/* Drop Down menu styled as primary color */
+.dropdown-menu-primary {
+    background-color: #428bca;
+    border-color: #357ebd;
+    text-align: center;
+}
+.dropdown-menu-primary > li > a {
+    color: white;
+}
+
+.dropdown-menu-primary a:hover,
+.dropdown-menu-primary a:focus {
+    color: white !important;
+    background-color: #3276b1 !important;
+    border-color: #285e8e !important;
+}
+
+/* Drop Down menu styled as success color */
+.dropdown-menu-success {
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+    text-align: center;
+}
+.dropdown-menu-success > li > a {
+    color: white;
+}
+
+.dropdown-menu-success a:hover,
+.dropdown-menu-success a:focus {
+    color: white !important;
+    background-color: #47a447 !important;
+    border-color: #398439 !important;
+}
+
+/* Drop Down menu styled as danger color */
+.dropdown-menu-danger {
+    background-color: #d9534f;
+    border-color: #d43f3a;
+    text-align: center;
+}
+.dropdown-menu-danger > li > a {
+    color: white;
+}
+
+.dropdown-menu-danger a:hover,
+.dropdown-menu-danger a:focus {
+    color: white !important;
+    background-color: #d2322d !important;
+    border-color: #ac2925 !important;
+}

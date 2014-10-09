@@ -1,0 +1,20 @@
+module.exports = [
+	{
+		vin:'Not',
+		make:'Actually',
+		model:'ACar',
+		year:1699
+	},
+	{
+		vin:'ThereIsNone',
+		make:'daFord',
+		model:'Escapade',
+		year:2099
+	},
+	{
+		vin:'IAm',
+		make:'Somewhat',
+		model:'Bored',
+		year:2007
+	}
+];

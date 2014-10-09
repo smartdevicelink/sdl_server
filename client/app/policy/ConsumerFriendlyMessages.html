@@ -1,0 +1,49 @@
+<div class="cfm-container table-responsive">
+
+  <div ng-show="cfmTable.selected.enabled && cfmTable.selected.count <= 0" class="alert alert-warning action-confirm">
+    <span>Select the messages to be deleted.</span>
+  </div>
+
+  <div ng-show="cfmTable.selected.enabled && cfmTable.selected.count > 0" class="alert alert-danger action-confirm">
+    <span>Permanently delete the {{cfmTable.selected.count}} selected messages{{cfmTable.selected.count > 1 ? 's' : ""}}? </span>
+    <button type="button" class="btn btn-danger action-confirm-btn" ng-click="deleteSelected()">Confirm Delete</button>
+  </div>
+
+  <!--<button type="button" class="btn" ng-click="createCFM()">DO IT!</button>-->
+
+  <table ng-table="cfmTable.ngTableParams" class="table table-hover table-livio ng-table-rowselected">
+    <tr ng-repeat="item in $data" ng-click="selectItem(item)" ng-class="{'active': item.selected && cfmTable.selected.enabled}">
+      
+      <!-- Select All in Header -->
+      <td header="'ng-table/headers/checkbox.html'" ng-show="cfmTable.selected.enabled" class="">
+        <input type="checkbox" ng-model="item.selectedCheckbox" name="selected" />
+      </td>
+      
+      <!-- Name -->
+      <td data-title="'Name'" sortable="'name'" filter="{'name': 'text'}">
+        <a ui-sref="consumerFriendlyMessage({ id: item._id })">{{item.name}}</a>
+      </td>
+      
+      <!-- Description -->
+      <td data-title="'Description'" sortable="'description'" filter="{'description': 'text'}">
+        {{item.description}}
+      </td>
+
+      <!-- Version -->
+      <td data-title="'Version'" sortable="'version'" filter="{'version': 'text'}">
+        {{item.version}}
+      </td>
+
+      <!-- Controls -->
+      <td data-title="'Controls'">
+        <button type="button" class="btn btn-primary" ng-click="copy(item)"><i class="fa fa-copy"/>&nbsp;&nbsp;Copy</button>
+      </td>
+
+    </tr>
+  </table>
+
+  <!-- Template for Select All in Header -->
+  <script type="text/ng-template" id="ng-table/headers/checkbox.html">
+        <input id="selectAllItemsCheckbox" type="checkbox" ng-model="cfmTable.selected.isAllCheckbox" ng-click="selectAllItems()"></input>
+    </script>
+</div>

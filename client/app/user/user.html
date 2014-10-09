@@ -1,0 +1,142 @@
+<div class="user-container" class="">
+	<div class="row">
+
+		<!-- Side Navigation -->
+		<div class="col-sm-3 sidebar">
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<ul class="nav nav-pills nav-stacked">
+						<li ng-repeat="form in user.forms" ng-class=""><button ng-class="{active : user.activeForm.id == form.id, disabled: user.isNew && form.isDisabledOnCreate}" class="btn btn-pill" ng-click="switchForm(form.id)">{{form.name}}</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<!-- Views -->
+		<div class="col-sm-9" ng-switch="user.activeForm.id">
+			
+			<span ng-switch-when="userInfoForm">
+				<!-- User Info Form -->
+				<form name="userInfoForm" class="form-horizontal" role="form" novalidate>
+					<legend>{{user.activeForm.name}}</legend>
+					
+					<!-- First Name -->
+					<div class="form-group" show-errors>
+						<label for="firstNameTxt" class="col-sm-2 control-label">First Name:</label>
+						<div class="col-sm-10">
+							<input required type="text" class="form-control" name="firstNameTxt" placeholder="Enter your first name" ng-model="user.item.firstName"></input>
+							<p class="help-block" ng-if="userInfoForm.firstNameTxt.$error.required">Your first name is required.</p>
+						</div>
+					</div>
+
+					<!-- Last Name -->
+					<div class="form-group" show-errors>
+						<label for="lastNameTxt" class="col-sm-2 control-label">Last Name:</label>
+						<div class="col-sm-10">
+							<input required type="text" class="form-control" name="lastNameTxt" placeholder="Enter your last name" ng-model="user.item.lastName"></input>
+							<p class="help-block" ng-if="userInfoForm.lastNameTxt.$error.required">Your last name is required.</p>
+						</div>
+					</div>
+
+					<!-- Email -->
+					<div class="form-group" show-errors>
+						<label for="emailTxt" class="col-sm-2 control-label">Email:</label>
+						<div class="col-sm-10" ng-class="{ 'has-error' : userInfoForm.email.$invalid && !userInfoForm.email.$pristine }">
+							<input required type="email" class="form-control" name="emailTxt" placeholder="Enter your email" ng-model="user.item.email"></input>
+							<p ng-show="userInfoForm.emailTxt.$invalid && ! userInfoForm.email.$pristine" class="help-block">Enter a valid email.</p>
+						</div>
+					</div>
+
+					<!-- Activated -->
+					<div class="form-group">
+						<label for="activatedBool" class="col-sm-2 control-label">Activated:</label>
+						<div class="col-sm-10" >
+							<toggle-switch id="activatedBool" class="form-toggle-switch" model="user.item.activated" ng-disabled="session.user._id === user.item._id"><toggle-switch>
+						</div>
+					</div>
+					
+					<!-- Form Controls -->
+					<div class="form-group">
+						<div class="col-sm-offset-2 col-sm-10">
+							<!-- Save -->
+							<button ng-disabled="userInfoForm.$pristine" ng-click="submit(userInfoForm);" class="btn btn-primary btn-default col-sm-2 pull-left"> Save</button>
+
+							<!-- Clear -->
+							<button ng-hide="userInfoForm.$pristine" ng-click="clearForm(userInfoForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+						</div>
+					</div>
+				</form>
+
+				<!-- Read Only Info -->
+				<form name="userReadOnlyInfoForm" class="form-horizontal" role="form" novalidate>
+					<legend>Statistic</legend>
+					<!-- Last Login -->
+					<div class="form-group">
+						<label for="" class="col-sm-2 control-label">Last Login:</label>
+						<div class="col-sm-10">
+							<label class="control-label" style="font-weight: normal;">{{user.item.lastLogin}}</label>
+						</div>
+					</div>
+
+					<!-- Date Created -->
+					<div class="form-group">
+						<label for="" class="col-sm-2 control-label">Date Created:</label>
+						<div class="col-sm-10">
+							<label class="control-label" style="font-weight: normal;">{{user.item.dateCreated}}</label>
+						</div>
+					</div>
+				</form>
+			</span>
+
+			<!-- Security Form -->
+			<form ng-switch-when="securityForm" name="securityForm" class="form-horizontal" role="form" novalidate>
+				<legend>Security</legend>
+
+				<!-- User Role -->
+				<div class="form-group" show-errors>
+					<label for="userRoleSelect" class="col-sm-2 control-label">User Role:</label>
+					<div class="col-sm-10">
+						<select ng-disabled="session.userRole.id > 2 || session.user._id === user.item._id" required class="form-control" name="userRoleSelect" placeholder="User permission role" ng-model="user.item.role" ng-options="userRole.name for userRole in userRolesSanitized track by userRole.index | orderBy: 'userRole.index'"></select>
+						<p class="help-block" ng-if="securityForm.userRoleSelect.$error.required">User role is required.</p>
+					</div>
+				</div>
+
+				<!-- Security Question -->
+				<div class="form-group" show-errors>
+					<label for="securityQuestionTxt" class="col-sm-2 control-label">Security Question</label>
+					<div class="col-sm-10">
+						<input type="text" class="form-control" name="securityQuestionTxt" placeholder="Example: What is your pets name?" ng-model="user.item.securityQuestion"></input>
+						<p class="help-block" ng-if="securityForm.securityQuestionTxt.$error.required">A security question is required.</p>
+					</div>
+				</div>
+
+				<!-- Security Answer -->
+				<div class="form-group">
+					<label for="securityAnswerTxt" class="col-sm-2 control-label">Security Answer</label>
+					<div class="col-sm-10">
+						<input type="password" class="form-control" name="securityAnswerTxt" placeholder="Enter new security answer" ng-model="user.item.securityAnswer"></input>
+					</div>
+				</div>
+
+				<!-- Password -->
+				<div class="form-group">
+					<label for="passwordTxt" class="col-sm-2 control-label">Change Password</label>
+					<div class="col-sm-10">
+						<input type="password" class="form-control" name="passwordTxt" placeholder="Enter new password" ng-model="user.item.password"></input>
+					</div>
+				</div>
+				
+				<!-- Form Controls -->
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<!-- Save -->
+						<button ng-disabled="securityForm.$pristine" ng-click="submit(securityForm);" class="btn btn-primary btn-default col-sm-2 pull-left"> Save</button>
+
+						<!-- Clear -->
+						<button ng-hide="securityForm.$pristine" ng-click="clearForm(securityForm)" class="btn btn-primary btn-default col-sm-2 pull-right"> Clear Changes</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

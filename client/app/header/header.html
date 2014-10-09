@@ -1,0 +1,81 @@
+<!-- Header Scope -->
+<div id="header" class="navbar navbar-livio navbar-fixed-top" role="navigation" ng-controller="headerCtrl">
+    <div>
+        <div class="container-fluid">
+
+            <!-- Branding -->
+            <div class="navbar-header">
+                <button class="navbar-toggle" type="button" ng-click="navCollapsed = !navCollapsed">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">SDL</a>
+            </div>
+
+            <!-- Navbar Links -->
+            <div collapse="navCollapsed" class="navbar-collapse">
+
+                <!-- Left Adjusted links, next to brand -->
+                <ul class="nav navbar-nav navbar-left">
+                    <li></li>
+                </ul>
+
+                <!-- Right Adjusted links -->
+
+                <!-- Anonymous User Navigation -->
+                <ul ng-if=" ! session.user" class="nav navbar-nav navbar-right">
+                    <li><a ui-sref='login'><i class="fa fa-user"></i> Login</a></li>
+                    <li><a ui-sref='register'><i class="fa fa-rocket"></i> Request Access</a></li>
+                </ul>
+
+                <!-- Authenticated User Navigation -->
+                <ul ng-if="session.user" class="nav navbar-nav navbar-right">
+                    
+                    <!-- Apps -->
+                    <li ng-class="{active: activeTab == 'apps'}" >
+                        <a ui-sref='apps'><i class="fa fa-phone"></i> Apps</a>
+                    </li>
+
+                    <!-- Cars -->
+                    <li ng-class="{active: activeTab == 'cars'}">
+                        <a ui-sref='cars'><i class="fa fa-car"></i> Cars</a>
+                    </li>
+
+                    <!-- Users -->
+                    <li ng-if="session.userRole && session.userRole.index <= 4" ng-class="{active: activeTab == 'users'}">
+                        <a ui-sref='users'><i class="fa fa-users"></i> Users</a>
+                    </li>
+
+                    <!-- Policy -->
+                    <li class="dropdown" ng-class="{active: activeTab == 'policies'}">
+                        <a class="dropdown-toggle" href="#">
+                            <i class="fa fa-legal"></i> Policy<b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a ui-sref="consumerFriendlyMessages">Consumer Friendly Messages</a></li>
+                            <li><a ui-sref="functionalGroups">Functional Groups</a></li>
+                            <li><a ui-sref="policies">Policies</a></li>
+                        </ul>
+                    </li>   
+                        
+                    <!-- Current User Menu -->
+                    <li class="dropdown" ng-class="{active: activeTab == 'profile'}">
+                        <a class="dropdown-toggle" href="#">
+                            <i class="fa fa-user"></i> {{ session.user.firstName}}<b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a ui-sref="user({ id: session.user._id })">Profile</a></li>
+                            <li><a href="" ng-click="logout()">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <ng-include src="'nav/subnav.html'"></ng-include>
+</div>
+
+<!-- Push everything below the navigation bar -->
+<div id="navSpacer" ng-class="{'subnavBodyPadding': isSubNavEnabled}"> </div>
