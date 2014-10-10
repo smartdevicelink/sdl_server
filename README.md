@@ -34,7 +34,7 @@ A quick guide to installing, configuring, and running an instance of the SDL ser
  
   4. Download and install a new instance of the SDL server.
     
-        fox new MyServer sdl_auth_server
+        fox new MyServerName sdl_server
 
       The server is now started and you can view it by going to [localhost:3000](http://localhost:3000) in your browser.
 
