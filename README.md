@@ -22,7 +22,7 @@ Javascript backend and front-end used for authentication and data collection for
 # Getting Started
 A quick guide to installing, configuring, and running an instance of the SDL server.
 
-  1. Install [Node.js](http://nodejs.org/)
+  1. Install [Node.js](http://nodejs.org/) and [NPM](https://www.npmjs.org/), you can use this [guide](https://github.com/smartdevicelink/sdl_server/wiki/Install-Node.js).
   2. Install or setup a [MongoDB](http://docs.mongodb.org/manual/installation/) Database.
   4. Install the dependancies:  `git`, `make`, and `g++`
   
