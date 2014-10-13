@@ -7,13 +7,16 @@
   "bugs": {
     "url": "https://github.com/smartdevicelink/sdl_server/issues"
   },
-  "contributors": [{
-    "name": "Chris Rokita",
-    "email":"chris.rokita@livioconnect.com"
-  }],
+  "contributors": [
+    {
+      "name": "Chris Rokita",
+      "email": "chris.rokita@livioconnect.com"
+    }
+  ],
   "dependencies": {
     "async": "x.x.x",
     "bcrypt": "0.7.7",
+    "cheerio": "^0.17.0",
     "colors": "0.6.x",
     "connect-flash": "0.1.x",
     "connect-mongo": "0.3.x",
@@ -31,14 +34,14 @@
     "passport": "0.1.x",
     "passport-http-bearer": "x.x.x",
     "passport-local": "0.1.x",
+    "pluralize": "^1.0.2",
+    "request": "^2.45.0",
     "sanitize-it": "x.x.x",
     "supertest": "x.x.x",
     "underscore": "x.x.x",
     "validator": "1.5.1"
   },
-  "devDependencies": {
-
-  },
+  "devDependencies": {},
   "description": "SmartDeviceLink (SDL) server handles authentication, data collection, and basic configurations for SDL connected vehicles.",
   "engine": "node >= 0.10.x",
   "homepage": "https://github.com/smartdevicelink/sdl_server",
@@ -53,10 +56,12 @@
     "type": "",
     "url": "https://github.com/smartdevicelink/sdl_server/blob/master/LICENSE"
   },
-  "maintainers": [{
+  "maintainers": [
+    {
       "name": "Scott Smereka",
       "email": "scott@livioconnect.com"
-    },{
+    },
+    {
       "name": "Corey Maylone",
       "email": "corey@livioconnect.com"
     }
