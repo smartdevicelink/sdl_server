@@ -36,7 +36,7 @@ A quick guide to installing, configuring, and running an instance of the SDL ser
     
         fox new MyServerName sdl_server
 
-      The server is now started and you can view it by going to [localhost:3000](http://localhost:3000) in your browser.
+      The server is now started and you can view it by going to [localhost:3000](http://localhost:3000) in your browser.  If the fox command does not work, checkout the [help](https://github.com/smartdevicelink/sdl_server/wiki/Help#fox_is_not_installed_error_message_in_Linux) page for more info.
 
   5. Configure the server using the `/server/configs/config.js` file.  As you save changes to the server's files it will automatically restart applying the changes.
 
