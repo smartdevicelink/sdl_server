@@ -18,7 +18,7 @@
     "angular-file-upload": "~0.5.7",
     "angular-chosen-localytics": "~1.0.6",
     "angular-bootstrap": "~0.11.0",
-    "angular-toggle-switch": "x.x.x"
+    "angular-toggle-switch": "0.3.2"
   },
   "description": "A user interface to maintain and configure an SDL server.",
   "homepage": "https://github.com/smartdevicelink/sdl_server",
