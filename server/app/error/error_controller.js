@@ -17,7 +17,7 @@ module.exports = function(app, db, config) {
       log = fox.log,
       debug = config.server.debug,
       url = require('url');
-  
+
 
   /* ************************************************** *
    * ******************** Routes
@@ -45,29 +45,7 @@ module.exports = function(app, db, config) {
       next();
     }
 
-    // Send the error.
-    sender.sendError(err, req, res, next);
-
-    // If debug mode, print out the errors in the log.
-    if(debug) {
-
-      // Handle printing an error array.
-      if(Object.prototype.toString.call( err ) === '[object Array]') {
-        var errCount;
-        for(var i = 0; i < err.length; i++) {
-          errCount = i + 1;
-          log.i("Error "+errCount+"/"+err.length+": ")
-          log.e(err[i]);
-          log.e(err[i]["stack"]);
-        }
-      } else {
-        // Print out a single error object.
-        log.e(err);
-        log.e(err["stack"]);
-      }
-    }
-
-    
+    sender.sendError(err, req, res, next, debug);
   }
 
   /**

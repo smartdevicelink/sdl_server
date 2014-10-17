@@ -13,19 +13,44 @@ var Config = require(path.resolve(__dirname, "../configs/config.js"));
     
 // Contains predefined methods used to manage the server instance.
 var server = {
+
+  // Setup and configure the server for use.
+  install: function(app, db, config, log) {
+    var installer;
+
+    if (config.paths["serverInstallerLib"]) {
+      var Installer = require(config.paths.serverInstallerLib);
+      installer = new Installer(db, config, log);
+    } else {
+      return log.e("Invalid path or no path specified for paths.serverInstallerLib in the configuration object.");
+    }
+
+    installer.install(function (err, results) {
+      if (err) {
+        return log.e(err);
+      }
+
+      log.s("Server Installed Successfully!");
+    });
+  },
+
   start: function(config, next) {
+    var installServer = this.install;
+
+    // Get the arguments from commandline.
+    var args = process.argv.slice(2);
 
     // Perform any additional configuration of the server
     // before it starts loading routes and finishing up.
 
-    app.start(config, function() {
+    app.start(config, function(err, app, db, config, server, fox, io) {
+      if(err) {
+        return console.log(err);
+      }
 
-      // Get the arguments from commandline.
-      var args = process.argv.slice(2);
-
-      // Handle Install Flag
+      // Handle install flag in arguments.
       if(args.indexOf('-i') > -1) {
-        console.log("Install server.");
+        installServer(app, db, config, fox.log);
       }
 
     });

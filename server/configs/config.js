@@ -105,9 +105,6 @@ Config.prototype.default = {
     } // End auth object.
   },
 
-  // Toggle on/off display of additional log messages.
-  debug: false,
-
   // Server application's root directory.
   dirname: serverDirectory + "/app/",
 
@@ -139,6 +136,9 @@ Config.prototype.default = {
 
     // Server node_modules folder, where all the dependencies are stored.
     serverNodeModulesFolder: path.resolve(__dirname, "../node_modules") + "/",
+
+    // Server's installer library or module.
+    serverInstallerLib: serverDirectory + "/app/install/install_module.js",
 
     // Client's root directory.
     clientDirectory: clientDirectory,
@@ -246,7 +246,12 @@ Config.prototype.test = {
 	// related to the Mongo database are listed here.
 	mongodb: {
 		database: 'sdl_test'                      // Name of the database in the Mongo datastore.
-	}
+	},
+
+  // Configure the backend API server.
+  server: {
+    debug: true                               // Enable or disable additional logging and features used to debug the server.
+  }
 
 };
 
@@ -257,11 +262,16 @@ Config.prototype.test = {
  * the configuration object.
  */
 Config.prototype.local = {
-  
+
   // Mongo DB can be used as a datastore.  All settings
   // related to the Mongo database are listed here.
   mongodb: {
     database: 'sdl_local'                     // Name of the database in the Mongo datastore.
+  },
+
+  // Configure the backend API server.
+  server: {
+    debug: true                               // Enable or disable additional logging and features used to debug the server.
   }
 
 };
@@ -288,7 +298,7 @@ Config.prototype.development = {
 
   // Configure the backend API server.
   server: {
-    debug: false,                             // Enable or disable additional logging and features used to debug the server.
+    debug: true,                              // Enable or disable additional logging and features used to debug the server.
     host: 'localhost',                        // IP address of the server
     port: '3000',                             // Port for the node application.
     protocol: 'http'                          // Default protocol to use, http or https.
