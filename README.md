@@ -34,7 +34,7 @@ A quick guide to installing, configuring, and running an instance of the SDL ser
  
   4. Download and install a new instance of the SDL server.
     
-        fox new MyServerName sdl_server
+        fox new MyServerName sdl_server -- -i
 
       The server is now started and you can view it by going to [localhost:3000](http://localhost:3000) in your browser.  If the fox command does not work, checkout the [help](https://github.com/smartdevicelink/sdl_server/wiki/Help#fox_is_not_installed_error_message_in_Linux) page for more info.
 
