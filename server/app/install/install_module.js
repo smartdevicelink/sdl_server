@@ -58,6 +58,61 @@ var Installer = function(_db, _config, _log) {
  * ************************************************** */
 
 /**
+ * Check if the server's database has already been initialized
+ * with data on a previous server install.
+ * @param db is the mongoose database object.
+ * @param cb is a callback method where the results or errors are returned.
+ */
+var isInstalled = function(db, cb) {
+  db.model("ServerEvent").findOne({ "what": "install"}).exec(function(err, event) {
+    if(err) {
+      return cb(err);
+    }
+
+    cb(undefined, (event));
+  });
+};
+
+/**
+ * Save an install event to the server's current database.  This should be
+ * called after a successful install.
+ * @param db is the mongoose database object.
+ * @param cb is a callback method where the results or errors are returned.
+ */
+var saveInstallEvent = function(db, cb) {
+  var Event = db.model("ServerEvent");
+  var event = new Event({
+    "what":"install"
+  });
+
+  event.save(cb);
+};
+
+/**
+ * Remove all install events from the server's current database.  This should
+ * be called after a successful uninstall.
+ * @param db is the mongoose database object.
+ * @param cb is a callback method where the results or errors are returned.
+ */
+var removeInstallEvents = function(db, cb) {
+  cb = (cb) ? cb : function(err) { if(err) { console.log(err); } };
+
+  db.model("ServerEvent").find().exec(function(err, events) {
+    if(err) {
+      return cb(err);
+    }
+
+    if(events) {
+      for (var i = events.length-1; i >= 0; --i) {
+        events[i].remove();
+      }
+    }
+
+    cb(undefined, "Removed all saved install events.");
+  });
+};
+
+/**
  * Setup the server to run by adding any initalization
  * data to the data store, creating files or folder, and/or
  * performing any other setup steps required.
@@ -67,22 +122,39 @@ var install = function(cb) {
   var db = this.db;
   var config = this.config;
   var log = this.log;
+  var saveInstallEvent = this.saveInstallEvent;
 
-  async.series([
-    createDirectories(config, [config.paths.clientAssetsImgUploadsFolder], log),
-    updateLanguages(db, config, log),
-    updateCountries(db, config, log),
-    installData(db, config, "AndroidCategory", "name", undefined, undefined, log),
-    installData(db, config, "IosCategory", "name", undefined, undefined, log),
-    installData(db, config, "SdlVersion", "version", undefined, undefined, log),
-    installData(db, config, "UserRole", "name", undefined, undefined, log),
-    installData(db, config, "User", "name", undefined, { "password": config.installKey, "securityAnswer": config.installKey }, log),
-    generateAccessTokens(db, config, log),
-    installData(db, config, "Category", "name", undefined, undefined, log),
-    installData(db, config, "HmiLevel", "name", undefined, undefined, log),
-    installData(db, config, "Language", "language", "languages.js", undefined, log),
-    installData(db, config, "Country", "country", "countries.js", undefined, log)
-  ], cb);
+  this.isInstalled(db, function(err, isServerInstalled) {
+    if (err) {
+      return cb(err);
+    }
+
+    if (isServerInstalled) {
+      return cb();
+    }
+
+    async.series([
+      createDirectories(config, [config.paths.clientAssetsImgUploadsFolder], log),
+      updateLanguages(db, config, log),
+      updateCountries(db, config, log),
+      installData(db, config, "AndroidCategory", "name", undefined, undefined, log),
+      installData(db, config, "IosCategory", "name", undefined, undefined, log),
+      installData(db, config, "SdlVersion", "version", undefined, undefined, log),
+      installData(db, config, "UserRole", "name", undefined, undefined, log),
+      installData(db, config, "User", "name", undefined, { "password": config.installKey, "securityAnswer": config.installKey }, log),
+      generateAccessTokens(db, config, log),
+      installData(db, config, "Category", "name", undefined, undefined, log),
+      installData(db, config, "HmiLevel", "name", undefined, undefined, log),
+      installData(db, config, "Language", "language", "languages.js", undefined, log),
+      installData(db, config, "Country", "country", "countries.js", undefined, log)
+    ], function(err, results) {
+      cb(err, results);
+
+      if( ! err) {
+        saveInstallEvent(db);
+      }
+    });
+  });
 };
 
 /**
@@ -95,19 +167,36 @@ var uninstall = function(cb) {
   var db = this.db;
   var config = this.config;
   var log = this.log;
+  var removeInstallEvents = this.removeInstallEvents;
 
-  async.series([
-    uninstallData(db, config, "AndroidCategory", "name", undefined, log),
-    uninstallData(db, config, "IosCategory", "name", undefined, log),
-    uninstallData(db, config, "SdlVersion", "version", undefined, log),
-    uninstallData(db, config, "UserRole", "name", undefined, log),
-    removeAccessTokens(db, config, log),
-    uninstallData(db, config, "User", "name", undefined, log),
-    uninstallData(db, config, "Category", "name", undefined, log),
-    uninstallData(db, config, "HmiLevel", "name", undefined, log),
-    uninstallData(db, config, "Language", "language", "languages.js", log),
-    uninstallData(db, config, "Country", "country", "countries.js", log)
-  ], cb);
+  this.isInstalled(db, function(err, isServerInstalled) {
+    if (err) {
+      return cb(err);
+    }
+
+    if ( ! isServerInstalled) {
+      return cb();
+    }
+
+    async.series([
+      uninstallData(db, config, "AndroidCategory", "name", undefined, log),
+      uninstallData(db, config, "IosCategory", "name", undefined, log),
+      uninstallData(db, config, "SdlVersion", "version", undefined, log),
+      uninstallData(db, config, "UserRole", "name", undefined, log),
+      removeAccessTokens(db, config, log),
+      uninstallData(db, config, "User", "name", undefined, log),
+      uninstallData(db, config, "Category", "name", undefined, log),
+      uninstallData(db, config, "HmiLevel", "name", undefined, log),
+      uninstallData(db, config, "Language", "language", "languages.js", log),
+      uninstallData(db, config, "Country", "country", "countries.js", log)
+    ], function (err, results) {
+      cb(err, results);
+
+      if (!err) {
+        removeInstallEvents(db);
+      }
+    });
+  });
 };
 
 /**
@@ -1042,6 +1131,9 @@ Installer.prototype.installDemo = installDemo;
 Installer.prototype.uninstallDemo = uninstallDemo;
 Installer.prototype.purgeDemoInstall = purgeDemoInstall;
 
+Installer.prototype.isInstalled = isInstalled;
+Installer.prototype.saveInstallEvent = saveInstallEvent;
+Installer.prototype.removeInstallEvents = removeInstallEvents;
 
 /* ************************************************** *
  * ******************** Export the Public API

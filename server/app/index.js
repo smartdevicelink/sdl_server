@@ -30,12 +30,36 @@ var server = {
         return log.e(err);
       }
 
-      log.s("Server Installed Successfully!");
+      if(results) {
+        log.s("Server installed successfully!");
+      }
+    });
+  },
+
+  uninstall: function(app, db, config, log) {
+    var installer;
+
+    if (config.paths["serverInstallerLib"]) {
+      var Installer = require(config.paths.serverInstallerLib);
+      installer = new Installer(db, config, log);
+    } else {
+      return log.e("Invalid path or no path specified for paths.serverInstallerLib in the configuration object.");
+    }
+
+    installer.uninstall(function (err, results) {
+      if (err) {
+        return log.e(err);
+      }
+
+      if(results) {
+        log.s("Server uninstalled successfully!");
+      }
     });
   },
 
   start: function(config, next) {
-    var installServer = this.install;
+    var installServer = this.install,
+        uninstallServer = this.uninstall;
 
     // Get the arguments from commandline.
     var args = process.argv.slice(2);
@@ -51,6 +75,8 @@ var server = {
       // Handle install flag in arguments.
       if(args.indexOf('-i') > -1) {
         installServer(app, db, config, fox.log);
+      } else if(args.indexOf('-u') > -1) {
+        uninstallServer(app, db, config, fox.log);
       }
 
     });
