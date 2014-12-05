@@ -14,11 +14,11 @@ Optional key/value pairs that can be included in the request URL to override the
 | Parameter | Description | Acceptable Input |
 | --------- | ----------- | ---------------- |
 | **android** | Include only android applications in the response.  Default is false. | _true_ or _false_ |
+| **development** | Include development applications in the response.  Default is false. | _true_ or _false_ |
 | **ios** | Include only iOS applications in response. Default is false. | _true_ or _false_ |
-| **sdlVersion** | Exclude applications that do not support a specific SDL version. | Any positive decimal or integer values that are also valid SDL version numbers. |
 | **sdlMaxVersion** | Exclude applications with SDL versions outside the max range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
 | **sdlMinVersion** | Exclude applications with SDL versions outside the min range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
-| **development** | Include development applications in the response.  Default is false. | _true_ or _false_ |
+| **sdlVersion** | Exclude applications that do not support a specific SDL version. | Any positive decimal or integer values that are also valid SDL version numbers. |
 
 
 ### Response
@@ -38,21 +38,22 @@ The following is a list of all the possible properties contained in each Applica
 | Property | Type | Description |
 | -------- | ---- | ----------- |
 | **_id** | String | An Object ID uniquely identifying the application. |
-| **development** | Boolean | Indicates whether or not the application is in development mode. |
-| **iconUrl** | String | A link to a valid application icon URL or an empty string. |
-| **name** | String | Name of the application. |
 | **android** | Object | An object containing information about the android version of the application. |
 | **android.category** | String | Play Store category for the application. |
 | **android.packageName** | String | Android package name for the application. |
 | **android.playStoreUrl** | String | Play Store URL to the application. |
 | **android.sdlMaxVersion** | String | Maximum version of SDL supported by the application. |
 | **android.sdlMinVersion** | String | Minimum version of SDL supported by the application. |
+| **development** | Boolean | Indicates whether or not the application is in development mode. |
+| **iconUrl** | String | A link to a valid application icon URL or an empty string. |
 | **ios** | Object | An object containing information about the iOS version of the application. |
 | **ios.category** | String | App Store category for the application. |
 | **ios.itunesUrl** | String | App Store URL to the application. |
 | **ios.sdlMaxVersion** | String | Maximum version of SDL supported by the application. |
 | **ios.sdlMinVersion** | String | Minimum version of SDL supported by the application. |
 | **ios.urlSchema** | String | URL schema for the iOS application. |
+| **name** | String | Name of the application. |
+
 
 ### Example
 The following example requests will demonstrate common use-cases for the endpoint.
