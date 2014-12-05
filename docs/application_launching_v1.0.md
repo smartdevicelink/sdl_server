@@ -11,14 +11,14 @@ Get a list of all available SDL applications for use with a specific head unit a
 Optional key/value pairs that can be included in the request URL to override the default parameter values.  
 
 
-  | Parameter | Description | Acceptable Input |
-  | --------- | ----------- | ---------------- |
-  | **android** | Include only android applications in the response.  Default is false. | _true_ or _false_ |
-  | **ios** | Include only iOS applications in response. Default is false. | _true_ or _false_ |
-  | **sdlVersion** | Exclude applications that do not support a specific SDL version. | Any positive decimal or integer values that are also valid SDL version numbers. |
-  | **sdlMaxVersion** | Exclude applications with SDL versions outside the max range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
-  | **sdlMinVersion** | Exclude applications with SDL versions outside the min range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
-  | **development** | Include development applications in the response.  Default is false. | _true_ or _false_ |
+| Parameter | Description | Acceptable Input |
+| --------- | ----------- | ---------------- |
+| **android** | Include only android applications in the response.  Default is false. | _true_ or _false_ |
+| **ios** | Include only iOS applications in response. Default is false. | _true_ or _false_ |
+| **sdlVersion** | Exclude applications that do not support a specific SDL version. | Any positive decimal or integer values that are also valid SDL version numbers. |
+| **sdlMaxVersion** | Exclude applications with SDL versions outside the max range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
+| **sdlMinVersion** | Exclude applications with SDL versions outside the min range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
+| **development** | Include development applications in the response.  Default is false. | _true_ or _false_ |
 
 
 ### Response
