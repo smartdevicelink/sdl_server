@@ -26,9 +26,9 @@ Optional key/value pairs that can be included in the request URL to override the
 The successful response will contain a JSON object that contains a property named _response_.  The response property value will always be an array of Application JSON objects.  
 
     {
-        status: "200 ok",
-        responseType: "array",
-        response: [ {}, {}, {} ]
+        "status": "200 ok",
+        "responseType": "array",
+        "response": [ {}, {}, {} ]
     }
 
 #### Application Object Properties
@@ -67,32 +67,32 @@ The following request will return all applications that are available for the mo
 #### Example Android Response
 
     {
-      status: "200 ok",
-      responseType: "array",
-      response: [{
-        _id: "53f75cfb891ec700002d3592",
-        development: false,
-        iconUrl: "http://i.imgur.com/S0FAk3.png",
-        android: {
-          category: "MusicAndAudio",
-          packageName: "com.awesome.fake",
-          playStoreUrl: "http://play.google.com/store/apps/details?id=com.awesome.fake",
-          sdlMaxVersion: "3.0",
-          sdlMinVersion: "1.0"
+      "status": "200 ok",
+      "responseType": "array",
+      "response": [{
+        "_id": "53f75cfb891ec700002d3592",
+        "development": false,
+        "iconUrl": "http://i.imgur.com/S0FAk3.png",
+        "android": {
+          "category": "MusicAndAudio",
+          "packageName": "com.awesome.fake",
+          "playStoreUrl": "http://play.google.com/store/apps/details?id=com.awesome.fake",
+          "sdlMaxVersion": "3.0",
+          "sdlMinVersion": "1.0"
         },
-        name: "Awesome Music App"
+        "name": "Awesome Music App"
       }, {
-        _id: "45275cfb891ec700002d3845",
-        android: {
-          category: "MusicAndAudio",
-          packageName: "com.crappy.fake",
-          playStoreUrl: "http://play.google.com/store/apps/details?id=com.crappy.fake",
-          sdlMaxVersion: "2.0",
-          sdlMinVersion: "1.0"
+        "_id": "45275cfb891ec700002d3845",
+        "android": {
+          "category": "MusicAndAudio",
+          "packageName": "com.crappy.fake",
+          "playStoreUrl": "http://play.google.com/store/apps/details?id=com.crappy.fake",
+          "sdlMaxVersion": "2.0",
+          "sdlMinVersion": "1.0"
         },
-        development: false,
-        iconUrl: "http://i.imgur.com/R3a11YFAk3.png",
-        name: "Crappy Music App"
+        "development": false,
+        "iconUrl": "http://i.imgur.com/R3a11YFAk3.png",
+        "name": "Crappy Music App"
       }]
     }
 
@@ -105,19 +105,19 @@ The following request will return all applications that are available for the mo
 #### Example iOS Response
 
     {
-      status: "200 ok",
-      responseType: "array",
-      response: [{
-        _id: "53f75cfb891ec700002d3592",
-        development: false,
-        iconUrl: "http://i.imgur.com/S0FAk3.png",
-        ios: {
-          category: "Music",
-          itunesUrl: "http://itunes.apple.com/app/awesome-music-app/id324384482?mt=8",
-          sdlMaxVersion: "3.0",
-          sdlMinVersion: "1.0",
-          urlSchema: "awesomemusicapp://"
+      "status": "200 ok",
+      "responseType": "array",
+      "response": [{
+        "_id": "53f75cfb891ec700002d3592",
+        "development": false,
+        "iconUrl": "http://i.imgur.com/S0FAk3.png",
+        "ios": {
+          "category": "Music",
+          "itunesUrl": "http://itunes.apple.com/app/awesome-music-app/id324384482?mt=8",
+          "sdlMaxVersion": "3.0",
+          "sdlMinVersion": "1.0",
+          "urlSchema": "awesomemusicapp://"
         },
-        name: "Awesome Music App"
+        "name": "Awesome Music App"
       }]
     }
