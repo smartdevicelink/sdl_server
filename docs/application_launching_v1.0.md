@@ -37,6 +37,7 @@ The following is a list of all the possible properties contained in each Applica
 | Property | Type | Description |
 | -------- | ---- | ----------- |
 | **_id** | String | An Object ID uniquely identifying the application in the database. |
+| **__v** | Number | The versionKey is a property set on each document when first created by Mongoose. This keys value contains the internal revision of the document.  This property may or may not be included in the response. |
 | **android** | Object | An object containing information about the android version of the application. |
 | **android.category** | String | Play Store category for the application. |
 | **android.packageName** | String | Android package name for the application. |
@@ -71,6 +72,7 @@ The following request will return all applications that are available for the mo
       "responseType": "array",
       "response": [{
         "_id": "53f75cfb891ec700002d3592",
+        "__v": 0,
         "appId": "853426",
         "development": false,
         "iconUrl": "http://i.imgur.com/S0FAk3.png",
@@ -84,6 +86,7 @@ The following request will return all applications that are available for the mo
         "name": "Awesome Music App"
       }, {
         "_id": "45275cfb891ec700002d3845",
+        "__v": 0,
         "android": {
           "category": "MusicAndAudio",
           "packageName": "com.crappy.fake",
@@ -111,6 +114,7 @@ The following request will return all applications that are available for the mo
       "responseType": "array",
       "response": [{
         "_id": "53f75cfb891ec700002d3592",
+        "__v": 0,
         "appId": "853426",
         "development": false,
         "iconUrl": "http://i.imgur.com/S0FAk3.png",
