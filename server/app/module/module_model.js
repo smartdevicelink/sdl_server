@@ -80,6 +80,23 @@ module.exports = function(app, db, config) {
 
 
   /* ************************************************** *
+   * ******************** Static Module Methods
+   * ************************************************** */
+
+  Module.statics.findByIdFromRequest = function(req, res, next) {
+    db.model("Module").findById(req.params.moduleId, function(err, module) {
+      if(err) {
+        return next(err);
+      } else if(module == null) {
+        return next(new Error("Invalid module ID of '" + req.params.moduleId + "'."));
+      } else {
+        res.locals.module = module;
+        next()
+      }
+    });
+  };
+
+  /* ************************************************** *
    * ******************** Module Methods
    * ************************************************** */
 

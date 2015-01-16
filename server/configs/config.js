@@ -15,15 +15,16 @@
  * ************************************************** */
 
 var path            = require('path'),                         // Node.js Path module.
-    serverDirectory = path.resolve(__dirname, "../");          // Path to the server directory.
-    clientDirectory = path.resolve(__dirname, "../../client"); // Path to the client directory.
+    serverDirectory = path.resolve(__dirname, "../");          // Path to the server root directory.
+    clientDirectory = path.resolve(__dirname, "../../client"); // Path to the client root directory.
+
 
 /* ************************************************** *
  * ******************** Config Constructor
  * ************************************************** */
 
 /**
- * Constructor to initalize the config instance.
+ * Constructor to initialize the config instance.
  */
 var Config = function() {
 
@@ -38,14 +39,13 @@ var Config = function() {
 
 /**
  * Default configuration for the server.  Define default values here 
- * that are not affected by the server enviorment.
+ * that are not affected by the server environment.
  */
 Config.prototype.default = {
 
-  // Access tokens are used for API calls made on behalf
-  // of a user.  You can override the default behavior here.
+  // Access tokens are used for API calls made on behalf of a user.
   accessTokens: {
-    tokenLifeInDays: 10                       // How long a token is valid before a new token must be requested.
+    tokenLifeInDays: 10                       // How long a token is valid for, in days, before a new token must be requested.
   },
 
   // Place values that should never change here.  For example ENUM values.
@@ -58,7 +58,7 @@ Config.prototype.default = {
   // generated for each schema model.  This allows you to configure how these
   // routes will behave, authenticate, and other settings.
   crud: {
-    enabled: true,                            // Enable or Disable creation of all CRUD methods and routes.
+    enabled: true,                            // Enable or Disable all automatic creation of CRUD methods and routes.
 
     auth: {                                   // Authentication for each module's routes can be controlled here.
       routeRoleAuth: {                        // Role based authentication
@@ -170,6 +170,7 @@ Config.prototype.default = {
     staticFolders: {
 
       // Add static folders here.
+
     }
 
   },

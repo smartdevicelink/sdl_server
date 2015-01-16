@@ -37,7 +37,7 @@ module.exports = function(app, db, config) {
    */
   var Application = new Schema({
 
-    // Flag to indicate an application as activated, a deactived
+    // Flag to indicate an application as activated, a deactivated
     // app cannot communicate with a head unit or the server.
     activated: { type: Boolean, default:true },
 
@@ -57,13 +57,17 @@ module.exports = function(app, db, config) {
       playStoreUrl: { type: String },
 
       // Highest version of SDL supported by the application on Android.
-      sdlVersion: { type: ObjectId, ref: "SdlVersion" }
+      sdlVersion: { type: String }
     },
 
+    // Uniquely identifies the application, but can change at any
+    // time allowing for more flexibility than the _id property.
+    appId: { type: String, unique: true, default: db.Types.ObjectId },
+
     // Application category assigned by sdl.
-    sdlCategory: { value:    { type: Number },
-                   name:     { type: String },
-                  queryName:{ type: String } },
+    sdlCategory: { value:     { type: Number },
+                   name:      { type: String },
+                   queryName: { type: String } },
 
     // Company
     company: { type: ObjectId, ref: "Company" },
@@ -90,10 +94,10 @@ module.exports = function(app, db, config) {
       itunesUrl: { type: String },
 
       // Highest version of SDL supported by the application on iOS.
-      sdlVersion: { type: ObjectId, ref: "SdlVersion" },
+      sdlVersion: { type: String },
 
-      // iOS url schema
-      urlSchema: { type: String }
+      // iOS url scheme
+      urlScheme: { type: String }
     },
 
     // When this application object was last updated.
@@ -102,9 +106,7 @@ module.exports = function(app, db, config) {
     // Who was the last to make changes to this application object.
     lastUpdatedBy: { type: ObjectId, ref: "User" },
 
-    // Uniquely identifies the application, but can change at any
-    // time allowing for more flexability over the app's _id.
-    key: { type: String, unique: true, default: db.Types.ObjectId },
+
 
     // Name of the application
     name: { type: String },
@@ -117,7 +119,7 @@ module.exports = function(app, db, config) {
       enabled: { type: Boolean, default: false},
 
       // List of vehicle modules this application is allowed to work with.
-      list: { type: ObjectId, ref: "Module" }
+      list: [{ type: ObjectId, ref: "Module" }]
     }
 
   });

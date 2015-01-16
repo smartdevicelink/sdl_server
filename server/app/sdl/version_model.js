@@ -41,6 +41,26 @@ module.exports = function(app, db, config) {
    * ************************************************** */
 
 
+  SdlVersion.methods.findByString = function(versionString, cb) {
+    if( ! cb) {
+      return console.log("Error:  Callback is required.");
+    }
+
+    if(versionString === undefined || versionString === "" || versionString === null) {
+      return new Error("Invalid version of " + versionString);
+    }
+
+    this.findOne({ version: versionString }, function(err, version) {
+      if(err) {
+        cb(err);
+      } else if( ! version) {
+        cb(new Error("Version " + versionString + " does not exist."));
+      } else {
+        cb(undefined, version);
+      }
+    });
+  };
+
   /* ************************************************** *
    * ******************** CRUD Override Methods
    * ************************************************** */

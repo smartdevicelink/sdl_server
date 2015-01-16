@@ -240,7 +240,8 @@ var installDemo = function(cb) {
     installCfmDemo(db, config, log),
     installData(db, config, "User", "name", "demo/users.js", { "password" : this.config.installKey, "securityAnswer": this.config.installKey }, log),
     installData(db, config, "Application", "name", "demo/applications.js", undefined, log),
-    installData(db, config, "FunctionalGroup", "name", "demo/functionalGroups.js", undefined, log)
+    installData(db, config, "FunctionalGroup", "name", "demo/functionalGroups.js", undefined, log),
+    installData(db, config, "Module", "id", "demo/modules.js", undefined, log)
   ], cb);
 };
 
@@ -257,7 +258,8 @@ var uninstallDemo = function(cb) {
     uninstallCfmDemo(db, config, log),
     uninstallData(db, config, "User", "name", "demo/users.js", log),
     uninstallData(db, config, "Application", "name", "demo/applications.js", log),
-    uninstallData(db, config, "FunctionalGroup", "name", "demo/functionalGroups.js", log)
+    uninstallData(db, config, "FunctionalGroup", "name", "demo/functionalGroups.js", log),
+    uninstallData(db, config, "Module", "id", "demo/modules.js", log)
   ], cb);
 };
 
