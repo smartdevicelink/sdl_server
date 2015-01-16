@@ -13,9 +13,8 @@ Optional key/value pairs that can be included in the request URL to override the
 
 | Parameter | Description | Acceptable Input |
 | --------- | ----------- | ---------------- |
-| **android** | Include only android applications in the response.  Default is false. | _true_ or _false_ |
 | **development** | Include development applications in the response.  Default is false. | _true_ or _false_ |
-| **ios** | Include only iOS applications in response. Default is false. | _true_ or _false_ |
+| **os** | Include only applications for a specific operating system.  Default is to list applications for every operating system. | _ios_ or _android_ |
 | **sdlMaxVersion** | Exclude applications with SDL versions outside the max range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
 | **sdlMinVersion** | Exclude applications with SDL versions outside the min range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
 | **sdlVersion** | Exclude applications that do not support a specific SDL version. | Any positive decimal or integer values that are also valid SDL version numbers. |
@@ -63,7 +62,7 @@ The following example requests will demonstrate common use-cases for the endpoin
 
 The following request will return all applications that are available for the module with the ID _55f75cfb891ab712302d3588_ that are also _android_ applications and support SDL version _2.0_
 
-        GET /applications/available/55f75cfb891ab712302d3588?android=true&sdlVersion=2.0
+        GET /applications/available/55f75cfb891ab712302d3588?os=android&sdlVersion=2.0
 
 #### Example Android Response
 
@@ -103,7 +102,7 @@ The following request will return all applications that are available for the mo
 
 The following request will return all applications that are available for the module with the ID _55f75cfb891ab712302d3588_ that are also _iOS_ applications and support SDL version _1.0_
 
-    GET /applications/available/55f75cfb891ab712302d3588?ios=true&sdlVersion=1.0
+    GET /applications/available/55f75cfb891ab712302d3588?os=ios&sdlVersion=1.0
 
 #### Example iOS Response
 
