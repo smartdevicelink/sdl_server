@@ -13,9 +13,8 @@ Optional key/value pairs that can be included in the request URL to override the
 
 | Parameter | Description | Acceptable Input |
 | --------- | ----------- | ---------------- |
-| **android** | Include only android applications in the response.  Default is false. | _true_ or _false_ |
 | **development** | Include development applications in the response.  Default is false. | _true_ or _false_ |
-| **ios** | Include only iOS applications in response. Default is false. | _true_ or _false_ |
+| **os** | Include only applications for a specific operating system.  Default is to list applications for every operating system. | _ios_ or _android_ |
 | **sdlMaxVersion** | Exclude applications with SDL versions outside the max range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
 | **sdlMinVersion** | Exclude applications with SDL versions outside the min range specified.  | Any positive decimal or integer values that are also valid SDL version numbers. |
 | **sdlVersion** | Exclude applications that do not support a specific SDL version. | Any positive decimal or integer values that are also valid SDL version numbers. |
@@ -26,9 +25,9 @@ Optional key/value pairs that can be included in the request URL to override the
 The successful response will contain a JSON object that contains a property named _response_.  The response property value will always be an array of Application JSON objects.  
 
     {
-        status: "200 ok",
-        responseType: "array",
-        response: [ {}, {}, {} ]
+        "status": "200 ok",
+        "responseType": "array",
+        "response": [ {}, {}, {} ]
     }
 
 #### Application Object Properties
@@ -37,13 +36,15 @@ The following is a list of all the possible properties contained in each Applica
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| **_id** | String | An Object ID uniquely identifying the application. |
+| **_id** | String | An Object ID uniquely identifying the application in the database. |
+| **__v** | Number | The versionKey is a property set on each document when first created by Mongoose. This keys value contains the internal revision of the document.  This property may or may not be included in the response. |
 | **android** | Object | An object containing information about the android version of the application. |
 | **android.category** | String | Play Store category for the application. |
 | **android.packageName** | String | Android package name for the application. |
 | **android.playStoreUrl** | String | Play Store URL to the application. |
 | **android.sdlMaxVersion** | String | Maximum version of SDL supported by the application. |
 | **android.sdlMinVersion** | String | Minimum version of SDL supported by the application. |
+| **appId** | String | A unique identifier for the application for the SDL enviorment. |
 | **development** | Boolean | Indicates whether or not the application is in development mode. |
 | **iconUrl** | String | A link to a valid application icon URL or an empty string. |
 | **ios** | Object | An object containing information about the iOS version of the application. |
@@ -51,7 +52,7 @@ The following is a list of all the possible properties contained in each Applica
 | **ios.itunesUrl** | String | App Store URL to the application. |
 | **ios.sdlMaxVersion** | String | Maximum version of SDL supported by the application. |
 | **ios.sdlMinVersion** | String | Minimum version of SDL supported by the application. |
-| **ios.urlSchema** | String | URL schema for the iOS application. |
+| **ios.urlScheme** | String | URL scheme for the iOS application. |
 | **name** | String | Name of the application. |
 
 
@@ -62,37 +63,41 @@ The following example requests will demonstrate common use-cases for the endpoin
 
 The following request will return all applications that are available for the module with the ID _55f75cfb891ab712302d3588_ that are also _android_ applications and support SDL version _2.0_
 
-        GET /applications/available/55f75cfb891ab712302d3588?android=true&sdlVersion=2.0
+        GET /applications/available/55f75cfb891ab712302d3588?os=android&sdlVersion=2.0
 
 #### Example Android Response
 
     {
-      status: "200 ok",
-      responseType: "array",
-      response: [{
-        _id: "53f75cfb891ec700002d3592",
-        development: false,
-        iconUrl: "http://i.imgur.com/S0FAk3.png",
-        android: {
-          category: "MusicAndAudio",
-          packageName: "com.awesome.fake",
-          playStoreUrl: "http://play.google.com/store/apps/details?id=com.awesome.fake",
-          sdlMaxVersion: "3.0",
-          sdlMinVersion: "1.0"
+      "status": "200 ok",
+      "responseType": "array",
+      "response": [{
+        "_id": "53f75cfb891ec700002d3592",
+        "__v": 0,
+        "appId": "853426",
+        "development": false,
+        "iconUrl": "http://i.imgur.com/S0FAk3.png",
+        "android": {
+          "category": "MusicAndAudio",
+          "packageName": "com.awesome.fake",
+          "playStoreUrl": "http://play.google.com/store/apps/details?id=com.awesome.fake",
+          "sdlMaxVersion": "3.0",
+          "sdlMinVersion": "1.0"
         },
-        name: "Awesome Music App"
+        "name": "Awesome Music App"
       }, {
-        _id: "45275cfb891ec700002d3845",
-        android: {
-          category: "MusicAndAudio",
-          packageName: "com.crappy.fake",
-          playStoreUrl: "http://play.google.com/store/apps/details?id=com.crappy.fake",
-          sdlMaxVersion: "2.0",
-          sdlMinVersion: "1.0"
+        "_id": "45275cfb891ec700002d3845",
+        "__v": 0,
+        "android": {
+          "category": "MusicAndAudio",
+          "packageName": "com.crappy.fake",
+          "playStoreUrl": "http://play.google.com/store/apps/details?id=com.crappy.fake",
+          "sdlMaxVersion": "2.0",
+          "sdlMinVersion": "1.0"
         },
-        development: false,
-        iconUrl: "http://i.imgur.com/R3a11YFAk3.png",
-        name: "Crappy Music App"
+        "appId": "553426",
+        "development": false,
+        "iconUrl": "http://i.imgur.com/R3a11YFAk3.png",
+        "name": "Crappy Music App"
       }]
     }
 
@@ -100,24 +105,26 @@ The following request will return all applications that are available for the mo
 
 The following request will return all applications that are available for the module with the ID _55f75cfb891ab712302d3588_ that are also _iOS_ applications and support SDL version _1.0_
 
-    GET /applications/available/55f75cfb891ab712302d3588?ios=true&sdlVersion=1.0
+    GET /applications/available/55f75cfb891ab712302d3588?os=ios&sdlVersion=1.0
 
 #### Example iOS Response
 
     {
-      status: "200 ok",
-      responseType: "array",
-      response: [{
-        _id: "53f75cfb891ec700002d3592",
-        development: false,
-        iconUrl: "http://i.imgur.com/S0FAk3.png",
-        ios: {
-          category: "Music",
-          itunesUrl: "http://itunes.apple.com/app/awesome-music-app/id324384482?mt=8",
-          sdlMaxVersion: "3.0",
-          sdlMinVersion: "1.0",
-          urlSchema: "awesomemusicapp://"
+      "status": "200 ok",
+      "responseType": "array",
+      "response": [{
+        "_id": "53f75cfb891ec700002d3592",
+        "__v": 0,
+        "appId": "853426",
+        "development": false,
+        "iconUrl": "http://i.imgur.com/S0FAk3.png",
+        "ios": {
+          "category": "Music",
+          "itunesUrl": "http://itunes.apple.com/app/awesome-music-app/id324384482?mt=8",
+          "sdlMaxVersion": "3.0",
+          "sdlMinVersion": "1.0",
+          "urlScheme": "awesomemusicapp://"
         },
-        name: "Awesome Music App"
+        "name": "Awesome Music App"
       }]
     }
