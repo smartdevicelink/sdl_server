@@ -7,6 +7,13 @@ Get a list of all available SDL applications for use with a specific head unit a
 
     GET /applications/available/:moduleId
 
+#### Parameters
+Required values that are required in the request URL to perform the requested operation.
+
+| Parameter | Description | Acceptable Input |
+| --------- | ----------- | ---------------- |
+| **moduleId** |  An Object ID uniquely identifying the vehicle's hardware module in the database. | A 12-byte Object ID string. |
+
 #### Query Parameters
 Optional key/value pairs that can be included in the request URL to override the default parameter values.  
 
