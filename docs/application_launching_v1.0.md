@@ -46,7 +46,9 @@ The following is a list of all the possible properties contained in each Applica
 | **_id** | String | An Object ID uniquely identifying the application in the database. |
 | **__v** | Number | The versionKey is a property set on each document when first created by Mongoose. This keys value contains the internal revision of the document.  This property may or may not be included in the response. |
 | **android** | Object | An object containing information about the android version of the application. |
+| **android.appHmiType** | String | Determines how the application will be displayed in the HMI or categorized by the SDL system. Allowable <a href="https://github.com/smartdevicelink/sdl_server/wiki/Policies#applicationPoliciesApplicationHmiTypes" target="blank">HMI types</a> |
 | **android.category** | String | Play Store category for the application. |
+| **android.isMediaApplication** | Boolean | When enabled an application has access to the playback controls in the HMI which are **back**, **play/pause**, **forward**, and possibly a **slider** |
 | **android.packageName** | String | Android package name for the application. |
 | **android.playStoreUrl** | String | Play Store URL to the application. |
 | **android.sdlMaxVersion** | String | Maximum version of SDL supported by the application. |
@@ -55,7 +57,9 @@ The following is a list of all the possible properties contained in each Applica
 | **development** | Boolean | Indicates whether or not the application is in development mode. |
 | **iconUrl** | String | A link to a valid application icon URL or an empty string. |
 | **ios** | Object | An object containing information about the iOS version of the application. |
+| **ios.appHmiType** | String | Determines how the application will be displayed in the HMI or categorized by the SDL system. Allowable <a href="https://github.com/smartdevicelink/sdl_server/wiki/Policies#applicationPoliciesApplicationHmiTypes" target="blank">HMI types</a> |
 | **ios.category** | String | App Store category for the application. |
+| **ios.isMediaApplication** | Boolean | When enabled an application has access to the playback controls in the HMI which are **back**, **play/pause**, **forward**, and possibly a **slider** |
 | **ios.itunesUrl** | String | App Store URL to the application. |
 | **ios.sdlMaxVersion** | String | Maximum version of SDL supported by the application. |
 | **ios.sdlMinVersion** | String | Minimum version of SDL supported by the application. |
@@ -84,7 +88,9 @@ The following request will return all applications that are available for the mo
         "development": false,
         "iconUrl": "http://i.imgur.com/S0FAk3.png",
         "android": {
+          "appHmiType": "MEDIA",
           "category": "MusicAndAudio",
+          "isMediaApplication": true,
           "packageName": "com.awesome.fake",
           "playStoreUrl": "http://play.google.com/store/apps/details?id=com.awesome.fake",
           "sdlMaxVersion": "3.0",
@@ -95,7 +101,9 @@ The following request will return all applications that are available for the mo
         "_id": "45275cfb891ec700002d3845",
         "__v": 0,
         "android": {
+          "appHmiType": "MEDIA",
           "category": "MusicAndAudio",
+          "isMediaApplication": true,
           "packageName": "com.crappy.fake",
           "playStoreUrl": "http://play.google.com/store/apps/details?id=com.crappy.fake",
           "sdlMaxVersion": "2.0",
@@ -126,7 +134,9 @@ The following request will return all applications that are available for the mo
         "development": false,
         "iconUrl": "http://i.imgur.com/S0FAk3.png",
         "ios": {
+          "appHmiType": "MEDIA",
           "category": "Music",
+          "isMediaApplication": true,
           "itunesUrl": "http://itunes.apple.com/app/awesome-music-app/id324384482?mt=8",
           "sdlMaxVersion": "3.0",
           "sdlMinVersion": "1.0",
