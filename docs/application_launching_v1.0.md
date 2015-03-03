@@ -64,6 +64,10 @@ The following is a list of all the possible properties contained in each Applica
 | **ios.sdlMaxVersion** | String | Maximum version of SDL supported by the application. |
 | **ios.sdlMinVersion** | String | Minimum version of SDL supported by the application. |
 | **ios.urlScheme** | String | URL scheme for the iOS application. |
+| **ios.languages** | Array | An array of language objects|
+| **ios.language** | Object | An object which denotes the strings that voice recognition should use to launch the application. The default is required.
+| **ios.language.ttsName** | String | The primary name of the application used for voice recognition|
+| **ios.language.vrSynonyms** | Array | An array of strings which are also valid to launch the application via voice recognition|
 | **name** | String | Name of the application. |
 
 
@@ -140,7 +144,21 @@ The following request will return all applications that are available for the mo
           "itunesUrl": "http://itunes.apple.com/app/awesome-music-app/id324384482?mt=8",
           "sdlMaxVersion": "3.0",
           "sdlMinVersion": "1.0",
-          "urlScheme": "awesomemusicapp://"
+          "urlScheme": "awesomemusicapp://",
+          "languages": [
+            "default": {
+                "ttsName": "Awesome Music",
+                "vrSynonyms": ["Awesome App", "Music Awesomeness"]
+            },
+            "EN-US": {
+                "ttsName": "Awesome Music",
+                "vrSynonyms": ["Awesome App", "Music Awesomeness"]
+            }
+            "ES-ES": {
+                "ttsName": "música impresionante",
+                "vrSynonyms": ["aplicación impresionante", "buena música"]
+            }
+          ]
         },
         "name": "Awesome Music App"
       }]
