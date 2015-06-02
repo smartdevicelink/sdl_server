@@ -4,11 +4,7 @@ SmartDeviceLink (SDL) is a standard set of protocols and messages that connect a
 
 ## SDL Server
 
-The SmartDeviceLink (SDL) server handles authentication, data collection, and basic configurations for SDL connected vehicles.  In general these tasks are accomplished using JSON documents called [Policy Tables](https://github.com/smartdevicelink/sdl_server/wiki/Policies) which are used configure how SDL ecosystem will behave with each other. The [Policy Tables](https://github.com/smartdevicelink/sdl_server/wiki/Policies) are configured by the SDL server and then downloaded by the other SDL components ([Android](https://github.com/smartdevicelink/sdl_android), [iOS](https://github.com/smartdevicelink/sdl_ios), [Core](https://github.com/smartdevicelink/sdl_core)).  The SDL server's backend API handles these types of requests and can be easily extended to handle more.  Configuration of Policy Tables, or any other data, can be done using the SDL server's front-end GUI.
-
-**tl;dr**
-
-Javascript backend and front-end used for authentication and data collection for SDL devices.
+The SmartDeviceLink (SDL) server handles authentication, data collection, and basic configurations for SDL connected vehicles.  In general, these tasks are accomplished using JSON documents called Policy Tables, which the [SDL Core component](https://github.com/smartdevicelink/sdl_core) uses to validate messaging with connected applications. The Policy Tables are configured on the SDL server, downloaded through the SDL Proxy and passed along to [SDL Core](https://github.com/smartdevicelink/sdl_core).
 
 ## Current Status
 
