@@ -15,7 +15,7 @@
   ],
   "dependencies": {
     "async": "x.x.x",
-    "bcrypt": "0.7.7",
+    "bcrypt": "0.8.3",
     "cheerio": "^0.17.0",
     "colors": "0.6.x",
     "connect-flash": "0.1.x",
