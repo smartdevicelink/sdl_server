@@ -27,7 +27,6 @@
     "compression": "^1.4.1",
     "crave": "git+https://github.com/ssmereka/crave.git#HEAD",
     "express": "^4.10.1",
-    "express-session": "^1.10.2",
     "jade": "^1.11.0"
   },
   "description": "SmartDeviceLink (SDL) server handles authentication, data collection, and basic configurations for SDL connected vehicles.",

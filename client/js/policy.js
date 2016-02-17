@@ -1,6 +1,6 @@
 var performPolicyUpdateRequest = function() {
   $.ajax({
-    url: "/api/1/policy",
+    url: "/api/1/policies",
     type: "POST",
     contentType: "application/json",
     data: JSON.stringify({

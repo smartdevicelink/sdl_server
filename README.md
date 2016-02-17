@@ -14,8 +14,7 @@ SmartDeviceLink (SDL) is a standard set of protocols and messages that connect a
 The SmartDeviceLink (SDL) server handles authentication, data collection, and basic configurations for SDL connected vehicles.  In general, these tasks are accomplished using JSON documents called Policy Tables, which the [SDL Core component](https://github.com/smartdevicelink/sdl_core) uses to validate messaging with connected applications. The Policy Tables are configured on the SDL server, downloaded through the SDL Proxy and passed along to [SDL Core](https://github.com/smartdevicelink/sdl_core).
 
 ## Current Status
-
-**Development:**  SDL server is currently in development and not yet ready for production use.  Please help us develop it by submitting your ideas and/or pull-requests.
+SDL Server is a reference server to help developers understand how SDL works.  It is **NOT** meant to be a production server.
 
 ## Important Notices
 **Policy Table Format:** SDL Policy Tables have a very specific format that must be followed.  The current code has not yet been tested with SDL [core](https://github.com/smartdevicelink/sdl_core) and therefore may have bugs related to the Policy Table format and/or data.  Do **not** rely on the current Policy Table endpoint response values at this time.
@@ -25,36 +24,18 @@ The SmartDeviceLink (SDL) server handles authentication, data collection, and ba
 # Getting Started
 A quick guide to installing, configuring, and running an instance of the SDL server.
 
-  1. Install [Node.js](http://nodejs.org/) and [NPM](https://www.npmjs.org/), you can use this [guide](https://github.com/smartdevicelink/sdl_server/wiki/Install-Node.js).
-  2. Install or setup a [MongoDB](http://docs.mongodb.org/manual/installation/) Database.
-  4. Install the dependancies:  `git`, `make`, and `g++`
-  
-       For Ubuntu: `sudo apt-get install git make g++` 
+  1. Install [Node.js](http://nodejs.org/) and [Git](https://git-scm.com/).
+  2. Clone the sdl server repository.
+
+        git clone https://github.com/smartdevicelink/sdl_server.git
  
-  3. Install Fox.js, a framework used to run the SDL server.
+  3. Navigate to the repository and install all npm and bower modules.
 
-        npm -g install foxjs
- 
-  4. Download and install a new instance of the SDL server.
-    
-        fox new MyServerName sdl_server -- -i
+        cd sdl_server
+        npm install
 
-      The server is now started and you can view it by going to [localhost:3000](http://localhost:3000) in your browser.  If the fox command does not work, checkout the [help](https://github.com/smartdevicelink/sdl_server/wiki/Help#fox_is_not_installed_error_message_in_Linux) page for more info.
+  4. Start the server
 
-  5. Configure the server using the `/server/configs/config.js` file.  As you save changes to the server's files it will automatically restart applying the changes.
+        npm start
 
-
-## Start Server
-A server can be started by issuing the start command from anywhere within the project folder.
-
-    fox start
-
-By default the server will start in production mode.  You can specify different node environments using CLI switches.
-
-* `-l`:  **Local** mode starts the server using nodemon at the IP address "localhost" using the local database.  Debug mode is also enabled.
-* `-d`:  **Development** mode starts the server using pm2 in a production like mode using a development database.  Debug mode is also enabled.
-* `-p`:  **Production** mode starts the server using pm2 in a production mode using the production database.  Debug mode is disabled.
-
-So for example we can start the server in local mode:
-
-    fox start -l
+  5. Go to [localhost:3000](http://localhost:3000) in your browser.  You can make example policy table update requests.

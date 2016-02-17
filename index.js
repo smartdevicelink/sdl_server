@@ -3,7 +3,6 @@ var bunyan = require('bunyan'),
   crave = require('crave'),
   express = require('express'),
   compress = require('compression'),
-  session = require('express-session'),
   bodyParser = require('body-parser'),
   path = require('path');
 
@@ -46,10 +45,6 @@ app.use(express.static(config.clientDirectory+'js', config.express.static));
 
 // Redirect all traffic to '/' to policy.
 app.all('/', function(req, res, next) { res.redirect('/policy'); });
-
-
-// Extend express response object.
-//app.use(responseHandler.addSetMethods);
 
 // Start the node server.
 var start = function(err) {

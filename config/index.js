@@ -14,6 +14,7 @@
 
 var bunyan = require('bunyan'),
     PrettyStream = require('bunyan-pretty-stream'),
+    os = require('os'),
     path = require('path');
 
 
@@ -59,7 +60,7 @@ var Config = function() {
   // Settings for the Node server.
   this.server = {
     debug: false,               // Indicates the server is in debug mode and may perform actions to assist the developer.
-    domain: 'MyDomain.com',     // Server's domain name.
+    ip: undefined,              // Server's IP address or domain name.  If left as undefined this config module will attempt to find the internal IP address.
     name: "sdl_server",         // Name of the server
     port: 3000,                 // Port the server will be listening on.
     protocol: 'https'           // Default protocol used to communicate with the server.
@@ -84,8 +85,13 @@ var Config = function() {
    * ******************** Additional Configurations
    * ************************************************** */
 
+  // If the server's IP address is not defined, attempt to find it.
+  if( ! this.server.ip) {
+    this.server.ip = getInternalIpAddress();
+  }
+
   // Set the server's URL parameter, based on the previously configured settings.
-  this.server.url = (this.server.port == 80) ? this.server.protocol + "://" + this.server.domain : this.server.protocol + "://" + this.server.domain + ":" + this.server.port;
+  this.server.url = (this.server.port == 80) ? this.server.protocol + "://" + this.server.ip : this.server.protocol + "://" + this.server.ip + ":" + this.server.port;
 
   // Path to the local directories.
   this.libsDirectory = path.normalize(this.rootDirectory+'/libs/');
@@ -97,7 +103,39 @@ var Config = function() {
   if( ! this.log.name) {
     this.log.name = this.server.name;
   }
+
 };
+
+/**
+ * Get the internal IP address of the machine running
+ * this application.
+ * @returns {string} the IP address or localhost if
+ * an address was not found.
+ */
+function getInternalIpAddress() {
+  var networkInterfaces = os.networkInterfaces();
+
+  if(networkInterfaces) {
+    for(var interfaceName in networkInterfaces) {
+      if(networkInterfaces.hasOwnProperty(interfaceName)) {
+        switch(interfaceName) {
+          case 'eth0':
+          case 'en0':
+            for(var i = networkInterfaces[interfaceName].length - 1; i >= 0; --i) {
+              if(!networkInterfaces[interfaceName][i].internal && 'IPv4' === networkInterfaces[interfaceName][i].family) {
+                return networkInterfaces[interfaceName][i].address;
+              }
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+
+  return "localhost";
+}
 
 
 /* ************************************************** *
