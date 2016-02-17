@@ -1,7 +1,0 @@
-<!-- Global Alert Messages -->
-<div ng-if="alerts !== undefined && alerts.length > 0" id="alerts" class="alerts-group">
-    <alert class=".alert" ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">
-    	<span>{{alert.msg}}</span>
-    	<button ng-if="alert.btn" type="button" class="btn" ng-class="alert.btn.type" ng-click="alert.btn.ngClick($index)">{{alert.btn.text}}</button>
-    </alert>
-</div>

@@ -1,0 +1,54 @@
+{
+  "name": "sdl_server",
+  "version": "1.0.0",
+  "author": "Livio",
+  "bugs": {
+    "url": "https://github.com/smartdevicelink/sdl_server/issues"
+  },
+  "contributors": [
+    {
+      "name": "Scott Smereka",
+      "email": "scott@livio.io"
+    }
+  ],
+  "devDependencies": {
+    "codecov.io": "0.0.8",
+    "istanbul": "^0.3.5",
+    "mocha": "^2.1.0",
+    "should": "^4.6.5",
+    "supertest": "^0.15.0"
+  },
+  "dependencies": {
+    "async": "^0.9.0",
+    "body-parser": "^1.9.2",
+    "bower": "^1.3.12",
+    "bunyan": "^1.5.1",
+    "bunyan-pretty-stream": "^1.0.1",
+    "compression": "^1.4.1",
+    "crave": "git+https://github.com/ssmereka/crave.git#HEAD",
+    "express": "^4.10.1",
+    "express-session": "^1.10.2",
+    "jade": "^1.11.0"
+  },
+  "description": "SmartDeviceLink (SDL) server handles authentication, data collection, and basic configurations for SDL connected vehicles.",
+  "engines": {
+    "node": ">= 4.3.0"
+  },
+  "homepage": "smartdevicelink.org",
+  "keywords": [
+    "SmartDeviceLink",
+    "SDL"
+  ],
+  "license": "BSD",
+  "main": "index.js",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smartdevicelink/sdl_server"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "mocha",
+    "postinstall": "./node_modules/bower/bin/bower install"
+  }
+}

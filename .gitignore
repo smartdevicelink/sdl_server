@@ -2,17 +2,8 @@
 node_modules
 npm-debug.log
 
-# Client Modules installed using bower.
-libs
-
-# Public image uploads folder for app icons.
-client/assets/img/uploads
-
 # Mac OS temp files.
 .DS_STORE
-
-# Templates
-templates
 
 #Webstorm project files.
 .idea

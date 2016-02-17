@@ -1,0 +1,7 @@
+#policyUpdateResponseDiv {
+    margin-top: 15px;
+    visibility: hidden;
+}
+#policyUpdateResponseDiv h1 {
+    padding-bottom: 10px;
+}

@@ -1,0 +1,9 @@
+{
+  "name": "sdl_server",
+  "version": "1.0.0",
+  "private": false,
+  "dependencies": {
+    "bootstrap": "~3.3.6",
+    "highlightjs": "~9.1.0"
+  }
+}
