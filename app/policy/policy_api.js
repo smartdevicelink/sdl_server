@@ -35,7 +35,7 @@ module.exports = function(app, config, log) {
 
 
   function policyTableUpdate(req, res, next) {
-    getPolicyTableByName("default", function(err, policy) {
+    getPolicyTableByName("default2", function(err, policy) {
       if(err) {
         next(err);
       } else {
