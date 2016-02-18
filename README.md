@@ -45,4 +45,6 @@ A quick guide to installing, configuring, and running an instance of the SDL ser
 ## Contribute
 If you have a suggestion or bug please submit an <a href="https://github.com/smartdevicelink/sdl_server/issues/new" target="_blank">issue</a>.  You can submit code using a pull request, but please follow the <a href="https://github.com/smartdevicelink/sdl_server/blob/master/CONTRIBUTING.md" target="_blank">contributing guidelines</a>.
 
-## [Documentation](https://github.com/smartdevicelink/sdl_server/wiki)
+## Documentation
+
+All documentation can be found in the <a href="https://github.com/smartdevicelink/sdl_server/wiki" target="_blank">wiki</a>.
