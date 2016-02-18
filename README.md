@@ -16,16 +16,18 @@ The SmartDeviceLink (SDL) server handles authentication, data collection, and ba
 ## Current Status
 SDL Server is a reference server to help developers understand how SDL works.  It is **NOT** meant to be a production server.
 
-## Important Notices
-**Policy Table Format:** SDL Policy Tables have a very specific format that must be followed.  The current code has not yet been tested with SDL [core](https://github.com/smartdevicelink/sdl_core) and therefore may have bugs related to the Policy Table format and/or data.  Do **not** rely on the current Policy Table endpoint response values at this time.
+<a href="https://travis-ci.org/smartdevicelink/sdl_server" target="_blank"><img src="https://travis-ci.org/smartdevicelink/sdl_server.svg"></a>
+<a href="https://codecov.io/github/smartdevicelink/sdl_server?branch=master" target="_blank"><img src="https://codecov.io/github/smartdevicelink/sdl_server/coverage.svg?branch=master" /></a>
+[![Dependency Status](https://david-dm.org/smartdevicelink/sdl_server.svg)](https://david-dm.org/smartdevicelink/sdl_server)
 
+## Important Notices
 **Encrypted vs Plain Text:** SDL Policy Tables can be downloaded and transferred to SDL [core](https://github.com/smartdevicelink/sdl_core) in a proprietary format or as plain text.  A proprietary format consist of symmetrically encrypted packets, to which only your SDL server and core hold the key.
 
 # Getting Started
 A quick guide to installing, configuring, and running an instance of the SDL server.
 
   1. Install [Node.js](http://nodejs.org/) and [Git](https://git-scm.com/).
-  2. Clone the sdl server repository.
+  2. Clone the SDL server repository.
 
         git clone https://github.com/smartdevicelink/sdl_server.git
  
@@ -38,4 +40,9 @@ A quick guide to installing, configuring, and running an instance of the SDL ser
 
         npm start
 
-  5. Go to [localhost:3000](http://localhost:3000) in your browser.  You can make example policy table update requests.
+  5. Go to <a href="localhost:3000/policy" target="_blank">localhost:3000/policy</a> in your browser where you can make example policy table update requests.
+
+  ## Contribute
+  If you have a suggestion or bug please submit an <a href="(https://github.com/smartdevicelink/sdl_server/issues/new" target="_blank">issue</a>.  You can submit code using a pull request, but please follow the <a href="https://github.com/smartdevicelink/sdl_server/blob/master/CONTRIBUTING.md" target="_blank">contributing guidelines</a>.
+
+  ## [Documentation](https://github.com/smartdevicelink/sdl_server/wiki)
