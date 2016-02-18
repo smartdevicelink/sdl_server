@@ -42,7 +42,7 @@ A quick guide to installing, configuring, and running an instance of the SDL ser
 
   5. Go to <a href="localhost:3000/policy" target="_blank">localhost:3000/policy</a> in your browser where you can make example policy table update requests.
 
-  ## Contribute
-  If you have a suggestion or bug please submit an <a href="(https://github.com/smartdevicelink/sdl_server/issues/new" target="_blank">issue</a>.  You can submit code using a pull request, but please follow the <a href="https://github.com/smartdevicelink/sdl_server/blob/master/CONTRIBUTING.md" target="_blank">contributing guidelines</a>.
+## Contribute
+If you have a suggestion or bug please submit an <a href="(https://github.com/smartdevicelink/sdl_server/issues/new" target="_blank">issue</a>.  You can submit code using a pull request, but please follow the <a href="https://github.com/smartdevicelink/sdl_server/blob/master/CONTRIBUTING.md" target="_blank">contributing guidelines</a>.
 
-  ## [Documentation](https://github.com/smartdevicelink/sdl_server/wiki)
+## [Documentation](https://github.com/smartdevicelink/sdl_server/wiki)
