@@ -18,7 +18,7 @@ SDL Server is a reference server to help developers understand how SDL works.  I
 
 <a href="https://travis-ci.org/smartdevicelink/sdl_server" target="_blank"><img src="https://travis-ci.org/smartdevicelink/sdl_server.svg"></a>
 <a href="https://codecov.io/github/smartdevicelink/sdl_server?branch=master" target="_blank"><img src="https://codecov.io/github/smartdevicelink/sdl_server/coverage.svg?branch=master" /></a>
-[![Dependency Status](https://david-dm.org/smartdevicelink/sdl_server.svg)](https://david-dm.org/smartdevicelink/sdl_server)
+<a href="https://david-dm.org/smartdevicelink/sdl_server" target="_blank"><src img="https://david-dm.org/smartdevicelink/sdl_server.svg"></a>
 
 ## Important Notices
 **Encrypted vs Plain Text:** SDL Policy Tables can be downloaded and transferred to SDL [core](https://github.com/smartdevicelink/sdl_core) in a proprietary format or as plain text.  A proprietary format consist of symmetrically encrypted packets, to which only your SDL server and core hold the key.
