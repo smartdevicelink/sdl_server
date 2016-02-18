@@ -48,7 +48,7 @@ var Config = function() {
     serializers: bunyan.stdSerializers,
     streams: [
       {                                 // Stream to print to the console.
-        level: 'trace',                  // Define the log level:  https://github.com/trentm/node-bunyan#levels
+        level: 'trace',                 // Define the log level:  https://github.com/trentm/node-bunyan#levels
         stream: new PrettyStream()      // Print the console logs in a human readable format:  https://github.com/CMaylone/bunyan-pretty-stream
       }
     ]

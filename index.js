@@ -1,15 +1,13 @@
 var bunyan = require('bunyan'),
-  config = require("./config/"),
-  crave = require('crave'),
-  express = require('express'),
-  compress = require('compression'),
-  bodyParser = require('body-parser'),
-  path = require('path');
+    config = require("./config/"),
+    crave = require('crave'),
+    express = require('express'),
+    compress = require('compression'),
+    bodyParser = require('body-parser'),
+    path = require('path');
 
 // Create a bunyan logger instance.
 var log = bunyan.createLogger(config.log);
-
-//var responseHandler = new (require('seedio-response'))(config, log);
 
 // Create an express application object.
 var app = module.exports = express();
@@ -43,9 +41,6 @@ app.use(express.static(config.clientDirectory+'components', config.express.stati
 app.use(express.static(config.clientDirectory+'css', config.express.static));
 app.use(express.static(config.clientDirectory+'js', config.express.static));
 
-// Redirect all traffic to '/' to policy.
-app.all('/', function(req, res, next) { console.log("Redirect"); res.redirect('/policy'); });
-
 // Log all requests when trace level logging is enabled.
 app.all('/*', function(req,res, next) {
   switch(req.method) {
@@ -61,11 +56,21 @@ app.all('/*', function(req,res, next) {
   next();
 });
 
+// Redirect all traffic to '/' to '/policy' instead..
+app.all('/', function(req, res, next) { console.log("Redirect"); res.redirect('/policy'); });
+
 // Start the node server.
 var start = function(err) {
   if(err) {
     return log.error(err);
   }
+
+  // Final middleware to format any error messages.
+  app.use(function(err, req, res, next) {
+    log.error(err);
+    res.status(err.status || 500).send(err.toString());
+    next();
+  });
 
   var server = app.listen(config.server.port, function() {
     var serverInfo = this.address();

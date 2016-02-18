@@ -37,7 +37,7 @@ var performPolicyUpdateRequest = function() {
     },
     error: function(err) {
       // Display the policy update error response.
-      $('#policyUpdateResponse').text(data);
+      $('#policyUpdateResponse').text(err.responseText);
       $('#policyUpdateResponseDiv').css('visibility', 'visible');
     }
   });

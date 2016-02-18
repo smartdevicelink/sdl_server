@@ -1,10 +1,11 @@
 /**
  * Defines routes related to policies.
- * @param app is the express application object.
- * @param config is the server's configuration object.
- * @param log is the server's current logger instance.
+ * @param {object} app is the express application object.
+ * @param {object} config is the server's configuration object.
+ * @param {object} log is the server's current logger instance.
  */
 module.exports = function(app, config, log) {
+
 
   /* ************************************************** *
    * ******************** Module's Global Variables
