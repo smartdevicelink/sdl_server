@@ -48,7 +48,7 @@ var Config = function() {
     serializers: bunyan.stdSerializers,
     streams: [
       {                                 // Stream to print to the console.
-        level: 'info',                  // Define the log level:  https://github.com/trentm/node-bunyan#levels
+        level: 'trace',                  // Define the log level:  https://github.com/trentm/node-bunyan#levels
         stream: new PrettyStream()      // Print the console logs in a human readable format:  https://github.com/CMaylone/bunyan-pretty-stream
       }
     ]
@@ -63,7 +63,7 @@ var Config = function() {
     ip: undefined,              // Server's IP address or domain name.  If left as undefined this config module will attempt to find the internal IP address.
     name: "sdl_server",         // Name of the server
     port: 3000,                 // Port the server will be listening on.
-    protocol: 'https'           // Default protocol used to communicate with the server.
+    protocol: 'http'            // Default protocol used to communicate with the server.
   };
 
   // Configure express session options.

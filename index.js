@@ -44,7 +44,22 @@ app.use(express.static(config.clientDirectory+'css', config.express.static));
 app.use(express.static(config.clientDirectory+'js', config.express.static));
 
 // Redirect all traffic to '/' to policy.
-app.all('/', function(req, res, next) { res.redirect('/policy'); });
+app.all('/', function(req, res, next) { console.log("Redirect"); res.redirect('/policy'); });
+
+// Log all requests when trace level logging is enabled.
+app.all('/*', function(req,res, next) {
+  switch(req.method) {
+    case "POST":
+    case "PUT":
+      log.trace(req.method+' '+req.protocol+'://'+req.get('host')+req.originalUrl+'\nBody: ', JSON.stringify(req.body, undefined,2));
+      break;
+    default:
+      log.trace(req.method+' '+req.protocol+'://'+req.get('host')+req.originalUrl);
+      break;
+  }
+
+  next();
+});
 
 // Start the node server.
 var start = function(err) {

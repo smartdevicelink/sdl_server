@@ -21,6 +21,7 @@ module.exports = function(app, config, log) {
 
   var api = express.Router();
 
+  // Handle policy update requests.
   api.route('/').post(policyTableUpdate);
 
   // Use the router and set the router's base url.

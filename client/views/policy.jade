@@ -12,11 +12,25 @@ block page
           .p
             a(class="btn btn-primary btn-lg", href="#", role="button", onclick="performPolicyUpdateRequest()") Perform Request
 
+    .row(id="policyUpdateRequestDiv")
+      .col-lg-12
+        h1 Request to SDL Server
+        .row
+          .col-lg-12
+            .input-group
+              span.input-group-addon.method-post POST
+              input.form-control(id="policyUpdateResponseUrl", type="text", disabled)
+        br
+        .row
+          .col-lg-12
+            pre
+              code(id="policyUpdateRequestBody")
+
     .row(id="policyUpdateResponseDiv")
       .col-lg-12
         h1 SDL Server Response
         pre
-          code(id="policyUpdateResponse", class="javascript")
+          code.javascript(id="policyUpdateResponse")
 
 
 block scripts

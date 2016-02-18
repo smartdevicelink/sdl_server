@@ -15,13 +15,13 @@
       ],
       "endpoints": {
         "0x07": {
-          "default": ["http://192.168.0.32:3000/api/1/policies"]
+          "default": ["http://localhost:3000/api/1/policies"]
         },
         "0x04": {
-          "default": ["http://ivsu.software.ford.com/api/getsoftwareupdates"]
+          "default": ["http://localhost:3000/api/1/softwareUpdate"]
         },
         "queryAppsUrl": {
-          "default": ["http://woprjr.smartdevicelink.org"]
+          "default": ["http://woprjr.smartdevicelink.org/api/1/apps"]
         },
         "lock_screen_icon_url": {
           "default": ["http://i.imgur.com/QwZ9uKG.png"]
