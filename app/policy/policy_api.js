@@ -22,8 +22,8 @@ module.exports = function(app, config, log) {
 
   var api = express.Router();
 
-  // Handle policy update requests.
-  api.route('/').post(policyTableUpdate);
+  // Handle a policy update request.
+  api.route('/').post(decryptPolicySnapshot, policyTableUpdate);
 
   // Use the router and set the router's base url.
   app.use('/api/:version/policies', api);
@@ -35,6 +35,8 @@ module.exports = function(app, config, log) {
 
 
   function policyTableUpdate(req, res, next) {
+    var snapshot = req.body.data || [];
+
     getPolicyTableByName("default", function(err, policy) {
       if(err) {
         next(err);
@@ -42,6 +44,33 @@ module.exports = function(app, config, log) {
         res.send(policy);
       }
     });
+  }
+
+
+  /**
+   * Decrypt an encrypted policy table snapshot.
+   * @param {object} req is the express request object.
+   * @param {object} res is the express response object.
+   * @param {expressCallback} next is a callback method.
+   */
+  function decryptPolicySnapshot(req, res, next) {
+    if(req.body.data) {
+
+      /**
+       * Policy snapshots can be encrypted by the SDL core
+       * HMI prior to being sent to SDL Server.  It is up
+       * to you to implement the encryption portion of the
+       * HMI, by default there is none.  Here is where you
+       * would decrypt the policy table snapshot, if it is
+       * encrypted.
+       */
+
+      next();
+    } else {
+      // Policy table snapshot was not included, so there
+      // is nothing to decrypt.
+      next();
+    }
   }
 
 
@@ -89,4 +118,15 @@ module.exports = function(app, config, log) {
  * @param {object|undefined} error describes the error
  * that occurred.
  * @param {object|undefined} result is a json object.
+ */
+
+/**
+ * A callback to the next method list of express
+ * methods for a client's request.  This method should
+ * not be called if the request has already been handled
+ * and the response has been returned to the client.
+ *
+ * @callback expressCallback
+ * @param {object|undefined} error describes an error
+ * that occurred.
  */
