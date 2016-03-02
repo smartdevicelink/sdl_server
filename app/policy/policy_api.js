@@ -94,7 +94,7 @@ module.exports = function(app, config, log) {
 
         // Replace the default SDL server endpoint to this server.
         policy = JSON.parse(policy);
-        policy.policy_table.module_config.endpoints["0x07"].default = [config.server.url+"/api/1/policies"];
+        policy.data[0].policy_table.module_config.endpoints["0x07"].default = [config.server.url+"/api/1/policies"];
         policy = JSON.stringify(policy, undefined, 4);
 
         cb(undefined, policy);
