@@ -46,13 +46,12 @@ app.all('/*', function(req,res, next) {
   switch(req.method) {
     case "POST":
     case "PUT":
-      log.trace(req.method+' '+req.protocol+'://'+req.get('host')+req.originalUrl+'\nBody: ', JSON.stringify(req.body, undefined,2));
+      log.trace(req.method+' '+req.protocol+'://'+req.get('host')+req.originalUrl+'\n\nHeaders: %s\n\nBody: %s', JSON.stringify(req.headers, undefined, 2), JSON.stringify(req.body, undefined,2));
       break;
     default:
       log.trace(req.method+' '+req.protocol+'://'+req.get('host')+req.originalUrl);
       break;
   }
-
   next();
 });
 

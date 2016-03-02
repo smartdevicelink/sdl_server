@@ -11,7 +11,11 @@ var performPolicyUpdateRequest = function() {
       policyUpdateResponseCode = $('#policyUpdateResponseCode'),
       requestUrl = "/api/1/policies",
       requestBody = {
-        name: "default"
+        "data": []
+      },
+      requestHeaders = {
+        "Content-Type": "application/json; charset=utf-8",
+        "cache": false
       };
 
   // Clear any existing error or success classes.
@@ -27,11 +31,10 @@ var performPolicyUpdateRequest = function() {
   });
 
   $.ajax({
-    url: requestUrl,
-    type: "POST",
-    contentType: "application/json",
     data: JSON.stringify(requestBody),
-    cache: false,
+    headers: requestHeaders,
+    type: "POST",
+    url: requestUrl,
     success: function(data, status, jqxhr) {
       // Display the policy update response
       policyUpdateResponse.text(data);

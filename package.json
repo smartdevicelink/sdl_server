@@ -24,20 +24,21 @@
     "bunyan": "^1.5.1",
     "bunyan-pretty-stream": "^1.0.1",
     "compression": "^1.4.1",
-    "crave": "git+https://github.com/ssmereka/crave.git#HEAD",
+    "crave": "^0.0.14",
     "express": "^4.10.1",
-    "jade": "^1.11.0"
+    "jade": "^1.11.0",
+    "lodash": "^4.6.1"
   },
   "description": "SmartDeviceLink (SDL) server handles authentication, data collection, and basic configurations for SDL connected vehicles.",
   "engines": {
     "node": ">= 4.3.0"
   },
-  "homepage": "smartdevicelink.org",
+  "homepage": "http://www.smartdevicelink.org",
   "keywords": [
     "SmartDeviceLink",
     "SDL"
   ],
-  "license": "BSD",
+  "license": "BSD-3-Clause",
   "main": "index.js",
   "private": false,
   "repository": {

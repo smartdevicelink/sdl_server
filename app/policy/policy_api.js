@@ -13,7 +13,8 @@ module.exports = function(app, config, log) {
 
   var error = require(config.libsDirectory + 'error'),
       express = require('express'),
-      fs = require('fs');
+      fs = require('fs'),
+      _ = require('lodash');
 
 
   /* ************************************************** *
@@ -23,7 +24,7 @@ module.exports = function(app, config, log) {
   var api = express.Router();
 
   // Handle a policy update request.
-  api.route('/').post(decryptPolicySnapshot, policyTableUpdate);
+  api.route('/').post(decryptPolicySnapshot, recordSnapshot, policyTableUpdate);
 
   // Use the router and set the router's base url.
   app.use('/api/:version/policies', api);
@@ -33,9 +34,8 @@ module.exports = function(app, config, log) {
    * ******************** Route Methods
    * ************************************************** */
 
-
   function policyTableUpdate(req, res, next) {
-    var snapshot = req.body.data || [];
+    var snapshot = req.body || [];
 
     getPolicyTableByName("default", function(err, policy) {
       if(err) {
@@ -64,11 +64,40 @@ module.exports = function(app, config, log) {
        * would decrypt the policy table snapshot, if it is
        * encrypted.
        */
+      
+      // To simplify later methods, we will remove unneeded 
+      // nesting of the snapshot(s)
+      req.body = (req && req.body && _.isArray(req.body.data) && req.body.data.length > 0) ? req.body.data : undefined;
 
       next();
     } else {
       // Policy table snapshot was not included, so there
       // is nothing to decrypt.
+      next();
+    }
+  }
+
+  /**
+   * Record information, such as usage and errors, 
+   * found in the policy table snapshot.
+   * @param {object} req is the express request object.
+   * @param {object} res is the express response object.
+   * @param {expressCallback} next is a callback method.
+   */
+  function recordSnapshot(req, res, next) {
+    if(req.body) {
+      
+      /**
+       * You can view descriptions of the different types of 
+       * information included in a policy table snapshot at 
+       * https://goo.gl/vfKoZV
+       */
+      log.info("Usage and Errors: %s", JSON.stringify(req.body.usage_and_error_counts));
+
+      next();
+    } else {
+      // Policy table snapshot was not included, so there
+      // is nothing to record.
       next();
     }
   }
