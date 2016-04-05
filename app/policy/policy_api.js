@@ -25,7 +25,7 @@ module.exports = function(app, config, log) {
 
   // Handle a policy update request.
   api.route('/').post(decryptPolicySnapshot, recordSnapshot, policyTableUpdate);
-
+  api.route('/proprietary').post(decryptPolicySnapshot, recordSnapshot, proprietaryPolicyTableUpdate);
   // Use the router and set the router's base url.
   app.use('/api/:version/policies', api);
 
@@ -37,7 +37,7 @@ module.exports = function(app, config, log) {
   function policyTableUpdate(req, res, next) {
     var snapshot = req.body || [];
 
-    getPolicyTableByName("default", function(err, policy) {
+    getPolicyTableByName("default", "http", function(err, policy) {
       if(err) {
         next(err);
       } else {
@@ -46,6 +46,17 @@ module.exports = function(app, config, log) {
     });
   }
 
+  function proprietaryPolicyTableUpdate(req, res, next) {
+    var snapshot = req.body || [];
+
+    getPolicyTableByName("default", "proprietary", function(err, policy) {
+      if(err) {
+        next(err);
+      } else {
+        res.send(policy);
+      }
+    });
+  }
 
   /**
    * Decrypt an encrypted policy table snapshot.
@@ -113,7 +124,7 @@ module.exports = function(app, config, log) {
    * without an extension.
    * @param {getDataCallbackMethod} cb is a callback method.
    */
-  function getPolicyTableByName(name, cb) {
+  function getPolicyTableByName(name, type, cb) {
     fs.readFile(config.policiesDirectory+name+".json", function(err, policy) {
       if(err) {
         cb(err);
@@ -124,6 +135,9 @@ module.exports = function(app, config, log) {
         // Replace the default SDL server endpoint to this server.
         policy = JSON.parse(policy);
         policy.data[0].policy_table.module_config.endpoints["0x07"].default = [config.server.url+"/api/1/policies"];
+        if (type == "http") {
+          policy = policy.data[0];
+        }
         policy = JSON.stringify(policy, undefined, 4);
 
         cb(undefined, policy);
