@@ -122,6 +122,10 @@ module.exports = function(app, config, log) {
    * Get a policy table with the specified name.
    * @param {string} name is the name of a policy table,
    * without an extension.
+   * @param {string} type defines the type of policy table
+   * update requested by SDL. The two types require the
+   * policy table to be returned in slightly different 
+   * formats.
    * @param {getDataCallbackMethod} cb is a callback method.
    */
   function getPolicyTableByName(name, type, cb) {
@@ -134,9 +138,11 @@ module.exports = function(app, config, log) {
 
         // Replace the default SDL server endpoint to this server.
         policy = JSON.parse(policy);
-        policy.data[0].policy_table.module_config.endpoints["0x07"].default = [config.server.url+"/api/1/policies"];
         if (type == "http") {
+          policy.data[0].policy_table.module_config.endpoints["0x07"].default = [config.server.url+"/api/1/policies"];
           policy = policy.data[0];
+        } else if (type == "proprietary"){
+          policy.data[0].policy_table.module_config.endpoints["0x07"].default = [config.server.url+"/api/1/policies/proprietary"];
         }
         policy = JSON.stringify(policy, undefined, 4);
 
