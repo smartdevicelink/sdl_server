@@ -83,4 +83,4 @@ var start = function(err) {
 crave.setConfig(config.crave);
 
 // Recursively load all files of the specified type(s) that are also located in the specified folder.
-crave.directory(path.resolve("./app"), [ "model", "api", "client" ], start, app, config, log);
+crave.directory(path.join(__dirname, "./app"), [ "model", "api", "client" ], start, app, config, log);
