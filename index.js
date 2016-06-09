@@ -56,7 +56,10 @@ app.all('/*', function(req,res, next) {
 });
 
 // Redirect all traffic to '/' to '/policy' instead..
-app.all('/', function(req, res, next) { console.log("Redirect"); res.redirect('/policy'); });
+app.all('/', function(req, res, next) { 
+  log.trace("Redirecting request to '/' to '/policy'");
+  res.redirect('/policy'); 
+});
 
 // Start the node server.
 var start = function(err) {
