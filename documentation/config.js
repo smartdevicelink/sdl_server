@@ -9,9 +9,9 @@
         {
             "name": "Overview"
         }, {
-            "name": "Policy Update"
+            "name": "PolicyUpdate"
         }, {
-            "name": "Policy Table",
+            "name": "PolicyTable",
             "navigation": [
                 {
                     "name": "ApplicationPolicies"
@@ -28,7 +28,7 @@
                 }, {
                     "name": "ModuleMeta"
                 }, {
-                    "name": "UsageandErrors"
+                    "name": "UsageAndErrors"
                 }
             ]
         }
