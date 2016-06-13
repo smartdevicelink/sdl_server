@@ -14,23 +14,21 @@
             "name": "Policy Table",
             "navigation": [
                 {
-                    "name": "Application Policies"
+                    "name": "ApplicationPolicies"
                 }, {
-                    "name": "Consumer Friendly Messages"
+                    "name": "ConsumerFriendlyMessages"
                 }, {
-                    "name": "Data Dictionary"
+                    "name": "DataDictionary"
                 }, {
-                    "name": "Device Data"
+                    "name": "DeviceData"
                 }, {
-                    "name": "Functional Groupings"
+                    "name": "FunctionalGroupings"
                 }, {
-                    "name": "Module Config"
+                    "name": "ModuleConfig"
                 }, {
-                    "name": "Module Meta"
+                    "name": "ModuleMeta"
                 }, {
-                    "name": "Policy Table Update"
-                }, {
-                    "name": "Usage and Errors"
+                    "name": "UsageandErrors"
                 }
             ]
         }
