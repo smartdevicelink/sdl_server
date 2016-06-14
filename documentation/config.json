@@ -13,13 +13,10 @@
             "navigation": [
                 {
                     "name": "Overview"
-                },
-                {
+                }, {
                     "name": "Application Policies"
                 }, {
                     "name": "Consumer Friendly Messages"
-                }, {
-                    "name": "Data Dictionary"
                 }, {
                     "name": "Device Data"
                 }, {
@@ -30,7 +27,9 @@
                     "name": "Module Meta"
                 }, {
                     "name": "Usage and Errors"
-                }
+                }, {
+                    "name": "Data Dictionary"
+                },
             ]
         }, {
             "name": "Policy Table Update"

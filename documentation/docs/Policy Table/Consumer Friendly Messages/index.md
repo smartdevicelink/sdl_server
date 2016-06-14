@@ -2,7 +2,7 @@
 There are certain scenarios when the SDL system needs to display a message to the user.  Some examples are when an error occurs or an application is unauthorized.  These messages can include spoken text and text displayed to a user in multiple languages.  All of this information is stored in the **consumer_friendly_messages** property.
 
 ## Messages
-All messages are given a unique name (e.g. "**AppUnauthorized**" or "**DataConsent**") and stored as an object in the **consumer_friendly_messages** object's **messages** property.
+All messages are given a unique name (e.g. "AppUnauthorized" or "DataConsent") and stored as an object in the **consumer_friendly_messages** object's **messages** property.
 
 ### Language
 Since each message should support multiple languages, each message object will contain a property named **languages**. Language properties are name by combining the <a href="http://en.wikipedia.org/wiki/ISO_639-1" target="_blank">ISO 639-1</a> language code and the <a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2" target="_blank">ISO 3166 alpha-2</a> country code.  For example, messages for **English** speaking citizens of the **United States** would be under the key **en-us**.
@@ -10,7 +10,7 @@ Since each message should support multiple languages, each message object will c
 ### Message Text
 Inside each language object is the data to be read or spoken by the SDL system.  The data is organized in the following properties.
 
-| Property | Type | Description |
+| Message Text Property | Type | Description |
 | -------- | ---- | ----------- |
 | tts | String | Text that can be read aloud by the SDL system. |
 | line1 | String | First line of text to be displayed on the head unit. |
