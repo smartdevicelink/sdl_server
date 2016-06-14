@@ -1,30 +1,31 @@
-## Application Policies
+# Application Policies
 An application's permissions and settings are stored in the **app_policies** property.  The application policies are used to grant only approved applications access to special features such as vehicle data and/or running in the background.  Additionally application information such as default settings and/or user consents are stored in the policies as well.
 
   * [Application ID](#Application-ID)
-  * [Default](#applicationPoliciesDefault)
-  * [Device](#applicationPoliciesDevice)
-  * [Example](#applicationPoliciesExample)
+  * [Default](#Default)
+  * [Device](#Device)
+  * [Example](#Example)
 
 <a name="Application-ID"></a>
-### Application ID
-Settings for a specific application are stored as a property named after the application's unique ID (e.g. "663645645" or any string of at most 100 characters).  The value of this property can be either an object containing [properties listed below](#applicationPoliciesApplicationProperties) or a reference to another sibling property (e.g. "default" or "device").  In addition, a special value of "null" can be used to indicate that the application has been revoked.
+## Application ID
+Settings for a specific application are stored as a property named after the application's unique ID (e.g. "663645645" or any string of at most 100 characters).  The value of this property can be either an object containing properties listed below or a reference to another sibling property (e.g. "default" or "device").  In addition, a special value of "null" can be used to indicate that the application has been revoked.
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
 | keep_context | Boolean | When true, allows the application to display messages even if another app enters the foreground (HMI level FULL). |
 | steal_focus | Boolean | When true, allows the application to steal the foreground from another application at will. |
 | priority | String | Priority level assigned to the application. |
-| default_hmi | String | [HMI level](./HMI Level) given to the application following a successful registration with SDL core. |
+| default_hmi | String | [HMI level](#Application-HMI-Levels) given to the application following a successful registration with SDL core. |
 | groups | Array of Strings | A list of functional groupings the application has access to. |
-| preconsented_groups | Array of Strings | List of [functional groupings](#functionalGroupings) that do not require a user consent because the consent has already been given in another place. (e.g. an application EULA) |
-| AppHMIType | Array of Strings | List of [HMI Types](#applicationPoliciesApplicationHmiTypes) used to group the application into different containers in an HMI system. |
+| preconsented_groups | Array of Strings | List of [functional groupings](functional-groupings) that do not require a user consent because the consent has already been given in another place. (e.g. an application EULA) |
+| AppHMIType | Array of Strings | List of [HMI Types](#Application-HMI-Types) used to group the application into different containers in an HMI system. |
 | memory_kb | String | //TODO: Define this |
 | watchdog_timer_ms | String | //TODO: Define this |
 | certificate | String | //TODO: Define this |
 | nicknames | Array of Strings | A list of names the application goes by. |
 
-#### Application HMI Types
+<a name="Application-HMI-Types"></a>
+### Application HMI Types
 An application can be categorized by an HMI type allowing the SDL system understand how to appropriately handle the application.  There are several HMI types listed below.
 
 | Application HMI Type | Description |
@@ -40,18 +41,31 @@ An application can be categorized by an HMI type allowing the SDL system underst
 | SYSTEM | //TODO: Add description |
 | TESTING | //TODO: Add description |
 
+<a name="Application-HMI-Levels"></a>
+### Application HMI Levels
+An HMI Level describes the state of an application.  Resources are granted to an application based on its current state.  While some resources are granted automatically to an application in a specific HMI Level, many can be controlled by the policy table.
 
-#### Default
+| Level | Value | Short Description |
+|-------|-------|-------------------|
+| Full | 0 | An application is typically in ```Full``` when it is displayed in the HMI.  In ```Full``` an application has access to the HMI supported resources, e.g. UI, VR, TTS, audio system, and etc. |
+| Limited | 1 | An application is typically placed in ```Limited``` when a message or menu is displayed ```Limited``` to restrict it's permissions. |
+| Background | 2 | An application is typically in ```Background``` when it is not being displayed by the HMI.  When in ```Background``` an application can send RPCs according to the Policy Table rules. |
+| None | 3 | When placed in ```None``` an application has no access to HMI supported resources. |
+
+
+<a name="Default"></a>
+### Default
 A default application configuration can be specified in the **default** property.  This property's value is an object containing any valid [application property](applicationPoliciesApplicationProperties) excluding the following:
 
   * certificate
   * nicknames
 
-
-### Device
+<a name="Device"></a>
+## Device
 // TODO:  What is this used for?
 
-### Example
+<a name="Example"></a>
+## Example
 
     "app_policies": {
         "default": {
