@@ -12,6 +12,9 @@
             "name": "Policy Table",
             "navigation": [
                 {
+                    "name": "Overview"
+                },
+                {
                     "name": "Application Policies"
                 }, {
                     "name": "Consumer Friendly Messages"
