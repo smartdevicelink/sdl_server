@@ -1,6 +1,23 @@
-Overview here.
+# Overview
+This document provides the information for creating and integrating the SmartDeviceLink (SDL) server component with the mobile libraries and vehicle's Head Unit (HU).
 
+The SDL server's main purpose is to curates [policy tables](/policytable) composed of rules and permissions defined by a vehice's OEM.  Each vehicle will download it's policy table and use it to govern SDL behaviors.  Additionaly, SDL servers can be used to gather usage information and provide additional functionality defined by the OEM.
 
-## Policies
+## Abbreviations and Definitions
+Abbreviations used in this document are collected in the table below
 
-Policies are rules enforced by SDL core that configure how the system can and/or will behave. For example, a policy could prohibit the use of an application (e.g. Flappy Bird) in a specific type of vehicle. In general, policies are configured by an OEM (e.g. Ford, GM, Tesla, etc.) using the SDL server's graphical user interface. Once configured, all policies for a specific vehicle can be requested in the form a JSON document called a policy table. Policy tables are downloaded to a vehicle's head unit where it can be enforced by SDL core.
+| Abbreviation | Meaning     |
+| :------------- | :------------- |
+|BT|Bluetooth|
+|GUI|Graphical User Interface|
+|HMI|Human Machine Interface|
+|IVI|In Vehicle Infotainment|
+|JSON|JavaScript Object Notation|
+|OEM|Original Equipment Manufacturer|
+|RPC|Remote Procedure Call|
+|SDE|Software Development Environment|
+|SDL|SmartDeviceLink|
+|SEE|Software Engineering Environment|
+|TTS|Text To Speech|
+|VDOP|Vertical Dilution of Precision|
+|VR|Voice Recognition|

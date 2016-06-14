@@ -9,28 +9,28 @@
         {
             "name": "Overview"
         }, {
-            "name": "PolicyUpdate"
-        }, {
-            "name": "PolicyTable",
+            "name": "Policy Table",
             "navigation": [
                 {
-                    "name": "ApplicationPolicies"
+                    "name": "Application Policies"
                 }, {
-                    "name": "ConsumerFriendlyMessages"
+                    "name": "Consumer Friendly Messages"
                 }, {
-                    "name": "DataDictionary"
+                    "name": "Data Dictionary"
                 }, {
-                    "name": "DeviceData"
+                    "name": "Device Data"
                 }, {
-                    "name": "FunctionalGroupings"
+                    "name": "Functional Groupings"
                 }, {
-                    "name": "ModuleConfig"
+                    "name": "Module Config"
                 }, {
-                    "name": "ModuleMeta"
+                    "name": "Module Meta"
                 }, {
-                    "name": "UsageAndErrors"
+                    "name": "Usage and Errors"
                 }
             ]
+        }, {
+            "name": "Policy Update"
         }
     ]
 }
