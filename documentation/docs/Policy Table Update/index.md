@@ -4,7 +4,7 @@ Periodically changes will be made to a policy table, either by the server or cor
 > Note:  You can read more about how SDL core makes a policy request in the [SDL core wiki](https://github.com/smartdevicelink/sdl_core/wiki/Policies).
 
 ### Policy Table Update Sequence Diagram
-![Policy Table Update Sequence Diagram](/docs/assets/sdl_server_policy_request_sequence_diagram.jpg)
+![Policy Table Update Sequence Diagram](./assets/sdl_server_policy_request_sequence_diagram.jpg)
 
 ### Policy Table Update Sequence Diagram Steps
 1. A policy table update is triggered by SDL core and a snapshot of the current policy table is created.  The snapshot includes the entire local policy table with one exception.  Only the version number property of the [consumer friendly messages](#consumerFriendlyMessagesExample) section is included in the snapshot.
