@@ -1,14 +1,7 @@
-## Module Config
+# Module Config
 The module configuration property contains information used to configure core for use on the current vehicle.
 
-  * [Example](#moduleConfigExample)
-  * [Notifications](#moduleConfigNotifications)
-  * [Policy Table Update Configurations](#moduleConfigPolicyTableUpdateConfigurations)
-  * [Preloaded Policy Tables](#moduleConfigPreloadedPolicyTables)
-  * [Server Requests](#moduleConfigServerRequests)
-  * [Vehicle Information](#moduleConfigVehicleInformation)
-
-### Notifications
+## Notifications
 There is a limit for the number of notifications that can be displayed per priority level.  The limit is based on notifications per minute.  You can configure these in the **notifications_per_minute_by_priority** property.  The following are the available priority levels.
 
 | Property | Type | Description |
@@ -21,7 +14,7 @@ There is a limit for the number of notifications that can be displayed per prior
 | voiceCommunication | Number | Number of voice communication notifications that can be displayed per minute. |
 
 
-### Policy Table Update Configurations
+## Policy Table Update Configurations
 Periodically changes will be made to a policy table, either by the server or core.  This means core should periodically perform a policy table update, which synchronizes the two tables.  You can configure when core will check using the following configurations.
 
 | Property | Type | Description |
@@ -31,7 +24,7 @@ Periodically changes will be made to a policy table, either by the server or cor
 | exchange_after_x_days | Number | Update policies after a number of days.  |
 
 
-### Preloaded Policy Tables
+## Preloaded Policy Tables
 SDL core can use a predefined policy table located locally on the vehicle's head unit.  This is present to initially configure core as well as to enable the storage of vehicle data before a policy update has occurred.
 
 _// TODO:  Is this correct? _
@@ -41,7 +34,7 @@ _// TODO:  Is this correct? _
 | preloaded_pt | Boolean | When true, core will use the local copy of the policy table. |
 
 
-### Server Requests
+## Server Requests
 All requests made directly by core or by proxy can be configured using the following attributes.
 
 | Property | Type | Description |
@@ -51,7 +44,7 @@ All requests made directly by core or by proxy can be configured using the follo
 | seconds_between_retries | Array | A list of seconds to wait before each retry. |
 
 
-### Vehicle Information
+## Vehicle Information
 Vehicle identification information is currently stored in the module configuration portion of the policy table.
 
 | Property | Type | Description |
@@ -61,7 +54,8 @@ Vehicle identification information is currently stored in the module configurati
 | vehicle_year  | String | Year the vehicle was made. |
 
 
-### Example
+## Example
+An example of how the Module Config portion of a policy table might look.
 
     "module_config": {
         "endpoints": {

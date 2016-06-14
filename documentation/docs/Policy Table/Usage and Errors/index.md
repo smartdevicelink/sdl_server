@@ -1,11 +1,8 @@
-## Usage and Errors
+# Usage and Errors
 Some usage and error statistics are collected to help developers debug problems and improve SDL.  The information does not contain any user information and is very small as to use as little mobile data as possible.  This data is sent to the SDL server when performing a policy table update.
 
-  * [Application Errors](#usageAndErrorsApplicationErrors)
-  * [Example](#usageAndErrorsExample)
-  * [General Errors](usageAndErrorsGeneralErrors)
 
-### Application Errors
+## Application Errors
 Errors and usage statistic that occur while an applciation is in use or are related to an application are recorded.  The following properties are tracked in a property named after the application's ID.
 
 | Property | Type | Description |
@@ -28,7 +25,7 @@ Errors and usage statistic that occur while an applciation is in use or are rela
 
 
 
-### General Errors
+## General Errors
 Some basic usage and error counts are stored in the following properties.
 
 | Property | Type | Description |
@@ -38,7 +35,9 @@ Some basic usage and error counts are stored in the following properties.
 | count_sync_out_of_memory | Number | Number of times the CCPU has run out of memory. |
 
 
-### Example
+## Example
+An example of how the Usage and Error portion of a policy table might look.
+
     "usage_and_error_counts": {
         "count_of_iap_buffer_full": 1,
         "count_of_sync_reboots": 123,

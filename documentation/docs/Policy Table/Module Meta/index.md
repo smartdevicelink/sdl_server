@@ -1,12 +1,6 @@
-## Module Meta
+# Module Meta
 
-  * [Example](#moduleMetaExample)
-  * [Language and Country](#moduleMetaLanguageAndCountry)
-  * [Module Version](#moduleMetaModuleVersion)
-  * [Policy Table Update](#moduleMetaPolicyTableUpdate)
-  * [Vehicle Data](#moduleMetaVehicleData)
-
-### Language and Country
+## Language and Country
 The current language and regional settings can be configured using the following properties.
 
 | Property | Type | Description |
@@ -15,7 +9,7 @@ The current language and regional settings can be configured using the following
 | wers_country_code | String | A two letter string uniquely representing a country.  A dynamically generated list can be found [here](https://github.com/smartdevicelink/sdl_server/blob/master/server/data/countries.js). |
 
 
-### Module Version
+## Module Version
 The current version of the vehicle's module should be stored in the following property.
 
 | Property | Type | Description |
@@ -23,7 +17,7 @@ The current version of the vehicle's module should be stored in the following pr
 | ccpu_version | String | Software version for the module running core. |
 
 
-### Policy Table Update
+## Policy Table Update
 Information about when a policy table update has last taken place is stored in the following properties.
 
 | Property | Type | Description |
@@ -34,7 +28,7 @@ Information about when a policy table update has last taken place is stored in t
 
 
 
-### Vehicle Data
+## Vehicle Data
 Additional vehicle information is stored in the module meta property.
 
 | Property | Type | Description |
@@ -42,7 +36,9 @@ Additional vehicle information is stored in the module meta property.
 | vin | String | The vehicle's unique identification number. |
 
 
-### Example
+## Example
+An example of how the Module Meta portion of a policy table might look.
+
     "module_meta": {
         "ccpu_version": "4.1.2.B_EB355B",
         "language": "en-us",

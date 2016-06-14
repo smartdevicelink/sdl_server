@@ -31,7 +31,7 @@ User consent(s) for a device are stored in a property named **device** in the **
 _// TODO: Input and timestamp need a better description and clarification._
 
 ### Application
-User consents can also be saved per application on a device under a property named after its application ID.  The value of this property is an object with the same [user consent record properties](#User-Consent-Record-Properties) as device above.
+User consent(s) can also be saved per application on a device under a property named after its Application ID.  The value of this property is an object with the same [user consent record properties](#User-Consent-Record-Properties) as device above.
 
 ### Example
 An example of how the Device Data portion of a policy table might look.
