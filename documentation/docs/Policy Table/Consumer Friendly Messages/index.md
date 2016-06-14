@@ -1,29 +1,18 @@
-## Consumer Friendly Messages
+# Consumer Friendly Messages
 There are certain scenarios when the SDL system needs to display a message to the user.  Some examples are when an error occurs or an application is unauthorized.  These messages can include spoken text and text displayed to a user in multiple languages.  All of this information is stored in the **consumer_friendly_messages** property.
 
+  * [Messages](#Messages)
+  * [Version](#Version)
   * [Example](#consumerFriendlyMessagesExample)
-  * [General Information](#consumerFriendlyMessagesGeneralInformation)
-  * [Messages](#consumerFriendlyMessagesMessages)
-    * [Langauge](#consumerFriendlyLanguage)
-    * [Message Text](#consumerFriendlyMessageText)
 
+<a name="Messages"></a>
+## Messages
+All messages are given a unique name (e.g. "**AppUnauthorized**" or "**DataConsent**") and stored as an object in the **consumer_friendly_messages** object's **messages** property.
 
-### General Information
+### Language
+Since each message should support multiple languages, each message object will contain a property named **languages**. Language properties are name by combining the <a href="http://en.wikipedia.org/wiki/ISO_639-1" target="_blank">ISO 639-1</a> language code and the <a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2" target="_blank">ISO 3166 alpha-2</a> country code.  For example, messages for **English** speaking citizens of the **United States** would be under the key **en-us**.
 
-| Property | Type | Description |
-| -------- | ---- | ----------- |
-| version | String | Supports the ###.###.### format. Version increments when a language is added or an individual message contents change. |
-
-
-### Messages
-All messages are given a unique name (e.g. "**AppUnauthorized**" or "**DataConsent**") and stored as an object in the policy table's **messages** property.
-
-
-#### Language
-Since each message should support multiple languages, each message object will contain a property named **languages**. Language properties are name by combining the [ISO 639-1](http://en.wikipedia.org/wiki/ISO_639-1) language code and the [ISO 3166 alpha-2](http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country code.  For example, messages for **English** speaking citizens of the **United States** would be under the key **en-us**.
-
-
-#### Message Text
+### Message Text
 Inside each language object is the data to be read or spoken by the SDL system.  The data is organized in the following properties.
 
 | Property | Type | Description |
@@ -32,8 +21,13 @@ Inside each language object is the data to be read or spoken by the SDL system. 
 | line1 | String | First line of text to be displayed on the head unit. |
 | line2 | String | Second line of text to be displayed on the head unit. |
 
+<a name="Version"></a>
+## Version
+The version property in the **consumer_friendly_messages** object defines the current version of all the messages.  It is used during a [poilcy table update](/docs/sdl-server/master/policy-table-update/) to determine wether or not the consumer friendly messages need to be updated.  The version must be in the format `###.###.###`.
 
-### Example
+## Example
+An example of how the Consumer Friendly Messages portion of a policy table might look.
+
     "consumer_friendly_messages": {
         "version": "001.001.015",
         "messages": {

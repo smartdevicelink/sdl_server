@@ -1,5 +1,5 @@
 # Application Policies
-An application's permissions and settings are stored in the `app_policies` property.  The application policies are used to grant applications access to a specific set of features, such as vehicle data and/or running in the background.  Any other application related data, such as user-consents, can also be stored in application policies as well.
+An application's permissions and settings are stored in the **app_policies** property in a policy table.  The application policies are used to grant applications access to a specific set of features, such as vehicle data and/or running in the background.  Any other application related data, such as user-consents, can also be stored in application policies as well.
 
   * [Application ID](#Application-ID)
   * [Default](#Default)
@@ -8,10 +8,11 @@ An application's permissions and settings are stored in the `app_policies` prope
 
 <a name="Application-ID"></a>
 ## Application ID
-Settings for a specific application are stored as a property named after the application's unique ID (e.g. "663645645" or any string of at most 100 characters).  The value of this property can be either an object containing properties listed below or a reference to another sibling property (e.g. "default" or "device").  In addition, a special value of "null" can be used to indicate that the application has been revoked.
+Settings for a specific application are stored in the **app_policies** object as a property named after the application's unique ID (e.g. "663645645" or any string of at most 100 characters).  The value of this property can be either an object containing properties listed below or a reference to another sibling property (e.g. "default" or "device").  In addition, a special value of "null" can be used to indicate that the application has been revoked.
 
 <a name="Application-Property"></a>
-| Property | Type | Description |
+
+| Application Property | Type | Description |
 | -------- | ---- | ----------- |
 | keep_context | Boolean | When true, allows the application to display messages even if another app enters the foreground (HMI level FULL). |
 | steal_focus | Boolean | When true, allows the application to steal the foreground from another application at will. |
@@ -56,10 +57,7 @@ An HMI Level describes the state of an application.  Resources are granted to an
 
 <a name="Default"></a>
 ## Default
-A default application configuration can be specified in the **default** property.  This property's value is an object containing any valid [application property](#Application-Property) excluding `certificate` and `nicknames`.
-
-  * certificate
-  * nicknames
+A default application configuration can be stored in the **app_policies** object as a property named **default**.  This property's value is an object containing any valid [application property](#Application-Property) excluding **certificate** and **nicknames**.
 
 <a name="Device"></a>
 ## Device
