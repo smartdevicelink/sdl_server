@@ -6,7 +6,7 @@ An application's permissions and settings are stored in the **app_policies** pro
   * [Device](#applicationPoliciesDevice)
   * [Example](#applicationPoliciesExample)
 
-<a name="Application-ID" />
+<a name="Application-ID"></a>
 ### Application ID
 Settings for a specific application are stored as a property named after the application's unique ID (e.g. "663645645" or any string of at most 100 characters).  The value of this property can be either an object containing [properties listed below](#applicationPoliciesApplicationProperties) or a reference to another sibling property (e.g. "default" or "device").  In addition, a special value of "null" can be used to indicate that the application has been revoked.
 
