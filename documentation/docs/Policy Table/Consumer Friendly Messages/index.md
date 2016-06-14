@@ -1,11 +1,6 @@
 # Consumer Friendly Messages
 There are certain scenarios when the SDL system needs to display a message to the user.  Some examples are when an error occurs or an application is unauthorized.  These messages can include spoken text and text displayed to a user in multiple languages.  All of this information is stored in the **consumer_friendly_messages** property.
 
-  * [Messages](#Messages)
-  * [Version](#Version)
-  * [Example](#consumerFriendlyMessagesExample)
-
-<a name="Messages"></a>
 ## Messages
 All messages are given a unique name (e.g. "**AppUnauthorized**" or "**DataConsent**") and stored as an object in the **consumer_friendly_messages** object's **messages** property.
 
@@ -21,7 +16,6 @@ Inside each language object is the data to be read or spoken by the SDL system. 
 | line1 | String | First line of text to be displayed on the head unit. |
 | line2 | String | Second line of text to be displayed on the head unit. |
 
-<a name="Version"></a>
 ## Version
 The version property in the **consumer_friendly_messages** object defines the current version of all the messages.  It is used during a [poilcy table update](/docs/sdl-server/master/policy-table-update/) to determine wether or not the consumer friendly messages need to be updated.  The version must be in the format `###.###.###`.
 

@@ -1,12 +1,6 @@
 # Application Policies
 An application's permissions and settings are stored in the **app_policies** property in a policy table.  The application policies are used to grant applications access to a specific set of features, such as vehicle data and/or running in the background.  Any other application related data, such as user-consents, can also be stored in application policies as well.
 
-  * [Application ID](#Application-ID)
-  * [Default](#Default)
-  * [Device](#Device)
-  * [Example](#Example)
-
-<a name="Application-ID"></a>
 ## Application ID
 Settings for a specific application are stored in the **app_policies** object as a property named after the application's unique ID (e.g. "663645645" or any string of at most 100 characters).  The value of this property can be either an object containing properties listed below or a reference to another sibling property (e.g. "default" or "device").  In addition, a special value of "null" can be used to indicate that the application has been revoked.
 
@@ -26,7 +20,6 @@ Settings for a specific application are stored in the **app_policies** object as
 | certificate | String | //TODO: Define this |
 | nicknames | Array of Strings | A list of names the application goes by. |
 
-<a name="Application-HMI-Types"></a>
 ### Application HMI Types
 An application can be categorized by an HMI type allowing the SDL system understand how to appropriately handle the application.  There are several HMI types listed below.
 
@@ -43,7 +36,6 @@ An application can be categorized by an HMI type allowing the SDL system underst
 | SYSTEM | //TODO: Add description |
 | TESTING | //TODO: Add description |
 
-<a name="Application-HMI-Levels"></a>
 ### Application HMI Levels
 An HMI Level describes the state of an application.  Resources are granted to an application based on its current state.  While some resources are granted automatically to an application in a specific HMI Level, many can be controlled by the policy table.
 
@@ -55,15 +47,12 @@ An HMI Level describes the state of an application.  Resources are granted to an
 | None | 3 | When placed in ```None``` an application has no access to HMI supported resources. |
 
 
-<a name="Default"></a>
 ## Default
 A default application configuration can be stored in the **app_policies** object as a property named **default**.  This property's value is an object containing any valid [application property](#Application-Property) excluding **certificate** and **nicknames**.
 
-<a name="Device"></a>
 ## Device
 // TODO:  What is this used for?
 
-<a name="Example"></a>
 ## Example
 An example of how the Application Policy portion of a policy table might look.
 
