@@ -1,5 +1,5 @@
 # Usage and Errors
-Some usage and error statistics are collected to help developers debug problems and improve SDL.  The information does not contain any user information and is very small as to use as little mobile data as possible.  This data is sent to the SDL server when performing a policy table update.
+Some usage and error statistics are collected to help developers debug problems and improve SDL.  The information does not contain user information and is very small as to use as little mobile data as possible.  This data is sent to the SDL server when performing a [policy table update](../../policy-table-update).
 
 
 ## Application Errors

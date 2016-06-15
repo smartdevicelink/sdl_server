@@ -1,8 +1,8 @@
 # Module Config
-The module configuration property contains information used to configure core for use on the current vehicle.
+The module configuration property contains information used to configure SDL core for use on the current vehicle.
 
 ## Notifications
-There is a limit for the number of notifications that can be displayed per priority level.  The limit is based on notifications per minute.  You can configure these in the **notifications_per_minute_by_priority** property.  The following are the available priority levels.
+There is a limit for the number of notifications that can be displayed per priority level.  The limit is instead based on notifications per minute.  You can configure these in the **notifications_per_minute_by_priority** property.  The following are the available priority levels.
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
@@ -15,7 +15,7 @@ There is a limit for the number of notifications that can be displayed per prior
 
 
 ## Policy Table Update Configurations
-Periodically changes will be made to a policy table, either by the server or core.  This means core should periodically perform a policy table update, which synchronizes the two tables.  You can configure when core will check using the following configurations.
+Periodically changes will be made to a policy table, either by the server or core.  This means core should check for and perform a [policy table updates](../../policy-table-update), which synchronizes the local and server policy tables.  You can configure when core will check using the following configurations.
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
@@ -27,7 +27,7 @@ Periodically changes will be made to a policy table, either by the server or cor
 ## Preloaded Policy Tables
 SDL core can use a predefined policy table located locally on the vehicle's head unit.  This is present to initially configure core as well as to enable the storage of vehicle data before a policy update has occurred.
 
-_// TODO:  Is this correct? _
+// TODO:  Is this correct?
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
@@ -40,12 +40,16 @@ All requests made directly by core or by proxy can be configured using the follo
 | Property | Type | Description |
 | -------- | ---- | ----------- |
 | timeout_after_x_seconds | Number | Elapsed seconds until a policy update request will timeout. |
-| endpoints | Object | Contains a list of [service types](Service Types) that may contain a default or app-specific array of server endpoints. |
+| endpoints | Object | Contains a list of [service types](#Service-Types) that may contain a default or app-specific array of server endpoints. |
 | seconds_between_retries | Array | A list of seconds to wait before each retry. |
 
+<a name="Service-Types"></a>
+
+### Service Types
+// TODO: Define these.
 
 ## Vehicle Information
-Vehicle identification information is currently stored in the module configuration portion of the policy table.
+Vehicle identification information is stored in the module configuration portion of the policy table.
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |

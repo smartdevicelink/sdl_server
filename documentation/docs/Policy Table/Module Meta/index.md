@@ -5,8 +5,8 @@ The current language and regional settings can be configured using the following
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| language | String | Current system language.  [ISO 639-1](http://en.wikipedia.org/wiki/ISO_639-1) combined with [ISO 3166 alpha-2](http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country code.  A dynamically generated list can be found [here](https://github.com/smartdevicelink/sdl_server/blob/master/server/data/languages.js). |
-| wers_country_code | String | A two letter string uniquely representing a country.  A dynamically generated list can be found [here](https://github.com/smartdevicelink/sdl_server/blob/master/server/data/countries.js). |
+| language | String | Current system language.  <a href="http://en.wikipedia.org/wiki/ISO_639-1" target="_blank">ISO 639-1</a> combined with <a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2" target="_blank">ISO 3166 alpha-2</a> country code. |
+| wers_country_code | String | //TODO: What is this. |
 
 
 ## Module Version
