@@ -13,7 +13,7 @@ Settings for a specific application are stored in the **app_policies** object as
 | priority | String | Priority level assigned to the application. |
 | default_hmi | String | [HMI level](#Application-HMI-Levels) given to the application following a successful registration with SDL core. |
 | groups | Array of Strings | A list of functional groupings the application has access to. |
-| preconsented_groups | Array of Strings | List of [functional groupings](/docs/sdl-server/master/policy-table/functional-groupings) that do not require a user consent because the consent has already been given in another place. (e.g. an application EULA) |
+| preconsented_groups | Array of Strings | List of [functional groupings](../functional-groupings) that do not require a user consent because the consent has already been given in another place. (e.g. an application EULA) |
 | AppHMIType | Array of Strings | List of [HMI Types](#Application-HMI-Types) used to group the application into different containers in an HMI system. |
 | memory_kb | String | //TODO: Define this |
 | watchdog_timer_ms | String | //TODO: Define this |
