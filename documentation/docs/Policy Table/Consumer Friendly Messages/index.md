@@ -17,7 +17,7 @@ Inside each language object is the data to be read or spoken by the SDL system. 
 | line2 | String | Second line of text to be displayed on the head unit. |
 
 ## Version
-The version property in the **consumer_friendly_messages** object defines the current version of all the messages.  It is used during a [poilcy table update](../policy-table-update/) to determine wether or not the consumer friendly messages need to be updated.  The version must be in the format `###.###.###`.
+The version property in the **consumer_friendly_messages** object defines the current version of all the messages.  It is used during a [poilcy table update](../../policy-table-update) to determine wether or not the consumer friendly messages need to be updated.  The version must be in the format `###.###.###`.
 
 ## Example
 An example of how the Consumer Friendly Messages portion of a policy table might look.
