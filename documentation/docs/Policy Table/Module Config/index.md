@@ -13,6 +13,7 @@ There is a limit for the number of notifications that can be displayed per prior
 | NORMAL             | Number | Number of notifications with a normal prioritythat can be displayed per minute. |
 | voiceCommunication | Number | Number of voice communication notifications that can be displayed per minute. |
 
+<a name="Policy-Table-Update-Configurations"></a>
 
 ## Policy Table Update Configurations
 Periodically changes will be made to a policy table, either by the server or core.  This means core should check for and perform a [policy table updates](../../policy-table-update), which synchronizes the local and server policy tables.  You can configure when core will check using the following configurations.
