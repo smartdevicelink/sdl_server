@@ -24,7 +24,7 @@
     "bunyan": "^1.5.1",
     "bunyan-pretty-stream": "^1.0.1",
     "compression": "^1.4.1",
-    "crave": "^0.0.14",
+    "crave": "^0.0.15",
     "express": "^4.10.1",
     "jade": "^1.11.0",
     "lodash": "^4.6.1"

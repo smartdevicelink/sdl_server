@@ -21,30 +21,15 @@ SDL Server is a reference server to help developers understand how SDL works.  I
 <a href="https://david-dm.org/smartdevicelink/sdl_server" target="_blank"><img src="https://david-dm.org/smartdevicelink/sdl_server.svg"></a>
 
 ## Important Notices
-**Encrypted vs Plain Text:** SDL Policy Tables can be downloaded and transferred to SDL [core](https://github.com/smartdevicelink/sdl_core) in a proprietary format or as plain text.  A proprietary format consist of symmetrically encrypted packets, to which only your SDL server and core hold the key.
+**Encrypted vs Plain Text:** SDL Policy Tables can be downloaded and transferred to SDL [core](https://github.com/smartdevicelink/sdl_core) in a proprietary format or as plain text.  A proprietary format consist of encrypted packets, to which only your SDL server and core hold the key(s).
 
 # Getting Started
-A quick guide to installing, configuring, and running an instance of the SDL server.
+A quick guide to setup SDL server can be found at <a href="https://smartdevicelink.com/guides/sdl-server/getting-started/" target="_blank">SmartDeviceLink.com</a>
 
-  1. Install [Node.js](http://nodejs.org/) and [Git](https://git-scm.com/).
-  2. Clone the SDL server repository.
-
-        git clone https://github.com/smartdevicelink/sdl_server.git
- 
-  3. Navigate to the repository and install all npm and bower modules.
-
-        cd sdl_server
-        npm install
-
-  4. Start the server
-
-        npm start
-
-  5. Go to <a href="http://localhost:3000/policy" target="_blank">localhost:3000/policy</a> in your browser where you can make example policy table update requests.
 
 ## Contribute
 If you have a suggestion or bug please submit an <a href="https://github.com/smartdevicelink/sdl_server/issues/new" target="_blank">issue</a>.  You can submit code using a pull request, but please follow the <a href="https://github.com/smartdevicelink/sdl_server/blob/master/CONTRIBUTING.md" target="_blank">contributing guidelines</a>.
 
 ## Documentation
 
-All documentation can be found in the <a href="https://github.com/smartdevicelink/sdl_server/wiki" target="_blank">wiki</a>.
+All documentation can be found at <a href="https://smartdevicelink.com/docs/sdl-server/master/overview/" target="_blank">SmartDeviceLink.com</a>.
