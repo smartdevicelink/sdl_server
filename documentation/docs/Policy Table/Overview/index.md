@@ -2,4 +2,4 @@
 Policies are rules enforced by SDL <a href="https://github.com/smartdevicelink/sdl_core" target="_blank">core</a> that configure how the system can and/or will behave.  For example, a policy could prohibit the use of an application (e.g. Flappy Bird) in a specific type of vehicle.  In general, policies are configured by an OEM (e.g. Ford, GM, Tesla) and stored in their SDL <a href="https://github.com/smartdevicelink/sdl_server" target="_blank">server</a>.  Once configured, all policies for a specific vehicle can be requested in the form a <a href="http://www.json.org/" target="_blank">JSON</a> document called a policy table.  Policy tables are downloaded to a vehicle's head unit where it can be enforced by SDL <a href="https://github.com/smartdevicelink/sdl_core" target="_blank">core</a>.
 
 ## Example Policy Table
-An example policy table is available at [policies.smartdevicelink.com](http://policies.smartdevicelink.com/policy).  Just click **Perform Request**.
+An example policy table is available at <a href="http://policies.smartdevicelink.com/policy" target="_blank">policies.smartdevicelink.com</a>.  Just click **Perform Request**.
