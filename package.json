@@ -48,6 +48,6 @@
   "scripts": {
     "start": "node index.js",
     "test": "mocha",
-    "postinstall": "node ./node_modules/bower/bin/bower install"
+    "postinstall": "node ./node_modules/bower/bin/bower install --allow-root"
   }
 }
