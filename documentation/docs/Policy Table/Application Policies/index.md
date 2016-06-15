@@ -23,6 +23,8 @@ Settings for a specific application are stored in the **app_policies** object as
 ### Application HMI Types
 An application can be categorized by an HMI type allowing the SDL system understand how to appropriately handle the application.  There are several HMI types listed below.
 
+<a name="Application-HMI-Types"></a>
+
 | Application HMI Type | Description |
 | -------------------- | ----------- |
 | BACKGROUND_PROCESS | //TODO: Add description |
@@ -35,6 +37,8 @@ An application can be categorized by an HMI type allowing the SDL system underst
 | SOCIAL | //TODO: Add description |
 | SYSTEM | //TODO: Add description |
 | TESTING | //TODO: Add description |
+
+<a name="Application-HMI-Levels"></a>
 
 ### Application HMI Levels
 An HMI Level describes the state of an application.  Resources are granted to an application based on its current state.  While some resources are granted automatically to an application in a specific HMI Level, many can be controlled by the policy table.
