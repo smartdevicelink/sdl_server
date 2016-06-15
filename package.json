@@ -24,7 +24,7 @@
     "bunyan": "^1.5.1",
     "bunyan-pretty-stream": "^1.0.1",
     "compression": "^1.4.1",
-    "crave": "^0.0.15",
+    "crave": "^0.0.16",
     "express": "^4.10.1",
     "jade": "^1.11.0",
     "lodash": "^4.6.1"
@@ -48,6 +48,6 @@
   "scripts": {
     "start": "node index.js",
     "test": "mocha",
-    "postinstall": "./node_modules/bower/bin/bower install"
+    "postinstall": "node ./node_modules/bower/bin/bower install"
   }
 }

@@ -36,7 +36,7 @@ app.set('view engine', 'jade');
 // Set directory where jade views are stored.
 app.set('views', config.clientDirectory+'/views');
 
-// Make public folder static so it can be served
+// Make public folders static so they can be served.
 app.use(express.static(config.clientDirectory+'components', config.express.static));
 app.use(express.static(config.clientDirectory+'css', config.express.static));
 app.use(express.static(config.clientDirectory+'js', config.express.static));
@@ -55,7 +55,7 @@ app.all('/*', function(req,res, next) {
   next();
 });
 
-// Redirect all traffic to '/' to '/policy' instead..
+// Redirect all traffic from '/' to '/policy'.
 app.all('/', function(req, res, next) { 
   log.trace("Redirecting request to '/' to '/policy'");
   res.redirect('/policy'); 

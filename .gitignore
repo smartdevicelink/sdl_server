@@ -7,3 +7,6 @@ npm-debug.log
 
 #Webstorm project files.
 .idea
+
+# Client modules
+components
