@@ -1,4 +1,4 @@
-[![Slack Status](http://sdlslack.herokuapp.com/badge.svg)](http://slack.smartdevicelink.org)
+[![Slack Status](http://sdlslack.herokuapp.com/badge.svg)](http://slack.smartdevicelink.org) <a href="https://david-dm.org/smartdevicelink/sdl_server" target="_blank"><img src="https://david-dm.org/smartdevicelink/sdl_server.svg"></a>
 # SmartDeviceLink (SDL)
 
 SmartDeviceLink (SDL) is a standard set of protocols and messages that connect applications on a smartphone to a vehicle head unit. This messaging enables a consumer to interact with their application using common in-vehicle interfaces such as a touch screen display, embedded voice recognition, steering wheel controls and various vehicle knobs and buttons. There are three main components that make up the SDL ecosystem.
@@ -10,19 +10,12 @@ SmartDeviceLink (SDL) is a standard set of protocols and messages that connect a
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=AzdQdSCS24M" target="_blank"><img src="http://i.imgur.com/nm8UujD.png?1" alt="SmartDeviceLink" border="10" /></a>
 
 ## SDL Server
-
 The SmartDeviceLink (SDL) server handles authentication, data collection, and basic configurations for SDL connected vehicles.  In general, these tasks are accomplished using JSON documents called Policy Tables, which the [SDL Core component](https://github.com/smartdevicelink/sdl_core) uses to validate messaging with connected applications. The Policy Tables are configured on the SDL server, downloaded through the SDL Proxy and passed along to [SDL Core](https://github.com/smartdevicelink/sdl_core).
 
-## Current Status
-SDL Server is a reference server to help developers understand how SDL works.  It is **NOT** meant to be a production server.
-<a href="https://david-dm.org/smartdevicelink/sdl_server" target="_blank"><img src="https://david-dm.org/smartdevicelink/sdl_server.svg"></a>
-
-## Important Notices
-**Encrypted vs Plain Text:** SDL Policy Tables can be downloaded and transferred to SDL [core](https://github.com/smartdevicelink/sdl_core) in a proprietary format or as plain text.  A proprietary format consist of encrypted packets, to which only your SDL server and core hold the key(s).
+> This implementation of SDL Server is a reference to help developers understand how SDL works.  It is **NOT** meant to be a production server.
 
 # Getting Started
 A quick guide to setup SDL server can be found at <a href="https://smartdevicelink.com/guides/sdl-server/getting-started/" target="_blank">SmartDeviceLink.com</a>
-
 
 ## Documentation
 All documentation can be found at <a href="https://smartdevicelink.com/docs/sdl-server/master/overview/" target="_blank">SmartDeviceLink.com</a>.
