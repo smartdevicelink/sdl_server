@@ -15,7 +15,6 @@ The SmartDeviceLink (SDL) server handles authentication, data collection, and ba
 
 > This implementation of SDL Server is a reference to help developers understand how SDL works.  It is **NOT** meant to be a production server.
 
-## Important Notices
 > **Encrypted vs Plain Text:** SDL Policy Tables can be downloaded and transferred to SDL [core](https://github.com/smartdevicelink/sdl_core) in a proprietary format or as plain text.  A proprietary format consist of encrypted packets, to which only your SDL server and core hold the key(s).
 
 # Getting Started
