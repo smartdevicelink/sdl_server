@@ -1,10 +1,12 @@
 var bunyan = require('bunyan'),
-    config = require("./config/"),
+    //config = require("./config/"),
     crave = require('crave'),
     express = require('express'),
     compress = require('compression'),
     bodyParser = require('body-parser'),
     path = require('path');
+
+var config = require(path.resolve(__dirname + '/config/'));
 
 // Create a bunyan logger instance.
 var log = bunyan.createLogger(config.log);
