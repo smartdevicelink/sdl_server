@@ -1,5 +1,4 @@
 var bunyan = require('bunyan'),
-    //config = require("./config/"),
     crave = require('crave'),
     express = require('express'),
     compress = require('compression'),

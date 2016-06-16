@@ -15,9 +15,6 @@ The SmartDeviceLink (SDL) server handles authentication, data collection, and ba
 
 ## Current Status
 SDL Server is a reference server to help developers understand how SDL works.  It is **NOT** meant to be a production server.
-
-<a href="https://travis-ci.org/smartdevicelink/sdl_server" target="_blank"><img src="https://travis-ci.org/smartdevicelink/sdl_server.svg"></a>
-<a href="https://codecov.io/github/smartdevicelink/sdl_server?branch=master" target="_blank"><img src="https://codecov.io/github/smartdevicelink/sdl_server/coverage.svg?branch=master" /></a>
 <a href="https://david-dm.org/smartdevicelink/sdl_server" target="_blank"><img src="https://david-dm.org/smartdevicelink/sdl_server.svg"></a>
 
 ## Important Notices
@@ -27,9 +24,8 @@ SDL Server is a reference server to help developers understand how SDL works.  I
 A quick guide to setup SDL server can be found at <a href="https://smartdevicelink.com/guides/sdl-server/getting-started/" target="_blank">SmartDeviceLink.com</a>
 
 
+## Documentation
+All documentation can be found at <a href="https://smartdevicelink.com/docs/sdl-server/master/overview/" target="_blank">SmartDeviceLink.com</a>.
+
 ## Contribute
 If you have a suggestion or bug please submit an <a href="https://github.com/smartdevicelink/sdl_server/issues/new" target="_blank">issue</a>.  You can submit code using a pull request, but please follow the <a href="https://github.com/smartdevicelink/sdl_server/blob/master/CONTRIBUTING.md" target="_blank">contributing guidelines</a>.
-
-## Documentation
-
-All documentation can be found at <a href="https://smartdevicelink.com/docs/sdl-server/master/overview/" target="_blank">SmartDeviceLink.com</a>.
