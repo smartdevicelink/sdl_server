@@ -16,7 +16,7 @@ Download or clone the <a href="https://github.com/smartdevicelink/sdl_server" ta
 git clone https://github.com/smartdevicelink/sdl_server.git
 ```
 
-Once cloned, navigate to the repository's root directory and use npm to install the server's depencies.
+Once cloned, navigate to the repository's root directory and use npm to install the server's dependencies.
 ```
 cd sdl_server && npm install
 ```
