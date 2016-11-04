@@ -27,16 +27,16 @@ An application can be categorized by an HMI type allowing the SDL system underst
 
 | Application HMI Type | Description |
 | -------------------- | ----------- |
-| BACKGROUND_PROCESS | //TODO: Add description |
-| COMMUNICATION | //TODO: Add description |
-| DEFAULT | //TODO: Add description |
-| INFORMATION | //TODO: Add description |
-| MEDIA | //TODO: Add description |
-| MESSAGING | //TODO: Add description |
-| NAVIGATION | //TODO: Add description |
-| SOCIAL | //TODO: Add description |
-| SYSTEM | //TODO: Add description |
-| TESTING | //TODO: Add description |
+| BACKGROUND_PROCESS | The application does not require displaying the information |
+| COMMUNICATION | The application for communication|
+| DEFAULT | The application of default type. |
+| INFORMATION | The application of information type|
+| MEDIA | The media application |
+| MESSAGING | The application of messaging type |
+| NAVIGATION | The application of navigation type|
+| SOCIAL | The application of social type |
+| SYSTEM | The application of system type |
+| TESTING | The application of testing type |
 
 <a name="Application-HMI-Levels"></a>
 
@@ -55,7 +55,7 @@ An HMI Level describes the state of an application.  Resources are granted to an
 A default application configuration can be stored in the **app_policies** object as a property named **default**.  This property's value is an object containing any valid [application property](#Application-Property) excluding **certificate** and **nicknames**.
 
 ## Device
-// TODO:  What is this used for?
+The name of the device where the identified application is running on.
 
 ## Example
 An example of how the Application Policy portion of a policy table might look.
