@@ -49,22 +49,63 @@ function evaluateAppRequest (appObj, callback) {
     app.locals.log.info(JSON.stringify(appObj, null, 4));
     
     //TODO: wrap all of this in a parallel computation thing to parallelize it when possible, then wait for their callbacks
-    //hmi level check
 
-    const sqlStr = sql.select('*').from('hmi_levels').where({id: appObj.default_hmi_level}).toString();
-    app.locals.db.sqlQuery(sqlStr, function (data) {
-        if (data.rows.length === 0) {
-            app.locals.log.info("HMI LEVEL not found in local database: " + appObj.default_hmi_level);
-            //take further action
-            updateHMILevels(callback);
-        }
+    //hmi level check
+    //appObj needs to be an array
+    performUpdateCycle([appObj], 'hmi_levels', 'id', 'default_hmi_level', 'getHmiLevels', function (obj) {
+        app.locals.log.info("HMI level not found in local database: " + obj.default_hmi_level);
+    }, function (hmiLevel) {
+        return {
+            id: hmiLevel
+        };
+    }, function () {
+        //done!
     });
-    
+
+    //countries check
+    performUpdateCycle(appObj.countries, 'countries', 'id', 'id', 'getCountries', function (country) {
+        app.locals.log.info("Country ID not found in local database: " + country.id);
+    }, function (country) {
+        return {
+            id: country.id,
+            iso: country.iso,
+            name: country.name
+        };
+    }, function () {
+        //done!
+    });
+
+    //categories check
+    //appObj.category needs to be an array
+    performUpdateCycle([appObj.category], 'categories', 'id', 'id', 'getCategories', function (category) {
+        app.locals.log.info("Category ID not found in local database: " + category.id);
+    }, function (category) {
+        return {
+            id: category.id,
+            display_name: category.display_name
+        };
+    }, function () {
+        //done!
+    });    
+
+    //permissions check
+    /*
+    TODO: are we gonna transform the data returned from the SHAID API into the permissions array?
+
+    performUpdateCycle([appObj.permissions], 'app_permissions', 'app_id', 'id', 'getPermissions', function (category) {
+        app.locals.log.info("Category ID not found in local database: " + category.id);
+    }, function (category) {
+        return {
+            id: category.id,
+            display_name: category.display_name
+        };
+    }, function () {
+        //done!
+    }); 
+    */
 
     /*
-        check the database everytime FIRST to see if the information given by the request is in the database
-        check every component by default, calling the update functions when necessary if something is missing.
-        THEN attempt to add the record to the database. if the insert fails, don't crash the server. log the error
+        if the insert fails, don't crash the server. log the error
         and inform the user that this record was unable to be inserted
         here's the info you gotta check everytime:
 
@@ -76,16 +117,109 @@ function evaluateAppRequest (appObj, callback) {
         for vendor ID, add a new record to the database every time and use that generated ID for the app request
 
     */
+
+
     callback();
 }
 
-//BEGIN UPDATER FUNCTIONS
-function updateHMILevels () {
+//master function that executes a full check and update cycle for a given set of information
+function performUpdateCycle (dataArray, tableName, databasePropName, dataPropName, moduleFunction, errorCallback, dataTransform, callback) {
+    const dataChecker = databaseChecker(dataArray, tableName, databasePropName, dataPropName);
 
+    //see if any of the data received has information the policy server doesn't recognize
+    async.parallel(dataChecker, function (obj) {
+        if (obj) { //missing information
+            errorCallback(obj);
+            //get updated information from collector modules
+            collectData(moduleFunction, function (dataArray) {
+                //attempt an insert into the database for each piece of datum received
+                async.each(dataArray, setupAddDataToDatabase(tableName, databasePropName, dataPropName, dataTransform), function (err) {
+                    if (err) {
+                        app.locals.log.error(err);
+                    }
+                    callback(); //done
+                });
+            });
+        }
+        else { //nothing wrong here!
+            callback();
+        }
+    });
 }
 
-//END UPDATER FUNCTIONS
+//given an array of values and some information to compare those values to a database,
+//returns an array of functions to determine if all the values in the array exist in the database
+//meant to be fed into async.parallel
+function databaseChecker (dataArray, tableName, databasePropName, dataPropName) {
+    return dataArray.map(function (datum) {
+        return function (callback) {
+            databaseQueryExists(tableName, databasePropName, datum[dataPropName], function (exists) {
+                if (exists) {
+                    callback();
+                }
+                else {
+                    //pass in the object whose data wasn't there.
+                    //if passed into async.parallel or a similar function, this will be considered an error
+                    //and will stop the functions in this map from continuing to run
+                    callback(datum);
+                }
+            });       
+        };
+    });
+}
 
+function collectData (moduleFunction, callback) {
+    //cycle through all the collector modules to retrieve updated info using an implemented function
+    const iteratingCollectors = app.locals.collectors.map(function (module) {
+        return module[moduleFunction];
+    });     
+
+    //invoke array of data collector functions
+    async.waterfall(iteratingCollectors, function (err, dataArray) {
+        //all data are now aggregated from all data collecting sources
+        if (err) {
+            app.locals.log.error(err);
+        }
+        callback(dataArray);
+    });     
+}
+
+//given some information about where to look for and insert new data, returns a function
+//that can be fed into async.each in order to easily add new data to the database
+function setupAddDataToDatabase (tableName, databasePropName, dataPropName, dataTransform) {
+    return function (datum, callback) {
+        //check that the datum hasn't been added already first
+        databaseQueryExists(tableName, databasePropName, datum[dataPropName], function (exists) {
+            if (exists) {
+                callback();
+            }
+            else {
+                //use the dataTransform function to transform the datum into an object that can 
+                //be inserted into the database
+                const insertStr = sql.insertInto(tableName, dataTransform(datum)).toString();
+                app.locals.db.sqlCommand(insertStr, function (err, data) {
+                    callback(err);
+                }); 
+            }
+        });      
+    }
+}
+
+//utility function. given a table name, a property to query and the value of the query,
+//check whether that data exists in the database
+function databaseQueryExists (tableName, databasePropName, dataPropValue, callback) {
+    let propQuery = {};
+    propQuery[databasePropName] = dataPropValue;
+    const sqlStr = sql.select('*').from(tableName).where(propQuery).toString();     
+    app.locals.db.sqlCommand(sqlStr, function (err, result) {
+        if (result.rows.length === 0) { //the data doesn't exist in the DB
+            callback(false);
+        }
+        else { //the data exists in the DB
+            callback(true);
+        }
+    });
+}
 
 /* OLD CODE. FOR REFERENCE ONLY. DELETE SOON
 function evaluateApplication (appObj) {
@@ -107,7 +241,7 @@ function evaluateApplication (appObj) {
     }
     
     const sqlStr = sql.insert('app_info', newAppObj).toString();
-    app.locals.db.sqlQuery(sqlStr, function (err, data) {
+    app.locals.db.sqlCommand(sqlStr, function (err, data) {
         if (err) { 
             //we are missing information! start querying the database for potential missing information
             async.parallel([
@@ -123,128 +257,4 @@ function evaluateApplication (appObj) {
     });     
 }
 
-//ensure that the category id passed in is in the database
-function checkCategoryId (appObj, next) {
-    const categoryId = appObj.category.id;
-    const sqlStr = sql.select('*').from('categories').where({id: categoryId}).toString();
-
-    //check if the category is documented in the DB
-    app.locals.db.sqlQuery(sqlStr, function (data) {
-        if (data.rows.length === 0) {
-            app.locals.log.info("Category not found in local database: " + appObj.category.display_name);
-            //take further action
-            updateCategories(next);
-        }
-    });  
-}
-
-function updateCategories (next) {
-    getShaidCategories(function (categories) {
-        storeCategories(categories, next);
-    });
-}
-
-function getShaidCategories (callback) {
-    //query the SHAID API and return an updated list of categories
-    app.locals.shaid.read(app.locals.shaid.entity.category, {}, function (err, res) {
-        callback(res.data.categories);
-    });  
-}
-
-function storeCategories (categories, callback) {
-    async.each(categories, checkInsert, function (err) {
-        if (err) {
-            app.locals.log.error(err);
-        }
-        callback(); //done
-    });
-
-    //add categories to the DB
-    function checkInsert (category, callback) {
-        const queryStr = sql.select('*').from('categories').where({id: category.id}).toString();
-        app.locals.db.sqlQuery(queryStr, function (data) {
-            if (data.rows.length === 0) { //category doesn't exist yet. add it
-                const insertStr = sql.insertInto('categories', 'id', 'display_name').values(category.id, category.display_name).toString();
-                app.locals.db.sqlQuery(insertStr, function (data) {
-                    callback();
-                });                 
-            }
-            else { //category exists
-                callback();
-            }
-        });             
-    }
-}
-
-
-
-//ensure that the category id passed in is in the database
-function checkCountriesId (appObj, next) {
-    const countries = appObj.countries;
-    const sqlStr = sql.select('*').from('countries').where({id: countryId}).toString();
-
-    //check if the country is documented in the DB
-    app.locals.db.sqlQuery(sqlStr, function (data) {
-        if (data.rows.length === 0) {
-            app.locals.log.info("Country not found in local database: " + appObj.country.name);
-            //take further action
-            updateCountries(next);
-        }
-    });  
-}
-
-function updateCountries (next) {
-    getShaidCountries(function (countries) {
-        storeCountries(countries, next);
-    });
-}
-
-function getShaidCountries (callback) {
-    //query the SHAID API and return an updated list of categories
-    app.locals.shaid.read(app.locals.shaid.entity.country, {}, function (err, res) {
-        callback(res.data.countries);
-    });  
-}
-
-function storeCountries (countries, callback) {
-    async.each(countries, checkInsert, function (err) {
-        if (err) {
-            app.locals.log.error(err);
-        }
-        callback(); //done
-    });
-
-    //add countries to the DB
-    function checkInsert (country, callback) {
-        const queryStr = sql.select('*').from('countries').where({id: country.id}).toString();
-        app.locals.db.sqlQuery(queryStr, function (data) {
-            if (data.rows.length === 0) { //country doesn't exist yet. add it
-                const insertStr = sql.insertInto('countries', 'id', 'iso', 'name').values(country.id, country.iso, country.display_name).toString();
-                app.locals.db.sqlQuery(insertStr, function (data) {
-                    callback();
-                });                 
-            }
-            else { //country exists
-                callback();
-            }
-        });             
-    }
-}
-
-//calls back true if the given app isn't found or if the given app is newer than the one in the database
-function shouldUpdateApp (appObj, callback) {
-    //query to find apps with the same uuid
-    const sqlStr = sql.select('*').from('app_info').where({app_uuid: appObj.uuid}).toString();
-    app.locals.db.sqlQuery(sqlStr, function (data) {
-        app.locals.log.info("uuids for " + appObj.uuid);
-        app.locals.log.info(data.rows);
-        if (data.rows.length === 0) {
-            callback(true);
-        }
-        else {
-            callback(true);
-            //compare timestamps
-        }
-    });
-}
 */

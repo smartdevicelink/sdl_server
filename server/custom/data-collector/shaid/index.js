@@ -23,6 +23,29 @@ module.exports = function (log) {
             shaid.read(shaid.entity.application, {}, function (err, res) {
                 next(err, res.data.applications);
             }); 
-        }
+        },
+        getHmiLevels: function (next) {
+            //there's currently no external resource for getting HMI levels
+            let hmiLevels = [
+                "HMI_NONE",
+                "HMI_BACKGROUND",
+                "HMI_LIMITED",
+                "HMI_FULL"
+            ];
+            next(null, hmiLevels);
+        },
+        getCountries: function (next) {
+            shaid.read(shaid.entity.country, {}, function (err, res) {
+                next(err, res.data.countries);
+            }); 
+        },        
+        getCategories: function (next) {
+            shaid.read(shaid.entity.category, {}, function (err, res) {
+                next(err, res.data.categories);
+            }); 
+        },
+        getPermissions: function (next) {
+            next(err, []);
+        }        
     };
 }
