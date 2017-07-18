@@ -45,7 +45,7 @@ module.exports = function (log) {
             }); 
         },
         getPermissions: function (next) {
-            next(err, []);
+            next(null, []);
         }        
     };
 }
