@@ -89,9 +89,10 @@ function evaluateAppRequest (appObj, callback) {
     });    
 
     //permissions check
-    /*
-    TODO: are we gonna transform the data returned from the SHAID API into the permissions array?
-
+    
+    //TODO: are we gonna transform the data returned from the SHAID API into the permissions array?
+    //we should have two update cycles for this. one for RPC permissions and one for vehicle data permissions
+/*
     performUpdateCycle([appObj.permissions], 'app_permissions', 'app_id', 'id', 'getPermissions', function (category) {
         app.locals.log.info("Category ID not found in local database: " + category.id);
     }, function (category) {
@@ -102,7 +103,7 @@ function evaluateAppRequest (appObj, callback) {
     }, function () {
         //done!
     }); 
-    */
+*/    
 
     /*
         if the insert fails, don't crash the server. log the error
