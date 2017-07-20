@@ -75,14 +75,11 @@ function evaluateAppRequest (appObj, callback) {
             //hmi level check
             performUpdateCycle([appObj.default_hmi_level], 'hmi_levels', 'id', 'getHmiLevels', function (hmiLevel) {
                 app.locals.log.info("HMI level not found in database." + hmiLevel);  
-            }, function (updatedHmiLevels, next) {
-                app.locals.log.info("Received HMI level updates");  
-                const newHmiLevels = updatedHmiLevels.map(function (hmiLevel) {
-                    return {
-                        id: hmiLevel
-                    };
-                });
-                next(newHmiLevels, 'id');
+                app.locals.log.info("Getting HMI level updates");  
+            }, function (hmiLevel) {
+                return {
+                    id: hmiLevel
+                };
             }, function () {
                 callback();
             });
@@ -94,16 +91,13 @@ function evaluateAppRequest (appObj, callback) {
             });
             performUpdateCycle(countryValuesArray, 'countries', 'id', 'getCountries', function (countryId) {
                 app.locals.log.info("Country ID not found in local database: " + countryId);
-            }, function (updatedCountries, next) {
-                app.locals.log.info("Received country updates");
-                const newCountries = updatedCountries.map(function (country) {
-                    return { 
-                        id: country.id,
-                        iso: country.iso,
-                        name: country.name
-                    };
-                });
-                next(newCountries, 'id');
+                app.locals.log.info("Getting country updates");
+            }, function (country) {
+                return { 
+                    id: country.id,
+                    iso: country.iso,
+                    name: country.name
+                };
             }, function () {
                 callback();
             });
@@ -112,15 +106,12 @@ function evaluateAppRequest (appObj, callback) {
             //categories check
             performUpdateCycle([appObj.category.id], 'categories', 'id', 'getCategories', function (categoryId) {
                 app.locals.log.info("Category ID not found in local database: " + categoryId);
-            }, function (updatedCategories, next) {
-                app.locals.log.info("Received category updates");
-                const newCategories = updatedCategories.map(function (category) {
-                    return {
-                        id: category.id,
-                        display_name: category.display_name
-                    };
-                });
-                next(newCategories, 'id');
+                app.locals.log.info("Getting category updates");
+            }, function (category) {
+                return {
+                    id: category.id,
+                    display_name: category.display_name
+                };
             }, function () {
                 callback();
             });
@@ -129,14 +120,11 @@ function evaluateAppRequest (appObj, callback) {
             //rpc permissions check
             performUpdateCycle(rpcPermissions, 'rpc_names', 'rpc_name', 'getRpcPermissions', function (permissionName) {
                 app.locals.log.info("RPC permission not found in local database: " + permissionName);
-            }, function (updatedPermissions, next) {
-                app.locals.log.info("Received RPC permission updates");
-                const newPermissions = updatedPermissions.map(function (permission) {
-                    return {
-                        rpc_name: permission
-                    };
-                });
-                next(newPermissions, 'rpc_name');
+                app.locals.log.info("Getting RPC permission updates");
+            }, function (permission) {
+                return {
+                    rpc_name: permission
+                };
             }, function () {
                 callback();
             });
@@ -145,14 +133,11 @@ function evaluateAppRequest (appObj, callback) {
             //vehicle data permissions check
             performUpdateCycle(vehicleDataPermissions, 'vehicle_data', 'component_name', 'getVehicleDataPermissions', function (permissionName) {
                 app.locals.log.info("Vehicle data permission not found in local database: " + permissionName);
-            }, function (updatedPermissions, next) {
-                app.locals.log.info("Received vehicle data permission updates");
-                const newPermissions = updatedPermissions.map(function (permission) {
-                    return {
-                        component_name: permission
-                    };
-                });
-                next(newPermissions, 'component_name');
+                app.locals.log.info("Getting vehicle data permission updates");
+            }, function (permission) {
+                return {
+                    component_name: permission
+                };
             }, function () {
                 callback();
             });
@@ -222,8 +207,11 @@ function performUpdateCycle (dataArray, tableName, databasePropName, moduleFuncN
             errorCallback(datum); //let the caller know which data is missing
             //get updated information from collector modules
             collectData(moduleFuncName, function (updatedDataArray) {
-                //send this info back to the caller so the caller can transform the data as they please
-                transformDataFunc(updatedDataArray, insertData);
+                //send this info back to the caller so the caller can transform the data
+                const transformedDataArray = updatedDataArray.map(function (datum) {
+                    return transformDataFunc(datum);
+                });
+                insertData(transformedDataArray);
             });
         }
         else { //nothing missing!
@@ -233,11 +221,11 @@ function performUpdateCycle (dataArray, tableName, databasePropName, moduleFuncN
 
     //stage two: uses the updated data array and previously known information to check and store
     //data that previously did not exist in the database
-    function insertData (updatedDataArray, checkProp) {
+    function insertData (updatedDataArray) {
         const dataChecker = updatedDataArray.map(function (datum) {
             return function (next) {
                 //check the DB for the piece of datum using one of its properties
-                databaseQueryExists(tableName, databasePropName, datum[checkProp], function (exists) {
+                databaseQueryExists(tableName, databasePropName, datum[databasePropName], function (exists) {
                     if (exists) {
                         next();
                     }
