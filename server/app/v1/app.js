@@ -56,7 +56,6 @@ function evaluateAppRequest (appObj, callback) {
     app.locals.log.info(JSON.stringify(appObj, null, 4));
     
     //TODO: test if adding a vin to on/sub/unsub vehicle data will crash things.
-    //TODO: use map() and pass back only one updated value at a time instead of array. we don't need checkProp as distinction
     //TODO: change when SHAID changes its output to distinguish between different permissions
     let rpcPermissions = [];
     let vehicleDataPermissions = [];
