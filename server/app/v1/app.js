@@ -45,85 +45,256 @@ app.get('/requests', function (req, res, next) {
     res.sendStatus(200);
 });
 
+//a request came from sdl_core!
+app.post('/policy', function (req, res, next) {
+    //given an app id, generate a policy table based on the permissions granted to it
+
+    //iterate over the app_policies object. for each ID found, 
+});
+
 function evaluateAppRequest (appObj, callback) {
     app.locals.log.info(JSON.stringify(appObj, null, 4));
     
-    //TODO: wrap all of this in a parallel computation thing to parallelize it when possible, then wait for their callbacks
+    //TODO: for vendor ID, add a new record to the database every time and use that generated ID for the app request
+    //TODO: test if adding a vin to on/sub/unsub vehicle data will crash things.
+    //TODO: use map() and pass back only one updated value at a time instead of array. we don't need checkProp as distinction
+    //TODO: change when SHAID changes its output to distinguish between different permissions
+    let rpcPermissions = [];
+    let vehicleDataPermissions = [];
+    for (let i = 0; i < appObj.permissions.length; i++) {
+        const perm = appObj.permissions[i];
+        if (perm.key.charAt(0).toLowerCase() === perm.key.charAt(0)) { //first letter is lowercase
+            vehicleDataPermissions.push(perm.key);
+        }
+        else { //first letter is uppercase
+            rpcPermissions.push(perm.key);
+        }
+    }
 
-    //hmi level check
-    //appObj needs to be an array
-    performUpdateCycle([appObj], 'hmi_levels', 'id', 'default_hmi_level', 'getHmiLevels', function (obj) {
-        app.locals.log.info("HMI level not found in local database: " + obj.default_hmi_level);
-    }, function (hmiLevel) {
-        return {
-            id: hmiLevel
+    async.parallel([
+        function (callback) {
+            //hmi level check
+            performUpdateCycle([appObj.default_hmi_level], 'hmi_levels', 'id', 'getHmiLevels', function (hmiLevel) {
+                app.locals.log.info("HMI level not found in database." + hmiLevel);  
+            }, function (updatedHmiLevels, next) {
+                app.locals.log.info("Received HMI level updates");  
+                const newHmiLevels = updatedHmiLevels.map(function (hmiLevel) {
+                    return {
+                        id: hmiLevel
+                    };
+                });
+                next(newHmiLevels, 'id');
+            }, function () {
+                callback();
+            });
+        },
+        function (callback) {
+            //countries check
+            const countryValuesArray = appObj.countries.map(function (country) {
+                return country.id;
+            });
+            performUpdateCycle(countryValuesArray, 'countries', 'id', 'getCountries', function (countryId) {
+                app.locals.log.info("Country ID not found in local database: " + countryId);
+            }, function (updatedCountries, next) {
+                app.locals.log.info("Received country updates");
+                const newCountries = updatedCountries.map(function (country) {
+                    return { 
+                        id: country.id,
+                        iso: country.iso,
+                        name: country.name
+                    };
+                });
+                next(newCountries, 'id');
+            }, function () {
+                callback();
+            });
+        },
+        function (callback) {
+            //categories check
+            performUpdateCycle([appObj.category.id], 'categories', 'id', 'getCategories', function (categoryId) {
+                app.locals.log.info("Category ID not found in local database: " + categoryId);
+            }, function (updatedCategories, next) {
+                app.locals.log.info("Received category updates");
+                const newCategories = updatedCategories.map(function (category) {
+                    return {
+                        id: category.id,
+                        display_name: category.display_name
+                    };
+                });
+                next(newCategories, 'id');
+            }, function () {
+                callback();
+            });
+        },
+        function (callback) {
+            //rpc permissions check
+            performUpdateCycle(rpcPermissions, 'rpc_names', 'rpc_name', 'getRpcPermissions', function (permissionName) {
+                app.locals.log.info("RPC permission not found in local database: " + permissionName);
+            }, function (updatedPermissions, next) {
+                app.locals.log.info("Received RPC permission updates");
+                const newPermissions = updatedPermissions.map(function (permission) {
+                    return {
+                        rpc_name: permission
+                    };
+                });
+                next(newPermissions, 'rpc_name');
+            }, function () {
+                callback();
+            });
+        },
+        function (callback) {
+            //vehicle data permissions check
+            performUpdateCycle(vehicleDataPermissions, 'vehicle_data', 'component_name', 'getVehicleDataPermissions', function (permissionName) {
+                app.locals.log.info("Vehicle data permission not found in local database: " + permissionName);
+            }, function (updatedPermissions, next) {
+                app.locals.log.info("Received vehicle data permission updates");
+                const newPermissions = updatedPermissions.map(function (permission) {
+                    return {
+                        component_name: permission
+                    };
+                });
+                next(newPermissions, 'component_name');
+            }, function () {
+                callback();
+            });
+        },
+    ], function (err) {
+        //database is updated. attempt the insert now
+        //insert the vendor information first
+        const vendor = {
+            vendor_name: appObj.vendor.name,
+            vendor_email: appObj.vendor.email
         };
-    }, function () {
-        //done!
+        const newAppObj = {
+            app_uuid: appObj.uuid,
+            name: appObj.name,
+            vendor_id: appObj.vendor.id,
+            platform: appObj.platform,
+            platform_app_id: appObj.platform_app_id,
+            status: appObj.status,
+            can_background_alert: appObj.can_background_alert,
+            can_steal_focus: appObj.can_steal_focus,
+            default_hmi_level: appObj.default_hmi_level,
+            tech_email: appObj.tech_email,
+            tech_phone: appObj.tech_phone,
+            category_id: appObj.category.id
+        };
+
+        const vendorInsertStr = sql.insert('vendors', vendor).toString();
+        const appInsertStr = sql.insert('app_info', newAppObj).toString();
+
+        app.locals.db.sqlCommand(vendorInsertStr, function (err, data) {
+            if (err) { 
+                app.locals.log.error(err);
+            }
+            app.locals.db.sqlCommand(appInsertStr, function (err, data) {
+                if (err) { 
+                    //we are still missing information! there's nothing else that can be done
+                    app.locals.log.error("App information insert failed!");
+                    app.locals.log.error(JSON.stringify(newAppObj, null, 4));
+                    app.locals.log.error(err);
+                }
+                callback();
+            });
+        });
+
     });
-
-    //countries check
-    performUpdateCycle(appObj.countries, 'countries', 'id', 'id', 'getCountries', function (country) {
-        app.locals.log.info("Country ID not found in local database: " + country.id);
-    }, function (country) {
-        return {
-            id: country.id,
-            iso: country.iso,
-            name: country.name
-        };
-    }, function () {
-        //done!
-    });
-
-    //categories check
-    //appObj.category needs to be an array
-    performUpdateCycle([appObj.category], 'categories', 'id', 'id', 'getCategories', function (category) {
-        app.locals.log.info("Category ID not found in local database: " + category.id);
-    }, function (category) {
-        return {
-            id: category.id,
-            display_name: category.display_name
-        };
-    }, function () {
-        //done!
-    });    
-
-    //permissions check
-    
-    //TODO: are we gonna transform the data returned from the SHAID API into the permissions array?
-    //we should have two update cycles for this. one for RPC permissions and one for vehicle data permissions
-/*
-    performUpdateCycle([appObj.permissions], 'app_permissions', 'app_id', 'id', 'getPermissions', function (category) {
-        app.locals.log.info("Category ID not found in local database: " + category.id);
-    }, function (category) {
-        return {
-            id: category.id,
-            display_name: category.display_name
-        };
-    }, function () {
-        //done!
-    }); 
-*/    
-
-    /*
-        if the insert fails, don't crash the server. log the error
-        and inform the user that this record was unable to be inserted
-        here's the info you gotta check everytime:
-
-        countries
-        categories
-        HMI LEVEL
-        Vehicle ID (permissions. might also need some RPCs included so expect a DB change here. probably do this last)
-
-        for vendor ID, add a new record to the database every time and use that generated ID for the app request
-
-    */
-
-
-    callback();
 }
 
 //master function that executes a full check and update cycle for a given set of information
+function performUpdateCycle (dataArray, tableName, databasePropName, moduleFuncName, errorCallback, transformDataFunc, callback) {
+    const dataChecker = dataArray.map(function (datum) {
+        return function (next) {
+            databaseQueryExists(tableName, databasePropName, datum, function (exists) {
+                if (exists) {
+                    next();
+                }
+                else {
+                    //value doesn't exist in DB. end the other checks by passing the datum that was missing
+                    next(datum);
+                }
+            });       
+        };
+    });
+
+    //see if any of the data received has information the policy server doesn't recognize
+    async.parallel(dataChecker, function (datum) {
+        if (datum) { //missing information
+            errorCallback(datum); //let the caller know which data is missing
+            //get updated information from collector modules
+            collectData(moduleFuncName, function (updatedDataArray) {
+                //send this info back to the caller so the caller can transform the data as they please
+                transformDataFunc(updatedDataArray, insertData);
+            });
+        }
+        else { //nothing missing!
+            callback();
+        }
+    });
+
+    //stage two: uses the updated data array and previously known information to check and store
+    //data that previously did not exist in the database
+    function insertData (updatedDataArray, checkProp) {
+        const dataChecker = updatedDataArray.map(function (datum) {
+            return function (next) {
+                //check the DB for the piece of datum using one of its properties
+                databaseQueryExists(tableName, databasePropName, datum[checkProp], function (exists) {
+                    if (exists) {
+                        next();
+                    }
+                    else {
+                        //datum doesn't exist in DB. add it!
+                        const insertStr = sql.insertInto(tableName, datum).toString();
+                        app.locals.db.sqlCommand(insertStr, function (err, data) {
+                            next(err);
+                        }); 
+                    }
+                });       
+            };
+        });
+        //run the insert functions
+        async.parallel(dataChecker, function (err) {
+            if (err) {
+                app.locals.log.error(err);
+            }
+            callback(); //the update cycle is done
+        });
+    }
+}
+
+function collectData (moduleFunction, callback) {
+    //cycle through all the collector modules to retrieve updated info using an implemented function
+    const iteratingCollectors = app.locals.collectors.map(function (module) {
+        return module[moduleFunction];
+    });     
+
+    //invoke array of data collector functions
+    async.waterfall(iteratingCollectors, function (err, dataArray) {
+        //all data are now aggregated from all data collecting sources
+        if (err) {
+            app.locals.log.error(err);
+        }
+        callback(dataArray);
+    });     
+}
+
+//utility function. given a table name, a property to query and the value of the query,
+//check whether that data exists in the database
+function databaseQueryExists (tableName, databasePropName, dataPropValue, callback) {
+    let propQuery = {};
+    propQuery[databasePropName] = dataPropValue;
+    const sqlStr = sql.select('*').from(tableName).where(propQuery).toString();     
+    app.locals.db.sqlCommand(sqlStr, function (err, result) {
+        if (result.rows.length === 0) { //the data doesn't exist in the DB
+            callback(false);
+        }
+        else { //the data exists in the DB
+            callback(true);
+        }
+    });
+}
+
+/*
 function performUpdateCycle (dataArray, tableName, databasePropName, dataPropName, moduleFunction, errorCallback, dataTransform, callback) {
     const dataChecker = databaseChecker(dataArray, tableName, databasePropName, dataPropName);
 
@@ -221,7 +392,7 @@ function databaseQueryExists (tableName, databasePropName, dataPropValue, callba
         }
     });
 }
-
+*/
 /* OLD CODE. FOR REFERENCE ONLY. DELETE SOON
 function evaluateApplication (appObj) {
     app.locals.log.info(JSON.stringify(appObj, null, 4));

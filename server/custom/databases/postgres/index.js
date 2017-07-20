@@ -38,9 +38,6 @@ module.exports = function (log) {
         //callback requires an error parameter and a response parameter
         sqlCommand: function (query, callback) {
             pool.query(query, function (err, res) {
-                if (err) {
-                    log.error(err);
-                }
                 callback(err, res);
             });
         }

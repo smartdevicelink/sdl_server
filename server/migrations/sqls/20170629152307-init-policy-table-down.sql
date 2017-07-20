@@ -1,4 +1,5 @@
-DROP TABLE IF EXISTS app_permissions;
+DROP TABLE IF EXISTS app_rpc_permissions;
+DROP TABLE IF EXISTS app_vehicle_permissions;
 DROP TABLE IF EXISTS display_names;
 DROP TABLE IF EXISTS app_countries;
 DROP TABLE IF EXISTS app_info;
