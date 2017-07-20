@@ -39,6 +39,7 @@ app.get('/requests', function (req, res, next) {
             if (err) {
                 app.locals.log.error(err);
             }
+            //the end of a very large update cycle
         });
     });
     //TODO: temporary
@@ -49,8 +50,9 @@ app.get('/requests', function (req, res, next) {
 app.post('/policy', function (req, res, next) {
     //given an app id, generate a policy table based on the permissions granted to it
 
-    //iterate over the app_policies object. for each ID found, 
+    //iterate over the app_policies object. query the database for matching app ids that have been approved
 });
+
 
 function evaluateAppRequest (appObj, callback) {
     app.locals.log.info(JSON.stringify(appObj, null, 4));
@@ -62,15 +64,15 @@ function evaluateAppRequest (appObj, callback) {
     for (let i = 0; i < appObj.permissions.length; i++) {
         const perm = appObj.permissions[i];
         if (perm.key.charAt(0).toLowerCase() === perm.key.charAt(0)) { //first letter is lowercase
-            vehicleDataPermissions.push(perm.key);
+            vehicleDataPermissions.push(perm);
         }
         else { //first letter is uppercase
-            rpcPermissions.push(perm.key);
+            rpcPermissions.push(perm);
         }
     }
 
     async.parallel([
-        function (callback) {
+        function (next) {
             //hmi level check
             performUpdateCycle([appObj.default_hmi_level], 'hmi_levels', 'id', 'getHmiLevels', function (hmiLevel) {
                 app.locals.log.info("HMI level not found in database." + hmiLevel);  
@@ -80,10 +82,10 @@ function evaluateAppRequest (appObj, callback) {
                     id: hmiLevel
                 };
             }, function () {
-                callback();
+                next();
             });
         },
-        function (callback) {
+        function (next) {
             //countries check
             const countryValuesArray = appObj.countries.map(function (country) {
                 return country.id;
@@ -98,10 +100,10 @@ function evaluateAppRequest (appObj, callback) {
                     name: country.name
                 };
             }, function () {
-                callback();
+                next();
             });
         },
-        function (callback) {
+        function (next) {
             //categories check
             performUpdateCycle([appObj.category.id], 'categories', 'id', 'getCategories', function (categoryId) {
                 app.locals.log.info("Category ID not found in local database: " + categoryId);
@@ -112,12 +114,15 @@ function evaluateAppRequest (appObj, callback) {
                     display_name: category.display_name
                 };
             }, function () {
-                callback();
+                next();
             });
         },
-        function (callback) {
+        function (next) {
             //rpc permissions check
-            performUpdateCycle(rpcPermissions, 'rpc_names', 'rpc_name', 'getRpcPermissions', function (permissionName) {
+            const rpcPermissionKeys = rpcPermissions.map(function (permission) {
+                return permission.key;
+            });
+            performUpdateCycle(rpcPermissionKeys, 'rpc_names', 'rpc_name', 'getRpcPermissions', function (permissionName) {
                 app.locals.log.info("RPC permission not found in local database: " + permissionName);
                 app.locals.log.info("Getting RPC permission updates");
             }, function (permission) {
@@ -125,12 +130,15 @@ function evaluateAppRequest (appObj, callback) {
                     rpc_name: permission
                 };
             }, function () {
-                callback();
+                next();
             });
         },
-        function (callback) {
+        function (next) {
             //vehicle data permissions check
-            performUpdateCycle(vehicleDataPermissions, 'vehicle_data', 'component_name', 'getVehicleDataPermissions', function (permissionName) {
+            const vehicleDataPermissionKeys = vehicleDataPermissions.map(function (permission) {
+                return permission.key;
+            });
+            performUpdateCycle(vehicleDataPermissionKeys, 'vehicle_data', 'component_name', 'getVehicleDataPermissions', function (permissionName) {
                 app.locals.log.info("Vehicle data permission not found in local database: " + permissionName);
                 app.locals.log.info("Getting vehicle data permission updates");
             }, function (permission) {
@@ -138,50 +146,164 @@ function evaluateAppRequest (appObj, callback) {
                     component_name: permission
                 };
             }, function () {
-                callback();
+                next();
             });
         },
     ], function (err) {
         //database is updated. attempt the insert now
-        //insert the vendor information first
-        const vendor = {
-            vendor_name: appObj.vendor.name,
-            vendor_email: appObj.vendor.email
-        };
-        const newAppObj = {
-            app_uuid: appObj.uuid,
-            name: appObj.name,
-            vendor_id: appObj.vendor.id,
-            platform: appObj.platform,
-            platform_app_id: appObj.platform_app_id,
-            status: appObj.status,
-            can_background_alert: appObj.can_background_alert,
-            can_steal_focus: appObj.can_steal_focus,
-            default_hmi_level: appObj.default_hmi_level,
-            tech_email: appObj.tech_email,
-            tech_phone: appObj.tech_phone,
-            category_id: appObj.category.id
-        };
+        insertAppRequest(appObj, rpcPermissions, vehicleDataPermissions, callback);
+    });
+}
 
-        const vendorInsertStr = sql.insert('vendors', vendor).toString();
-        const appInsertStr = sql.insert('app_info', newAppObj).toString();
+function insertAppRequest (appObj, rpcPermissions, vehicleDataPermissions, callback) {
+    const vendor = {
+        vendor_name: appObj.vendor.name,
+        vendor_email: appObj.vendor.email
+    };
 
-        app.locals.db.sqlCommand(vendorInsertStr, function (err, data) {
-            if (err) { 
+    const newAppObj = {
+        app_uuid: appObj.uuid,
+        name: appObj.name,
+        vendor_id: appObj.vendor.id,
+        platform: appObj.platform,
+        platform_app_id: appObj.platform_app_id,
+        status: appObj.status,
+        can_background_alert: appObj.can_background_alert,
+        can_steal_focus: appObj.can_steal_focus,
+        default_hmi_level: appObj.default_hmi_level,
+        tech_email: appObj.tech_email,
+        tech_phone: appObj.tech_phone,
+        category_id: appObj.category.id
+    };
+
+    const vendorInsertStr = sql.insert('vendors', vendor).toString();
+    const appInsertStr = sql.insert('app_info', newAppObj).toString();
+
+    async.series([
+        function (next) {
+            app.locals.db.sqlCommand(vendorInsertStr, function (err, data) {
+                next(err);
+            });            
+        },
+        function (next) {
+            app.locals.db.sqlCommand(appInsertStr, function (err, data) {
+                next(err);
+            });            
+        }
+    ], function (err, results) {
+        if (err) {
+            //error while trying to insert data! there's nothing else that can be done
+            app.locals.log.error("App information insert failed!");
+            app.locals.log.error(JSON.stringify(newAppObj, null, 4));
+            app.locals.log.error(err);
+            callback(); //we're done here. no sense in inserting anything else            
+        }
+        else {
+            getExtraInformation(function (data) {
+                //use this data to help insert app request information
+                addInformation(data);
+            });
+        }
+    });
+
+
+    function getExtraInformation (callback) {
+        //get extra id information that we need
+        async.series({
+            appId: function (next) {
+                const queryStr = sql.select('max(id)').from('app_info').where({app_uuid: appObj.uuid}).toString();
+                //get the generated id from the most recent version of this uuid in the database
+                app.locals.db.sqlCommand(queryStr, function (err, data) {
+                    next(err, data.rows[0].max);
+                }); 
+            },
+            rpcNames: function (next) {
+                const queryStr = sql.select('*').from('rpc_names').toString();
+                app.locals.db.sqlCommand(queryStr, function (err, data) {
+                    next(err, data.rows);
+                }); 
+            },
+            vehicleDataNames: function (next) {
+                const queryStr = sql.select('*').from('vehicle_data').toString();
+                app.locals.db.sqlCommand(queryStr, function (err, data) {
+                    next(err, data.rows);
+                }); 
+            },            
+        }, function (err, data) {
+            if (err) {
                 app.locals.log.error(err);
             }
-            app.locals.db.sqlCommand(appInsertStr, function (err, data) {
-                if (err) { 
-                    //we are still missing information! there's nothing else that can be done
-                    app.locals.log.error("App information insert failed!");
-                    app.locals.log.error(JSON.stringify(newAppObj, null, 4));
-                    app.locals.log.error(err);
-                }
-                callback();
-            });
+            callback(data);
+        });
+    }
+
+    function addInformation (data) {
+        //insert the extra information about the app
+        const appCountries = appObj.countries.map(function (country) {
+            return {
+                app_id: data.appId,
+                country_id: country.id
+            };
+        });
+        const displayNames = appObj.display_names.map(function (displayName) {
+            return {
+                app_id: data.appId,
+                display_text: displayName
+            };
+        });
+        //the ids here need to be looked up in the database, as the database generated its own ids for these values
+        const rpcPermissionIds = rpcPermissions.map(function (permission) {
+            return {
+                app_id: data.appId,
+                rpc_id: findByProperty(data.rpcNames, 'rpc_name', permission.key).id
+            };
+        });       
+        const vehicleDataPermissionIds = vehicleDataPermissions.map(function (permission) {
+            return {
+                app_id: data.appId,
+                vehicle_id: findByProperty(data.vehicleDataNames, 'component_name', permission.key).id
+            };
         });
 
-    });
+        let insertStrings = [];
+        if (appCountries.length > 0) {
+            insertStrings.push(sql.insert('app_countries').values(appCountries).toString());
+        }
+        if (displayNames.length > 0) {
+            insertStrings.push(sql.insert('display_names').values(displayNames).toString());
+        }
+        if (rpcPermissionIds.length > 0) {
+            insertStrings.push(sql.insert('app_rpc_permissions').values(rpcPermissionIds).toString());
+        }
+        if (vehicleDataPermissionIds.length > 0) {
+            insertStrings.push(sql.insert('app_vehicle_permissions').values(vehicleDataPermissionIds).toString());
+        }
+
+        const insertFunctions = insertStrings.map(function (insertStr) {
+            return function (next) {
+                app.locals.db.sqlCommand(insertStr, function (err, data) {
+                    next(err);
+                });                 
+            }
+        });
+
+        async.parallel(insertFunctions, function (err) {
+            if (err) {
+                app.locals.log.error(err);
+            }
+            callback();
+        });         
+    }
+
+}
+
+//helper function. returns an element in the array whose property's value matches the one passed in
+function findByProperty (array, propName, propValue) {
+    for (let i = 0; i < array.length; i++) {
+        if (array[i][propName] === propValue) {
+            return array[i];
+        }
+    }
 }
 
 //master function that executes a full check and update cycle for a given set of information

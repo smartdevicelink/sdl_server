@@ -10,7 +10,7 @@ const db = require(`./custom/databases/${config.dbModule}/index.js`)(log); //pas
 
 //require an array of modules used to get updated information from sources (ex. SHAID) to the database
 const collectors = config.collectors.map(function (module) {
-    return require(`./custom/data-collector/${module}/index.js`)(log);
+    return require(`./custom/data-collectors/${module}/index.js`)(log);
 });
 
 /* TODO: Inform user that they have to create the database on their own? */
