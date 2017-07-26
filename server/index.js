@@ -13,6 +13,8 @@ const collectors = config.collectors.map(function (module) {
     return require(`./custom/data-collectors/${module}/index.js`)(log);
 });
 
+const builder = require(`./custom/policy-builders/${config.builderModule}/index.js`)(log);
+
 /* TODO: Inform user that they have to create the database on their own? */
 
 const versions = ["1"];
@@ -26,6 +28,7 @@ app.locals.config = config;
 app.locals.log = log;
 app.locals.db = db;
 app.locals.collectors = collectors;
+app.locals.builder = builder;
 
 //load all routes located in the app directory using a v<version number> naming convention
 for (let i in versions){

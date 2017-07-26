@@ -121,10 +121,9 @@ CREATE TABLE categories (
 WITH ( OIDS = FALSE );
 
 CREATE TABLE countries (
-	"id" INT NOT NULL,
     "iso" CHAR(2) NOT NULL,
     "name" TEXT NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (iso)
 )
 WITH ( OIDS = FALSE );
 
@@ -157,8 +156,8 @@ WITH ( OIDS = FALSE );
 
 CREATE TABLE app_countries (
     "app_id" SERIAL REFERENCES app_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"country_id" INT REFERENCES countries (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (app_id, country_id)
+	"country_iso" CHAR(2) REFERENCES countries (iso) ON UPDATE CASCADE ON DELETE CASCADE,
+    PRIMARY KEY (app_id, country_iso)
 )
 WITH ( OIDS = FALSE );
 
