@@ -13,6 +13,7 @@ This project consists of two SQL tables called message_text and languages. The m
 | *text_body* | the bulk of the message, ex. “This version of %appName% is not authorized and will not work with SYNC”|
 | *line1* | first line of the message, ex. “Grant requested”|
 | *line2* | second line of the message, ex. “Permissions?”|
+| *label* | marker signifying the type of message, ex. "Vehicle information"|
 
 The languages table is a single column table and contains a list of valid languages available in the policy table.
 

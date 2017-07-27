@@ -33,12 +33,13 @@ console.log('CREATE TABLE "message_text" ( ' +
             '"line2" TEXT,' +
             '"text_body" TEXT,' +
             '"status" TEXT NOT NULL DEFAULT \'STAGING\',' +
+            '"label" TEXT,' +
             '"created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),' +
             '"updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),' +
             'PRIMARY KEY (language_id, message_category)' +
             ');') // create message_text table with necessary columns
 */
-console.log('INSERT INTO "message_text"("language_id", "line1", "line2", "message_category","text_body", "tts")')
+console.log('INSERT INTO "message_text"("label", "language_id", "line1", "line2", "message_category","text_body", "tts")')
 console.log('VALUES')
 sql = ''
 for(var message_category in messages){
@@ -46,10 +47,10 @@ for(var message_category in messages){
   // generate a single INSERT INTO statement for each as a value on a new line
   for(var id in languages){
     let language_id = languages[id]
-    sql += insertInto('message_text', 'language_id', 'line1', 'line2', 'message_category', 'text_body', 'tts')
-          .values(id, language_id.line1, language_id.line2, message_category, language_id.textBody, language_id.tts)
+    sql += insertInto('message_text', 'label', 'language_id', 'line1', 'line2', 'message_category', 'text_body', 'tts')
+          .values(language_id.label, id, language_id.line1, language_id.line2, message_category, language_id.textBody, language_id.tts)
           .toString()
-          .replace('INSERT INTO message_text (language_id, line1, line2, message_category, text_body, tts) VALUES ', '') + ',\n'
+          .replace('INSERT INTO message_text (label, language_id, line1, line2, message_category, text_body, tts) VALUES ', '') + ',\n'
   }
 }
 console.log(sql.slice(0, sql.length - 2) + ';') // drop the hanging comma and \n for an end of statement
