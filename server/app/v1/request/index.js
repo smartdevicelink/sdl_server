@@ -9,6 +9,11 @@ module.exports = function (appObj) {
 		evaluateAppRequest: evaluateAppRequest
 	};
 }
+//TODO: ignore status of incoming apps, set to STAGING
+//when they get approved, they go to production
+//the difference of the different endpoints comes in here. in staging, approved and pending are given permission
+// in production only approved are given permission
+
 
 function getAppRequests (callback) {
     //use the data collectors to get application request data
