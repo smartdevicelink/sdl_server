@@ -13,13 +13,15 @@ module.exports = function (appObj) {
 function getAppRequests (callback) {
     //use the data collectors to get application request data
     //SHAID should be the first module to run for this
-    collectData('getAppRequests', function (appRequests) {
+    collectData('getAppRequests', function (err, appRequests) {
+        if (err) {
+            app.locals.log.error(err);
+        }
 		callback(appRequests);      
     });	
 }
 
 function evaluateAppRequest (appObj, callback) {
-    //TODO: test if adding a vin to on/sub/unsub vehicle data will crash things.
     async.parallel([
         function (next) {
             //hmi level check
@@ -123,8 +125,11 @@ function evaluateAppRequest (appObj, callback) {
     });
 }
 
+//TODO: find a way to only run the function group generation once, as it is computationally expensive
+//in the update cycles there are two update callbacks that inform whether new permissions exist. that is where you would know
+//whether to run the function
 function postUpdate (appObj, callback) {
-    async.series([
+    async.waterfall([
         //functional group data update. required if permissions have been added because that means
         //more function groups are possibly needed
         function (next) {
@@ -136,19 +141,50 @@ function postUpdate (appObj, callback) {
                     databaseQuerySelect('*', 'vehicle_data', {}, next);
                 }       
             }, function (err, data) {
-                if (err) {
-                    app.locals.log.error(err);
-                }
-                app.locals.builder.initiateFunctionalGroups(data, function (groups) {
-                    insertFunctionGroupInfo(groups, next);
-                });
-                //updateFunctionalGroups(data, next);
+                next(err, data);
             });
         },
-        function (next) {
+        function (permissions, next) {
+            //store empty functional group info in the database
+            app.locals.builder.initiateFunctionalGroups(permissions, function (groups) {
+                databaseCheckMultiInsert('function_group_info', 'property_name', groups, function (err) {
+                    next(null, permissions);
+                });
+            });
+        },
+        function (permissions, next) {
             //next, get the functional group infos just inserted so we have a reference to their ids
-            //databaseQuerySelect('id', 'function_group_info', {property_name: permission.property_name}, next);
-            next();
+            //TODO: be able to specify STAGING or PRODUCTION when we add the routing for this
+            const groupedFuncGroupInfoStr = sql.select('property_name', 'status', 'max(id) AS id')
+                .from('function_group_info')
+                .groupBy('property_name', 'status').toString();
+
+            const fullFuncGroupInfoStr = sql.select('function_group_info.*')
+                .from('(' + groupedFuncGroupInfoStr + ') group_fgi')
+                .join('function_group_info', {'function_group_info.id': 'group_fgi.id'})
+                .where({'group_fgi.status': 'STAGING'}).toString();
+
+            app.locals.db.sqlCommand(fullFuncGroupInfoStr, function (err, funcGroups) {
+                next(err, permissions, funcGroups.rows);
+            });
+        },
+        function (permissions, funcGroups, next) {
+            //create permissions for all the defined functional groups
+            app.locals.builder.createGroupPermissions(permissions, funcGroups, function (permissionObjs) {
+                next(null, permissionObjs);
+            });
+        },
+        function (permissionObjs, next) {
+            //insert the generated permissions
+            const addRpcPermissionCommands = permissionObjs.rpcPermissions.map(function (perm) {
+                return databaseCheckInsert('rpc_permission', 'function_group_id', perm);
+            });
+            const addVehiclePermissionCommands = permissionObjs.vehicleDataPermissions.map(function (perm) {
+                return databaseCheckInsert('rpc_vehicle_parameters', 'function_group_id', perm);         
+            });
+            async.parallel(addRpcPermissionCommands.concat(addVehiclePermissionCommands), function (err) {
+                callback(err, next);
+            });             
         }
     ], function (err) {
         if (err) {
@@ -156,15 +192,6 @@ function postUpdate (appObj, callback) {
         }
         insertAppRequest(appObj, callback);
     });
-}
-
-function insertFunctionGroupInfo (groupArray, callback) {
-    const addGroupInfoCommands = groupArray.map(function (group) {
-        return databaseCheckInsert('function_group_info', 'property_name', group);         
-    });
-    async.parallel(addGroupInfoCommands, function (err) {
-        callback(err);
-    });    
 }
 
 //TODO: do a timestamp check to determine if the app info actually changed before insertion
@@ -303,135 +330,6 @@ function addExtraAppInformation (appObj, callback) {
     });         
 }
 
-function updateFunctionalGroups (data, callback) {
-    const rpcFormatted = data.rpcNames.map(function (permission) {
-        return {
-            "property_name": permission.rpc_name
-        };
-    });
-    const vehicleDataFormatted = data.vehicleDataNames.map(function (permission) {
-        return {
-            "property_name": permission.component_name
-        };
-    });
-    const rpcAddCommands = rpcFormatted.map(function (permission) {
-        return addFunctionalGroupMap(permission, true);
-    });
-    const vehicleDataAddCommands = vehicleDataFormatted.map(function (permission) {
-        return addFunctionalGroupMap(permission, false);
-    });
-    //merge the arrays together and invoke them!
-    const addFunctionalGroupCommands = rpcAddCommands.concat(vehicleDataAddCommands);
-    async.parallel(addFunctionalGroupCommands, function (err) {
-        if (err) {
-            app.locals.log.error(err);
-        }
-        callback();
-    }); 
-
-    function addFunctionalGroupMap (permission, isRpc) {
-        return function (next) {
-        	//first, check if the function group info for this permission exists already
-            databaseQueryExists('function_group_info', 'property_name', permission.property_name, function (exists) {
-                if (exists) {
-                    next(); //data already in DB. no need for further computation
-                }
-                else {
-               		//doesn't exist. add function group info
-               		addAndGetFunctionGroupInfo(next);
-                }
-            }); 
-        };
-        function addAndGetFunctionGroupInfo (next) {
-        	async.waterfall([
-	            function (next) {
-	            	databaseInsert('function_group_info', permission, next);
-	            }, 
-	            function (next) {
-	                //get the functional group that was just inserted
-	                databaseQuerySelect('id', 'function_group_info', {property_name: permission.property_name}, next);
-	            },                		
-        	], function (err, functionalGroupIds) {
-        		if (err) {
-        			app.locals.log.error(err);
-        		}
-            	if (isRpc) { //add to the table of RPC permissions
-                	addRpcFunctionalGroup(functionalGroupIds[0].id, permission, next);
-            	}
-            	else { //add to the table of vehicle parameter permissions
-            		addVehicleDataFunctionalGroup(functionalGroupIds[0].id, permission, next);
-            	}
-        	});        	
-        }
-    }
-
-    function addRpcFunctionalGroup (functionalGroupId, permission, callback) {
-        async.waterfall([
-            function (next) {
-                //find the rpc name by id and add it to the rpc permissions table
-                const rpcId = findByProperty(data.rpcNames, 'rpc_name', permission.property_name).id;
-                const rpcPermissionObj = {
-                    function_group_id: functionalGroupId,
-                    rpc_id: rpcId
-                };
-                //pass these values to the databaseCheckInsert in the next function
-                next(null, 'rpc_permission', 'function_group_id', rpcPermissionObj);
-            },
-            databaseCheckInsert                                     
-        ], 
-        function (err) {
-            if (err) {
-                app.locals.log.error(err);
-            }
-            callback();
-        });        
-    }
-
-    function addVehicleDataFunctionalGroup (functionalGroupId, permission, callback) {
-        async.waterfall([
-            function (next) {
-                //find the vehicle data name by id and add it to the vehicle data permissions table
-                const vehicleDataId = findByProperty(data.vehicleDataNames, 'component_name', permission.property_name).id;
-                const obj1 = {
-                    function_group_id: functionalGroupId,
-                    rpc_id: findByProperty(data.rpcNames, 'rpc_name', 'OnVehicleData').id,
-                    vehicle_id: vehicleDataId
-                };
-                const obj2 = {
-                    function_group_id: functionalGroupId,
-                    rpc_id: findByProperty(data.rpcNames, 'rpc_name', 'SubscribeVehicleData').id,
-                    vehicle_id: vehicleDataId
-                };
-                const obj3 = {
-                    function_group_id: functionalGroupId,
-                    rpc_id: findByProperty(data.rpcNames, 'rpc_name', 'UnsubscribeVehicleData').id,
-                    vehicle_id: vehicleDataId
-                };
-                const obj4 = {
-                    function_group_id: functionalGroupId,
-                    rpc_id: findByProperty(data.rpcNames, 'rpc_name', 'GetVehicleData').id,
-                    vehicle_id: vehicleDataId
-                };
-
-                const vehicleDataPermissionObjs = [obj1, obj2, obj3, obj4];
-                const permissionCommands = vehicleDataPermissionObjs.map(function (obj) {
-                    return databaseCheckInsert('rpc_vehicle_parameters', 'function_group_id', obj);
-                });
-
-                async.parallel(permissionCommands, function (err) {
-                    next(err);
-                });
-            }
-        ], 
-        function (err) {
-            if (err) {
-                app.locals.log.error(err);
-            }
-            callback();
-        });        
-    } 
-}
-
 //master function that executes a full check and update cycle for a given set of information
 function performUpdateCycle (dataArray, tableName, databasePropName, moduleFuncName, errorCallback, transformDataFunc, callback) {
     const dataChecker = dataArray.map(function (datum) {
@@ -453,33 +351,24 @@ function performUpdateCycle (dataArray, tableName, databasePropName, moduleFuncN
         if (datum) { //missing information
             errorCallback(datum); //let the caller know which data is missing
             //get updated information from collector modules
-            collectData(moduleFuncName, function (updatedDataArray) {
+            collectData(moduleFuncName, function (err, updatedDataArray) {
+                if (err) {
+                    app.locals.log.error(err);
+                }
                 //send this info back to the caller so the caller can transform the data
                 const transformedDataArray = updatedDataArray.map(function (datum) {
                     return transformDataFunc(datum);
                 });
-                insertData(transformedDataArray);
+                //stage two: uses the updated data array and previously known information to check and store
+                //data that previously did not exist in the database
+                databaseCheckMultiInsert(tableName, databasePropName, transformedDataArray, callback);
+                //update cycle done
             });
         }
         else { //nothing missing!
             callback();
         }
     });
-
-    //stage two: uses the updated data array and previously known information to check and store
-    //data that previously did not exist in the database
-    function insertData (updatedDataArray) {
-        const dataChecker = updatedDataArray.map(function (datum) {
-            return databaseCheckInsert(tableName, databasePropName, datum);
-        });
-        //run the insert functions
-        async.parallel(dataChecker, function (err) {
-            if (err) {
-                app.locals.log.error(err);
-            }
-            callback(); //the update cycle is done
-        });
-    }
 }
 
 /****** UTILITY FUNCTIONS ******/
@@ -502,11 +391,18 @@ function collectData (moduleFunction, callback) {
     //invoke array of data collector functions
     async.waterfall(iteratingCollectors, function (err, dataArray) {
         //all data are now aggregated from all data collecting sources
-        if (err) {
-            app.locals.log.error(err);
-        }
-        callback(dataArray);
+        callback(err, dataArray);
     });     
+}
+
+function databaseCheckMultiInsert (tableName, databasePropName, dataArray, callback) {
+    const dataChecker = dataArray.map(function (datum) {
+        return databaseCheckInsert(tableName, databasePropName, datum);
+    });
+    //run the insert functions
+    async.parallel(dataChecker, function (err) {
+        callback(err);
+    });
 }
 
 //inserts a piece of data in the database only if it was checked through a property that the data doesn't exist yet

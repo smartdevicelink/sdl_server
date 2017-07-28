@@ -1,6 +1,7 @@
 //module example for helping to build policy tables.
 const initGroups = require('./initiateFunctionalGroups.js');
-
+const createPermissions = require('./createFunctionalGroupPermissions.js');
+const addHmiLevels = require('./addHmiLevels.js');
 
 module.exports = function (log) {
     //exported functions. these are required to implement
@@ -17,23 +18,19 @@ module.exports = function (log) {
             const granularGroups = initGroups.generateFunctionalGroups(permissions.rpcNames, permissions.vehicleDataNames);
             //combine the two group arrays
             callback(defaultGroups.concat(granularGroups));
+        },
+        createGroupPermissions: function (permissions, functionalGroups, callback) {
+            //the functional groups we defined in initialFunctionGroups came back with information including the id, so the
+            //functional groups can now be referenced correctly when adding permissions
+
+            //go through and evaluate all the functoinal groups and give each group certain permissions
+            const permissionObjs = createPermissions.generatePermissions(permissions.rpcNames, permissions.vehicleDataNames, functionalGroups);
+            callback(permissionObjs);
+        },
+        modifyFunctionalGroupObject: function (funcGroupObj, rpcNames, vehicleDataNames, callback) {
+            //add HMI LEVELs to the functional group object
+            addHmiLevels(funcGroupObj, rpcNames, vehicleDataNames); //modifies the original object
+            callback(funcGroupObj);
         }
     };
 }
-
-/*
-function_group_info
-    "property_name" TEXT NOT NULL,
-    "user_consent_prompt" TEXT,
-
-rpc_permission
-    "function_group_id" SERIAL REFERENCES function_group_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    "rpc_id" SERIAL REFERENCES rpc_names (id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-rpc_vehicle_parameters
-    "function_group_id" SERIAL REFERENCES function_group_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    "rpc_id" SERIAL REFERENCES rpc_names (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    "vehicle_id" SERIAL REFERENCES vehicle_data (id) ON UPDATE CASCADE ON DELETE CASCADE,
-
-TODO: another function that assigns HMI levels.
-*/

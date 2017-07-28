@@ -138,7 +138,8 @@ module.exports = function (log) {
                 "airbagStatus",
                 "emergencyEvent",
                 "clusterModeStatus",
-                "myKey"
+                "myKey",
+                "vin"
             ];
             next(null, vehicleDataPermissions);
         }

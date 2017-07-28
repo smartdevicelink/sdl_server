@@ -3,6 +3,7 @@ const sql = require('sql-bricks');
 let express = require('express');
 let app = express();
 const appRequests = require('./request/index.js')(app);
+const functionalGroup = require('./policy/functionalGroup.js')(app);
 
 module.exports = app;
 
@@ -50,6 +51,13 @@ app.post('/policy', function (req, res, next) {
     //given an app id, generate a policy table based on the permissions granted to it
     res.sendStatus(200);
     //iterate over the app_policies object. query the database for matching app ids that have been approved
+});
+
+app.get('/test', function (req, res, next) {
+    functionalGroup.createFunctionalGroupObject(function (functionalGroupObj) {
+        console.log(JSON.stringify(functionalGroupObj, null, 4));
+    });
+    res.sendStatus(200);
 });
 
 const TEMP_APPS = [{

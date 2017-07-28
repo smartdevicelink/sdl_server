@@ -1,7 +1,6 @@
 module.exports = {
     createDefaultFunctionalGroups: createDefaultFunctionalGroups,
-    generateFunctionalGroups: generateFunctionalGroups,
-    defineFunctionGroupInfo: defineFunctionGroupInfo
+    generateFunctionalGroups: generateFunctionalGroups
 };
 
 function createDefaultFunctionalGroups () {
