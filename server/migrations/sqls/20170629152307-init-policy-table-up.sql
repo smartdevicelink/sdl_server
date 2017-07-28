@@ -148,7 +148,7 @@ CREATE TABLE app_info (
 	"tech_email" TEXT,
 	"tech_phone" TEXT,
     "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
-    "updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),	
+    "updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
 	"category_id" INT REFERENCES categories (id) ON UPDATE CASCADE ON DELETE CASCADE,
 	"approval_status" approval_status NOT NULL DEFAULT 'PENDING',
     PRIMARY KEY (id)
@@ -185,7 +185,11 @@ WITH ( OIDS = FALSE );
 
 
 INSERT INTO module_config ("preloaded_pt", "exchange_after_x_ignition_cycles", "exchange_after_x_kilometers", "exchange_after_x_days", "timeout_after_x_seconds", "endpoint_0x07", "endpoint_0x04", "query_apps_url", "lock_screen_default_url", "emergency_notifications", "navigation_notifications", "voicecom_notifications", "communication_notifications", "normal_notifications", "none_notifications") VALUES
-(true, 100, 180, 30, 60, 'http://policies.telematics.ford.com/api/policies', 'http://ivsu.software.ford.com/api/getsoftwareupdates', 'http://sdl.shaid.server', 'http://i.imgur.com/QwZ9uKG.png', 60, 15, 20, 6, 4, 0);
+(true, 100, 1800, 30, 60, 'http://policies.telematics.ford.com/api/policies', 'http://ivsu.software.ford.com/api/getsoftwareupdates', 'http://sdl.shaid.server', 'http://i.imgur.com/QwZ9uKG.png', 60, 15, 20, 6, 4, 0);
+
+
+INSERT INTO "module_config_retry_seconds" ("id", "seconds")
+VALUES(1, 1),(1, 5),(1, 25),(1, 125),(1, 625);
 
 
 INSERT INTO "languages" ("id")
@@ -217,14 +221,14 @@ VALUES
 (null, 'en-au', 'Grant requested', 'permission(s)?', 'AppPermissions', null, '%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press Yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%''s use of your data. Please press Yes to allow or No to deny.'),
 (null, 'en-gb', 'Grant requested', 'permission(s)?', 'AppPermissions', '%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%`s use of your data. You can change these permissions and hear detailed descriptions in the mobile apps settings menu.', '%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press Yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%`s use of your data. Please press Yes to allow or No to deny.'),
 (null, 'en-ie', 'Grant requested', 'permission(s)?', 'AppPermissions', null, '%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press Yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%''s use of your data. Please press Yes to allow or No to deny.'),
-(null, 'en-us', 'Grant Requested', 'Permission(s)?', 'AppPermissions', '%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. 
+(null, 'en-us', 'Grant Requested', 'Permission(s)?', 'AppPermissions', '%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%.
 
 If you press yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%’s use of your data. You can change these permissions and hear detailed descriptions in the mobile apps settings menu.', '%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%’s use of your data. Please press yes to allow or no to deny.'),
-(null, 'es-en', '¿Otorgar permiso(s)', 'solicitado(s)?', 'AppPermissions', '%appName% solicita el uso de la siguiente información y permisos del vehículo: %functionalGroupLabels%. Si presiona Sí, acepta que %vehicleMake% no se hará responsable por los daños o pérdidas de privacidad relacionados con el uso que %appName% haga de sus datos. Presione Sí para permitir y No para denegar. 
+(null, 'es-en', '¿Otorgar permiso(s)', 'solicitado(s)?', 'AppPermissions', '%appName% solicita el uso de la siguiente información y permisos del vehículo: %functionalGroupLabels%. Si presiona Sí, acepta que %vehicleMake% no se hará responsable por los daños o pérdidas de privacidad relacionados con el uso que %appName% haga de sus datos. Presione Sí para permitir y No para denegar.
 
  Puede cambiar estos permisos y consultar descripciones detalladas en el menú de configuración de las aplicaciones móviles.', '%appName% solicita el uso de la siguiente información y permisos del vehículo: %functionalGroupLabels%. Si presiona Sí, acepta que %vehicleMake% no se hará responsable por los daños o pérdidas de privacidad relacionados con el uso que %appName% haga de sus datos. Presione Sí para permitir y No para denegar.'),
 (null, 'es-es', '¿Conceder permisos', 'solicitados?', 'AppPermissions', null, '%appName% está solicitando el uso de los siguientes permisos e información del vehículo: %functionalGroupLabels%. Si pulsa sí, acepta que %vehicleMake% no será responsable de los daños o la pérdida de privacidad relacionados con el uso de sus datos por parte de %appName%. Pulse sí para permitir o no para denegar.'),
-(null, 'es-mx', '¿Otorgar permiso(s)', 'solicitado(s)?', 'AppPermissions', '%appName% solicita el uso de la siguiente información y permisos del vehículo: %functionalGroupLabels%. 
+(null, 'es-mx', '¿Otorgar permiso(s)', 'solicitado(s)?', 'AppPermissions', '%appName% solicita el uso de la siguiente información y permisos del vehículo: %functionalGroupLabels%.
 
 Si presiona Sí, acepta que %vehicleMake% no se hará responsable por los daños o pérdidas de privacidad relacionados con el uso que %appName% haga de sus datos. Presione Sí para permitir y No para denegar. Puede cambiar estos permisos y consultar descripciones detalladas en el menú de configuración de las aplicaciones móviles.', '%appName% solicita el uso de la siguiente información y permisos del vehículo: %functionalGroupLabels%. Si presiona Sí, acepta que %vehicleMake% no se hará responsable por los daños o pérdidas de privacidad relacionados con el uso que %appName% haga de sus datos. Presione Sí para permitir y No para denegar.'),
 (null, 'fr-ca', 'Accorder permission(s)', 'demandée(s)', 'AppPermissions', '%appName% demande d’utiliser les informations du véhicule et les permissions suivantes : %functionalGroupLabels%. Si vous appuyez sur Oui, vous acceptez que %vehicleMake% ne sera pas responsable des dommages ou des pertes de confidentialité reliées à l’utilisation de vos données par %appName%. Vous pouvez modifier ces permissions et entendre les descriptions détaillées dans le menu des réglages des applications mobiles.', '%appName% demande d’utiliser les informations du véhicule et les permissions suivantes : %functionalGroupLabels%. Si vous appuyez sur Oui, vous acceptez que %vehicleMake% ne sera pas responsable des dommages ou des pertes de confidentialité reliées à l’utilisation de vos données par %appName%. Veuillez appuyer sur Oui pour autoriser ou sur Non pour refuser.'),
@@ -319,7 +323,7 @@ Si presiona Sí, acepta que %vehicleMake% no se hará responsable por los daños
 (null, 'tr-tr', 'desteklenmiyor', null, 'AppUnsupported', null, 'Bu %appName% sürümü SYNC tarafından desteklenmiyor.'),
 (null, 'zh-cn', '不受支持', null, 'AppUnsupported', null, 'SYNC不支持此版本的%appName%。'),
 (null, 'zh-tw', '不支援', null, 'AppUnsupported', null, 'SYNC 不支援此版本的%appName% 。'),
-(null, 'en-gb', null, null, 'DataConsent', 'Would you like to enable Mobile Apps on SYNC? To use Mobile Apps with SYNC, SYNC will communicate with Ford at least once per month using your mobile device’s data plan. Standard rates may apply. SYNC will send your VIN and SYNC module number to Ford U.S. 
+(null, 'en-gb', null, null, 'DataConsent', 'Would you like to enable Mobile Apps on SYNC? To use Mobile Apps with SYNC, SYNC will communicate with Ford at least once per month using your mobile device’s data plan. Standard rates may apply. SYNC will send your VIN and SYNC module number to Ford U.S.
 
 Updates are about the size of an email, and the occurrence of updates depends on your vehicle usage and when a new app is found on your device. To turn on or off, visit the SYNC Settings menu. See your Owner Guide for more information.', null),
 (null, 'en-us', 'Enable Mobile Apps', 'on SYNC? (Uses Data)', 'DataConsent', 'Would you like to enable Mobile Apps on SYNC?
@@ -327,9 +331,9 @@ Updates are about the size of an email, and the occurrence of updates depends on
 To use Mobile Apps with SYNC, SYNC will communicate with Ford at least once per month using your mobile device’s data plan. Standard rates may apply. SYNC will send your VIN and SYNC module number to Ford U.S.
 
 Updates are about the size of an email, and the occurrence of updates depends on your vehicle usage and when a new app is found on your device. To turn on or off, visit the SYNC Settings menu. See your Owner Guide for more information.', null),
-(null, 'es-mx', null, null, 'DataConsent', 'Para usar aplicaciones móviles con SYNC, este debe comunicarse con Ford al menos una vez al mes a través del plan de datos de su dispositivo móvil. Pueden aplicar tarifas normales. SYNC enviará su VIN y el número de módulo de SYNC a Ford de Estados Unidos de América. 
+(null, 'es-mx', null, null, 'DataConsent', 'Para usar aplicaciones móviles con SYNC, este debe comunicarse con Ford al menos una vez al mes a través del plan de datos de su dispositivo móvil. Pueden aplicar tarifas normales. SYNC enviará su VIN y el número de módulo de SYNC a Ford de Estados Unidos de América.
 
-Las actualizaciones tienen el tamaño aproximado de un mensaje de correo electrónico, y la frecuencia de las actualizaciones depende del uso de su vehículo y de si se encuentran nuevas aplicaciones en su dispositivo. Para obtener más información, consulte la Guía del propietario. 
+Las actualizaciones tienen el tamaño aproximado de un mensaje de correo electrónico, y la frecuencia de las actualizaciones depende del uso de su vehículo y de si se encuentran nuevas aplicaciones en su dispositivo. Para obtener más información, consulte la Guía del propietario.
 
 Presione Sí para permitir y No para denegar.', null),
 (null, 'fr-ca', null, null, 'DataConsent', 'Pour utiliser AppLink, SYNC devra communiquer avec Ford au moins une fois par mois en utilisant le forfait de données de votre appareil mobile. Les tarifs réguliers peuvent s’appliquer. SYNC enverra votre NIV et le numéro de votre module SYNC à Ford États-Unis. Les mises à jour ont la taille d’un courriel et la fréquence des mises à jour dépend de l’utilisation de votre véhicule et si une nouvelle application se trouve sur votre appareil. Consultez le Guide de l’utilisateur pour obtenir d’autres renseignements.
