@@ -9,7 +9,7 @@ module.exports = function (appObj) {
     };
 }
 
-function createPolicyObject (appPolicies, callback) {
+function createPolicyObject (appPolicies, functionalGroupObj, callback) {
     //assume that every property in appPolicies except for "default", "device", and "pre_DataConsent" are app ids
     //for each app id present, get its app id info from the DB, add that info to the policy object, and assign appropriate
     //functional groups to that app id
@@ -71,7 +71,7 @@ function createPolicyObject (appPolicies, callback) {
                 const requestedAppObj = findObjByProperty(appInfo, 'app_uuid', appId);
                 if (requestedAppObj) {
                     //extract information from the app obj and assign it a set of functional groups previously defined
-                    const appPolicy = constructAppPolicy(requestedAppObj);
+                    const appPolicy = constructAppPolicy(requestedAppObj, functionalGroupObj);
                     appPolicies[appId] = appPolicy;
                 }
             }
@@ -80,7 +80,7 @@ function createPolicyObject (appPolicies, callback) {
     }
 }
 
-function constructAppPolicy (appObj) {
+function constructAppPolicy (appObj, functionalGroupObj) {
     let appPolicy = {};
     appPolicy.nicknames = appObj.display_names;
     appPolicy.keep_context = true;

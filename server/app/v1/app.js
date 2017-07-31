@@ -54,9 +54,9 @@ app.post('/policy', function (req, res, next) {
 
     //for now, auto approve all apps that request permissions
     const appPolicies = req.body.policy_table.app_policies;
-    appPolicy.createPolicyObject(appPolicies, function (appPolicyModified) {
+    appPolicy.createPolicyObject(appPolicies, functionalGroupObj, function (appPolicyModified) {
         //the original appPolicy object may get modified
-        
+
     });
 
     res.sendStatus(200);
