@@ -15,7 +15,6 @@ sql(gmt, function(err, res){
     console.error(err)
   } else {
     consumer_friendly_messages.messages = generateMessages(res.rows);
-    console.log(JSON.stringify(consumer_friendly_messages, null, 4))
   }
 })
 
