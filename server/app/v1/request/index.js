@@ -14,6 +14,8 @@ module.exports = function (appObj) {
 //the difference of the different endpoints comes in here. in staging, approved and pending are given permission
 // in production only approved are given permission
 
+//TODO: perform update cycle on server start? pretend we need an update for everything
+
 
 function getAppRequests (callback) {
     //use the data collectors to get application request data
@@ -133,7 +135,7 @@ function evaluateAppRequest (appObj, callback) {
 //TODO: find a way to only run the function group generation once, as it is computationally expensive
 //in the update cycles there are two update callbacks that inform whether new permissions exist. that is where you would know
 //whether to run the function
-function postUpdate (appObj, callback) {
+function postUpdate (appObj, callback) {    
     async.waterfall([
         //functional group data update. required if permissions have been added because that means
         //more function groups are possibly needed
@@ -187,9 +189,7 @@ function postUpdate (appObj, callback) {
             const addVehiclePermissionCommands = permissionObjs.vehicleDataPermissions.map(function (perm) {
                 return databaseCheckInsert('rpc_vehicle_parameters', 'function_group_id', perm);         
             });
-            async.parallel(addRpcPermissionCommands.concat(addVehiclePermissionCommands), function (err) {
-                callback(err, next);
-            });             
+            async.parallel(addRpcPermissionCommands.concat(addVehiclePermissionCommands), next);             
         }
     ], function (err) {
         if (err) {

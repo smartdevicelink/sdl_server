@@ -30,7 +30,6 @@ function createFunctionalGroupObject (callback) {
 
             app.locals.db.sqlCommand(fullFuncGroupInfoStr, function (err, funcGroups) {
                 next(err, funcGroups.rows);
-
             });
         },
         function (funcGroups, next) {

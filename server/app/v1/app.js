@@ -4,6 +4,7 @@ let express = require('express');
 let app = express();
 const appRequests = require('./request/index.js')(app);
 const functionalGroup = require('./policy/functionalGroup.js')(app);
+const appPolicy = require('./policy/appPolicy.js')(app);
 
 module.exports = app;
 
@@ -47,15 +48,24 @@ function appRequest (req, res, next) {
 //a request came from sdl_core!
 app.post('/policy', function (req, res, next) {
     console.log("Got it!");
-    console.log(JSON.stringify(req.body, null, 4));
+    //console.log(JSON.stringify(req.body, null, 4));
     //given an app id, generate a policy table based on the permissions granted to it
-    res.sendStatus(200);
     //iterate over the app_policies object. query the database for matching app ids that have been approved
+
+    //for now, auto approve all apps that request permissions
+    const appPolicies = req.body.policy_table.app_policies;
+    appPolicy.createPolicyObject(appPolicies, function (appPolicyModified) {
+        //the original appPolicy object may get modified
+        
+    });
+
+    res.sendStatus(200);
 });
 
 app.get('/test', function (req, res, next) {
+    //TODO: comment out generated groups! there are multiple modules where this happens (2 or 3 i dont remember)
     functionalGroup.createFunctionalGroupObject(function (functionalGroupObj) {
-        console.log(JSON.stringify(functionalGroupObj, null, 4));
+        //console.log(JSON.stringify(functionalGroupObj, null, 4));
     });
     res.sendStatus(200);
 });
