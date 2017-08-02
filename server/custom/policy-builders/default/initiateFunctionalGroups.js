@@ -29,18 +29,18 @@ function editAppPolicy (appPolicy, appObj) {
     let vehiclePermissionSet = {};
 
     //handle vehiclePermissions
-    const functionGroupsToCheck = ["Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1"];
+    const rpcGroupsToCheck = ["Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1"];
 
     for (let i = 0; i < appObj.vehiclePermissions.length; i++) {
         //given a permission name, get the functionalGroup that holds that permission
         const permName = appObj.vehiclePermissions[i];
 
-        for (let j = 0; j < functionGroupsToCheck.length; j++) {
-            const permissions = functionalGroupDataObj[functionGroupsToCheck[j]].getPermissionsFunc()[1];
+        for (let j = 0; j < rpcGroupsToCheck.length; j++) {
+            const permissions = functionalGroupDataObj[rpcGroupsToCheck[j]].getPermissionsFunc()[1];
             if (permissions.indexOf(permName) !== -1) {
-                vehiclePermissionSet[functionGroupsToCheck[j]] = null;
+                vehiclePermissionSet[rpcGroupsToCheck[j]] = null;
                 //end loop early
-                j = functionGroupsToCheck.length;
+                j = rpcGroupsToCheck.length;
             }            
         }
     }
@@ -53,19 +53,19 @@ function editAppPolicy (appPolicy, appObj) {
     let rpcPermissionSet = {};
 
     //handle rpc permissions
-    const functionGroupsToCheck = ["Base-4", "ProprietaryData-3", "Navigation-1", "Base-6", "OnKeyboardInputOnlyGroup", 
+    const vehicleGroupsToCheck = ["Base-4", "ProprietaryData-3", "Navigation-1", "Base-6", "OnKeyboardInputOnlyGroup", 
         "OnTouchEventOnlyGroup", "DiagnosticMessageOnly", "SendLocation", "WayPoints", "BackgroundAPT"];
 
     for (let i = 0; i < appObj.rpcPermissions.length; i++) {
         //given a permission name, get the functionalGroup that holds that permission
         const permName = appObj.rpcPermissions[i];
 
-        for (let j = 0; j < functionGroupsToCheck.length; j++) {
-            const permissions = functionalGroupDataObj[functionGroupsToCheck[j]].getPermissionsFunc()[0];
+        for (let j = 0; j < vehicleGroupsToCheck.length; j++) {
+            const permissions = functionalGroupDataObj[vehicleGroupsToCheck[j]].getPermissionsFunc()[0];
             if (permissions.indexOf(permName) !== -1) {
-                rpcPermissionSet[functionGroupsToCheck[j]] = null;
+                rpcPermissionSet[vehicleGroupsToCheck[j]] = null;
                 //end loop early
-                j = functionGroupsToCheck.length;
+                j = vehicleGroupsToCheck.length;
             }            
         }
     }

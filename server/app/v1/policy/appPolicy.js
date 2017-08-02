@@ -175,7 +175,6 @@ function constructAppPolicy (appObj) {
     appPolicy.default_hmi = appObj.default_hmi_level;
     appPolicy.groups = []; //let the custom module assign functional groups
 
-    //this is the only chance custom edits can be made to the appObj
     return app.locals.builder.createAppPolicyObject(appPolicy, appObj);
 }
 
