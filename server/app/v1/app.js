@@ -91,7 +91,7 @@ const TEMP_APPS = [{
     "tech_phone": null,
     "default_hmi_level": "HMI_NONE",
     "created_ts": "2017-06-12T13:30:32.912Z",
-    "updated_ts": "2017-06-12T13:30:32.912Z",
+    "updated_ts": "2017-08-02T19:28:32.912Z",
     "countries": [
         {
             "id": 1,

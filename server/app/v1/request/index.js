@@ -183,8 +183,31 @@ function insertAppRequest (appObj, callback) {
 
     const vendorInsertStr = sql.insert('vendors', vendor).toString();
     const appInsertStr = sql.insert('app_info', newAppObj).toString();
+    const ERROR_NO_APP_UPDATE = "App received is already updated in the database";
 
     async.series([
+        function (next) {
+            //compare timestamps to determine if the app info actually changed before insertion
+            const incomingAppTimestamp = appObj.updated_ts;
+            const getAppStr = sql.select('max(updated_ts)').from('app_info').where({app_uuid: appObj.uuid}).toString();
+            app.locals.db.sqlCommand(getAppStr, function (err, data) {
+                const currentTimestamp = data.rows[0].max;
+                if (currentTimestamp !== null && currentTimestamp !== undefined) {
+                    const incomingDate = new Date(incomingAppTimestamp);
+                    const currentDate = new Date(currentTimestamp);
+                    if (incomingDate > currentDate) {
+                        //the app in the policy server's database is outdated! insert the new data
+                        next();
+                    }
+                    else {
+                        next(ERROR_NO_APP_UPDATE);
+                    }
+                }
+                else {
+                    next();
+                }
+            });
+        },
         function (next) {
             app.locals.db.sqlCommand(vendorInsertStr, function (err, data) {
                 next(err);
@@ -197,11 +220,13 @@ function insertAppRequest (appObj, callback) {
         }
     ], function (err, results) {
         if (err) {
-            //error while trying to insert data! there's nothing else that can be done
-            app.locals.log.error("App information insert failed!");
-            app.locals.log.error(JSON.stringify(newAppObj, null, 4));
-            app.locals.log.error(err);
-            callback(); //we're done here. no sense in inserting anything else            
+            if (err !== ERROR_NO_APP_UPDATE) {
+                //error while trying to insert data! there's nothing else that can be done
+                app.locals.log.error("App information insert failed!");
+                app.locals.log.error(JSON.stringify(newAppObj, null, 4));
+                app.locals.log.error(err);
+            }
+            callback(); //we're done here. no sense in inserting anything else
         }
         else {
             addExtraAppInformation(appObj, callback);
