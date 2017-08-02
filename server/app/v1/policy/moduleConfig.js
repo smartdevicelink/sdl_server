@@ -44,16 +44,16 @@ function createModuleConfig(callback){
     module.seconds_between_retries = seconds.map(function(item){return item.seconds;})
     module.endpoints = {
       "0x07": {
-        "default": data.endpoint_0x07
+        "default": [data.endpoint_0x07]
       },
       "0x04": {
-        "default": data.endpoint_0x04
+        "default": [data.endpoint_0x04]
       }
     }
     module.endpoints.query_apps_url = {}
-    module.endpoints.query_apps_url.default = data.query_apps_url
+    module.endpoints.query_apps_url.default = [data.query_apps_url]
     module.endpoints.lock_screen_icon_url = {}
-    module.endpoints.lock_screen_icon_url.default = data.lock_screen_default_url
+    module.endpoints.lock_screen_icon_url.default = [data.lock_screen_default_url]
     module.notifications_per_minute_by_priority = {}
     module.notifications_per_minute_by_priority.EMERGENCY = data.emergency_notifications
     module.notifications_per_minute_by_priority.NAVIGATION = data.navigation_notifications
