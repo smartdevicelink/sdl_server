@@ -5,6 +5,8 @@ let app = express();
 const appRequests = require('./request/index.js')(app);
 const functionalGroup = require('./policy/functionalGroup.js')(app);
 const appPolicy = require('./policy/appPolicy.js')(app);
+const consumerMessages = require('./policy/consumerMessages.js')(app)
+const moduleConfig = require('./policy/moduleConfig.js')(app)
 
 module.exports = app;
 
@@ -23,7 +25,7 @@ app.on("mount", function (parent) {
             functionalGroup.createFunctionalGroupObject(function () {
                 //TODO: don't allow routes to get hit until the update cycle finishes
                 app.locals.log.info('Update complete');
-            });            
+            });
         });
     });
 });
@@ -52,7 +54,7 @@ function appRequest (req, res, next) {
             }
             //the end of a very large update cycle
             res.sendStatus(200);
-        }); 
+        });
     });
 }
 //TODO: replace all attempts to compile information from multiple table with using INNER JOINs (ex. appPolicy.js)
@@ -60,18 +62,41 @@ function appRequest (req, res, next) {
 //a request came from sdl_core!
 app.post('/policy', function (req, res, next) {
     console.log("Got it!");
-    //console.log(JSON.stringify(req.body, null, 4));
-    //given an app id, generate a policy table based on the permissions granted to it
-    //iterate over the app_policies object. query the database for matching app ids that have been approved
 
-    //for now, auto approve all apps that request permissions
-    const appPolicies = req.body.policy_table.app_policies;
-    appPolicy.createPolicyObject(appPolicies, function (appPolicyModified) {
+    async.parallel([
+      function(callback){
+      moduleConfig.createModuleConfig(function(module_config){
+        callback(null, module_config)
+      })
+    },
+    function(callback){
+      callback(null, functionalGroup.getFunctionalGroup())
+    },
+    function(callback){
+      consumerMessages.createConsumerMessages(function(consumer_friendly_messages){
+        callback(null, consumer_friendly_messages)
+      })
+    },
+    function(callback){
+      //given an app id, generate a policy table based on the permissions granted to it
+      //iterate over the app_policies object. query the database for matching app ids that have been approved
+
+      //for now, auto approve all apps that request permissions
+      appPolicy.createPolicyObject(req.body.policy_table.app_policies, function(appPolicyModified){
         //the original appPolicy object may get modified
-        console.log(appPolicyModified);
-    });
+        callback(null, appPolicyModified)
+      })
+    }],
+    function(err, done){
+      let policyTable = {"policy_table": {}}
+      policyTable.policy_table.module_config = done[0]
+      policyTable.policy_table.functional_groupings = done[1]
+      policyTable.policy_table.consumer_friendly_messages = done[2]
+      policyTable.policy_table.app_policies = done[3]
+      res.send(policyTable)
+    })
 
-    res.sendStatus(200);
+    //res.sendStatus(200);
 });
 
 //TODO: remove this when there's data in SHAID
