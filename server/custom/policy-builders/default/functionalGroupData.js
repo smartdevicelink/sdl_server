@@ -57,7 +57,7 @@ const functionalGroupDataObj = {
     },
     "DataConsent-2": {
         userConsentPrompt: "DataConsent",
-        getPermissionsFunc: diagnosticMessageOnly
+        getPermissionsFunc: dataConsent2
     },
     "BaseBeforeDataConsent": {
         userConsentPrompt: null,
@@ -298,6 +298,12 @@ function diagnosticMessageOnly () {
     const addRpcArray = [
         "DiagnosticMessage"
     ];
+    const addVehicleArray = [];
+    return [addRpcArray, addVehicleArray];
+}
+
+function dataConsent2 () {
+    const addRpcArray = [];
     const addVehicleArray = [];
     return [addRpcArray, addVehicleArray];
 }
