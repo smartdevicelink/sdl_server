@@ -186,15 +186,6 @@ function insertAppRequest (appObj, callback) {
 
     async.series([
         function (next) {
-            //compare timestamps to determine if the app info actually changed before insertion
-            const incomingAppTimestamp = appObj.updated_ts;
-            const getAppStr = databaseQuerySelect('max(id)', 'app_info', {app_uuid: appObj.uuid}, next);
-
-            app.locals.db.sqlCommand(getAppStr, function (err, data) {
-
-            });
-        },
-        function (next) {
             app.locals.db.sqlCommand(vendorInsertStr, function (err, data) {
                 next(err);
             });            
@@ -221,6 +212,14 @@ function insertAppRequest (appObj, callback) {
 function addExtraAppInformation (appObj, callback) {
     //get extra id information that we need
     async.parallel({
+        appId: function (next) {
+            //TODO: make sure you can specify whether you want staging or production version
+            const queryStr = sql.select('max(id)').from('app_info').where({app_uuid: appObj.uuid}).toString();
+            //get the generated id from the most recent version of this uuid in the database
+            app.locals.db.sqlCommand(queryStr, function (err, data) {
+                next();                
+            }); 
+        },
         rpcNames: function (next) {
             databaseQuerySelect('*', 'rpc_names', {}, next);
         },
