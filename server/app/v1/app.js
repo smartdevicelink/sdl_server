@@ -15,6 +15,17 @@ app.on("mount", function (parent) {
     app.locals.db = parent.locals.db;
     app.locals.collectors = parent.locals.collectors;
     app.locals.builder = parent.locals.builder;
+    app.locals.events = parent.locals.events;
+
+    app.locals.events.on('update', function () {
+        appRequests.forceUpdate(function () {
+            //use the updated data to create a new functional group object and save it for later use
+            functionalGroup.createFunctionalGroupObject(function () {
+                //TODO: don't allow routes to get hit until the update cycle finishes
+                app.locals.log.info('Update complete');
+            });            
+        });
+    });
 });
 
 app.route('/request')
@@ -44,6 +55,7 @@ function appRequest (req, res, next) {
         }); 
     });
 }
+//TODO: replace all attempts to compile information from multiple table with using INNER JOINs (ex. appPolicy.js)
 
 //a request came from sdl_core!
 app.post('/policy', function (req, res, next) {
@@ -54,22 +66,15 @@ app.post('/policy', function (req, res, next) {
 
     //for now, auto approve all apps that request permissions
     const appPolicies = req.body.policy_table.app_policies;
-    appPolicy.createPolicyObject(appPolicies, functionalGroupObj, function (appPolicyModified) {
+    appPolicy.createPolicyObject(appPolicies, function (appPolicyModified) {
         //the original appPolicy object may get modified
-
+        console.log(appPolicyModified);
     });
 
     res.sendStatus(200);
 });
 
-app.get('/test', function (req, res, next) {
-    //TODO: comment out generated groups! there are multiple modules where this happens (2 or 3 i dont remember)
-    functionalGroup.createFunctionalGroupObject(function (functionalGroupObj) {
-        //console.log(JSON.stringify(functionalGroupObj, null, 4));
-    });
-    res.sendStatus(200);
-});
-
+//TODO: remove this when there's data in SHAID
 const TEMP_APPS = [{
     "uuid": "9bb1d9c2-5d4c-457f-9d91-86a2f95132df",
     "name": "Two App",

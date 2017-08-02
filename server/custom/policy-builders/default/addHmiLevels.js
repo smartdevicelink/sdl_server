@@ -4,7 +4,7 @@ const levelsFL = ["FULL", "LIMITED"];
 const levelsF = ["FULL"];
 const levelsB = ["BACKGROUND"];
 
-module.exports = function (funcGroupObj, rpcNames, vehicleDataNames) {
+module.exports = function (funcGroupObj) {
     //the custom-made functional groups
     addLevelsToRpc(funcGroupObj, "Base-4", "AddCommand", levelsBFL);
     addLevelsToRpc(funcGroupObj, "Base-4", "AddSubMenu", levelsBFL);
@@ -153,14 +153,7 @@ module.exports = function (funcGroupObj, rpcNames, vehicleDataNames) {
     addLevelsToRpc(funcGroupObj, "BackgroundAPT", "OnAudioPassThru", levelsB);
     addLevelsToRpc(funcGroupObj, "BackgroundAPT", "PerformAudioPassThru", levelsB);
 
-    //the generated functional groups
-    //use rpcNames and vehicleDataNames to find the functional group names
-    for (let i = 0; i < rpcNames.length; i++) {
-        addLevelsToRpc(funcGroupObj, rpcNames[i].rpc_name, rpcNames[i].rpc_name, levelsBFLN); //all levels
-    }
-    for (let i = 0; i < vehicleDataNames.length; i++) {
-        quickAddVehicleRpcsBFL(funcGroupObj, vehicleDataNames[i].component_name); //BACKGROUND, FULL, LIMITED levels
-    }
+    return funcGroupObj;
 }
 
 function quickAddVehicleRpcsBFL (funcGroupObj, name) {

@@ -3,6 +3,7 @@ require('dotenv').config();
 //load modules
 const express = require('express');
 const bodyParser = require('body-parser');
+const EventEmitter = require('events');
 const config = require('./config.js'); //configuration module
 //load custom modules described in the config
 const log = require(`./custom/loggers/${config.loggerModule}/index.js`);
@@ -29,6 +30,7 @@ app.locals.log = log;
 app.locals.db = db;
 app.locals.collectors = collectors;
 app.locals.builder = builder;
+app.locals.events = new EventEmitter();
 
 //load all routes located in the app directory using a v<version number> naming convention
 for (let i in versions){
@@ -57,4 +59,6 @@ app.use(function (req, res){
 //start the server
 app.listen(config.policyServerPort, function () {
     log.info(`Policy server started on port ${config.policyServerPort}!`);
+    log.info(`Updating database information and generating functional groups...`);
+    app.locals.events.emit('update');
 });

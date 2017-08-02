@@ -1,21 +1,24 @@
 const async = require('async');
 const sql = require('sql-bricks');
+const updateData = require('./update-data.js');
 let app; //to be defined
 
 module.exports = function (appObj) {
 	app = appObj;
 	return {
 		getAppRequests: getAppRequests,
-		evaluateAppRequest: evaluateAppRequest
+		evaluateAppRequest: evaluateAppRequest,
+        forceUpdate: forceUpdate
 	};
 }
 //TODO: ignore status of incoming apps, set to STAGING
 //when they get approved, they go to production
 //the difference of the different endpoints comes in here. in staging, approved and pending are given permission
-// in production only approved are given permission
+//in production only approved apps are given permission
 
-//TODO: perform update cycle on server start? pretend we need an update for everything
-
+//include all the objects above in an array for future use
+const updateObjects = [updateData.hmiLevelUpdate, updateData.countriesUpdate, updateData.categoriesUpdate, 
+    updateData.rpcNamesUpdate, updateData.vehicleDataUpdate];
 
 function getAppRequests (callback) {
     //use the data collectors to get application request data
@@ -24,169 +27,126 @@ function getAppRequests (callback) {
         if (err) {
             app.locals.log.error(err);
         }
-		callback(appRequests);      
-    });	
+        callback(appRequests);      
+    }); 
 }
 
 function evaluateAppRequest (appObj, callback) {
-    async.parallel([
-        function (next) {
-            //hmi level check
-            performUpdateCycle([appObj.default_hmi_level], 'hmi_levels', 'id', 'getHmiLevels', function (hmiLevel) {
-                app.locals.log.info("HMI level not found in database." + hmiLevel);  
-                app.locals.log.info("Getting HMI level updates");  
-            }, function (hmiLevel) {
-                return {
-                    id: hmiLevel
-                };
-            }, function () {
-                next();
-            });
-        },
-        function (next) {
-            //countries check
-            const countryValuesArray = appObj.countries.map(function (country) {
-                return country.iso;
-            });
-            performUpdateCycle(countryValuesArray, 'countries', 'iso', 'getCountries', function (countryIso) {
-                app.locals.log.info("Country ISO not found in local database: " + countryIso);
-                app.locals.log.info("Getting country updates");
-            }, function (country) {
-                return { 
-                    iso: country.iso,
-                    name: country.name
-                };
-            }, function () {
-                next();
-            });
-        },
-        function (next) {
-            //categories check
-            performUpdateCycle([appObj.category.id], 'categories', 'id', 'getCategories', function (categoryId) {
-                app.locals.log.info("Category ID not found in local database: " + categoryId);
-                app.locals.log.info("Getting category updates");
-            }, function (category) {
-                return {
-                    id: category.id,
-                    display_name: category.display_name
-                };
-            }, function () {
-                next();
-            });
-        },
-        function (next) {
-            //rpc permissions check
-            const rpcPermissions = appObj.permissions.filter(function (perm) {
-            	return !perm.is_parameter;
-            });
-            const rpcPermissionKeys = rpcPermissions.map(function (permission) {
-                return permission.key;
-            });
-            //we require 4 RPC permissions to exist at all times. this is because vehicle data permissions 
-            //are parameters to 4 RPC objects in the policy table
-            if (rpcPermissionKeys.indexOf("OnVehicleData") === -1) {
-                rpcPermissionKeys.push("OnVehicleData");
-            }
-            if (rpcPermissionKeys.indexOf("SubscribeVehicleData") === -1) {
-                rpcPermissionKeys.push("SubscribeVehicleData");
-            }
-            if (rpcPermissionKeys.indexOf("UnsubscribeVehicleData") === -1) {
-                rpcPermissionKeys.push("UnsubscribeVehicleData");
-            }
-            if (rpcPermissionKeys.indexOf("GetVehicleData") === -1) {
-                rpcPermissionKeys.push("GetVehicleData");
-            }           
-            performUpdateCycle(rpcPermissionKeys, 'rpc_names', 'rpc_name', 'getRpcPermissions', function (permissionName) {
-                app.locals.log.info("RPC permission not found in local database: " + permissionName);
-                app.locals.log.info("Getting RPC permission updates");
-            }, function (permission) {
-                return {
-                    rpc_name: permission
-                };
-            }, function () {
-                next();
-            });
-        },
-        function (next) {
-            //vehicle data permissions check
-            const vehicleDataPermissions = appObj.permissions.filter(function (perm) {
-            	return perm.is_parameter;
-            });
-            const vehicleDataPermissionKeys = vehicleDataPermissions.map(function (permission) {
-                return permission.key;
-            });
-            performUpdateCycle(vehicleDataPermissionKeys, 'vehicle_data', 'component_name', 'getVehicleDataPermissions', function (permissionName) {
-                app.locals.log.info("Vehicle data permission not found in local database: " + permissionName);
-                app.locals.log.info("Getting vehicle data permission updates");
-            }, function (permission) {
-                return {
-                    component_name: permission
-                };
-            }, function () {
-                next();
-            });
+    const tasks = updateObjects.map(function (updateObj) {
+        return function (next) {
+            //update check
+            performUpdateCycle(updateObj.getDataFunc(appObj), updateObj.tableName, updateObj.databasePropName, updateObj.moduleFuncName, 
+                updateObj.errorCallback, updateObj.transformDataFunc, next);
         }
-    ], function (err) {
+    });
+
+    async.parallel(tasks, function (err) {
         //database is updated. 
-        postUpdate(appObj, callback);
+        insertAppRequest(appObj, callback);
     });
 }
 
-//TODO: find a way to only run the function group generation once, as it is computationally expensive
-//in the update cycles there are two update callbacks that inform whether new permissions exist. that is where you would know
-//whether to run the function
-function postUpdate (appObj, callback) {    
+function forceUpdate (callback) {
+    //update each set of data in the database for the objects in updateObjects
+    const tasks = updateObjects.map(function (updateObj) {
+        return function (next) {
+            databaseUpdate(updateObj.tableName, updateObj.databasePropName, updateObj.moduleFuncName, updateObj.transformDataFunc, next);
+        }
+    });
+
+    async.parallel(tasks, function (err) {
+        if (err) {
+            app.locals.log.error(err);
+        }
+        updateFunctionalGroupInfo(callback);
+    });
+}
+
+function updateFunctionalGroupInfo (callback) {    
     async.waterfall([
         //functional group data update. required if permissions have been added because that means
         //more function groups are possibly needed
         function (next) {
+            //store template functional group info in the database
+            const groups = app.locals.builder.initiateFunctionalGroups();
+            databaseCheckMultiInsert('function_group_info', 'property_name', groups, function (err) {
+                next(err);
+            });
+        },
+        function (next) {
             async.parallel({
+                //make access to this information faster by converting the arrays of data
+                //to hashes, so lookup by property is possible
                 rpcNames: function (next) {
-                    databaseQuerySelect('*', 'rpc_names', {}, next);
+                    databaseQuerySelect('*', 'rpc_names', {}, function (err, data) {
+                        let hash = {};
+                        for (let i = 0; i < data.length; i++) {
+                            hash[data[i].rpc_name] = data[i].id;
+                        }
+                        next(err, hash);
+                    });
                 },
                 vehicleDataNames: function (next) {
-                    databaseQuerySelect('*', 'vehicle_data', {}, next);
+                    databaseQuerySelect('*', 'vehicle_data', {}, function (err, data) {
+                        let hash = {};
+                        for (let i = 0; i < data.length; i++) {
+                            hash[data[i].component_name] = data[i].id;
+                        }
+                        next(err, hash);
+                    });
+                },
+                functionalGroups: function (next) {
+                    //get the functional group infos just inserted so we have a reference to their ids
+                    //TODO: be able to specify STAGING or PRODUCTION when we add the routing for this
+                    const groupedFuncGroupInfoStr = sql.select('property_name', 'status', 'max(id) AS id')
+                        .from('function_group_info')
+                        .groupBy('property_name', 'status').toString();
+
+                    const fullFuncGroupInfoStr = sql.select('function_group_info.*')
+                        .from('(' + groupedFuncGroupInfoStr + ') group_fgi')
+                        .join('function_group_info', {'function_group_info.id': 'group_fgi.id'})
+                        .where({'group_fgi.status': 'STAGING'}).toString();
+
+                    app.locals.db.sqlCommand(fullFuncGroupInfoStr, function (err, data) {
+                        let hash = {};
+                        for (let i = 0; i < data.rows.length; i++) {
+                            hash[data.rows[i].property_name] = data.rows[i].id;
+                        }
+                        next(err, hash);
+                    });
                 }       
             }, function (err, data) {
                 next(err, data);
             });
         },
-        function (permissions, next) {
-            //store empty functional group info in the database
-            app.locals.builder.initiateFunctionalGroups(permissions, function (groups) {
-                databaseCheckMultiInsert('function_group_info', 'property_name', groups, function (err) {
-                    next(null, permissions);
-                });
-            });
-        },
-        function (permissions, next) {
-            //next, get the functional group infos just inserted so we have a reference to their ids
-            //TODO: be able to specify STAGING or PRODUCTION when we add the routing for this
-            const groupedFuncGroupInfoStr = sql.select('property_name', 'status', 'max(id) AS id')
-                .from('function_group_info')
-                .groupBy('property_name', 'status').toString();
-
-            const fullFuncGroupInfoStr = sql.select('function_group_info.*')
-                .from('(' + groupedFuncGroupInfoStr + ') group_fgi')
-                .join('function_group_info', {'function_group_info.id': 'group_fgi.id'})
-                .where({'group_fgi.status': 'STAGING'}).toString();
-
-            app.locals.db.sqlCommand(fullFuncGroupInfoStr, function (err, funcGroups) {
-                next(err, permissions, funcGroups.rows);
-            });
-        },
-        function (permissions, funcGroups, next) {
+        function (data, next) {
             //create permissions for all the defined functional groups
-            app.locals.builder.createGroupPermissions(permissions, funcGroups, function (permissionObjs) {
-                next(null, permissionObjs);
+            const permissions = app.locals.builder.createGroupPermissions();
+            const rpcPermissions = permissions.rpcPermissions;
+            const vehicleDataPermissions = permissions.vehiclePermissions;
+            //convert the returned arrays of objects into something the database can understand
+            //by converting the information from names into IDs
+            const rpcPermissionDbObjs = rpcPermissions.map(function (rpcPermission) {
+                return {
+                    function_group_id: data.functionalGroups[rpcPermission.functionalGroupName],
+                    rpc_id: data.rpcNames[rpcPermission.rpcName]
+                };
             });
+            const vehiclePermissionDbObjs = vehicleDataPermissions.map(function (vehiclePermission) {
+                return {
+                    function_group_id: data.functionalGroups[vehiclePermission.functionalGroupName],
+                    rpc_id: data.rpcNames[vehiclePermission.rpcName],
+                    vehicle_id: data.vehicleDataNames[vehiclePermission.vehicleName]
+                };
+            });
+            next(null, rpcPermissionDbObjs, vehiclePermissionDbObjs);
         },
-        function (permissionObjs, next) {
+        function (rpcPermissions, vehicleDataPermissions, next) {
             //insert the generated permissions
-            const addRpcPermissionCommands = permissionObjs.rpcPermissions.map(function (perm) {
+            const addRpcPermissionCommands = rpcPermissions.map(function (perm) {
                 return databaseCheckInsert('rpc_permission', 'function_group_id', perm);
             });
-            const addVehiclePermissionCommands = permissionObjs.vehicleDataPermissions.map(function (perm) {
+            const addVehiclePermissionCommands = vehicleDataPermissions.map(function (perm) {
                 return databaseCheckInsert('rpc_vehicle_parameters', 'function_group_id', perm);         
             });
             async.parallel(addRpcPermissionCommands.concat(addVehiclePermissionCommands), next);             
@@ -195,7 +155,7 @@ function postUpdate (appObj, callback) {
         if (err) {
             app.locals.log.error(err);
         }
-        insertAppRequest(appObj, callback);
+        callback(); //done
     });
 }
 
@@ -356,23 +316,28 @@ function performUpdateCycle (dataArray, tableName, databasePropName, moduleFuncN
         if (datum) { //missing information
             errorCallback(datum); //let the caller know which data is missing
             //get updated information from collector modules
-            collectData(moduleFuncName, function (err, updatedDataArray) {
-                if (err) {
-                    app.locals.log.error(err);
-                }
-                //send this info back to the caller so the caller can transform the data
-                const transformedDataArray = updatedDataArray.map(function (datum) {
-                    return transformDataFunc(datum);
-                });
-                //stage two: uses the updated data array and previously known information to check and store
-                //data that previously did not exist in the database
-                databaseCheckMultiInsert(tableName, databasePropName, transformedDataArray, callback);
-                //update cycle done
-            });
+            databaseUpdate(tableName, databasePropName, moduleFuncName, transformDataFunc, callback);
+            //update cycle done
         }
         else { //nothing missing!
             callback();
         }
+    });
+}
+
+function databaseUpdate (tableName, databasePropName, moduleFuncName, transformDataFunc, callback) {
+    //get updated information from collector modules
+    collectData(moduleFuncName, function (err, updatedDataArray) {
+        if (err) {
+            app.locals.log.error(err);
+        }
+        //send this info back to the caller so the caller can transform the data
+        const transformedDataArray = updatedDataArray.map(function (datum) {
+            return transformDataFunc(datum);
+        });
+        //stage two: uses the updated data array and previously known information to check and store
+        //data that previously did not exist in the database
+        databaseCheckMultiInsert(tableName, databasePropName, transformedDataArray, callback);
     });
 }
 
