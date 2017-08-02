@@ -217,7 +217,7 @@ function addExtraAppInformation (appObj, callback) {
             const queryStr = sql.select('max(id)').from('app_info').where({app_uuid: appObj.uuid}).toString();
             //get the generated id from the most recent version of this uuid in the database
             app.locals.db.sqlCommand(queryStr, function (err, data) {
-                next();                
+                next(err, data.rows[0].max);                
             }); 
         },
         rpcNames: function (next) {
