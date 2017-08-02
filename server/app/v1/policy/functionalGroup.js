@@ -13,10 +13,6 @@ module.exports = function (appObj) {
     };
 }
 
-//TODO: find a way to cache these results so additionaly queries to the DB aren't needed
-//unless an update happens to the functional groups. do it on the update start cycle when the server turns on!
-//the other stuff can't update until a server restart anyway
-
 //TODO: make the functional groups in PRODUCTION by default
 
 //takes in data from the DB and converts it into functional groups that can be assigned to apps
