@@ -1,3 +1,7 @@
+//this module stores all data about what the functional group object should be composed of.
+//this object contains information about the functional group name, it's user_consent_prompt, and what kind
+//of permissions it is meant to contain. this object is a reference for other modules to use
+
 const functionalGroupDataObj = {
     "Base-4": {
         userConsentPrompt: null,

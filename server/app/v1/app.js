@@ -29,7 +29,7 @@ app.on("mount", function (parent) {
         });
     });
 });
-
+//TODO: need a way to automatically get new SHAID info, whether it's via webhooks or by polling
 app.route('/request')
     .get(appRequest);
 
@@ -61,8 +61,7 @@ function appRequest (req, res, next) {
 
 //a request came from sdl_core!
 app.post('/policy', function (req, res, next) {
-    console.log("Got it!");
-
+    //TODO: do some input checking to make sure the request is valid
     async.parallel([
       function(callback){
       moduleConfig.createModuleConfig(function(module_config){
@@ -93,7 +92,16 @@ app.post('/policy', function (req, res, next) {
       policyTable.policy_table.functional_groupings = done[1]
       policyTable.policy_table.consumer_friendly_messages = done[2]
       policyTable.policy_table.app_policies = done[3]
-      res.send(policyTable)
+      //TODO: should module_config send this server's address in 0x07 on the update?
+      //TODO: figure out why the app dies. we gave it base-4 permissions. maybe the app_policies object is not made correctly?
+      policyTable.policy_table.module_config.endpoints["0x07"].default = ["http://192.168.1.201:3000/api/v1/policy"];
+      let responseJson = {"data": [policyTable]};
+        const fs = require('fs');
+        fs.writeFile("./policyResponse.json", JSON.stringify(policyTable, null, 4), function (err) {
+            console.log(err);
+            console.log("The file was saved!");
+        });
+      res.json(policyTable);
     })
 
     //res.sendStatus(200);

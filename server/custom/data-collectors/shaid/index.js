@@ -18,13 +18,20 @@ const shaid = new shaidkit(shaidInitObj);
 module.exports = function (log) {
     //exported functions. these are required to implement
     return {
-        //only a "next" parameter here because this should be the first module called
+        //only "next" parameters here because this should be the first module called
+
+        //when this function is called, invoke the 'next' function and pass in:
+        //  an error if the request failed
+        //  an array of applications that come from SHAID
         getAppRequests: function (next) { 
             //include group name or rpc/parameter for the group
             shaid.read(shaid.entity.application, {}, function (err, res) {
                 next(err, res.data.applications);
             }); 
         },
+        //when this function is called, invoke the 'next' function and pass in:
+        //  an error if the request failed
+        //  an array of possible HMI LEVELS as strings
         getHmiLevels: function (next) {
             //no external resource
             let hmiLevels = [
@@ -35,16 +42,25 @@ module.exports = function (log) {
             ];
             next(null, hmiLevels);
         },
+        //when this function is called, invoke the 'next' function and pass in:
+        //  an error if the request failed
+        //  an array of valid countries that come from SHAID
         getCountries: function (next) {
             shaid.read(shaid.entity.country, {}, function (err, res) {
                 next(err, res.data.countries);
             }); 
         },        
+        //when this function is called, invoke the 'next' function and pass in:
+        //  an error if the request failed
+        //  an array of valid app categories that come from SHAID
         getCategories: function (next) {
             shaid.read(shaid.entity.category, {}, function (err, res) {
                 next(err, res.data.categories);
             }); 
         },
+        //when this function is called, invoke the 'next' function and pass in:
+        //  an error if the request failed
+        //  an array of valid RPC permissions as strings
         getRpcPermissions: function (next) {
             let rpcPermissions = [
                 "RegisterAppInterface",
@@ -113,6 +129,9 @@ module.exports = function (log) {
             ];
             next(null, rpcPermissions);
         },
+        //when this function is called, invoke the 'next' function and pass in:
+        //  an error if the request failed
+        //  an array of valid vehicle data permissions as strings
         getVehicleDataPermissions: function (next) {
             let vehicleDataPermissions = [
                 "gps",

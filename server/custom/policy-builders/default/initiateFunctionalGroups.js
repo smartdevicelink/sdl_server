@@ -24,7 +24,7 @@ function defineFunctionGroupInfo (propertyName, userConsentPrompt) {
     return obj;
 }
 
-function editAppPolicy (appPolicy, appObj) {
+function editAppPolicy (appIdPolicy, appObj) {
     //permissions are located in properties 'rpcPermissions' and 'vehiclePermissions' in appObj
     let vehiclePermissionSet = {};
 
@@ -47,13 +47,16 @@ function editAppPolicy (appPolicy, appObj) {
 
     //apply the permissions found
     for (let prop in vehiclePermissionSet) {
-        appPolicy.groups.push(prop);
+        appIdPolicy.groups.push(prop);
     }
 
     let rpcPermissionSet = {};
 
+    //ALWAYS allow apps access to permissions in the Base-4 functional group
+    rpcPermissionSet["Base-4"] = null;
+
     //handle rpc permissions
-    const vehicleGroupsToCheck = ["Base-4", "ProprietaryData-3", "Navigation-1", "Base-6", "OnKeyboardInputOnlyGroup", 
+    const vehicleGroupsToCheck = ["ProprietaryData-3", "Navigation-1", "Base-6", "OnKeyboardInputOnlyGroup", 
         "OnTouchEventOnlyGroup", "DiagnosticMessageOnly", "SendLocation", "WayPoints", "BackgroundAPT"];
 
     for (let i = 0; i < appObj.rpcPermissions.length; i++) {
@@ -77,9 +80,9 @@ function editAppPolicy (appPolicy, appObj) {
 
     //apply the permissions found
     for (let prop in rpcPermissionSet) {
-        appPolicy.groups.push(prop);
+        appIdPolicy.groups.push(prop);
     }    
-    return appPolicy;
+    return appIdPolicy;
 }
 
 function generatePermissions () {

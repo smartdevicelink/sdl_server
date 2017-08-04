@@ -35,7 +35,8 @@ module.exports = function (log) {
 
     return {
         //exported functions. these are required to implement
-        //callback requires an error parameter and a response parameter
+        //this function executes the SQL command in <query> and returns a response using the callback function
+        //the callback requires an error parameter and a response from the SQL query
         sqlCommand: function (query, callback) {
             pool.query(query, function (err, res) {
                 callback(err, res);

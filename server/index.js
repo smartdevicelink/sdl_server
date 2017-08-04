@@ -40,19 +40,19 @@ for (let i in versions){
 //global routes
 
 //basic health check endpoint
-app.get("/health", function (req, res){
+app.get("/health", function (req, res) {
     res.sendStatus(200);
 });
 
 //error catcher
-app.use(function (err, req, res, next){
+app.use(function (err, req, res, next) {
     app.locals.log.error(err);
     res.sendStatus(500);
     return;
 });
 
 //404 catch-all
-app.use(function (req, res){
+app.use(function (req, res) {
     res.sendStatus(404);
 });
 

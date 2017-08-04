@@ -143,17 +143,23 @@ function createPolicyObject (appPolicies, callback) {
         findPermissionsForApps(appInfo);
     });
     function findPermissionsForApps (appInfo) {
+        //make a new policy object 
+        let appPolicyResponse = {};
+        for (let i = 0; i < appInfo.length; i++) {
+            appPolicyResponse[appInfo[i].app_uuid] = null;
+        }        
         //allow a pre-run through the app policy object first to handle the scenarios where
         //that app doesn't receive approval. the default behavior is that the app id is set to the "default"
         //app policy, which uses the "Base-4" function group
-        app.locals.builder.preRunAppPolicyObject(appPolicies);
+        app.locals.builder.preRunAppPolicyObject(appPolicyResponse);
+        //TESTING
 
         //to respond with the app policies object, just modify the one that came in through the request
         let tasks = [];
         for (let i = 0; i < appInfo.length; i++) {
             tasks.push(function (next) {
                 const oneApp = appInfo[i];
-                appPolicies[oneApp.app_uuid] = constructAppPolicy(oneApp);
+                appPolicyResponse[oneApp.app_uuid] = app.locals.builder.createAppPolicyObject(oneApp);
                 next();                  
             });
         }        
@@ -161,21 +167,9 @@ function createPolicyObject (appPolicies, callback) {
             if (err) {
                 app.locals.log.error(err);
             }
-            callback(appPolicies);
+            callback(appPolicyResponse);
         })
     }
-}
-
-function constructAppPolicy (appObj) {
-    let appPolicy = {};
-    appPolicy.nicknames = appObj.display_names;
-    appPolicy.keep_context = true;
-    appPolicy.steal_focus = appObj.can_steal_focus;
-    appPolicy.priority = "NONE";
-    appPolicy.default_hmi = appObj.default_hmi_level;
-    appPolicy.groups = []; //let the custom module assign functional groups
-
-    return app.locals.builder.createAppPolicyObject(appPolicy, appObj);
 }
 
 function findObjByProperty (array, propName, value) {

@@ -28,11 +28,11 @@ const logger = new winston.Logger({
 module.exports = {
     //required functions to implement
     
-    //normal message
+    //normal message. log to file and to the console as an "info" message
     info: function (msg) {
         logger.info(msg);
     },
-    //error message
+    //error message. log to file and to the console as an "error" message
     error: function (msg) {
         logger.error(msg);
     }

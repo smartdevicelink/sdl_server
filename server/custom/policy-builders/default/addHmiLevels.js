@@ -1,3 +1,5 @@
+//A module that adds HMI levels to each functional group's permissions
+//The HMI levels that are used for each permission are based on the preloaded policy table in sdl_core
 const levelsBFLN = ["BACKGROUND", "FULL", "LIMITED", "NONE"];
 const levelsBFL = ["BACKGROUND", "FULL", "LIMITED"];
 const levelsFL = ["FULL", "LIMITED"];
@@ -5,7 +7,6 @@ const levelsF = ["FULL"];
 const levelsB = ["BACKGROUND"];
 
 module.exports = function (funcGroupObj) {
-    //the custom-made functional groups
     addLevelsToRpc(funcGroupObj, "Base-4", "AddCommand", levelsBFL);
     addLevelsToRpc(funcGroupObj, "Base-4", "AddSubMenu", levelsBFL);
     addLevelsToRpc(funcGroupObj, "Base-4", "Alert", levelsFL);

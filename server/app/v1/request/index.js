@@ -245,12 +245,27 @@ function addExtraAppInformation (appObj, callback) {
                 next(err, data.rows[0].max);                
             }); 
         },
-        rpcNames: function (next) {
-            databaseQuerySelect('*', 'rpc_names', {}, next);
+        //hash the names of permissions for easy lookup to their ids
+        rpcNameHash: function (next) {
+            const rpcNamesStr = sql.select('*').from('rpc_names').toString();
+            app.locals.db.sqlCommand(rpcNamesStr, function (err, data) {
+                let hash = {};
+                for (let i = 0; i < data.rows.length; i++) {
+                    hash[data.rows[i].rpc_name] = data.rows[i].id;
+                }
+                next(err, hash);
+            });                    
         },
-        vehicleDataNames: function (next) {
-            databaseQuerySelect('*', 'vehicle_data', {}, next);
-        }
+        vehicleDataNameHash: function (next) {
+            const vehicleNamesStr = sql.select('*').from('vehicle_data').toString();
+            app.locals.db.sqlCommand(vehicleNamesStr, function (err, data) {
+                let hash = {};
+                for (let i = 0; i < data.rows.length; i++) {
+                    hash[data.rows[i].component_name] = data.rows[i].id;
+                }
+                next(err, hash);
+            });                    
+        },
     }, function (err, data) {
         if (err) {
             app.locals.log.error(err);
@@ -268,23 +283,24 @@ function addExtraAppInformation (appObj, callback) {
                 display_text: displayName
             };
         });
-        //the ids here need to be looked up in the database, as the database generated its own ids for these values
+
         const rpcPermissions = appObj.permissions.filter(function (perm) {
         	return !perm.is_parameter;
         });       
         const vehicleDataPermissions = appObj.permissions.filter(function (perm) {
         	return perm.is_parameter;
         }); 
+
         const rpcPermissionIds = rpcPermissions.map(function (permission) {
             return {
                 app_id: data.appId,
-                rpc_id: findByProperty(data.rpcNames, 'rpc_name', permission.key).id
+                rpc_id: data.rpcNameHash[permission.key]
             };
         });       
         const vehicleDataPermissionIds = vehicleDataPermissions.map(function (permission) {
             return {
                 app_id: data.appId,
-                vehicle_id: findByProperty(data.vehicleDataNames, 'component_name', permission.key).id
+                vehicle_id: data.vehicleDataNameHash[permission.key]
             };
         });
 
@@ -314,7 +330,7 @@ function addExtraAppInformation (appObj, callback) {
             if (err) {
                 app.locals.log.error(err);
             }
-            callback();
+            callback(); //done
         });
     });         
 }
@@ -349,6 +365,7 @@ function performUpdateCycle (dataArray, tableName, databasePropName, moduleFuncN
     });
 }
 
+//gets updates from a given set of information
 function databaseUpdate (tableName, databasePropName, moduleFuncName, transformDataFunc, callback) {
     //get updated information from collector modules
     collectData(moduleFuncName, function (err, updatedDataArray) {
@@ -367,15 +384,6 @@ function databaseUpdate (tableName, databasePropName, moduleFuncName, transformD
 
 /****** UTILITY FUNCTIONS ******/
 
-//helper function. returns an element in the array whose property's value matches the one passed in
-function findByProperty (array, propName, propValue) {
-    for (let i = 0; i < array.length; i++) {
-        if (array[i][propName] === propValue) {
-            return array[i];
-        }
-    }
-}
-
 function collectData (moduleFunction, callback) {
     //cycle through all the collector modules to retrieve updated info using an implemented function
     const iteratingCollectors = app.locals.collectors.map(function (module) {
@@ -389,6 +397,7 @@ function collectData (moduleFunction, callback) {
     });     
 }
 
+//executes on an array of data to insert into the database
 function databaseCheckMultiInsert (tableName, databasePropName, dataArray, callback) {
     const dataChecker = dataArray.map(function (datum) {
         return databaseCheckInsert(tableName, databasePropName, datum);
@@ -400,6 +409,7 @@ function databaseCheckMultiInsert (tableName, databasePropName, dataArray, callb
 }
 
 //inserts a piece of data in the database only if it was checked through a property that the data doesn't exist yet
+//doesn't actually execute an insert: returns a function to be passed into async to be executed in the future
 function databaseCheckInsert (tableName, databasePropName, datum) {
     //check the DB for the piece of datum using one of its properties
     return function (next) {
@@ -415,6 +425,7 @@ function databaseCheckInsert (tableName, databasePropName, datum) {
     } 
 }
 
+//inserts a piece of data in a table in the database
 function databaseInsert (tableName, datum, callback) {
     const insertStr = sql.insertInto(tableName, datum).toString();
 	app.locals.db.sqlCommand(insertStr, function (err, data) {
@@ -422,7 +433,7 @@ function databaseInsert (tableName, datum, callback) {
 	}); 
 }
 
-//utility function. given a table name, a property to query and the value of the query,
+//given a table name, a property to query and the value of the query,
 //check whether that data exists in the database
 function databaseQueryExists (tableName, databasePropName, dataPropValue, callback) {
     let propQuery = {};
@@ -433,7 +444,7 @@ function databaseQueryExists (tableName, databasePropName, dataPropValue, callba
     });
 }
 
-//utility function
+//gets data from the database based on a selection argument and a matching query
 function databaseQuerySelect (selectionString, tableName, matchObj, callback) {
     const queryStr = sql.select(selectionString).from(tableName).where(matchObj).toString();
     app.locals.db.sqlCommand(queryStr, function (err, data) {
