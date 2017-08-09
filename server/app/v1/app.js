@@ -29,6 +29,23 @@ app.on("mount", function (parent) {
         });
     });
 });
+
+/*
+//TODO: postpone UI until after initial launch
+//TODO: put these routes and the get webpage route under authentication
+app.get('/application', function (req, res, next) {
+    appRequests.getPendingApps(function (requests) {
+        res.json(requests);
+    });
+});
+
+app.post('/deny', function (req, res, next) {
+    appRequests.denyApp(req.body.id, function () {
+        res.sendStatus(200);
+    });
+});
+*/
+
 //TODO: need a way to automatically get new SHAID info, whether it's via webhooks or by polling
 app.route('/request')
     .get(appRequest);
@@ -97,11 +114,11 @@ app.post('/policy', function (req, res, next) {
       policyTable.policy_table.module_config.endpoints["0x07"].default = ["http://192.168.1.201:3000/api/v1/policy"];
       let responseJson = {"data": [policyTable]};
         const fs = require('fs');
-        fs.writeFile("./policyResponse.json", JSON.stringify(policyTable, null, 4), function (err) {
+        fs.writeFile("./policyResponse.json", JSON.stringify(responseJson, null, 4), function (err) {
             console.log(err);
             console.log("The file was saved!");
         });
-      res.json(policyTable);
+      res.json(responseJson);
     })
 
     //res.sendStatus(200);
@@ -151,6 +168,13 @@ const TEMP_APPS = [{
             "name": "Braking",
             "hmi_level": "HMI_BACKGROUND",
             "is_parameter": true
+        },
+        {
+            "id": 420,
+            "key": "SendLocation",
+            "name": "SendLocation",
+            "hmi_level": "HMI_BACKGROUND",
+            "is_parameter": false
         }
     ],
     "category": {

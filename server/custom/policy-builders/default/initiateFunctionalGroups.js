@@ -29,18 +29,18 @@ function editAppPolicy (appIdPolicy, appObj) {
     let vehiclePermissionSet = {};
 
     //handle vehiclePermissions
-    const rpcGroupsToCheck = ["Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1"];
+    const vehicleGroupsToCheck = ["Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1"];
 
     for (let i = 0; i < appObj.vehiclePermissions.length; i++) {
         //given a permission name, get the functionalGroup that holds that permission
         const permName = appObj.vehiclePermissions[i];
 
-        for (let j = 0; j < rpcGroupsToCheck.length; j++) {
-            const permissions = functionalGroupDataObj[rpcGroupsToCheck[j]].getPermissionsFunc()[1];
+        for (let j = 0; j < vehicleGroupsToCheck.length; j++) {
+            const permissions = functionalGroupDataObj[vehicleGroupsToCheck[j]].getPermissionsFunc()[1];
             if (permissions.indexOf(permName) !== -1) {
-                vehiclePermissionSet[rpcGroupsToCheck[j]] = null;
+                vehiclePermissionSet[vehicleGroupsToCheck[j]] = null;
                 //end loop early
-                j = rpcGroupsToCheck.length;
+                j = vehicleGroupsToCheck.length;
             }            
         }
     }
@@ -52,23 +52,27 @@ function editAppPolicy (appIdPolicy, appObj) {
 
     let rpcPermissionSet = {};
 
-    //ALWAYS allow apps access to permissions in the Base-4 functional group
+    //ALWAYS allow apps access to permissions in the Base-4, OnKeyboardInputOnlyGroup, 
+    //OnTouchEventOnlyGroup, and DialNumberOnlyGroup functional groups
     rpcPermissionSet["Base-4"] = null;
+    rpcPermissionSet["OnKeyboardInputOnlyGroup"] = null;
+    rpcPermissionSet["OnTouchEventOnlyGroup"] = null;
+    rpcPermissionSet["DialNumberOnlyGroup"] = null;
 
     //handle rpc permissions
-    const vehicleGroupsToCheck = ["ProprietaryData-3", "Navigation-1", "Base-6", "OnKeyboardInputOnlyGroup", 
-        "OnTouchEventOnlyGroup", "DiagnosticMessageOnly", "SendLocation", "WayPoints", "BackgroundAPT"];
+    const rpcGroupsToCheck = ["ProprietaryData-3", "Navigation-1", "Base-6", "DiagnosticMessageOnly", 
+        "SendLocation", "WayPoints", "BackgroundAPT"];
 
     for (let i = 0; i < appObj.rpcPermissions.length; i++) {
         //given a permission name, get the functionalGroup that holds that permission
         const permName = appObj.rpcPermissions[i];
 
-        for (let j = 0; j < vehicleGroupsToCheck.length; j++) {
-            const permissions = functionalGroupDataObj[vehicleGroupsToCheck[j]].getPermissionsFunc()[0];
+        for (let j = 0; j < rpcGroupsToCheck.length; j++) {
+            const permissions = functionalGroupDataObj[rpcGroupsToCheck[j]].getPermissionsFunc()[0];
             if (permissions.indexOf(permName) !== -1) {
-                rpcPermissionSet[vehicleGroupsToCheck[j]] = null;
+                rpcPermissionSet[rpcGroupsToCheck[j]] = null;
                 //end loop early
-                j = vehicleGroupsToCheck.length;
+                j = rpcGroupsToCheck.length;
             }            
         }
     }

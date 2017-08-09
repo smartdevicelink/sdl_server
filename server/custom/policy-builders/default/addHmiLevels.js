@@ -149,10 +149,13 @@ module.exports = function (funcGroupObj) {
     addLevelsToRpc(funcGroupObj, "WayPoints", "GetWayPoints", levelsBFL);
     addLevelsToRpc(funcGroupObj, "WayPoints", "SubscribeWayPoints", levelsBFL);
     addLevelsToRpc(funcGroupObj, "WayPoints", "UnsubscribeWayPoints", levelsBFL);
+    addLevelsToRpc(funcGroupObj, "WayPoints", "OnWayPointChange", levelsBFL);
 
     addLevelsToRpc(funcGroupObj, "BackgroundAPT", "EndAudioPassThru", levelsB);
     addLevelsToRpc(funcGroupObj, "BackgroundAPT", "OnAudioPassThru", levelsB);
     addLevelsToRpc(funcGroupObj, "BackgroundAPT", "PerformAudioPassThru", levelsB);
+
+    addLevelsToRpc(funcGroupObj, "DialNumberOnlyGroup", "DialNumber", levelsFL);
 
     return funcGroupObj;
 }

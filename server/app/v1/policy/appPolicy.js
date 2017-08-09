@@ -25,7 +25,7 @@ function createPolicyObject (appPolicies, callback) {
                 .groupBy('app_uuid', 'approval_status').toString();
 
             const fullAppInfoStr = sql.select('app_info.*')
-                .from('(' + groupedAppInfoStr + ') group_ai')
+                .from('(' + groupedAppInfoStr + ') group_ai') 
                 .join('app_info', {'app_info.id': 'group_ai.id'})
                 .where(sql.not(sql.in('app_info.approval_status', ['DENIED'])))
                 //additional where statement where we check against the appPolicy IDs

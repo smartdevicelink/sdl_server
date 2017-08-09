@@ -79,6 +79,10 @@ const functionalGroupDataObj = {
         userConsentPrompt: null,
         getPermissionsFunc: backgroundApt
     },
+    "DialNumberOnlyGroup": {
+        userConsentPrompt: null,
+        getPermissionsFunc: dialNumberOnly
+    }
 };
 
 
@@ -350,7 +354,8 @@ function wayPoints () {
     const addRpcArray = [
         "GetWayPoints",
         "SubscribeWayPoints",
-        "UnsubscribeWayPoints"
+        "UnsubscribeWayPoints",
+        "OnWayPointChange"
     ];
     const addVehicleArray = [];
     return [addRpcArray, addVehicleArray];
@@ -361,6 +366,14 @@ function backgroundApt () {
         "EndAudioPassThru",
         "OnAudioPassThru",
         "PerformAudioPassThru"
+    ];
+    const addVehicleArray = [];
+    return [addRpcArray, addVehicleArray];
+}
+
+function dialNumberOnly () {
+    const addRpcArray = [
+        "DialNumber"
     ];
     const addVehicleArray = [];
     return [addRpcArray, addVehicleArray];

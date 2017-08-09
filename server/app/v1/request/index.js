@@ -6,7 +6,9 @@ let app; //to be defined
 module.exports = function (appObj) {
 	app = appObj;
 	return {
-		getAppRequests: getAppRequests,
+        getAppRequests: getAppRequests,
+        //getPendingApps: getPendingApps,
+		//denyApp: denyApp,
 		evaluateAppRequest: evaluateAppRequest,
         forceUpdate: forceUpdate
 	};
@@ -23,14 +25,146 @@ const updateObjects = [updateData.hmiLevelUpdate, updateData.countriesUpdate, up
 function getAppRequests (callback) {
     //use the data collectors to get application request data
     //SHAID should be the first module to run for this
-    collectData('getAppRequests', function (err, appRequests) {
-        if (err) {
-            app.locals.log.error(err);
-        }
-        callback(appRequests);      
+    collectData('getAppRequests', function (appRequests) {
+        callback(appRequests);
     }); 
 }
 
+/*
+//TODO: postpone UI until after initial launch
+
+function denyApp (appId, callback) {
+    const updateAppStr = sql.update('app_info', {approval_status: 'DENIED'}).where({id: appId}).toString();
+    app.locals.db.sqlCommand(updateAppStr, function (err) {
+        callback();
+    });  
+}
+
+//TODO: avoid repetition with the function in app/v1/policy/appPolicy.js
+function getPendingApps (callback) {
+    const ERROR_NO_PERMITTED_APPS = "No permitted app ids";
+    //query the database for all the most recent versions of app requests that are pending
+    async.waterfall([
+        function (next) {
+            //get the latest versions of the app ids that aren't denied
+            const groupedAppInfoStr = sql.select('app_uuid', 'approval_status', 'max(id) AS id')
+                .from('app_info')
+                .groupBy('app_uuid', 'approval_status').toString();
+
+            const fullAppInfoStr = sql.select('app_info.*')
+                .from('(' + groupedAppInfoStr + ') group_ai') 
+                .join('app_info', {'app_info.id': 'group_ai.id'})
+                .where(sql.in('app_info.approval_status', ['PENDING']))
+                //additional where statement where we check against the appPolicy IDs
+                .toString();
+
+            app.locals.db.sqlCommand(fullAppInfoStr, function (err, appInfo) {
+                if (appInfo.rows.length === 0) {
+                    //there's no app ids. exit out early
+                    return next(ERROR_NO_PERMITTED_APPS);
+                }
+                let appInfoRows = appInfo.rows;
+                //assign empty arrays that will be used to put information in later
+                for (let i = 0; i < appInfoRows.length; i++) {
+                    appInfoRows[i].display_names = [];
+                    appInfoRows[i].vehiclePermissions = [];
+                    appInfoRows[i].rpcPermissions = [];
+                }
+                next(err, appInfoRows);
+            });
+        },
+        function (appInfo, next) {
+            const appInfoIds = appInfo.map(function (oneApp) {
+                return oneApp.id;
+            });
+            //get the display names whose ids only match those from the ids in appInfo
+            const displayNameFilterStr = sql.select('*').from('display_names')
+                .where(sql.in('app_id', appInfoIds))
+                .toString();
+
+            app.locals.db.sqlCommand(displayNameFilterStr, function (err, data) {
+                //associate the display names with the correct appInfo
+                const displayNamesTasks = data.rows.map(function (displayName) {
+                    return function (next) {
+                        let appObj = findObjByProperty(appInfo, 'id', displayName.app_id);
+                        appObj.display_names.push(displayName.display_text);
+                        next();
+                    }
+                });
+                async.parallel(displayNamesTasks, function (err) {                    
+                    next(err, appInfo, appInfoIds);
+                }); 
+            });   
+        },
+        function (appInfo, appInfoIds, next) {            
+            //we need permission associations for each app in appInfo and the permissions' full names
+            const vehiclePermsFilterStr = sql.select('*').from('app_vehicle_permissions')
+                .where(sql.in('app_id', appInfoIds))
+                .toString();
+
+            const fullVehiclePermsFilterStr = sql.select('*')
+                .from('(' + vehiclePermsFilterStr + ') group_vp')
+                .innerJoin('vehicle_data', {'group_vp.vehicle_id': 'vehicle_data.id'})
+                .toString();
+
+            app.locals.db.sqlCommand(fullVehiclePermsFilterStr, function (err, data) {
+                const vehiclePermsTasks = data.rows.map(function (vehiclePerm) {
+                    return function (next) {
+                        let appObj = findObjByProperty(appInfo, 'id', vehiclePerm.app_id);
+                        appObj.vehiclePermissions.push(vehiclePerm.component_name);
+                        next();
+                    }
+                });
+                async.parallel(vehiclePermsTasks, function (err) {
+                    next(err, appInfo, appInfoIds);
+                }); 
+            });
+        },
+        function (appInfo, appInfoIds, next) {            
+            const rpcPermsFilterStr = sql.select('*').from('app_rpc_permissions')
+                .where(sql.in('app_id', appInfoIds))
+                .toString();
+
+            const fullRpcPermsFilterStr = sql.select('*')
+                .from('(' + rpcPermsFilterStr + ') group_rp')
+                .innerJoin('rpc_names', {'group_rp.rpc_id': 'rpc_names.id'})
+                .toString();
+            
+            app.locals.db.sqlCommand(fullRpcPermsFilterStr, function (err, data) {
+                const rpcPermsTasks = data.rows.map(function (rpcPerm) {
+                    return function (next) {
+                        let appObj = findObjByProperty(appInfo, 'id', rpcPerm.app_id);
+                        appObj.rpcPermissions.push(rpcPerm.rpc_name);
+                        next();
+                    }
+                });
+                async.parallel(rpcPermsTasks, function (err) {
+                    next(err, appInfo);
+                }); 
+            });
+        }
+    ], function (err, appInfo) {       
+        if (err) {
+            //it's not technically an error if the cause was because there were no app ids
+            if (err !== ERROR_NO_PERMITTED_APPS) {
+                app.locals.log.error(err);
+            }
+        }
+        if (appInfo === null || appInfo === undefined) {
+            appInfo = [];
+        }
+        callback(appInfo);
+    });
+    function findObjByProperty (array, propName, value) {
+        for (let i = 0; i < array.length; i++) {
+            if (array[i][propName] === value) {
+                return array[i];
+            }
+        }
+        return null;
+    }
+}
+*/
 function evaluateAppRequest (appObj, callback) {
     const tasks = updateObjects.map(function (updateObj) {
         return function (next) {

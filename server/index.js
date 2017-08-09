@@ -19,10 +19,13 @@ const builder = require(`./custom/policy-builders/${config.builderModule}/index.
 /* TODO: Inform user that they have to create the database on their own? */
 
 const versions = ["1"];
+const rootLocation = __dirname + '/../client/public';
 
 let app = express();
 app.use(bodyParser.json()); //allow json parsing
 app.use(bodyParser.urlencoded({extended: true})); //for parsing application/x-www-form-urlencoded
+//TODO: postpone UI until after initial launch
+//app.use(express.static(rootLocation)); //expose webpages
 
 //attach custom modules
 app.locals.config = config;
