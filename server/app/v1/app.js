@@ -168,13 +168,6 @@ const TEMP_APPS = [{
             "name": "Braking",
             "hmi_level": "HMI_BACKGROUND",
             "is_parameter": true
-        },
-        {
-            "id": 420,
-            "key": "SendLocation",
-            "name": "SendLocation",
-            "hmi_level": "HMI_BACKGROUND",
-            "is_parameter": false
         }
     ],
     "category": {
