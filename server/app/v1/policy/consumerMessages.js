@@ -1,10 +1,14 @@
 let app = require('../app.js'),
-    bricks = require('sql-bricks');
+    bricks = require('sql-bricks'),
+    consumerFriendlyMessageObj;
 
 module.exports = function (appObj) {
     app = appObj;
     return {
-        createConsumerMessages: createConsumerMessages
+        createConsumerMessages: createConsumerMessages,
+        getConsumerMessages: function () {
+            return consumerFriendlyMessageObj;
+        }
     };
 }
 
@@ -23,7 +27,8 @@ function createConsumerMessages (callback) {
             console.error(err)
         } else {
             consumer_friendly_messages.messages = generateMessages(res.rows);
-            callback(consumer_friendly_messages)
+            consumerFriendlyMessageObj = consumer_friendly_messages; //cache the consumer message object for later user
+            callback();
         }
     })
 

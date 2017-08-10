@@ -1,14 +1,18 @@
 let app = require('../app.js'),
-    bricks = require('sql-bricks');
+    bricks = require('sql-bricks'),
+    moduleConfigObj;
 
 module.exports = function (appObj) {
     app = appObj;
     return {
-        createModuleConfig: createModuleConfig
+        createModuleConfig: createModuleConfig,
+        getModuleConfig: function () {
+            return moduleConfigObj;
+        }
     };
 }
 
-function createModuleConfig(callback){
+function createModuleConfig (callback){
     let sql = app.locals.db.sqlCommand;
     let module_config = {}
 
@@ -28,7 +32,8 @@ function createModuleConfig(callback){
                     console.error(er)
                 } else {
                     module_config = generateModConfig(res.rows[0], seconds.rows)
-                    callback(module_config)
+                    moduleConfigObj = module_config; //cache the object for later use
+                    callback();
                 }
             })
         }

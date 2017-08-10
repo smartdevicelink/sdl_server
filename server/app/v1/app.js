@@ -24,7 +24,13 @@ app.on("mount", function (parent) {
             //use the updated data to create a new functional group object and save it for later use
             functionalGroup.createFunctionalGroupObject(function () {
                 //TODO: don't allow routes to get hit until the update cycle finishes
-                app.locals.log.info('Update complete');
+                //generate the consumer friendly messages object once to avoid extra calls to the database
+                //and to avoid reconstruction
+                moduleConfig.createModuleConfig(function () {
+                    consumerMessages.createConsumerMessages(function () {
+                        app.locals.log.info('Update complete');
+                    });
+                });
             });
         });
     });
@@ -81,17 +87,13 @@ app.post('/policy', function (req, res, next) {
     //TODO: do some input checking to make sure the request is valid
     async.parallel([
         function (callback) {
-            moduleConfig.createModuleConfig(function (module_config) {
-                callback(null, module_config);
-            });
+            callback(null, moduleConfig.getModuleConfig());
         },
         function (callback){
-            callback(null, functionalGroup.getFunctionalGroup())
+            callback(null, functionalGroup.getFunctionalGroup());
         },
         function (callback){
-            consumerMessages.createConsumerMessages(function (consumer_friendly_messages) {
-                callback(null, consumer_friendly_messages)
-            })
+            callback(null, consumerMessages.getConsumerMessages());
         },
         function (callback){
             //given an app id, generate a policy table based on the permissions granted to it
@@ -112,11 +114,12 @@ app.post('/policy', function (req, res, next) {
         policyTable.policy_table.app_policies = done[3];
         policyTable.policy_table.module_config.endpoints["0x07"].default = ["http://192.168.1.201:3000/api/v1/policy"];
         let responseJson = {"data": [policyTable]};
-        const fs = require('fs');
+        /*const fs = require('fs');
         fs.writeFile("./policyResponse.json", JSON.stringify(responseJson, null, 4), function (err) {
             console.log(err);
             console.log("The file was saved!");
-        });
+        });*/
+        console.log("PT sent!");
         res.json(responseJson);
     });
 });
