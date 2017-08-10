@@ -79,7 +79,7 @@ function editAppPolicy (appIdPolicy, appObj) {
 
     // Specific check for the notification permission group
     if (appObj.can_background_alert) {
-        //rpcPermissionSet["Notifications"] = null;
+        rpcPermissionSet["Notifications"] = null;
     }
 
     //apply the permissions found

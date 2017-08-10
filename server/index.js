@@ -47,6 +47,11 @@ app.get("/health", function (req, res) {
     res.sendStatus(200);
 });
 
+//loader.io verification route for load testing
+app.get("/loaderio-8e4d80eaf952e3e972feea1072b80f9f", function (req, res) {
+    res.send("loaderio-8e4d80eaf952e3e972feea1072b80f9f");
+});
+
 //error catcher
 app.use(function (err, req, res, next) {
     app.locals.log.error(err);
