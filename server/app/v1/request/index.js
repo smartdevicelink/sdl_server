@@ -1,10 +1,15 @@
 const async = require('async');
 const sql = require('sql-bricks');
-const updateData = require('./update-data.js');
+let updateData; //to be defined
 let app; //to be defined
+let updateObjects; //to be defined
 
 module.exports = function (appObj) {
 	app = appObj;
+    updateData = require('./update-data.js')(app);
+    //include all the objects above in an array for future use
+    updateObjects = [updateData.hmiLevelUpdate, updateData.countriesUpdate, updateData.categoriesUpdate, 
+        updateData.rpcNamesUpdate, updateData.vehicleDataUpdate];
 	return {
         getAppRequests: getAppRequests,
         //getPendingApps: getPendingApps,
@@ -17,10 +22,6 @@ module.exports = function (appObj) {
 //when they get approved, they go to production
 //the difference of the different endpoints comes in here. in staging, approved and pending are given permission
 //in production only approved apps are given permission
-
-//include all the objects above in an array for future use
-const updateObjects = [updateData.hmiLevelUpdate, updateData.countriesUpdate, updateData.categoriesUpdate, 
-    updateData.rpcNamesUpdate, updateData.vehicleDataUpdate];
 
 function getAppRequests (callback) {
     //use the data collectors to get application request data

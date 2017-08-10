@@ -165,13 +165,6 @@ const TEMP_APPS = [{
             "name": "Braking",
             "hmi_level": "HMI_BACKGROUND",
             "is_parameter": true
-        },
-        {
-            "id": 555,
-            "key": "OnWayPointChange",
-            "name": "OnWayPointChange",
-            "hmi_level": "HMI_BACKGROUND",
-            "is_parameter": true
         }
     ],
     "category": {
