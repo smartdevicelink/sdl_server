@@ -80,53 +80,50 @@ function appRequest (req, res, next) {
 app.post('/policy', function (req, res, next) {
     //TODO: do some input checking to make sure the request is valid
     async.parallel([
-      function(callback){
-      moduleConfig.createModuleConfig(function(module_config){
-        callback(null, module_config)
-      })
-    },
-    function(callback){
-      callback(null, functionalGroup.getFunctionalGroup())
-    },
-    function(callback){
-      consumerMessages.createConsumerMessages(function(consumer_friendly_messages){
-        callback(null, consumer_friendly_messages)
-      })
-    },
-    function(callback){
-      //given an app id, generate a policy table based on the permissions granted to it
-      //iterate over the app_policies object. query the database for matching app ids that have been approved
+        function (callback) {
+            moduleConfig.createModuleConfig(function (module_config) {
+                callback(null, module_config);
+            });
+        },
+        function (callback){
+            callback(null, functionalGroup.getFunctionalGroup())
+        },
+        function (callback){
+            consumerMessages.createConsumerMessages(function (consumer_friendly_messages) {
+                callback(null, consumer_friendly_messages)
+            })
+        },
+        function (callback){
+            //given an app id, generate a policy table based on the permissions granted to it
+            //iterate over the app_policies object. query the database for matching app ids that have been approved
 
-      //for now, auto approve all apps that request permissions
-      appPolicy.createPolicyObject(req.body.policy_table.app_policies, function(appPolicyModified){
-        //the original appPolicy object may get modified
-        callback(null, appPolicyModified)
-      })
-    }],
-    function(err, done){
-      let policyTable = {"policy_table": {}}
-      policyTable.policy_table.module_config = done[0]
-      policyTable.policy_table.functional_groupings = done[1]
-      policyTable.policy_table.consumer_friendly_messages = done[2]
-      policyTable.policy_table.app_policies = done[3]
-      //TODO: should module_config send this server's address in 0x07 on the update?
-      //TODO: figure out why the app dies. we gave it base-4 permissions. maybe the app_policies object is not made correctly?
-      policyTable.policy_table.module_config.endpoints["0x07"].default = ["http://192.168.1.201:3000/api/v1/policy"];
-      let responseJson = {"data": [policyTable]};
+            //for now, auto approve all apps that request permissions
+            appPolicy.createPolicyObject(req.body.policy_table.app_policies, function (appPolicyModified) {
+                //the original appPolicy object may get modified
+                callback(null, appPolicyModified);
+            })
+        }
+    ],
+    function (err, done) {
+        let policyTable = {"policy_table": {}};
+        policyTable.policy_table.module_config = done[0];
+        policyTable.policy_table.functional_groupings = done[1];
+        policyTable.policy_table.consumer_friendly_messages = done[2];
+        policyTable.policy_table.app_policies = done[3];
+        policyTable.policy_table.module_config.endpoints["0x07"].default = ["http://192.168.1.201:3000/api/v1/policy"];
+        let responseJson = {"data": [policyTable]};
         const fs = require('fs');
         fs.writeFile("./policyResponse.json", JSON.stringify(responseJson, null, 4), function (err) {
             console.log(err);
             console.log("The file was saved!");
         });
-      res.json(responseJson);
-    })
-
-    //res.sendStatus(200);
+        res.json(responseJson);
+    });
 });
 
 //TODO: remove this when there's data in SHAID
 const TEMP_APPS = [{
-    "uuid": "9bb1d9c2-5d4c-457f-9d91-86a2f95132df",
+    "uuid": "7",
     "name": "Two App",
     "display_names": [
         "App Two",
@@ -166,6 +163,13 @@ const TEMP_APPS = [{
             "id": 20,
             "key": "driverBraking",
             "name": "Braking",
+            "hmi_level": "HMI_BACKGROUND",
+            "is_parameter": true
+        },
+        {
+            "id": 555,
+            "key": "OnWayPointChange",
+            "name": "OnWayPointChange",
             "hmi_level": "HMI_BACKGROUND",
             "is_parameter": true
         }
