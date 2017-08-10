@@ -123,7 +123,7 @@ app.post('/policy', function (req, res, next) {
 
 //TODO: remove this when there's data in SHAID
 const TEMP_APPS = [{
-    "uuid": "7",
+    "uuid": "9bb1d9c2-5d4c-457f-9d91-86a2f95132df",
     "name": "Two App",
     "display_names": [
         "App Two",
