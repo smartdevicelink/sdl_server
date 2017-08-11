@@ -80,10 +80,31 @@ function appRequest (req, res, next) {
         });
     });
 }
+
+function validatePolicyTable(req, res, next){
+    if(req.body.policy_table == null){
+        res.status(400).send("Please provide policy table information");
+    } else if(req.body.policy_table.app_policies == null){
+        res.status(400).send("Please provide app policies information");
+    } else if(req.body.policy_table.consumer_friendly_messages == null){
+        res.status(400).send("Please provide consumer friendly messages information");
+    } else if(req.body.policy_table.device_data == null){
+        res.status(400).send("Please provide device data information");
+    } else if(req.body.policy_table.functional_groupings == null){
+        res.status(400).send("Please provide functional groupings information");
+    } else if(req.body.policy_table.module_config == null){
+        res.status(400).send("Please provide module config information");
+    } else if(req.body.policy_table.usage_and_error_counts == null){
+        res.status(400).send("Please provide usage and error counts information");
+    } else {
+        next();
+    }
+}
+
 //TODO: replace all attempts to compile information from multiple table with using INNER JOINs (ex. appPolicy.js)
 
 //a request came from sdl_core!
-app.post('/policy', function (req, res, next) {
+app.post('/policy', validatePolicyTable, function (req, res, next) {
     //TODO: do some input checking to make sure the request is valid
     async.parallel([
         function (callback) {
