@@ -20,18 +20,31 @@ app.on("mount", function (parent) {
     app.locals.events = parent.locals.events;
 
     app.locals.events.on('update', function () {
-        appRequests.forceUpdate(function () {
-            //use the updated data to create a new functional group object and save it for later use
-            functionalGroup.createFunctionalGroupObject(function () {
-                //TODO: don't allow routes to get hit until the update cycle finishes
-                //generate the consumer friendly messages object once to avoid extra calls to the database
-                //and to avoid reconstruction
-                moduleConfig.createModuleConfig(function () {
-                    consumerMessages.createConsumerMessages(function () {
-                        app.locals.log.info('Update complete');
-                    });
-                });
-            });
+        async.series([
+            function (next) {
+                appRequests.forceUpdate(next);
+            },
+            function (next) {
+                //use the updated data to create a new functional group object and save it for later use
+                functionalGroup.createFunctionalGroupObject(next);
+            },
+            function (next) {
+                //generate the consumer friendly messages object and the module config object to avoid
+                //extra calls to the database and to avoid reconstruction on every policy update request
+                moduleConfig.createModuleConfig(next);
+            },
+            function (next) {
+                consumerMessages.createConsumerMessages(next);
+            },
+            function (next) {
+                //auto-call the request function to get potentially updated app information
+                updateAppRequestInfo(next);
+            },
+        ], function (err) {
+            app.locals.log.info('Update complete');
+            //make the route accessible now
+            app.route('/request')
+                .get(appRequest);
         });
     });
 });
@@ -53,10 +66,13 @@ app.post('/deny', function (req, res, next) {
 */
 
 //TODO: need a way to automatically get new SHAID info, whether it's via webhooks or by polling
-app.route('/request')
-    .get(appRequest);
-
 function appRequest (req, res, next) {
+    updateAppRequestInfo(function () {
+        res.sendStatus(200);
+    });
+}
+
+function updateAppRequestInfo (callback) {
     appRequests.getAppRequests(function (requests) {
         //TODO: use a queue for when webhooks come in so that we can still enforce one at a time request handling
         //operate over every app request received
@@ -66,7 +82,7 @@ function appRequest (req, res, next) {
         //causing lots of unnecessary load on the SHAID server
         const requestTasks = TEMP_APPS.map(function (request) {
             return function (next) {
-                app.locals.log.info(JSON.stringify(request, null, 4));
+                //app.locals.log.info(JSON.stringify(request, null, 4));
                 appRequests.evaluateAppRequest(request, next);
             }
         });
@@ -75,8 +91,7 @@ function appRequest (req, res, next) {
             if (err) {
                 app.locals.log.error(err);
             }
-            //the end of a very large update cycle
-            res.sendStatus(200);
+            callback();
         });
     });
 }
@@ -112,14 +127,7 @@ app.post('/policy', function (req, res, next) {
         policyTable.policy_table.functional_groupings = done[1];
         policyTable.policy_table.consumer_friendly_messages = done[2];
         policyTable.policy_table.app_policies = done[3];
-        policyTable.policy_table.module_config.endpoints["0x07"].default = ["http://192.168.1.201:3000/api/v1/policy"];
         let responseJson = {"data": [policyTable]};
-        /*const fs = require('fs');
-        fs.writeFile("./policyResponse.json", JSON.stringify(responseJson, null, 4), function (err) {
-            console.log(err);
-            console.log("The file was saved!");
-        });*/
-        console.log("PT sent!");
         res.json(responseJson);
     });
 });
