@@ -31,6 +31,21 @@
             ]
         }, {
             "name": "Policy Table Update"
+        }, {
+            "name": "Getting Started",
+            "navigation": [
+                {
+                    "name": "Installation"
+                }, {
+                    "name": "API"
+                }, {
+                    "name": "Lifecycles"
+                }, {
+                    "name": "Custom Modules"
+                }, {
+                    "name": "Migration Scripts"
+                }
+            ]
         }
     ]
 }
