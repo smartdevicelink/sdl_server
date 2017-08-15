@@ -8,7 +8,7 @@ The most up-to-date branch is v2. Switch to it.
 git checkout v2
 ```
 
-The new version of the policy server requires a SQL database. Currently the only supported implementation is PostgreSQL, but [you can create a module for your favorite database.](custom-modules) This guide will not cover how to get one running.
+The new version of the policy server requires a SQL database. Currently the only supported implementation is PostgreSQL, but you can create a module for your favorite database. This guide will not cover how to get one running.
 
 Once you set up a database (locally or remotely) you'll need to supply the policy server with some environment variables. This policy server uses the [dotenv module](https://www.npmjs.com/package/dotenv), meaning you can write all your environment variables in a `.env` file located in the `server` directory. The policy server will load the variables at `server/.env`. `.env` files will not be tracked by Git.
 
