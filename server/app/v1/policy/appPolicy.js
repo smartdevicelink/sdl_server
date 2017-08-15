@@ -85,13 +85,15 @@ function createPolicyObject (appPolicies, callback) {
             appPolicyResponse[appInfo[i].app_uuid] = null;
         }        
         //allow a pre-run through the app policy object first to handle the scenarios where
-        //that app doesn't receive approval. the default behavior is that the app id is set to the "default"
-        //app policy, which uses the "Base-4" function group
+        //that app doesn't receive approval
         app.locals.builder.preRunAppPolicyObject(appPolicyResponse);
 
         //store the cached app ids found into the response
         for (let appId in cachedAppPolicyResponse) {
-            appPolicyResponse[appId] = cachedAppPolicyResponse[appId];
+            //only write to the app id property if the contents are null or undefined
+            if (appPolicyResponse[appId] === null || appPolicyResponse[appId] === undefined) {
+                appPolicyResponse[appId] = cachedAppPolicyResponse[appId];
+            }
         }
 
         //to respond with the app policies object, just modify the one that came in through the request

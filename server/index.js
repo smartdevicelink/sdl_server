@@ -16,8 +16,6 @@ const collectors = config.collectors.map(function (module) {
 
 const builder = require(`./custom/policy-builders/${config.builderModule}/index.js`)(log);
 
-/* TODO: Inform user that they have to create the database on their own? */
-
 const versions = ["1"];
 const rootLocation = __dirname + '/../client/public';
 

@@ -49,22 +49,6 @@ app.on("mount", function (parent) {
     });
 });
 
-/*
-//TODO: postpone UI until after initial launch
-//TODO: put these routes and the get webpage route under authentication
-app.get('/application', function (req, res, next) {
-    appRequests.getPendingApps(function (requests) {
-        res.json(requests);
-    });
-});
-
-app.post('/deny', function (req, res, next) {
-    appRequests.denyApp(req.body.id, function () {
-        res.sendStatus(200);
-    });
-});
-*/
-
 //TODO: need a way to automatically get new SHAID info, whether it's via webhooks or by polling
 function appRequest (req, res, next) {
     updateAppRequestInfo(function () {
@@ -74,13 +58,16 @@ function appRequest (req, res, next) {
 
 function updateAppRequestInfo (callback) {
     appRequests.getAppRequests(function (requests) {
+        if (!requests) {
+            return callback();
+        }
         //TODO: use a queue for when webhooks come in so that we can still enforce one at a time request handling
         //operate over every app request received
         //the reason this should be serial is that every app coming in has a chance to contain information
         //the policy server doesn't have. the server needs to do an update cycle when it notices information missing.
         //allowing parallel computation will cause duplicate cycles to run when multiple apps come in with missing information,
         //causing lots of unnecessary load on the SHAID server
-        const requestTasks = TEMP_APPS.map(function (request) {
+        const requestTasks = requests.map(function (request) {
             return function (next) {
                 //app.locals.log.info(JSON.stringify(request, null, 4));
                 appRequests.evaluateAppRequest(request, next);
@@ -96,20 +83,20 @@ function updateAppRequestInfo (callback) {
     });
 }
 
-function validatePolicyTable(req, res, next){
-    if(req.body.policy_table == null){
+function validatePolicyTable (req, res, next){
+    if (req.body.policy_table == null) {
         res.status(400).send("Please provide policy table information");
-    } else if(req.body.policy_table.app_policies == null){
+    } else if (req.body.policy_table.app_policies == null) {
         res.status(400).send("Please provide app policies information");
-    } else if(req.body.policy_table.consumer_friendly_messages == null){
+    } else if (req.body.policy_table.consumer_friendly_messages == null) {
         res.status(400).send("Please provide consumer friendly messages information");
-    } else if(req.body.policy_table.device_data == null){
+    } else if (req.body.policy_table.device_data == null) {
         res.status(400).send("Please provide device data information");
-    } else if(req.body.policy_table.functional_groupings == null){
+    } else if (req.body.policy_table.functional_groupings == null) {
         res.status(400).send("Please provide functional groupings information");
-    } else if(req.body.policy_table.module_config == null){
+    } else if (req.body.policy_table.module_config == null) {
         res.status(400).send("Please provide module config information");
-    } else if(req.body.policy_table.usage_and_error_counts == null){
+    } else if (req.body.policy_table.usage_and_error_counts == null) {
         res.status(400).send("Please provide usage and error counts information");
     } else {
         next();
@@ -119,8 +106,7 @@ function validatePolicyTable(req, res, next){
 //TODO: replace all attempts to compile information from multiple table with using INNER JOINs (ex. appPolicy.js)
 
 //a request came from sdl_core!
-app.post('/policy', validatePolicyTable, function (req, res, next) {
-    //TODO: do some input checking to make sure the request is valid
+app.post('/staging/policy', validatePolicyTable, function (req, res, next) {
     async.parallel([
         function (callback) {
             callback(null, moduleConfig.getModuleConfig());
@@ -153,109 +139,18 @@ app.post('/policy', validatePolicyTable, function (req, res, next) {
     });
 });
 
-//TODO: remove this when there's data in SHAID
-const TEMP_APPS = [{
-    "uuid": "9bb1d9c2-5d4c-457f-9d91-86a2f95132df",
-    "name": "Two App",
-    "display_names": [
-        "App Two",
-        "Application Two"
-    ],
-    "platform": "ANDROID",
-    "platform_app_id": "com.demo.app.two",
-    "status": "DEVELOPMENT",
-    "can_background_alert": true,
-    "can_steal_focus": true,
-    "tech_email": null,
-    "tech_phone": null,
-    "default_hmi_level": "HMI_NONE",
-    "created_ts": "2017-06-12T13:30:32.912Z",
-    "updated_ts": "2017-08-02T19:28:32.912Z",
-    "countries": [
-        {
-            "id": 1,
-            "iso": "AD",
-            "name": "Andorra"
-        },
-        {
-            "id": 2,
-            "iso": "AE",
-            "name": "United Arab Emirates"
-        }
-    ],
-    "permissions": [
-        {
-            "id": 18,
-            "key": "accPedalPosition",
-            "name": "Accelerator Pedal Position",
-            "hmi_level": "HMI_FULL",
-            "is_parameter": true,
-        },
-        {
-            "id": 20,
-            "key": "driverBraking",
-            "name": "Braking",
-            "hmi_level": "HMI_BACKGROUND",
-            "is_parameter": true
-        }
-    ],
-    "category": {
-        "id": 1,
-        "name": "DEFAULT",
-        "display_name": "Default"
-    },
-    "vendor": {
-        "id": 1,
-        "name": "Livio Web Team",
-        "email": "admin@example.com"
-    }
-},
-{
-    "uuid": "ab9eec11-5fd1-4255-b4cd-769b529c88c4",
-    "name": "idle_clicker",
-    "display_names": [
-        "Idle Clicker Android",
-        "Idle Clicker"
-    ],
-    "platform": "ANDROID",
-    "platform_app_id": "com.android.idle.clicker",
-    "status": "PRODUCTION",
-    "can_background_alert": true,
-    "can_steal_focus": true,
-    "tech_email": null,
-    "tech_phone": null,
-    "default_hmi_level": "HMI_NONE",
-    "created_ts": "2017-06-12T13:34:33.514Z",
-    "updated_ts": "2017-06-12T14:23:37.817Z",
-    "countries": [
-        {
-            "id": 77,
-            "iso": "GB",
-            "name": "United Kingdom"
-        },
-        {
-            "id": 233,
-            "iso": "US",
-            "name": "United States"
-        }
-    ],
-    "permissions": [
-        {
-            "id": 25,
-            "key": "airbagStatus",
-            "name": "Airbag Status",
-            "hmi_level": "HMI_BACKGROUND",
-            "is_parameter": true
-        }
-    ],
-    "category": {
-        "id": 2,
-        "name": "COMMUNICATION",
-        "display_name": "Communication"
-    },
-    "vendor": {
-        "id": 1,
-        "name": "Livio Web Team",
-        "email": "admin@example.com"
-    }
-}];
+/*
+//TODO: postpone UI until after initial launch
+//TODO: put these routes and the get webpage route under authentication
+app.get('/application', function (req, res, next) {
+    appRequests.getPendingApps(function (requests) {
+        res.json(requests);
+    });
+});
+
+app.post('/deny', function (req, res, next) {
+    appRequests.denyApp(req.body.id, function () {
+        res.sendStatus(200);
+    });
+});
+*/
