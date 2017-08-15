@@ -8,15 +8,15 @@ The most up-to-date branch is v2. Switch to it.
 git checkout v2
 ```
 
-The new version of the policy server requires a SQL database. Currently the only supported implementation is PostgreSQL, but [[you can create a module for your favorite database.|Custom Modules]] This guide will not cover how to get one running.
+The new version of the policy server requires a SQL database. Currently the only supported implementation is PostgreSQL, but [you can create a module for your favorite database.](Custom Modules) This guide will not cover how to get one running.
 
-Once you set up a database (locally or remotely) you'll need to supply the policy server with some environment variables. This policy server uses the [[dotenv module|https://www.npmjs.com/package/dotenv]], meaning you can write all your environment variables in a `.env` file located in the `server` directory. The policy server will load the variables at `server/.env`. `.env` files will not be tracked by Git.
+Once you set up a database (locally or remotely) you'll need to supply the policy server with some environment variables. This policy server uses the [dotenv module](https://www.npmjs.com/package/dotenv), meaning you can write all your environment variables in a `.env` file located in the `server` directory. The policy server will load the variables at `server/.env`. `.env` files will not be tracked by Git.
 
 Here are the environment variables that will most likely be used:
 
 * `POLICY_SERVER_PORT`: The port which the server runs on. It is optional and the default is 3000.
-* `SHAID_PUBLIC_KEY`: A public key given to you through the [[developer portal|https://smartdevicelink.com/]] that allows access to SHAID endpoints.
-* `SHAID_SECRET_KEY`: A secret key given to you through the [[developer portal|https://smartdevicelink.com/]] that allows access to SHAID endpoints.
+* `SHAID_PUBLIC_KEY`: A public key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
+* `SHAID_SECRET_KEY`: A secret key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
 * `STAGING_PG_USER`: The name of the user to allow the server access the database (staging mode)
 * `STAGING_PG_DATABASE`: The name of the database where policy and app data is stored (staging mode)
 * `STAGING_PG_PASSWORD`: The password used to log into the database (staging mode)

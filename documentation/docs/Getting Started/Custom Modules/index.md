@@ -36,7 +36,7 @@ Note that the function signature is different than the one found in the default 
 
 `next` is a callback function that accepts two parameters. The first parameter is an error of some sort. If it is defined, the policy server will see that as an error that happened. The second parameter is the data that should be passed depending on the function. If a custom module doesn't wish to modify anything passed to it for say, `getCategories`, then it should invoke `next` like so: `next(null, categories)`.
 
-To see the format of each type of data, check out the `shaid` module, or look [[here|https://sdlstaging.mobelux.com/en/docs/shaid/v2/v2/]] for responses that come from SHAID.
+To see the format of each type of data, check out the `shaid` module, or look [here](https://smartdevicelink.com/en/docs/shaid/master/v2/) for responses that come from SHAID.
 
 ## Policy Builders
 A function needs to be exported, and a logger module will be passed in as an argument. Here's the required return object:
@@ -56,7 +56,7 @@ return {
 };
 ```
 
-Full explanations are given in the [[source code|https://github.com/smartdevicelink/sdl_server/blob/v2/server/custom/policy-builders/default/index.js]] as to what each of these functions require and what they need to return, but here is a summary:
+Full explanations are given in the [source code](https://github.com/smartdevicelink/sdl_server/blob/v2/server/custom/policy-builders/default/index.js) as to what each of these functions require and what they need to return, but here is a summary:
 * `initiateFunctionalGroups`: Invoked first, and only when the policy server starts up and is beginning to build functional groups. This function should return a "skeleton" of what the functional groups should be
 * `createGroupPermissions`: Invoked secondly, and only on server start up. For every functional group defined in  `initiateFunctionalGroups`, define permissions that the functional group permits.
 * `modifyFunctionalGroupObject`: Invoked thirdly, and only on server start up. Final edits to the functional group happen here, and full control is given over what can be edited. For example, in the `default` policy builder module this function is used to add HMI levels to each functional group, which is a vital step.
