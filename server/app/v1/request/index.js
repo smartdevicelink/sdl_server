@@ -169,7 +169,6 @@ function insertAppRequest (appObj, callback) {
     const newAppObj = {
         app_uuid: appObj.uuid,
         name: appObj.name,
-        vendor_id: appObj.vendor.id,
         platform: appObj.platform,
         platform_app_id: appObj.platform_app_id,
         status: appObj.status,
@@ -182,10 +181,9 @@ function insertAppRequest (appObj, callback) {
     };
 
     const vendorInsertStr = sql.insert('vendors', vendor).toString();
-    const appInsertStr = sql.insert('app_info', newAppObj).toString();
     const ERROR_NO_APP_UPDATE = "App received is already updated in the database";
 
-    async.series([
+    async.waterfall([
         function (next) {
             //compare timestamps to determine if the app info actually changed before insertion
             const incomingAppTimestamp = appObj.updated_ts;
@@ -214,6 +212,14 @@ function insertAppRequest (appObj, callback) {
             });            
         },
         function (next) {
+            //find the vendor ID generated in the database and use that as the reference for the app object
+            databaseQuerySelect('max(id)', 'vendors', {'vendor_name': appObj.vendor.name, 'vendor_email': appObj.vendor.email}, function (err, data) {
+                next(err, data[0].max);
+            });
+        },
+        function (vendorId, next) {
+            newAppObj.vendor_id = vendorId;
+            const appInsertStr = sql.insert('app_info', newAppObj).toString();
             app.locals.db.sqlCommand(appInsertStr, function (err, data) {
                 next(err);
             });            
