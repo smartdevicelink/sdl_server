@@ -26,7 +26,7 @@ module.exports = function (appObj) {
 function getAppRequests (callback) {
     //use the data collectors to get application request data
     //SHAID should be the first module to run for this
-    collectData('getAppRequests', function (appRequests) {
+    collectData('getAppRequests', function (err, appRequests) {
         callback(appRequests);
     }); 
 }
