@@ -12,8 +12,15 @@ SmartDeviceLink (SDL) is a standard set of protocols and messages that connect a
 ## SDL Server
 The SmartDeviceLink (SDL) server allows the automated construction of policy tables, which the [SDL Core component](https://github.com/smartdevicelink/sdl_core) uses to validate messaging with connected applications. The server communicates with SHAID to maintain updated information about application information and uses that information to help build appropriate policy table responses.
 
+Depending on your needs, you may not require the use of the SDL Server. If you only want to permit all your apps using an sdl_core instance that you control, then you can edit the preloaded policy table to allow this. Edit the default permissions located in this line of the preloaded policy table: https://github.com/smartdevicelink/sdl_core/blob/master/src/appMain/sdl_preloaded_pt.json#L2273
+
+Change the contents of that array to include this instead: 
+`
+[“Base-4”, “Location-1", “Notifications”, “DrivingCharacteristics-3", “VehicleInfo-3”, “PropriataryData-1", “PropriataryData-2”, “ProprietaryData-3", “Emergency-1”, “Navigation-1", “Base-6”, “OnKeyboardInputOnlyGroup”, “OnTouchEventOnlyGroup”, “DiagnosticMessageOnly”, “DataConsent-2”, “BaseBeforeDataConsent”, “SendLocation”, “WayPoints”, “BackgroundAPT”]
+`
+
 # Getting Started
-A quick guide to setup SDL server can be found at <a href="https://smartdevicelink.com/guides/sdl-server/getting-started/" target="_blank">SmartDeviceLink.com</a>
+A quick guide to setup the SDL server can be found at <a href="https://smartdevicelink.com/en/docs/sdl-server/master/getting-started/installation/" target="_blank">SmartDeviceLink.com</a>
 
 ## Documentation
 All documentation can be found at <a href="https://smartdevicelink.com/docs/sdl-server/master/overview/" target="_blank">SmartDeviceLink.com</a>.
