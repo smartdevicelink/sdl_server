@@ -86,7 +86,7 @@ module.exports = function (log) {
                 "steal_focus": false,
                 "priority": "NONE",
                 "default_hmi": "NONE",
-                "groups": ["Base-4"]                
+                "groups": ["Base-4"]               
             };
             appPolicy.device = {
                 "keep_context": false,

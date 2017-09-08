@@ -15,6 +15,10 @@ const functionalGroupDataObj = {
         userConsentPrompt: "Notifications",
         getPermissionsFunc: notifications
     },
+    "Notifications-RC": {
+        userConsentPrompt: null,
+        getPermissionsFunc: notificationsRC
+    },
     "DrivingCharacteristics-3": {
         userConsentPrompt: "DrivingCharacteristics",
         getPermissionsFunc: drivingCharacteristics3
@@ -34,6 +38,10 @@ const functionalGroupDataObj = {
     "ProprietaryData-3": {
         userConsentPrompt: null,
         getPermissionsFunc: proprietaryData3
+    },
+    "RemoteControl": {
+        userConsentPrompt: null,
+        getPermissionsFunc: remoteControl
     },
     "Emergency-1": {
         userConsentPrompt: null,
@@ -82,6 +90,10 @@ const functionalGroupDataObj = {
     "DialNumberOnlyGroup": {
         userConsentPrompt: null,
         getPermissionsFunc: dialNumberOnly
+    },
+    "HapticGroup": {
+        userConsentPrompt: null,
+        getPermissionsFunc: hapticGroup
     }
 };
 
@@ -102,6 +114,7 @@ function base4 () {
         "EncodedSyncPData",
         "EndAudioPassThru",
         "GenericResponse",
+        "GetSystemCapability",
         "ListFiles",
         "OnAppInterfaceUnregistered",
         "OnAudioPassThru",
@@ -152,6 +165,16 @@ function notifications () {
     ];
     const addVehicleArray = [];
     return [addRpcArray, addVehicleArray];
+}
+
+function notificationsRC () {
+    const addRpcArray = [
+        "OnHMIStatus",
+        "OnPermissionsChange",
+        "OnSystemRequest"
+    ];
+    const addVehicleArray = [];
+    return [addRpcArray, addVehicleArray]
 }
 
 function drivingCharacteristics3 () {
@@ -214,6 +237,18 @@ function proprietaryData3 () {
     ];
     const addVehicleArray = [];
     return [addRpcArray, addVehicleArray];
+}
+
+function remoteControl () {
+    const addRpcArray = [
+        "ButtonPress",
+        "GetInteriorVehicleData", 
+        "SetInteriorVehicleData",
+        "OnInteriorVehicleData",
+        "SystemRequest"
+    ]
+    const addVehicleArray = [];
+    return [addRpcArray, addVehicleArray];    
 }
 
 function emergency1 () {
@@ -377,6 +412,15 @@ function dialNumberOnly () {
     ];
     const addVehicleArray = [];
     return [addRpcArray, addVehicleArray];
+}
+
+function hapticGroup () {
+    const addRpcArray = [
+        "OnTouchEvent",
+        "SendHapticData"
+    ];
+    const addVehicleArray = [];
+    return [addRpcArray, addVehicleArray];    
 }
 
 module.exports = {
