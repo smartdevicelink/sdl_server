@@ -54,10 +54,6 @@ module.exports = function (funcGroupObj) {
     quickAddVehicleRpcsBFL(funcGroupObj, "Location-1");
 
     addLevelsToRpc(funcGroupObj, "Notifications", "Alert", levelsB);
-
-    addLevelsToRpc(funcGroupObj, "Notifications-RC", "OnHMIStatus", levelsBFLN);
-    addLevelsToRpc(funcGroupObj, "Notifications-RC", "OnPermissionsChange", levelsBFLN);
-    addLevelsToRpc(funcGroupObj, "Notifications-RC", "OnSystemRequest", levelsBFLN);
     
     quickAddVehicleRpcsBFL(funcGroupObj, "DrivingCharacteristics-3");
 

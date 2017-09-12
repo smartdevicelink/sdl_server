@@ -15,10 +15,6 @@ const functionalGroupDataObj = {
         userConsentPrompt: "Notifications",
         getPermissionsFunc: notifications
     },
-    "Notifications-RC": {
-        userConsentPrompt: null,
-        getPermissionsFunc: notificationsRC
-    },
     "DrivingCharacteristics-3": {
         userConsentPrompt: "DrivingCharacteristics",
         getPermissionsFunc: drivingCharacteristics3
@@ -165,16 +161,6 @@ function notifications () {
     ];
     const addVehicleArray = [];
     return [addRpcArray, addVehicleArray];
-}
-
-function notificationsRC () {
-    const addRpcArray = [
-        "OnHMIStatus",
-        "OnPermissionsChange",
-        "OnSystemRequest"
-    ];
-    const addVehicleArray = [];
-    return [addRpcArray, addVehicleArray]
 }
 
 function drivingCharacteristics3 () {

@@ -132,7 +132,9 @@ module.exports = function (log) {
                 "EncodedSyncPData",
                 "SyncPData",
                 "OnEncodedSyncPData",
-                "OnSyncPData"
+                "OnSyncPData",
+                "RADIO",
+                "CLIMATE"
             ];
             next(null, rpcPermissions);
         },

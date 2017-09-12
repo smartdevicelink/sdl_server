@@ -53,11 +53,12 @@ function editAppPolicy (appIdPolicy, appObj) {
     let rpcPermissionSet = {};
 
     //ALWAYS allow apps access to permissions in the Base-4, OnKeyboardInputOnlyGroup, 
-    //OnTouchEventOnlyGroup, and DialNumberOnlyGroup functional groups
+    //OnTouchEventOnlyGroup, DialNumberOnlyGroup, and HapticGroup functional groups
     rpcPermissionSet["Base-4"] = null;
     rpcPermissionSet["OnKeyboardInputOnlyGroup"] = null;
     rpcPermissionSet["OnTouchEventOnlyGroup"] = null;
     rpcPermissionSet["DialNumberOnlyGroup"] = null;
+    rpcPermissionSet["HapticGroup"] = null;
 
     //handle rpc permissions
     const rpcGroupsToCheck = ["ProprietaryData-3", "Navigation-1", "Base-6", "DiagnosticMessageOnly", 
@@ -66,14 +67,23 @@ function editAppPolicy (appIdPolicy, appObj) {
     for (let i = 0; i < appObj.rpcPermissions.length; i++) {
         //given a permission name, get the functionalGroup that holds that permission
         const permName = appObj.rpcPermissions[i];
-
-        for (let j = 0; j < rpcGroupsToCheck.length; j++) {
-            const permissions = functionalGroupDataObj[rpcGroupsToCheck[j]].getPermissionsFunc()[0];
-            if (permissions.indexOf(permName) !== -1) {
-                rpcPermissionSet[rpcGroupsToCheck[j]] = null;
-                //end loop early
-                j = rpcGroupsToCheck.length;
-            }            
+        if (permName === "RADIO") { 
+            appIdPolicy.moduleType.push("RADIO");
+            rpcPermissionSet["RemoteControl"] = null; //auto approve RemoteControl if these permissions are allowed
+        }
+        else if (permName === "CLIMATE") {
+            appIdPolicy.moduleType.push("CLIMATE");
+            rpcPermissionSet["RemoteControl"] = null;
+        }
+        else {
+            for (let j = 0; j < rpcGroupsToCheck.length; j++) {
+                const permissions = functionalGroupDataObj[rpcGroupsToCheck[j]].getPermissionsFunc()[0];
+                if (permissions.indexOf(permName) !== -1) {
+                    rpcPermissionSet[rpcGroupsToCheck[j]] = null;
+                    //end loop early
+                    j = rpcGroupsToCheck.length;
+                }            
+            }
         }
     }
 
