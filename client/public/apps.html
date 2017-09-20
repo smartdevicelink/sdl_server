@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>SDL Policy Server - Applications</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link rel="stylesheet" href="./css/font-awesome.min.css">
+
+    <!-- Custom styles for this template -->
+    <style>
+        @font-face {
+            font-family: 'LivioNorm';
+            src: url('./fonts/LivioNorm/LivioNorm-Light-WebS.eot');
+            src: url('./fonts/LivioNorm/LivioNorm-Light-WebS.eot?#iefix') format('embedded-opentype'),
+            url('./fonts/LivioNorm/LivioNorm-Light-WebS.woff2') format('woff2'),
+            url('./fonts/LivioNorm/LivioNorm-Light-WebS.woff') format('woff'),
+            url('./fonts/LivioNorm/LivioNorm-Light-WebS.ttf') format('ttf'),
+            url('./fonts/LivioNorm/LivioNorm-Light-WebS.svg') format('svg');
+            font-weight: 200;
+        }
+
+        @font-face {
+            font-family: 'LivioNorm';
+            src: url('./fonts/LivioNorm/LivioNorm-Regular-WebS.eot');
+            src: url('./fonts/LivioNorm/LivioNorm-Regular-WebS.eot?#iefix') format('embedded-opentype'),
+            url('./fonts/LivioNorm/LivioNorm-Regular-WebS.woff2') format('woff2'),
+            url('./fonts/LivioNorm/LivioNorm-Regular-WebS.woff') format('woff'),
+            url('./fonts/LivioNorm/LivioNorm-Regular-WebS.ttf') format('ttf'),
+            url('./fonts/LivioNorm/LivioNorm-Regular-WebS.svg') format('svg');
+            font-weight: 400;
+        }
+
+        @font-face {
+            font-family: 'LivioNorm';
+            src: url('./fonts/LivioNorm/LivioNorm-Medium-WebS.eot');
+            src: url('./fonts/LivioNorm/LivioNorm-Medium-WebS.eot?#iefix') format('embedded-opentype'),
+            url('./fonts/LivioNorm/LivioNorm-Medium-WebS.woff2') format('woff2'),
+            url('./fonts/LivioNorm/LivioNorm-Medium-WebS.woff') format('woff'),
+            url('./fonts/LivioNorm/LivioNorm-Medium-WebS.ttf') format('ttf'),
+            url('./fonts/LivioNorm/LivioNorm-Medium-WebS.svg') format('svg');
+            font-weight: 500;
+        }
+
+        @font-face {
+            font-family: 'LivioNorm';
+            src: url('./fonts/LivioNorm/LivioNorm-Bold-WebS.eot');
+            src: url('./fonts/LivioNorm/LivioNorm-Bold-WebS.eot?#iefix') format('embedded-opentype'),
+            url('./fonts/LivioNorm/LivioNorm-Bold-WebS.woff2') format('woff2'),
+            url('./fonts/LivioNorm/LivioNorm-Bold-WebS.woff') format('woff'),
+            url('./fonts/LivioNorm/LivioNorm-Bold-WebS.ttf') format('ttf'),
+            url('./fonts/LivioNorm/LivioNorm-Bold-WebS.svg') format('svg');
+            font-weight: 600;
+        }
+
+        @font-face {
+            font-family: 'LivioMono';
+            src: url('./fonts/LivioNorm/LivioMono-Regular-WebS.eot');
+            src: url('./fonts/LivioNorm/LivioMono-Regular-WebS.eot?#iefix') format('embedded-opentype'),
+            url('./fonts/LivioNorm/LivioMono-Regular-WebS.woff2') format('woff2'),
+            url('./fonts/LivioNorm/LivioMono-Regular-WebS.woff') format('woff'),
+            url('./fonts/LivioNorm/LivioMono-Regular-WebS.ttf') format('ttf'),
+            url('./fonts/LivioNorm/LivioMono-Regular-WebS.svg') format('svg');
+            font-weight: 400;
+        }
+
+        body {
+            padding-top: 3.5rem;
+            font-family: 'LivioNorm', Helvetica, sans-serif !important;
+            font-weight: normal;
+        }
+
+        /*
+         * Typography
+         */
+
+        h1 {
+            margin-bottom: 20px;
+            padding-bottom: 9px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h4 {
+            font-weight: bold;
+        }
+
+        .container-fluid {
+            margin-bottom: 60px;
+        }
+
+        .navbar-brand {
+            color: #FFFFFF!important;
+            margin-right: 0px;
+        }
+
+        .nav-bg {
+            background-color: #4A5E71;
+        }
+
+        .nav-bottom-bg {
+
+        }
+
+        .nav-sdl-logo {
+            width: 177px;
+            height: 31px;
+        }
+
+        /*
+         * Sidebar
+         */
+
+        .sidebar {
+            position: fixed;
+            top: 51px;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            overflow-x: hidden;
+            overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+            border-right: 1px solid #eee;
+        }
+
+        /* Sidebar navigation */
+        .sidebar {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .sidebar .nav {
+            margin-bottom: 20px;
+        }
+
+        .sidebar .nav-item {
+            width: 100%;
+        }
+
+        .sidebar .nav-item + .nav-item {
+            margin-left: 0;
+        }
+
+        .sidebar .nav-link {
+            border-radius: 0;
+            padding: 13px 30px;
+        }
+
+        .sidebar a {
+            color: #FFFFFF;
+        }
+
+        .header-bg, .nav-pills .nav-link.active, .show>.nav-pills .nav-link {
+            background-color: #384F61;
+        }
+
+        .nav-item .badge {
+            margin-left: 6px;
+        }
+
+        .nav-link {
+            font-weight: lighter;
+        }
+
+
+        /*
+         * Application Tables
+         */
+
+         .app-table h4 {
+             color: #4A5E71;
+             text-decoration: underline;
+             font-size: 18px;
+         }
+
+         .app-table table {
+             font-size: 15px;
+         }
+
+         .app-table thead, .app-table th {
+             font-size: 12px;
+             font-weight: normal!important;
+             color: #B3B3B3;
+         }
+
+         .table-striped tbody tr:nth-of-type(odd) {
+             background-color: #F4F5F7;
+         }
+
+         .app-table td {
+             color: #4A5E71;
+             vertical-align: middle;
+             width: 20%;
+             text-overflow: ellipsis;
+             overflow: hidden;
+             white-space: nowrap;
+         }
+
+         .app-table td.icon {
+             width: 65px;
+         }
+
+         .app-table td.title {
+             font-weight: bold;
+             width: 300px;
+             min-width: 300px;
+             max-width: 300px;
+             letter-spacing: .05em;
+         }
+
+         .app-table td.actions {
+             min-width: 130px;
+             max-width: 130px;
+         }
+
+         /*
+          * Badges
+          */
+
+          .badge-circle {
+              border-radius: .5rem;
+              font-family: Helvetica;
+          }
+
+          .badge-danger {
+              background-color: #FF5E71;
+          }
+
+          /*
+           * Buttons
+           */
+
+           .btn-danger {
+               background-color: #FF5E71;
+               border: none;
+           }
+           .btn-success {
+               background-color: #78C970;
+               border: none;
+           }
+           .btn-dark {
+               background-color: #4A5E71;
+               border: none;
+           }
+           .btn-update {
+               background-color: #FF2841;
+               color: #FFFFFF;
+               border-radius: 0px;
+           }
+           .btn-update:hover {
+               background-color: #BB2839;
+           }
+
+           /*
+            * Font Awesome Overrides
+            */
+
+            .fa-1-5x {
+                font-size: 1.5em;
+            }
+
+            .btn-dark {
+                background-color: #4A5E71;
+            }
+            .btn-update {
+                background-color: #FF2841;
+                color: #FFFFFF;
+                margin-left: 20px;
+                font-size: 18px;
+            }
+
+        .color-green {
+            color: #78C970 !important;
+        }
+        .color-red {
+            color: #FF5E71 !important;
+        }
+        .color-white {
+            color: #FFFFFF !important;
+        }
+
+
+        .upgrade-alert {
+            background-color: #FF5E71;
+            color: #FFFFFF;
+            font-size: 18px;
+            text-align: center;
+            padding: 0px;
+            height: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top header-bg">
+        <a class="navbar-brand col-sm-3 col-md-2"><img src="./images/sdl_ps_logo@2x.png" class="nav-sdl-logo"/></a>
+        <button class="navbar-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Applications/</a>
+                </li>
+            </ul>
+            <button type="button" class="btn btn-link"><i class="fa fa-fw fa-user-o color-white"></i></button>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-sm-3 col-md-2 d-none d-sm-block nav-bg sidebar">
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Applications <span class="badge badge-circle badge-danger">2</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">View Policy Table</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <main class="col-sm-9 ml-sm-auto col-md-10 pt-3" role="main">
+                <div class="app-table">
+                    <h4>Pending Applications</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">Application Name</th>
+                                    <th>Last Update</th>
+                                    <th>Platform</th>
+                                    <th>Category</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="icon"><img class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" /></td>
+                                    <td class="title">Livio Music</td>
+                                    <td>9/1/2017</td>
+                                    <td>iOS</td>
+                                    <td>Entertainment</td>
+                                    <td class="actions">
+                                        <div class="app-action pull-right">
+                                            <button type="button" class="btn btn-dark btn-sm">Review</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="icon"><img class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" /></td>
+                                    <td class="title">Livio Music</td>
+                                    <td>9/1/2017</td>
+                                    <td>iOS</td>
+                                    <td>Entertainment</td>
+                                    <td class="actions">
+                                        <div class="app-action pull-right">
+                                            <button type="button" class="btn btn-dark btn-sm">Review</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="app-table">
+                    <h4 class="color-green">Approved Applications</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">Application Name</th>
+                                    <th>Last Update</th>
+                                    <th>Platform</th>
+                                    <th>Category</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="icon"><img class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" /></td>
+                                    <td class="title">Livio Music</td>
+                                    <td>9/1/2017</td>
+                                    <td>iOS</td>
+                                    <td>Entertainment</td>
+                                    <td class="actions">
+                                        <div class="app-action pull-right">
+                                            <button type="button" class="btn btn-danger btn-sm align-middle">Deny</button>
+                                            <i class="fa fa-fw fa-1-5x fa-times align-middle"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="icon"><img class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" /></td>
+                                    <td class="title">Livio Music</td>
+                                    <td>9/1/2017</td>
+                                    <td>iOS</td>
+                                    <td>Entertainment</td>
+                                    <td class="actions">
+                                        <div class="app-action pull-right">
+                                            <i class="fa fa-fw fa-1-5x fa-circle color-green"></i>
+                                            <i class="fa fa-fw fa-1-5x fa-ellipsis-v"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="app-table">
+                    <h4 class="color-red">Denied Applications</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">Application Name</th>
+                                    <th>Last Update</th>
+                                    <th>Platform</th>
+                                    <th>Category</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="icon"><img class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" /></td>
+                                    <td class="title">Livio Music</td>
+                                    <td>9/1/2017</td>
+                                    <td>iOS</td>
+                                    <td>Entertainment</td>
+                                    <td class="actions">
+                                        <div class="app-action pull-right">
+                                            <button type="button" class="btn btn-success btn-sm align-middle">Approve</button>
+                                            <i class="fa fa-fw fa-1-5x fa-times align-middle"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="icon"><img class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" /></td>
+                                    <td class="title">Livio Music</td>
+                                    <td>9/1/2017</td>
+                                    <td>iOS</td>
+                                    <td>Entertainment</td>
+                                    <td class="actions">
+                                        <div class="app-action pull-right">
+                                            <i class="fa fa-fw fa-1-5x fa-circle color-red"></i>
+                                            <i class="fa fa-fw fa-1-5x fa-ellipsis-v"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <nav class="navbar fixed-bottom upgrade-alert">
+        <div class="mx-auto h-100">
+            <span class="align-middle text-center">** Notice: A new version of the SDL Policy Server (v2.1) is available.</span>
+            <button type="button" class="btn btn-update btn-sm h-100">Update Now</button>
+        </div>
+    </nav>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="../../../../assets/js/vendor/popper.min.js"></script>
+    <script src="../../../../dist/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+</html>
