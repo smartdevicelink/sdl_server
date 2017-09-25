@@ -28,29 +28,32 @@ module.exports = function (log) {
         },
         /*
             This function is invoked shortly after initiateFunctionalGroups, and so only gets invoked every time the
-            policy server starts to run. It is here where the policy server expects permission information associated with 
-            each functional group. Permission information includes RPC permissions and vehicle data permissions.
-            The following is the format of the response:
-
+            policy server starts to run. It is here where the policy server expects permission relation information. It is here
+            where relations such as vehicle parameters to vehicle data RPCs get defined so that the policy server knows
+            that when these vehicle parameters are seen for a functional group the server knows that those permissions 
+            need to be under vehicle data RPCs. The following is the expected format:
+            [
                 {
-                    //based off the SQL table definition rpc_permission
-                    rpcPermissions: [
-                        {
-                            functionalGroupName: A string that is the name of the functional group this permission is associated with
-                            rpcName: The name of the RPC permission (ex. AlertManeuver, Notification)
-                        },
-                        ...
-                    ],
-                    //based off the SQL table definition rpc_vehicle_parameters
-                    vehicleDataPermissions: [
-                        {
-                            functionalGroupName: A string that is the name of the functional group this permission is associated with
-                            rpcName: The name of the RPC permission that permits getting the vehicle data in vehicleName (ex. GetVehicleData)
-                            vehicleName: The name of the vehicle data permission (ex. rpm, accPedalPosition)
-                        },
-                        ...
-                    ],
+                    permissionName: The name of the permission that is dependent on its parents
+                    parents: An array of permissions that need to exist for the permissionName to work
                 }
+            ]
+        */
+        createPermissionRelations: function (permissions) {
+            return initGroups.generatePermissionRelations(permissions);
+        },
+        /*
+            This function is invoked shortly after initiateFunctionalGroups, and so only gets invoked every time the
+            policy server starts to run. It is here where the policy server expects permission information associated with 
+            each functional group. The following is the format of the response:
+            (based off the SQL table definition function_group_permissions)
+                [
+                    {
+                        functionalGroupName: A string that is the name of the functional group this permission is associated with
+                        permissionName: The name of the permission
+                    },
+                    ...
+                ]
         */
         createGroupPermissions: function () {
             //go through and evaluate all the functional groups and give each group certain permissions

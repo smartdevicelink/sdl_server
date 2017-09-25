@@ -2,97 +2,119 @@
 //this object contains information about the functional group name, it's user_consent_prompt, and what kind
 //of permissions it is meant to contain. this object is a reference for other modules to use
 
+//alwaysAllow property in the functional group means that every app will get access to that group by default
 const functionalGroupDataObj = {
     "Base-4": {
         userConsentPrompt: null,
+        alwaysAllow: true,
         getPermissionsFunc: base4
     },
     "Location-1": {
         userConsentPrompt: "Location",
+        alwaysAllow: false,
         getPermissionsFunc: location1
     },
     "Notifications": {
         userConsentPrompt: "Notifications",
+        alwaysAllow: false,
         getPermissionsFunc: notifications
     },
     "DrivingCharacteristics-3": {
         userConsentPrompt: "DrivingCharacteristics",
+        alwaysAllow: false,
         getPermissionsFunc: drivingCharacteristics3
     },
     "VehicleInfo-3": {
         userConsentPrompt: "VehicleInfo",
+        alwaysAllow: false,
         getPermissionsFunc: vehicleInfo3
     },
     "PropriataryData-1": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: propriataryData1
     },
     "PropriataryData-2": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: propriataryData2
     },
     "ProprietaryData-3": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: proprietaryData3
     },
     "RemoteControl": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: remoteControl
     },
     "Emergency-1": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: emergency1
     },
     "Navigation-1": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: navigation1
     },
     "Base-6": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: base6
     },
     "OnKeyboardInputOnlyGroup": {
         userConsentPrompt: null,
+        alwaysAllow: true,
         getPermissionsFunc: onKeyboardInputOnlyGroup
     },
     "OnTouchEventOnlyGroup": {
         userConsentPrompt: null,
+        alwaysAllow: true,
         getPermissionsFunc: onTouchEventOnlyGroup
     },
     "DiagnosticMessageOnly": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: diagnosticMessageOnly
     },
     "DataConsent-2": {
         userConsentPrompt: "DataConsent",
+        alwaysAllow: false,
         getPermissionsFunc: dataConsent2
     },
     "BaseBeforeDataConsent": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: baseBeforeDataConsent
     },
     "SendLocation": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: sendLocation
     },
     "WayPoints": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: wayPoints
     },
     "BackgroundAPT": {
         userConsentPrompt: null,
+        alwaysAllow: false,
         getPermissionsFunc: backgroundApt
     },
     "DialNumberOnlyGroup": {
         userConsentPrompt: null,
+        alwaysAllow: true,
         getPermissionsFunc: dialNumberOnly
     },
     "HapticGroup": {
         userConsentPrompt: null,
+        alwaysAllow: true,
         getPermissionsFunc: hapticGroup
     }
 };
-
 
 // RPC PERMISSION AND VEHICLE PERMISSION GETTER FUNCTIONS
 

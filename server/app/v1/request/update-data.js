@@ -58,6 +58,27 @@ module.exports = function (app) {
         }
     };
 
+    const permissionDataUpdate = {
+        getDataFunc: function (appObj) {
+            return appObj.permissions.map(function (permission) {
+                return permission.key;
+            });
+        },
+        tableName: 'permissions',
+        databasePropName: 'name',
+        moduleFuncName: 'getPermissions',
+        transformDataFunc: function (permission) {
+            return {
+                name: permission.name,
+                type: permission.type
+            };
+        },
+        errorCallback: function (permissionName) {
+            app.locals.log.info("Permission not found in local database: " + permissionName);
+            app.locals.log.info("Getting permission updates");
+        }
+    };
+/*
     const rpcNamesUpdate = {
         getDataFunc: function (appObj) {
             const rpcPermissions = appObj.permissions.filter(function (perm) {
@@ -66,20 +87,6 @@ module.exports = function (app) {
             const rpcPermissionKeys = rpcPermissions.map(function (permission) {
                 return permission.key;
             });
-            //we require 4 RPC permissions to exist at all times. this is because vehicle data permissions 
-            //are parameters to 4 RPC objects in the policy table
-            if (rpcPermissionKeys.indexOf("OnVehicleData") === -1) {
-                rpcPermissionKeys.push("OnVehicleData");
-            }
-            if (rpcPermissionKeys.indexOf("SubscribeVehicleData") === -1) {
-                rpcPermissionKeys.push("SubscribeVehicleData");
-            }
-            if (rpcPermissionKeys.indexOf("UnsubscribeVehicleData") === -1) {
-                rpcPermissionKeys.push("UnsubscribeVehicleData");
-            }
-            if (rpcPermissionKeys.indexOf("GetVehicleData") === -1) {
-                rpcPermissionKeys.push("GetVehicleData");
-            }
             return rpcPermissionKeys;
         },
         tableName: 'rpc_names',
@@ -118,12 +125,11 @@ module.exports = function (app) {
             app.locals.log.info("Getting vehicle data permission updates");
         }
     };
-
+*/
     return {
         hmiLevelUpdate: hmiLevelUpdate,
         countriesUpdate: countriesUpdate,
         categoriesUpdate: categoriesUpdate,
-        rpcNamesUpdate: rpcNamesUpdate,
-        vehicleDataUpdate: vehicleDataUpdate
+        permissionDataUpdate: permissionDataUpdate
     };
 };

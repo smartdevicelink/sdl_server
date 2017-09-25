@@ -3,24 +3,28 @@ const functionalGroupDataObj = require('./functionalGroupData.js').functionalGro
 module.exports = {
     createDefaultFunctionalGroups: createDefaultFunctionalGroups,
     generatePermissions: generatePermissions,
-    editAppPolicy: editAppPolicy
+    editAppPolicy: editAppPolicy,
+    generatePermissionRelations: generatePermissionRelations
 };
 
 function createDefaultFunctionalGroups () {
     let functionGroupInfos = [];
     for (let prop in functionalGroupDataObj) {
-        functionGroupInfos.push(defineFunctionGroupInfo(prop, functionalGroupDataObj[prop].userConsentPrompt));
+        functionGroupInfos.push(defineFunctionGroupInfo(prop));
     }
     return functionGroupInfos;
 }
 
-function defineFunctionGroupInfo (propertyName, userConsentPrompt) {
+function defineFunctionGroupInfo (propertyName) {
+    const funcGroupObj = functionalGroupDataObj[propertyName];
     let obj = {
-        property_name: propertyName
+        property_name: propertyName,
+        status: "PRODUCTION" //put generated values in production
     };
-    if (userConsentPrompt !== undefined && userConsentPrompt !== null) {
-        obj.user_consent_prompt = userConsentPrompt;
+    if (funcGroupObj.userConsentPrompt !== undefined && funcGroupObj.userConsentPrompt !== null) {
+        obj.user_consent_prompt = funcGroupObj.userConsentPrompt;
     }
+    obj.is_default = !!funcGroupObj.alwaysAllow; //coerce to boolean. if is_default doesn't exist, then it's coerced to false
     return obj;
 }
 
@@ -99,23 +103,58 @@ function editAppPolicy (appIdPolicy, appObj) {
     return appIdPolicy;
 }
 
+function generatePermissionRelations (permissions) {
+    //permission relations are defined here. Any permission that depends on another permission existing is defined here
+    //For example, vehicle data permissions necessitate having permissions to GetVehicleData, etc.
+    const allVehicleRpcs = ["OnVehicleData", "GetVehicleData", "SubscribeVehicleData", "UnsubscribeVehicleData"];
+    const getVehicleRpcs = ["GetVehicleData"];
+    const allRemoteControlRpcs = ["ButtonPress", "GetInteriorVehicleData", "SetInteriorVehicleData", "OnInteriorVehicleData", "SystemRequest"];
+
+    const permissionRelations = []; 
+    for (let i = 0; i < permissions.length; i++) {
+        const permission = permissions[i];
+        if (permission.type === "PARAMETER") { //all vehicle parameters (at least for now...)
+            if (permission.name === "vin") {
+                permissionRelations.push({
+                    permissionName: permission.name,
+                    parents: getVehicleRpcs
+                });
+            }
+            else {
+                permissionRelations.push({
+                    permissionName: permission.name,
+                    parents: allVehicleRpcs
+                });
+            }
+        }
+        else if (permission.type === "MODULE") { //all module parameters
+            permissionRelations.push({
+                permissionName: permission.name,
+                parents: allRemoteControlRpcs
+            });
+        }
+    }
+    return permissionRelations;
+}
+
+//pair up functional group names with their respective permissions
 function generatePermissions () {
-    let rpcPermissionObjs = [];
-    let vehiclePermissionObjs = [];
+    let permissions = [];
 
     for (let functionalGroupName in functionalGroupDataObj) {
         const associatedPerms = functionalGroupDataObj[functionalGroupName].getPermissionsFunc();
-        const permissionsArray = addPermissionsTemplate(associatedPerms[0], associatedPerms[1], functionalGroupName);
-
-        rpcPermissionObjs = rpcPermissionObjs.concat(permissionsArray[0]);
-        vehiclePermissionObjs = vehiclePermissionObjs.concat(permissionsArray[1]);
+        //combine RPC and vehicle parameters
+        const combinedPerms = associatedPerms[0].concat(associatedPerms[1]);
+        for (let j = 0; j < combinedPerms.length; j++) {
+            permissions.push({
+                functionalGroupName: functionalGroupName,
+                permissionName: combinedPerms[j]                
+            });
+        }
     }
-    return {
-        rpcPermissions: rpcPermissionObjs,
-        vehiclePermissions: vehiclePermissionObjs
-    };
+    return permissions;
 }
-
+/*
 function addPermissionsTemplate (addRpcArray, addVehicleArray, functionalGroupName) {
     let rpcPermissions = [];
     let vehicleDataPermissions = [];
@@ -151,4 +190,4 @@ function addVehiclePermission (rpcName, vehicleName, functionalGroupName) {
         rpcName: rpcName,
         vehicleName: vehicleName
     };
-}
+}*/

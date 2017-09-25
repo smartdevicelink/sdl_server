@@ -11,8 +11,8 @@ module.exports = {
     shaidPublicKey: process.env.SHAID_PUBLIC_KEY,
     shaidSecretKey: process.env.SHAID_SECRET_KEY,
     //a list of data collectors to hit when the database has outdated information and needs to be updated
-    //it is a VERY bad idea to move "shaid" from the first position or remove it from this array
-    collectors: ["shaid"],
+    //it is a VERY bad idea to move "static" or "shaid" from their positions or remove them from this array
+    collectors: ["static", "shaid"],
     //a policy builder module to help construct the policy table.
     builderModule: "default"
 }
