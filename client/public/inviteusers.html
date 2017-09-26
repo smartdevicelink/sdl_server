@@ -35,13 +35,34 @@
 
     <div class="container-fluid color-bg-gray">
         <div class="row">
-            <div class="card card-settings card-align-top">
+            <div class="card card-settings card-no-side-pad card-align-top">
                 <div class="settings-content">
-                    <h4>Invite Members</h4>
+                    <h4 class="member-item-padding">Invite Members</h4>
 
-                    <div id="member1" class="member-details">
+                    <div id="member1" class="member-details member-item-padding">
                         <div class="member-details-title">
                             <h5 class="add-member-counter">Member Uno</h5>
+                            <i class="fa fa-minus pointer"></i>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="firstName" class="col-form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="lastName" class="col-form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label for="email" class="col-form-label">Email*</label>
+                            <input type="text" class="form-control" id="email">
+                        </div>
+                    </div>
+
+                    <div id="member2" class="member-details member-item-padding">
+                        <div class="member-details-title">
+                            <h5 class="add-member-counter">Member Dos</h5>
                             <i class="fa fa-minus pointer"></i>
                         </div>
                         <div class="form-row">
@@ -65,12 +86,14 @@
                         <i class="fa fa-plus"></i>
                     </div>
 
-                    <div class="form-row">
+                    <div class="form-row member-item-padding">
                         <label for="message" class="col-form-label">Custom Message</label>
                         <textarea type="text" rows="5" class="form-control" id="message"></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-card btn-style-green">Send Invitation</button>
+                    <div class="member-item-padding">
+                        <button type="submit" class="member-item-padding btn btn-card btn-style-green">Send Invitation</button>
+                    </div>
                 </div>
             </div>
         </div>

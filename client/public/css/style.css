@@ -53,14 +53,23 @@
     font-weight: 400;
 }
 
+html {
+    height: 100%;
+}
+
 body {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
     padding-top: 3.5rem;
     font-family: 'LivioNorm', Helvetica, sans-serif !important;
     font-weight: normal;
     line-height: normal;
 }
 
-button {
+a, button {
     cursor: pointer;
 }
 
@@ -109,6 +118,10 @@ div.horizontal-divider .text {
 
 
 .container-fluid {
+    min-height: 100%;
+}
+
+.main-content {
     margin-bottom: 50px;
 }
 
@@ -531,6 +544,10 @@ input:checked + .slider:before {
 }
 .card-settings {
     padding: 25px 25px;
+    margin-bottom: 50px;
+}
+.card-no-side-pad {
+    padding: 25px 0px;
 }
 .card input, .modal-card input {
     width: 100%;
@@ -623,6 +640,13 @@ input:checked + .slider:before {
 /*
 * Invite members
 */
+.member-item-padding {
+    padding: 0px 25px;
+}
+.member-details {
+    padding-bottom: 30px;
+    border-bottom: 1px solid #EEEEEE;
+}
 .member-details-title {
     display: flex;
     justify-content: space-between;
@@ -634,12 +658,16 @@ input:checked + .slider:before {
 .another-member {
     display: flex;
     text-transform: uppercase;
-    margin:30px 0px;
-    padding: 14px 0px;
-    border-top: 1px solid #EEEEEE;
+    margin: 0px 0px 10px 0px;
+    padding: 14px 25px;
     border-bottom: 1px solid #EEEEEE;
     justify-content: space-between;
     color: #384F61;
+}
+.another-member:hover {
+    background-color: #384F61;
+    color: #FFFFFF;
+    border-color: #384F61;
 }
 
 
