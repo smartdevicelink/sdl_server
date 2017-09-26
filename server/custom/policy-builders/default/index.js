@@ -123,6 +123,7 @@ module.exports = function (log) {
             appIdPolicy.priority = "NONE";
             appIdPolicy.default_hmi = appObj.default_hmi_level;
             appIdPolicy.groups = []; //let the editAppPolicy function assign functional groups
+            appIdPolicy.moduleType = [];
 
             return initGroups.editAppPolicy(appIdPolicy, appObj);
         }

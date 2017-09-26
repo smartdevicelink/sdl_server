@@ -2,8 +2,8 @@ CREATE TYPE hmi_level AS ENUM ('FULL', 'BACKGROUND', 'LIMITED', 'NONE');
 CREATE TYPE permission_type AS ENUM ('RPC', 'MODULE', 'PARAMETER');
 
 CREATE TABLE permissions (
-	"name" VARCHAR(64) NOT NULL,
-  "type" permission_type NOT NULL,
+    "name" VARCHAR(64) NOT NULL,
+    "type" permission_type NOT NULL,
     PRIMARY KEY (name)
 )
 WITH ( OIDS = FALSE );
@@ -22,13 +22,15 @@ CREATE TABLE permission_relations (
 )
 WITH ( OIDS = FALSE );
 
-CREATE TABLE permission_hmi_levels (
-  "permission_name" VARCHAR(64) NOT NULL REFERENCES permissions(name) ON UPDATE CASCADE ON DELETE CASCADE,
-  "function_group_id" INTEGER NOT NULL REFERENCES function_group_info(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  "hmi_level" hmi_level NOT NULL,
-    PRIMARY KEY (permission_name, function_group_id, hmi_level)
+
+CREATE TABLE app_permissions (
+    "app_id" INTEGER REFERENCES app_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "permission_name" VARCHAR(64),
+    PRIMARY KEY (app_id, vehicle_id)
 )
 WITH ( OIDS = FALSE );
+
+
 
 INSERT INTO permissions (name, type)
 SELECT DISTINCT rpc_name, 'RPC'::permission_type
@@ -37,6 +39,11 @@ FROM rpc_names;
 INSERT INTO permissions (name, type)
 SELECT DISTINCT component_name, 'PARAMETER'::permission_type
 FROM vehicle_data;
+
+DROP TYPE IF EXISTS rpc_names;
+DROP TYPE IF EXISTS vehicle_data;
+
+
 
 INSERT INTO function_group_permissions (function_group_id, permission_name)
 SELECT function_group_id, rpc_name
@@ -47,3 +54,33 @@ INSERT INTO function_group_permissions (function_group_id, permission_name)
 SELECT DISTINCT function_group_id, component_name
 FROM rpc_vehicle_parameters
 INNER JOIN vehicle_data ON rpc_vehicle_parameters.vehicle_id = vehicle_data.id;
+
+DROP TABLE IF EXISTS rpc_permission;
+DROP TABLE IF EXISTS rpc_vehicle_parameters;
+
+
+
+INSERT INTO app_permissions (app_id, permission_name)
+SELECT app_id, rpc_id
+FROM app_rpc_permissions
+INNER JOIN rpc_names ON app_rpc_permissions.rpc_id = rpc_names.id;
+
+INSERT INTO app_permissions (app_id, permission_name)
+SELECT DISTINCT app_id, vehicle_id
+FROM app_vehicle_permissions
+INNER JOIN vehicle_data ON app_vehicle_permissions.vehicle_id = vehicle_data.id;
+
+DROP TABLE IF EXISTS app_rpc_permissions;
+DROP TABLE IF EXISTS app_vehicle_permissions;
+
+
+
+ALTER TABLE module_config_retry_seconds
+ALTER COLUMN id INTEGER REFERENCES module_config (id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+ALTER TABLE app_countries
+ALTER COLUMN app_id INTEGER REFERENCES app_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
+ALTER COLUMN country_iso CHAR(2) NOT NULL;
+
+ALTER TABLE display_names
+ALTER COLUMN app_id INTEGER;

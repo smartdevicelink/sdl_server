@@ -1,4 +1,5 @@
 const functionalGroupDataObj = require('./functionalGroupData.js').functionalGroupDataObj;
+const alwaysAllowedGroupNames = require('./functionalGroupData.js').getAlwaysAllowedGroupNames();
 
 module.exports = {
     createDefaultFunctionalGroups: createDefaultFunctionalGroups,
@@ -29,67 +30,53 @@ function defineFunctionGroupInfo (propertyName) {
 }
 
 function editAppPolicy (appIdPolicy, appObj) {
-    //permissions are located in properties 'rpcPermissions' and 'vehiclePermissions' in appObj
-    let vehiclePermissionSet = {};
+    let allowedGroupSet = {};
+
+    //first, add the always allowed groups
+    alwaysAllowedGroupNames.map(function (groupName) {
+        allowedGroupSet[groupName] = null;
+    });
+
+    //permissions are located in the property 'permissions' in appObj
 
     //handle vehiclePermissions
     const vehicleGroupsToCheck = ["Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1"];
-
-    for (let i = 0; i < appObj.vehiclePermissions.length; i++) {
-        //given a permission name, get the functionalGroup that holds that permission
-        const permName = appObj.vehiclePermissions[i];
-
-        for (let j = 0; j < vehicleGroupsToCheck.length; j++) {
-            const permissions = functionalGroupDataObj[vehicleGroupsToCheck[j]].getPermissionsFunc()[1];
-            if (permissions.indexOf(permName) !== -1) {
-                vehiclePermissionSet[vehicleGroupsToCheck[j]] = null;
-                //end loop early
-                j = vehicleGroupsToCheck.length;
-            }            
-        }
-    }
-
-    //apply the permissions found
-    for (let prop in vehiclePermissionSet) {
-        appIdPolicy.groups.push(prop);
-    }
-
-    let rpcPermissionSet = {};
-
-    //ALWAYS allow apps access to permissions in the Base-4, OnKeyboardInputOnlyGroup, 
-    //OnTouchEventOnlyGroup, DialNumberOnlyGroup, and HapticGroup functional groups
-    rpcPermissionSet["Base-4"] = null;
-    rpcPermissionSet["OnKeyboardInputOnlyGroup"] = null;
-    rpcPermissionSet["OnTouchEventOnlyGroup"] = null;
-    rpcPermissionSet["DialNumberOnlyGroup"] = null;
-    rpcPermissionSet["HapticGroup"] = null;
 
     //handle rpc permissions
     const rpcGroupsToCheck = ["ProprietaryData-3", "Navigation-1", "Base-6", "DiagnosticMessageOnly", 
         "SendLocation", "WayPoints", "BackgroundAPT"];
 
-    for (let i = 0; i < appObj.rpcPermissions.length; i++) {
+
+    for (let i = 0; i < appObj.permissions.length; i++) {
         //given a permission name, get the functionalGroup that holds that permission
-        const permName = appObj.rpcPermissions[i];
-        if (permName === "RADIO") { 
-            appIdPolicy.moduleType.push("RADIO");
-            rpcPermissionSet["RemoteControl"] = null; //auto approve RemoteControl if these permissions are allowed
-        }
-        else if (permName === "CLIMATE") {
-            appIdPolicy.moduleType.push("CLIMATE");
-            rpcPermissionSet["RemoteControl"] = null;
-        }
-        else {
+        //permName is an object with name and type
+        const permName = appObj.permissions[i];
+        if (permName.type === "RPC") {
             for (let j = 0; j < rpcGroupsToCheck.length; j++) {
                 const permissions = functionalGroupDataObj[rpcGroupsToCheck[j]].getPermissionsFunc()[0];
-                if (permissions.indexOf(permName) !== -1) {
-                    rpcPermissionSet[rpcGroupsToCheck[j]] = null;
+                if (permissions.indexOf(permName.name) !== -1) {
+                    allowedGroupSet[rpcGroupsToCheck[j]] = null;
                     //end loop early
                     j = rpcGroupsToCheck.length;
                 }            
             }
         }
-    }
+        else if (permName.type === "PARAMETER") {
+            for (let j = 0; j < vehicleGroupsToCheck.length; j++) {
+                const permissions = functionalGroupDataObj[vehicleGroupsToCheck[j]].getPermissionsFunc()[1];
+                if (permissions.indexOf(permName.name) !== -1) {
+                    allowedGroupSet[vehicleGroupsToCheck[j]] = null;
+                    //end loop early
+                    j = vehicleGroupsToCheck.length;
+                }            
+            } 
+        }
+        else if (permName.type = "MODULE") {
+            appIdPolicy.moduleType.push(permName.name);
+            rpcPermissionSet["RemoteControl"] = null; //auto approve RemoteControl if these permissions are allowed
+        }
+        
+    }    
 
     // Specific check for the notification permission group
     if (appObj.can_background_alert) {
@@ -97,7 +84,7 @@ function editAppPolicy (appIdPolicy, appObj) {
     }
 
     //apply the permissions found
-    for (let prop in rpcPermissionSet) {
+    for (let prop in allowedGroupSet) {
         appIdPolicy.groups.push(prop);
     }    
     return appIdPolicy;

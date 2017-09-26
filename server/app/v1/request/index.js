@@ -141,14 +141,8 @@ function updateFunctionalGroupInfo (callback) {
                 };
             });
             //insert the generated permissions
-            //TODO: difference between the two?
-            //TODO: pretty sure this one commented out is actually a bug... it would prevent more than one permission for a functional group to happen possibly?
             //databaseCheckPropMultiInsert('function_group_permissions', 'function_group_id', permissionDbObjs, next);
             databaseCheckMultiInsert('function_group_permissions', permissionDbObjs, next);
-        },
-        function (next) {
-            //TODO: HMI LEVEL insert will happen here, too! ......
-
         }
     ], function (err) {
         if (err) {
@@ -206,6 +200,7 @@ function insertAppRequest (appObj, callback) {
             });
         },
         function (next) {
+            //insert vendor info
             app.locals.db.sqlCommand(vendorInsertStr, function (err, data) {
                 next(err);
             });            
@@ -249,33 +244,13 @@ function addExtraAppInformation (appObj, callback) {
             app.locals.db.sqlCommand(queryStr, function (err, data) {
                 next(err, data.rows[0].max);                
             }); 
-        },
-        //hash the names of permissions for easy lookup to their ids
-        rpcNameHash: function (next) {
-            const rpcNamesStr = sql.select('*').from('rpc_names').toString();
-            app.locals.db.sqlCommand(rpcNamesStr, function (err, data) {
-                let hash = {};
-                for (let i = 0; i < data.rows.length; i++) {
-                    hash[data.rows[i].rpc_name] = data.rows[i].id;
-                }
-                next(err, hash);
-            });                    
-        },
-        vehicleDataNameHash: function (next) {
-            const vehicleNamesStr = sql.select('*').from('vehicle_data').toString();
-            app.locals.db.sqlCommand(vehicleNamesStr, function (err, data) {
-                let hash = {};
-                for (let i = 0; i < data.rows.length; i++) {
-                    hash[data.rows[i].component_name] = data.rows[i].id;
-                }
-                next(err, hash);
-            });                    
-        },
+        }
     }, function (err, data) {
         if (err) {
             app.locals.log.error(err);
         }
 		//insert the extra information about the app
+
         const appCountries = appObj.countries.map(function (country) {
             return {
                 app_id: data.appId,
@@ -289,24 +264,11 @@ function addExtraAppInformation (appObj, callback) {
             };
         });
 
-        const rpcPermissions = appObj.permissions.filter(function (perm) {
-        	return !perm.is_parameter;
-        });       
-        const vehicleDataPermissions = appObj.permissions.filter(function (perm) {
-        	return perm.is_parameter;
-        }); 
-
-        const rpcPermissionIds = rpcPermissions.map(function (permission) {
+        const permissions = appObj.permissions.filter(function (perm) {
             return {
                 app_id: data.appId,
-                rpc_id: data.rpcNameHash[permission.key]
-            };
-        });       
-        const vehicleDataPermissionIds = vehicleDataPermissions.map(function (permission) {
-            return {
-                app_id: data.appId,
-                vehicle_id: data.vehicleDataNameHash[permission.key]
-            };
+                permission_name: perm.key
+            }
         });
 
         let insertStrings = [];
@@ -316,25 +278,23 @@ function addExtraAppInformation (appObj, callback) {
         if (displayNames.length > 0) {
             insertStrings.push(sql.insert('display_names').values(displayNames).toString());
         }
-        if (rpcPermissionIds.length > 0) {
-            insertStrings.push(sql.insert('app_rpc_permissions').values(rpcPermissionIds).toString());
-        }
-        if (vehicleDataPermissionIds.length > 0) {
-            insertStrings.push(sql.insert('app_vehicle_permissions').values(vehicleDataPermissionIds).toString());
+        if (permissions.length > 0) {
+            insertStrings.push(sql.insert('app_permissions').values(permissions).toString());
         }
 
         const insertFunctions = insertStrings.map(function (insertStr) {
             return function (next) {
                 app.locals.db.sqlCommand(insertStr, function (err, data) {
-                    next(err);
+                    //do not error out if some insert fails for whatever reason. do log it
+                    if (err) {
+                        app.locals.log.error(err);
+                    }                    
+                    next(); 
                 });                 
             }
         });
 
         async.parallel(insertFunctions, function (err) {
-            if (err) {
-                app.locals.log.error(err);
-            }
             callback(); //done
         });
     });         

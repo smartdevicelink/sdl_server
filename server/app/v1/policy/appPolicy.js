@@ -43,8 +43,7 @@ function createPolicyObject (appPolicies, callback) {
             //assign empty arrays to the rest of the apps that will be used to put information in later
             for (let i = 0; i < filteredAppInfo.length; i++) {
                 filteredAppInfo[i].display_names = [];
-                filteredAppInfo[i].vehiclePermissions = [];
-                filteredAppInfo[i].rpcPermissions = [];
+                filteredAppInfo[i].permissions = [];
             }
             if (filteredAppInfo.length === 0) {
                 //there's no noncached app ids. exit out early
@@ -60,11 +59,8 @@ function createPolicyObject (appPolicies, callback) {
         },
         function (appInfo, next) {            
             //we need permission associations for each app in appInfo and the permissions' full names
-            attachVehiclePermissionsToAppIds(appInfo, next);
+            attachPermissionsToAppIds(appInfo, next);
         },
-        function (appInfo, next) {    
-            attachRpcPermissionsToAppIds(appInfo, next);
-        }
     ], function (err, appInfo) {
         if (err) {
             //it's not technically an error if the cause was because no new app ids were permitted
@@ -141,27 +137,32 @@ function attachDisplayNamesToAppIds (appInfo, callback) {
     attachDataToAppInfo(appInfo, displayNameFilterStr, 'display_names', 'display_text', callback);  
 }
 
-function attachVehiclePermissionsToAppIds (appInfo, callback) {
-    const vehiclePermsFilterStr = constructQueryFilter(appInfo, 'app_vehicle_permissions');
+function attachPermissionsToAppIds (appInfo, callback) {
+    const permsFilterStr = constructQueryFilter(appInfo, 'app_permissions');
 
-    const fullVehiclePermsFilterStr = sql.select('*')
-        .from('(' + vehiclePermsFilterStr + ') group_vp')
-        .innerJoin('vehicle_data', {'group_vp.vehicle_id': 'vehicle_data.id'})
+    const fullPermsFilterStr = sql.select('*')
+        .from('(' + permsFilterStr + ') group_vp')
+        .innerJoin('permissions', {'group_vp.permission_name': 'permissions.name'})
         .toString();
 
-    attachDataToAppInfo(appInfo, fullVehiclePermsFilterStr, 'vehiclePermissions', 'component_name', callback);     
+    //more than one property is needed (name and type) to be returned, so we cannot use the attachDataToAppInfo function
+    app.locals.db.sqlCommand(fullPermsFilterStr, function (err, data) {
+        const dataTasks = data.rows.map(function (datum) {
+            return function (next) {
+                let appObj = findObjByProperty(appInfo, 'id', datum.app_id);
+                appObj['permissions'].push({
+                    name: datum['name'],
+                    type: datum['type']
+                });
+                next();
+            }
+        });
+        async.parallel(dataTasks, function (err) {
+            callback(err, appInfo);
+        }); 
+    });
 }
 
-function attachRpcPermissionsToAppIds (appInfo, callback) {
-    const rpcPermsFilterStr = constructQueryFilter(appInfo, 'app_rpc_permissions');
-
-    const fullRpcPermsFilterStr = sql.select('*')
-        .from('(' + rpcPermsFilterStr + ') group_rp')
-        .innerJoin('rpc_names', {'group_rp.rpc_id': 'rpc_names.id'})
-        .toString();
-
-    attachDataToAppInfo(appInfo, fullRpcPermsFilterStr, 'rpcPermissions', 'rpc_name', callback);     
-}
 
 function constructQueryFilter (appInfo, tableName) {
     const appInfoIds = appInfo.map(function (oneApp) {

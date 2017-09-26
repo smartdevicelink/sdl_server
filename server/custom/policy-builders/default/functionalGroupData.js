@@ -432,5 +432,14 @@ function hapticGroup () {
 }
 
 module.exports = {
-    functionalGroupDataObj: functionalGroupDataObj
+    functionalGroupDataObj: functionalGroupDataObj,
+    getAlwaysAllowedGroupNames: function () {
+        let allowedGroupNames = [];
+        for (let groupName in functionalGroupDataObj) {
+            if (functionalGroupDataObj[groupName].alwaysAllow) {
+                allowedGroupNames.push(groupName);
+            }
+        }
+        return allowedGroupNames;
+    }
 }

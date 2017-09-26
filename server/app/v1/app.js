@@ -50,6 +50,8 @@ app.on("mount", function (parent) {
     });
 });
 
+//NOT READY FOR PRODUCTION YET
+/*
 app.route('/request')
     .post(webhook)
 
@@ -107,6 +109,7 @@ function webhook(req, res, next){
         })
     }
 }
+*/
 
 //TODO: need a way to automatically get new SHAID info, whether it's via webhooks or by polling
 function appRequest (req, res, next) {
