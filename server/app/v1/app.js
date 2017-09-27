@@ -197,6 +197,7 @@ app.post('/staging/policy', validatePolicyTable, function (req, res, next) {
         policyTable.policy_table.consumer_friendly_messages = done[2];
         policyTable.policy_table.app_policies = done[3];
         let responseJson = {"data": [policyTable]};
+        //console.log(JSON.stringify(responseJson, null, 4));
         res.json(responseJson);
     });
 });

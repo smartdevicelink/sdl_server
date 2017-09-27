@@ -73,14 +73,14 @@ function editAppPolicy (appIdPolicy, appObj) {
         }
         else if (permName.type = "MODULE") {
             appIdPolicy.moduleType.push(permName.name);
-            rpcPermissionSet["RemoteControl"] = null; //auto approve RemoteControl if these permissions are allowed
+            allowedGroupSet["RemoteControl"] = null; //auto approve RemoteControl if these permissions are allowed
         }
         
     }    
 
     // Specific check for the notification permission group
     if (appObj.can_background_alert) {
-        rpcPermissionSet["Notifications"] = null;
+        allowedGroupSet["Notifications"] = null;
     }
 
     //apply the permissions found
