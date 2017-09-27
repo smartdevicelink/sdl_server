@@ -55,12 +55,12 @@ INNER JOIN vehicle_data ON rpc_vehicle_parameters.vehicle_id = vehicle_data.id;
 
 
 INSERT INTO app_permissions (app_id, permission_name)
-SELECT app_id, rpc_id
+SELECT app_id, rpc_name
 FROM app_rpc_permissions
 INNER JOIN rpc_names ON app_rpc_permissions.rpc_id = rpc_names.id;
 
 INSERT INTO app_permissions (app_id, permission_name)
-SELECT DISTINCT app_id, vehicle_id
+SELECT DISTINCT app_id, component_name
 FROM app_vehicle_permissions
 INNER JOIN vehicle_data ON app_vehicle_permissions.vehicle_id = vehicle_data.id;
 
