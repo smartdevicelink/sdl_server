@@ -27,7 +27,6 @@ const permissions = [
     {name: "GetInteriorVehicleData", type: "RPC"},
     {name: "SetInteriorVehicleData", type: "RPC"},
     {name: "OnInteriorVehicleData", type: "RPC"},
-    {name: "SystemRequest", type: "RPC"},
     {name: "ScrollableMessage", type: "RPC"},
     {name: "Slider", type: "RPC"},
     {name: "ShowConstantTBT", type: "RPC"},

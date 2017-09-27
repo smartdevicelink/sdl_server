@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS permission_hmi_levels;
+DROP TABLE IF EXISTS app_permissions;
 DROP TABLE IF EXISTS permission_relations;
 DROP TABLE IF EXISTS function_group_permissions;
 DROP TABLE IF EXISTS permissions;

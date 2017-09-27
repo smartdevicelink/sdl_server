@@ -74,39 +74,30 @@ function updateFunctionalGroupInfo (callback) {
         },
         function (next) {
             //get all the permission data 
-            collectData('permissions', function (err, permissions) {
+            collectData('getPermissions', function (err, permissions) {
                 next(err, permissions);
             }); 
         },
         function (permissions, next) {
             //store permission relations in the database. these are separated from function group definitions
-            const relations = app.locals.builder.createPermissionRelations();
+            const relations = app.locals.builder.createPermissionRelations(permissions);
             //format into something relational that the DB can accept
             let dbRelations = [];
             for (let i = 0; i < relations.length; i++) {
                 const relation = relations[i];
                 for (let j = 0; j < relation.parents.length; j++) {
                     dbRelations.push({
-                        child_name: relation.permissionName,
-                        parent_name: relation.parents[j]
+                        child_permission_name: relation.permissionName,
+                        parent_permission_name: relation.parents[j]
                     });
                 }
             }
-            databaseCheckMultiInsert('permission_relations', dbRelation, next);
+            databaseCheckMultiInsert('permission_relations', dbRelations, next);
         },
         function (next) {
             async.parallel({
                 //make access to this information faster by converting the arrays of data
                 //to hashes, so lookup by property is possible
-                permissionNames: function (next) {
-                    databaseQuerySelect('*', 'permissions', {}, function (err, data) {
-                        let hash = {};
-                        for (let i = 0; i < data.length; i++) {
-                            hash[data[i].name] = data[i].id;
-                        }
-                        next(err, hash);
-                    });
-                },
                 functionalGroups: function (next) {
                     //get the functional group infos just inserted so we have a reference to their ids
                     //TODO: be able to specify STAGING or PRODUCTION when we add the routing for this
@@ -137,7 +128,7 @@ function updateFunctionalGroupInfo (callback) {
             const permissionDbObjs = permissions.map(function (permission) {
                 return {
                     function_group_id: data.functionalGroups[permission.functionalGroupName],
-                    permission_name: data.permissionNames[permission.permissionName]
+                    permission_name: permission.permissionName
                 };
             });
             //insert the generated permissions
@@ -264,7 +255,7 @@ function addExtraAppInformation (appObj, callback) {
             };
         });
 
-        const permissions = appObj.permissions.filter(function (perm) {
+        const permissions = appObj.permissions.map(function (perm) {
             return {
                 app_id: data.appId,
                 permission_name: perm.key
@@ -414,7 +405,7 @@ function databaseInsert (tableName, datum, callback) {
 function databaseQueryPropExists (tableName, databasePropName, dataPropValue, callback) {
     let propQuery = {};
     propQuery[databasePropName] = dataPropValue;
-    databaseQueryExists('*', tableName, propQuery, callback);
+    databaseQueryExists(tableName, propQuery, callback);
 }
 
 //given a table name and a query object,

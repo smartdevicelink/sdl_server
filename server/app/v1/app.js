@@ -131,7 +131,7 @@ function updateAppRequestInfo (callback) {
         //causing lots of unnecessary load on the SHAID server
         const requestTasks = requests.map(function (request) {
             return function (next) {
-                app.locals.log.info(JSON.stringify(request, null, 4));
+                //app.locals.log.info(JSON.stringify(request, null, 4));
                 appRequests.evaluateAppRequest(request, next);
             }
         });

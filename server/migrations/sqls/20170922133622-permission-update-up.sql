@@ -26,7 +26,7 @@ WITH ( OIDS = FALSE );
 CREATE TABLE app_permissions (
     "app_id" INTEGER REFERENCES app_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
     "permission_name" VARCHAR(64),
-    PRIMARY KEY (app_id, vehicle_id)
+    PRIMARY KEY (app_id, permission_name)
 )
 WITH ( OIDS = FALSE );
 
@@ -40,9 +40,6 @@ INSERT INTO permissions (name, type)
 SELECT DISTINCT component_name, 'PARAMETER'::permission_type
 FROM vehicle_data;
 
-DROP TYPE IF EXISTS rpc_names;
-DROP TYPE IF EXISTS vehicle_data;
-
 
 
 INSERT INTO function_group_permissions (function_group_id, permission_name)
@@ -54,9 +51,6 @@ INSERT INTO function_group_permissions (function_group_id, permission_name)
 SELECT DISTINCT function_group_id, component_name
 FROM rpc_vehicle_parameters
 INNER JOIN vehicle_data ON rpc_vehicle_parameters.vehicle_id = vehicle_data.id;
-
-DROP TABLE IF EXISTS rpc_permission;
-DROP TABLE IF EXISTS rpc_vehicle_parameters;
 
 
 
@@ -70,17 +64,17 @@ SELECT DISTINCT app_id, vehicle_id
 FROM app_vehicle_permissions
 INNER JOIN vehicle_data ON app_vehicle_permissions.vehicle_id = vehicle_data.id;
 
+
+
 DROP TABLE IF EXISTS app_rpc_permissions;
 DROP TABLE IF EXISTS app_vehicle_permissions;
 
+DROP TABLE IF EXISTS rpc_permission;
+DROP TABLE IF EXISTS rpc_vehicle_parameters;
 
+DROP TABLE IF EXISTS rpc_names;
+DROP TABLE IF EXISTS vehicle_data;
 
-ALTER TABLE module_config_retry_seconds
-ALTER COLUMN id INTEGER REFERENCES module_config (id) ON UPDATE CASCADE ON DELETE CASCADE,
 
 ALTER TABLE app_countries
-ALTER COLUMN app_id INTEGER REFERENCES app_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
-ALTER COLUMN country_iso CHAR(2) NOT NULL;
-
-ALTER TABLE display_names
-ALTER COLUMN app_id INTEGER;
+DROP CONSTRAINT app_countries_country_iso_fkey
