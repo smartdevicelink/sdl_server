@@ -30,6 +30,9 @@ CREATE TABLE app_permissions (
 )
 WITH ( OIDS = FALSE );
 
+UPDATE function_group_info
+SET edit_status = 'PRODUCTION'
+WHERE edit_status = 'STAGING'
 
 
 INSERT INTO permissions (name, type)
