@@ -78,54 +78,7 @@ module.exports = function (app) {
             app.locals.log.info("Getting permission updates");
         }
     };
-/*
-    const rpcNamesUpdate = {
-        getDataFunc: function (appObj) {
-            const rpcPermissions = appObj.permissions.filter(function (perm) {
-                return !perm.is_parameter;
-            });
-            const rpcPermissionKeys = rpcPermissions.map(function (permission) {
-                return permission.key;
-            });
-            return rpcPermissionKeys;
-        },
-        tableName: 'rpc_names',
-        databasePropName: 'rpc_name',
-        moduleFuncName: 'getRpcPermissions',
-        transformDataFunc: function (permission) {
-            return {
-                rpc_name: permission
-            };
-        },
-        errorCallback: function (permissionName) {
-            app.locals.log.info("RPC permission not found in local database: " + permissionName);
-            app.locals.log.info("Getting RPC permission updates");
-        }
-    };
 
-    const vehicleDataUpdate = {
-        getDataFunc: function (appObj) {
-            const vehicleDataPermissions = appObj.permissions.filter(function (perm) {
-                return perm.is_parameter;
-            });
-            return vehicleDataPermissions.map(function (permission) {
-                return permission.key;
-            });
-        },
-        tableName: 'vehicle_data',
-        databasePropName: 'component_name',
-        moduleFuncName: 'getVehicleDataPermissions',
-        transformDataFunc: function (permission) {
-            return {
-                component_name: permission
-            };
-        },
-        errorCallback: function (permissionName) {
-            app.locals.log.info("Vehicle data permission not found in local database: " + permissionName);
-            app.locals.log.info("Getting vehicle data permission updates");
-        }
-    };
-*/
     return {
         hmiLevelUpdate: hmiLevelUpdate,
         countriesUpdate: countriesUpdate,
