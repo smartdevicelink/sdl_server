@@ -5,8 +5,9 @@ let app = express();
 const appRequests = require('./request/index.js')(app);
 const functionalGroup = require('./policy/functionalGroup.js')(app);
 const appPolicy = require('./policy/appPolicy.js')(app);
-const consumerMessages = require('./policy/consumerMessages.js')(app)
-const moduleConfig = require('./policy/moduleConfig.js')(app)
+const consumerMessages = require('./policy/consumerMessages.js')(app);
+const moduleConfig = require('./policy/moduleConfig.js')(app);
+const request = require('request');
 
 module.exports = app;
 
@@ -48,6 +49,67 @@ app.on("mount", function (parent) {
         });
     });
 });
+
+//NOT READY FOR PRODUCTION YET
+/*
+app.route('/request')
+    .post(webhook)
+
+function webhook(req, res, next){
+    console.log('webhook received')
+    //make request to shaid here
+    if(req.body.entity === "application"){
+        request({
+            "method": "GET",
+            "uri": process.env.SHAID_URL + "api/v2/application?uuid=" + req.body.uuid,
+            "timeout": 10000,
+            "headers":{
+                "Content-Type": "application/json",
+                "public_key": process.env.SHAID_PUBLIC_KEY,
+                "secret_key": process.env.SHAID_SECRET_KEY
+            }
+        }, function(err, response, body){
+            if(err){
+                console.log("Network Error", err)
+            }else if(response.statusCode >= 200 && response.statusCode < 300){
+
+                let apps = JSON.parse(body).data.applications;
+                apps.map(function(newApp){
+                    app.locals.db.sqlCommand(sql.insert('app_info', {
+                        "app_uuid": newApp.uuid,
+                        "name": newApp.name,
+                        "vendor_id": newApp.vendor.id,
+                        "platform": newApp.platform,
+                        "plaform_app_id": newApp.plaform_app_id,
+                        "status": newApp.status,
+                        "can_background_alert": newApp.can_background_alert,
+                        "can_steal_focus": newApp.can_steal_focus,
+                        "default_hmi_level": newApp.default_hmi_level,
+                        "tech_email": newApp.tech_email,
+                        "tech_phone": newApp.tech_phone,
+                        "created_ts": newApp.created_ts,
+                        "updated_ts": newApp. updated_ts,
+                        "category_id": newApp.category.id,
+                        "approval_status": newApp.approval_status
+                    }), function(err, res){
+                        if(err){
+                            console.error(err)
+                        } else {
+                            console.log('app info added')
+                        }
+                    })
+                })
+                res.sendStatus(response.statusCode);
+
+            }else if(response.statusCode >= 400 && response.statusCode <= 403){
+                console.log(response.statusCode, body);
+            }else{
+                console.log(body);
+            }
+        })
+    }
+}
+*/
 
 //TODO: need a way to automatically get new SHAID info, whether it's via webhooks or by polling
 function appRequest (req, res, next) {
@@ -135,6 +197,7 @@ app.post('/staging/policy', validatePolicyTable, function (req, res, next) {
         policyTable.policy_table.consumer_friendly_messages = done[2];
         policyTable.policy_table.app_policies = done[3];
         let responseJson = {"data": [policyTable]};
+        //console.log(JSON.stringify(responseJson, null, 4));
         res.json(responseJson);
     });
 });

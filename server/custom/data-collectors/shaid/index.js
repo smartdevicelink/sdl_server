@@ -18,148 +18,47 @@ const shaid = new shaidkit(shaidInitObj);
 module.exports = function (log) {
     //exported functions. these are required to implement
     return {
-        //only "next" parameters here because this should be the first module called
-
         //when this function is called, invoke the 'next' function and pass in:
         //  an error if the request failed
         //  an array of applications that come from SHAID
-        getAppRequests: function (next) { 
+        getAppRequests: function (appRequests, next) { 
             //include group name or rpc/parameter for the group
             shaid.read(shaid.entity.application, {}, function (err, res) {
-                next(err, res.data.applications);
+                next(err, appRequests.concat(res.data.applications));
             }); 
         },
-        //when this function is called, invoke the 'next' function and pass in:
-        //  an error if the request failed
-        //  an array of possible HMI LEVELS as strings
-        getHmiLevels: function (next) {
-            //no external resource
-            let hmiLevels = [
-                "HMI_NONE",
-                "HMI_BACKGROUND",
-                "HMI_LIMITED",
-                "HMI_FULL"
-            ];
+        //do not handle
+        getHmiLevels: function (hmiLevels, next) {
             next(null, hmiLevels);
         },
         //when this function is called, invoke the 'next' function and pass in:
         //  an error if the request failed
         //  an array of valid countries that come from SHAID
-        getCountries: function (next) {
+        getCountries: function (countries, next) {
             shaid.read(shaid.entity.country, {}, function (err, res) {
-                next(err, res.data.countries);
+                next(err, countries.concat(res.data.countries));
             }); 
         },        
         //when this function is called, invoke the 'next' function and pass in:
         //  an error if the request failed
         //  an array of valid app categories that come from SHAID
-        getCategories: function (next) {
+        getCategories: function (categories, next) {
             shaid.read(shaid.entity.category, {}, function (err, res) {
-                next(err, res.data.categories);
+                next(err, categories.concat(res.data.categories));
             }); 
         },
-        //when this function is called, invoke the 'next' function and pass in:
-        //  an error if the request failed
-        //  an array of valid RPC permissions as strings
-        getRpcPermissions: function (next) {
-            let rpcPermissions = [
-                "RegisterAppInterface",
-                "UnregisterAppInterface",
-                "SetGlobalProperties",
-                "ResetGlobalProperties",
-                "AddCommand",
-                "DeleteCommand",
-                "AddSubMenu",
-                "DeleteSubMenu",
-                "CreateInteractionChoiceSet",
-                "PerformInteraction",
-                "DeleteInteractionChoiceSet",
-                "Alert",
-                "Show",
-                "Speak",
-                "SetMediaClockTimer",
-                "PerformAudioPassThru",
-                "EndAudioPassThru",
-                "SubscribeButton",
-                "UnsubscribeButton",
-                "SubscribeVehicleData",
-                "UnsubscribeVehicleData",
-                "GetVehicleData",
-                "ReadDID",
-                "GetDTCs",
-                "ScrollableMessage",
-                "Slider",
-                "ShowConstantTBT",
-                "AlertManeuver",
-                "UpdateTurnList",
-                "ChangeRegistration",
-                "GenericResponse",
-                "PutFile",
-                "DeleteFile",
-                "ListFiles",
-                "SetAppIcon",
-                "SetDisplayLayout",
-                "DiagnosticMessage",
-                "SystemRequest",
-                "SendLocation",
-                "DialNumber",
-                "GetWayPoints",
-                "SubscribeWayPoints",
-                "UnsubscribeWayPoints",
-                "OnHMIStatus",
-                "OnAppInterfaceUnregistered",
-                "OnButtonEvent",
-                "OnButtonPress",
-                "OnVehicleData",
-                "OnCommand",
-                "OnTBTClientState",
-                "OnDriverDistraction",
-                "OnPermissionsChange",
-                "OnAudioPassThru",
-                "OnLanguageChange",
-                "OnKeyboardInput",
-                "OnTouchEvent",
-                "OnSystemRequest",
-                "OnHashChange",
-                "OnWayPointChange",
-                "EncodedSyncPData",
-                "SyncPData",
-                "OnEncodedSyncPData",
-                "OnSyncPData"
-            ];
+        //do not handle
+        getPermissions: function (permissions, next) {
+            next(null, permissions);
+        },
+        //DEPRECATED
+        //do not handle
+        getRpcPermissions: function (rpcPermissions, next) {
             next(null, rpcPermissions);
         },
-        //when this function is called, invoke the 'next' function and pass in:
-        //  an error if the request failed
-        //  an array of valid vehicle data permissions as strings
-        getVehicleDataPermissions: function (next) {
-            let vehicleDataPermissions = [
-                "gps",
-                "speed",
-                "rpm",
-                "fuelLevel",
-                "fuelLevel_State",
-                "instantFuelConsumption",
-                "externalTemperature",
-                "prndl",
-                "tirePressure",
-                "odometer",
-                "beltStatus",
-                "bodyInformation",
-                "deviceStatus",
-                "driverBraking",
-                "wiperStatus",
-                "headLampStatus",
-                "engineTorque",
-                "accPedalPosition",
-                "steeringWheelAngle",
-                "eCallInfo",
-                "airbagStatus",
-                "emergencyEvent",
-                "clusterModeStatus",
-                "myKey",
-                "vin"
-            ];
+        //DEPRECATED
+        //do not handle
+        getVehicleDataPermissions: function (vehicleDataPermissions, next) {
             next(null, vehicleDataPermissions);
         }
     };

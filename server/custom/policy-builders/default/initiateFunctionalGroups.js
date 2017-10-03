@@ -1,144 +1,143 @@
 const functionalGroupDataObj = require('./functionalGroupData.js').functionalGroupDataObj;
+const alwaysAllowedGroupNames = require('./functionalGroupData.js').getAlwaysAllowedGroupNames();
 
 module.exports = {
     createDefaultFunctionalGroups: createDefaultFunctionalGroups,
     generatePermissions: generatePermissions,
-    editAppPolicy: editAppPolicy
+    editAppPolicy: editAppPolicy,
+    generatePermissionRelations: generatePermissionRelations
 };
 
 function createDefaultFunctionalGroups () {
     let functionGroupInfos = [];
     for (let prop in functionalGroupDataObj) {
-        functionGroupInfos.push(defineFunctionGroupInfo(prop, functionalGroupDataObj[prop].userConsentPrompt));
+        functionGroupInfos.push(defineFunctionGroupInfo(prop));
     }
     return functionGroupInfos;
 }
 
-function defineFunctionGroupInfo (propertyName, userConsentPrompt) {
+function defineFunctionGroupInfo (propertyName) {
+    const funcGroupObj = functionalGroupDataObj[propertyName];
     let obj = {
-        property_name: propertyName
+        property_name: propertyName,
+        status: "PRODUCTION" //put generated values in production
     };
-    if (userConsentPrompt !== undefined && userConsentPrompt !== null) {
-        obj.user_consent_prompt = userConsentPrompt;
+    if (funcGroupObj.userConsentPrompt !== undefined && funcGroupObj.userConsentPrompt !== null) {
+        obj.user_consent_prompt = funcGroupObj.userConsentPrompt;
     }
+    obj.is_default = !!funcGroupObj.alwaysAllow; //coerce to boolean. if is_default doesn't exist, then it's coerced to false
     return obj;
 }
 
 function editAppPolicy (appIdPolicy, appObj) {
-    //permissions are located in properties 'rpcPermissions' and 'vehiclePermissions' in appObj
-    let vehiclePermissionSet = {};
+    let allowedGroupSet = {};
+
+    //first, add the always allowed groups
+    alwaysAllowedGroupNames.map(function (groupName) {
+        allowedGroupSet[groupName] = null;
+    });
+
+    //permissions are located in the property 'permissions' in appObj
 
     //handle vehiclePermissions
     const vehicleGroupsToCheck = ["Location-1", "DrivingCharacteristics-3", "VehicleInfo-3", "Emergency-1"];
-
-    for (let i = 0; i < appObj.vehiclePermissions.length; i++) {
-        //given a permission name, get the functionalGroup that holds that permission
-        const permName = appObj.vehiclePermissions[i];
-
-        for (let j = 0; j < vehicleGroupsToCheck.length; j++) {
-            const permissions = functionalGroupDataObj[vehicleGroupsToCheck[j]].getPermissionsFunc()[1];
-            if (permissions.indexOf(permName) !== -1) {
-                vehiclePermissionSet[vehicleGroupsToCheck[j]] = null;
-                //end loop early
-                j = vehicleGroupsToCheck.length;
-            }            
-        }
-    }
-
-    //apply the permissions found
-    for (let prop in vehiclePermissionSet) {
-        appIdPolicy.groups.push(prop);
-    }
-
-    let rpcPermissionSet = {};
-
-    //ALWAYS allow apps access to permissions in the Base-4, OnKeyboardInputOnlyGroup, 
-    //OnTouchEventOnlyGroup, and DialNumberOnlyGroup functional groups
-    rpcPermissionSet["Base-4"] = null;
-    rpcPermissionSet["OnKeyboardInputOnlyGroup"] = null;
-    rpcPermissionSet["OnTouchEventOnlyGroup"] = null;
-    rpcPermissionSet["DialNumberOnlyGroup"] = null;
 
     //handle rpc permissions
     const rpcGroupsToCheck = ["ProprietaryData-3", "Navigation-1", "Base-6", "DiagnosticMessageOnly", 
         "SendLocation", "WayPoints", "BackgroundAPT"];
 
-    for (let i = 0; i < appObj.rpcPermissions.length; i++) {
-        //given a permission name, get the functionalGroup that holds that permission
-        const permName = appObj.rpcPermissions[i];
 
-        for (let j = 0; j < rpcGroupsToCheck.length; j++) {
-            const permissions = functionalGroupDataObj[rpcGroupsToCheck[j]].getPermissionsFunc()[0];
-            if (permissions.indexOf(permName) !== -1) {
-                rpcPermissionSet[rpcGroupsToCheck[j]] = null;
-                //end loop early
-                j = rpcGroupsToCheck.length;
-            }            
+    for (let i = 0; i < appObj.permissions.length; i++) {
+        //given a permission name, get the functionalGroup that holds that permission
+        //permName is an object with name and type
+        const permName = appObj.permissions[i];
+        if (permName.type === "RPC") {
+            for (let j = 0; j < rpcGroupsToCheck.length; j++) {
+                const permissions = functionalGroupDataObj[rpcGroupsToCheck[j]].getPermissionsFunc()[0];
+                if (permissions.indexOf(permName.name) !== -1) {
+                    allowedGroupSet[rpcGroupsToCheck[j]] = null;
+                    //end loop early
+                    j = rpcGroupsToCheck.length;
+                }            
+            }
         }
-    }
+        else if (permName.type === "PARAMETER") {
+            for (let j = 0; j < vehicleGroupsToCheck.length; j++) {
+                const permissions = functionalGroupDataObj[vehicleGroupsToCheck[j]].getPermissionsFunc()[1];
+                if (permissions.indexOf(permName.name) !== -1) {
+                    allowedGroupSet[vehicleGroupsToCheck[j]] = null;
+                    //end loop early
+                    j = vehicleGroupsToCheck.length;
+                }            
+            } 
+        }
+        else if (permName.type = "MODULE") {
+            appIdPolicy.moduleType.push(permName.name);
+            allowedGroupSet["RemoteControl"] = null; //auto approve RemoteControl if these permissions are allowed
+        }
+        
+    }    
 
     // Specific check for the notification permission group
     if (appObj.can_background_alert) {
-        rpcPermissionSet["Notifications"] = null;
+        allowedGroupSet["Notifications"] = null;
     }
 
     //apply the permissions found
-    for (let prop in rpcPermissionSet) {
+    for (let prop in allowedGroupSet) {
         appIdPolicy.groups.push(prop);
     }    
     return appIdPolicy;
 }
 
+function generatePermissionRelations (permissions) {
+    //permission relations are defined here. Any permission that depends on another permission existing is defined here
+    //For example, vehicle data permissions necessitate having permissions to GetVehicleData, etc.
+    const allVehicleRpcs = ["OnVehicleData", "GetVehicleData", "SubscribeVehicleData", "UnsubscribeVehicleData"];
+    const getVehicleRpcs = ["GetVehicleData"];
+    const allRemoteControlRpcs = ["ButtonPress", "GetInteriorVehicleData", "SetInteriorVehicleData", "OnInteriorVehicleData", "SystemRequest"];
+
+    const permissionRelations = []; 
+    for (let i = 0; i < permissions.length; i++) {
+        const permission = permissions[i];
+        if (permission.type === "PARAMETER") { //all vehicle parameters (at least for now...)
+            if (permission.name === "vin") {
+                permissionRelations.push({
+                    permissionName: permission.name,
+                    parents: getVehicleRpcs
+                });
+            }
+            else {
+                permissionRelations.push({
+                    permissionName: permission.name,
+                    parents: allVehicleRpcs
+                });
+            }
+        }
+        else if (permission.type === "MODULE") { //all module parameters
+            permissionRelations.push({
+                permissionName: permission.name,
+                parents: allRemoteControlRpcs
+            });
+        }
+    }
+    return permissionRelations;
+}
+
+//pair up functional group names with their respective permissions
 function generatePermissions () {
-    let rpcPermissionObjs = [];
-    let vehiclePermissionObjs = [];
+    let permissions = [];
 
     for (let functionalGroupName in functionalGroupDataObj) {
         const associatedPerms = functionalGroupDataObj[functionalGroupName].getPermissionsFunc();
-        const permissionsArray = addPermissionsTemplate(associatedPerms[0], associatedPerms[1], functionalGroupName);
-
-        rpcPermissionObjs = rpcPermissionObjs.concat(permissionsArray[0]);
-        vehiclePermissionObjs = vehiclePermissionObjs.concat(permissionsArray[1]);
-    }
-    return {
-        rpcPermissions: rpcPermissionObjs,
-        vehiclePermissions: vehiclePermissionObjs
-    };
-}
-
-function addPermissionsTemplate (addRpcArray, addVehicleArray, functionalGroupName) {
-    let rpcPermissions = [];
-    let vehicleDataPermissions = [];
-    for (let i = 0; i < addRpcArray.length; i++) {
-        rpcPermissions.push(addRpcPermission(addRpcArray[i], functionalGroupName));
-    }
-    for (let i = 0; i < addVehicleArray.length; i++) {
-        if (addVehicleArray[i] !== "vin") {
-            vehicleDataPermissions.push(addVehiclePermission('OnVehicleData', addVehicleArray[i], functionalGroupName));
-            vehicleDataPermissions.push(addVehiclePermission('GetVehicleData', addVehicleArray[i], functionalGroupName));
-            vehicleDataPermissions.push(addVehiclePermission('SubscribeVehicleData', addVehicleArray[i], functionalGroupName));
-            vehicleDataPermissions.push(addVehiclePermission('UnsubscribeVehicleData', addVehicleArray[i], functionalGroupName));
+        //combine RPC and vehicle parameters
+        const combinedPerms = associatedPerms[0].concat(associatedPerms[1]);
+        for (let j = 0; j < combinedPerms.length; j++) {
+            permissions.push({
+                functionalGroupName: functionalGroupName,
+                permissionName: combinedPerms[j]                
+            });
         }
-        else {
-            //vin only makes sense to be associated with a "GetVehicleData" RPC
-            vehicleDataPermissions.push(addVehiclePermission('GetVehicleData', addVehicleArray[i], functionalGroupName));
-        }
-
     }
-    return [rpcPermissions, vehicleDataPermissions];
-}
-
-function addRpcPermission (rpcName, functionalGroupName) {
-    return {
-        functionalGroupName: functionalGroupName,
-        rpcName: rpcName
-    };
-}
-
-function addVehiclePermission (rpcName, vehicleName, functionalGroupName) {
-    return {
-        functionalGroupName: functionalGroupName,
-        rpcName: rpcName,
-        vehicleName: vehicleName
-    };
+    return permissions;
 }

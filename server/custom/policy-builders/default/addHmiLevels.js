@@ -19,6 +19,7 @@ module.exports = function (funcGroupObj) {
     addLevelsToRpc(funcGroupObj, "Base-4", "EncodedSyncPData", levelsBFLN);
     addLevelsToRpc(funcGroupObj, "Base-4", "EndAudioPassThru", levelsBFL);
     addLevelsToRpc(funcGroupObj, "Base-4", "GenericResponse", levelsBFL);
+    addLevelsToRpc(funcGroupObj, "Base-4", "GetSystemCapability", levelsBFLN);
     addLevelsToRpc(funcGroupObj, "Base-4", "ListFiles", levelsBFLN);
     addLevelsToRpc(funcGroupObj, "Base-4", "OnAppInterfaceUnregistered", levelsBFLN);
     addLevelsToRpc(funcGroupObj, "Base-4", "OnAudioPassThru", levelsBFL);
@@ -53,7 +54,7 @@ module.exports = function (funcGroupObj) {
     quickAddVehicleRpcsBFL(funcGroupObj, "Location-1");
 
     addLevelsToRpc(funcGroupObj, "Notifications", "Alert", levelsB);
-
+    
     quickAddVehicleRpcsBFL(funcGroupObj, "DrivingCharacteristics-3");
 
     quickAddVehicleRpcsBFL(funcGroupObj, "VehicleInfo-3");
@@ -69,6 +70,12 @@ module.exports = function (funcGroupObj) {
     addLevelsToRpc(funcGroupObj, "ProprietaryData-3", "GetDTCs", levelsBFL);
     addLevelsToRpc(funcGroupObj, "ProprietaryData-3", "ReadDID", levelsBFL);
 
+    addLevelsToRpc(funcGroupObj, "RemoteControl", "ButtonPress", levelsBFL);    
+    addLevelsToRpc(funcGroupObj, "RemoteControl", "GetInteriorVehicleData", levelsBFL);    
+    addLevelsToRpc(funcGroupObj, "RemoteControl", "SetInteriorVehicleData", levelsBFL);    
+    addLevelsToRpc(funcGroupObj, "RemoteControl", "OnInteriorVehicleData", levelsBFL);    
+    addLevelsToRpc(funcGroupObj, "RemoteControl", "SystemRequest", levelsBFLN);    
+    
     quickAddVehicleRpcsBFL(funcGroupObj, "Emergency-1");
 
     addLevelsToRpc(funcGroupObj, "Navigation-1", "AlertManeuver", levelsBFL);
@@ -156,6 +163,9 @@ module.exports = function (funcGroupObj) {
     addLevelsToRpc(funcGroupObj, "BackgroundAPT", "PerformAudioPassThru", levelsB);
 
     addLevelsToRpc(funcGroupObj, "DialNumberOnlyGroup", "DialNumber", levelsFL);
+
+    addLevelsToRpc(funcGroupObj, "HapticGroup", "OnTouchEvent", levelsF);
+    addLevelsToRpc(funcGroupObj, "HapticGroup", "SendHapticData", levelsF);
 
     return funcGroupObj;
 }

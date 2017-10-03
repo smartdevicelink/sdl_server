@@ -8,8 +8,10 @@ module.exports = function (appObj) {
 	app = appObj;
     updateData = require('./update-data.js')(app);
     //include all the objects above in an array for future use
-    updateObjects = [updateData.hmiLevelUpdate, updateData.countriesUpdate, updateData.categoriesUpdate, 
-        updateData.rpcNamesUpdate, updateData.vehicleDataUpdate];
+    updateObjects = [];
+    for (let updateObj in updateData) {
+        updateObjects.push(updateData[updateObj]);
+    }
 	return {
         getAppRequests: getAppRequests,
         //getPendingApps: getPendingApps,
@@ -18,10 +20,9 @@ module.exports = function (appObj) {
         forceUpdate: forceUpdate
 	};
 }
-//TODO: ignore status of incoming apps, set to STAGING
-//when they get approved, they go to production
-//the difference of the different endpoints comes in here. in staging, approved and pending are given permission
-//in production only approved apps are given permission
+//TODO: ignore status of incoming apps, set to PRODUCTION
+//the difference of the different endpoints comes in here. in a staging API route, approved and pending are given permission
+//in a production API route only approved apps are given permission
 
 function getAppRequests (callback) {
     //use the data collectors to get application request data
@@ -69,32 +70,34 @@ function updateFunctionalGroupInfo (callback) {
         function (next) {
             //store template functional group info in the database
             const groups = app.locals.builder.initiateFunctionalGroups();
-            databaseCheckMultiInsert('function_group_info', 'property_name', groups, function (err) {
-                next(err);
-            });
+            databaseCheckPropMultiInsert('function_group_info', 'property_name', groups, next);
+        },
+        function (next) {
+            //get all the permission data 
+            collectData('getPermissions', function (err, permissions) {
+                next(err, permissions);
+            }); 
+        },
+        function (permissions, next) {
+            //store permission relations in the database. these are separated from function group definitions
+            const relations = app.locals.builder.createPermissionRelations(permissions);
+            //format into something relational that the DB can accept
+            let dbRelations = [];
+            for (let i = 0; i < relations.length; i++) {
+                const relation = relations[i];
+                for (let j = 0; j < relation.parents.length; j++) {
+                    dbRelations.push({
+                        child_permission_name: relation.permissionName,
+                        parent_permission_name: relation.parents[j]
+                    });
+                }
+            }
+            databaseCheckMultiInsert('permission_relations', dbRelations, next);
         },
         function (next) {
             async.parallel({
                 //make access to this information faster by converting the arrays of data
                 //to hashes, so lookup by property is possible
-                rpcNames: function (next) {
-                    databaseQuerySelect('*', 'rpc_names', {}, function (err, data) {
-                        let hash = {};
-                        for (let i = 0; i < data.length; i++) {
-                            hash[data[i].rpc_name] = data[i].id;
-                        }
-                        next(err, hash);
-                    });
-                },
-                vehicleDataNames: function (next) {
-                    databaseQuerySelect('*', 'vehicle_data', {}, function (err, data) {
-                        let hash = {};
-                        for (let i = 0; i < data.length; i++) {
-                            hash[data[i].component_name] = data[i].id;
-                        }
-                        next(err, hash);
-                    });
-                },
                 functionalGroups: function (next) {
                     //get the functional group infos just inserted so we have a reference to their ids
                     //TODO: be able to specify STAGING or PRODUCTION when we add the routing for this
@@ -105,7 +108,7 @@ function updateFunctionalGroupInfo (callback) {
                     const fullFuncGroupInfoStr = sql.select('function_group_info.*')
                         .from('(' + groupedFuncGroupInfoStr + ') group_fgi')
                         .join('function_group_info', {'function_group_info.id': 'group_fgi.id'})
-                        .where({'group_fgi.status': 'STAGING'}).toString();
+                        .where({'group_fgi.status': 'PRODUCTION'}).toString();
 
                     app.locals.db.sqlCommand(fullFuncGroupInfoStr, function (err, data) {
                         let hash = {};
@@ -122,34 +125,15 @@ function updateFunctionalGroupInfo (callback) {
         function (data, next) {
             //create permissions for all the defined functional groups
             const permissions = app.locals.builder.createGroupPermissions();
-            const rpcPermissions = permissions.rpcPermissions;
-            const vehicleDataPermissions = permissions.vehiclePermissions;
-            //convert the returned arrays of objects into something the database can understand
-            //by converting the information from names into IDs
-            const rpcPermissionDbObjs = rpcPermissions.map(function (rpcPermission) {
+            const permissionDbObjs = permissions.map(function (permission) {
                 return {
-                    function_group_id: data.functionalGroups[rpcPermission.functionalGroupName],
-                    rpc_id: data.rpcNames[rpcPermission.rpcName]
+                    function_group_id: data.functionalGroups[permission.functionalGroupName],
+                    permission_name: permission.permissionName
                 };
             });
-            const vehiclePermissionDbObjs = vehicleDataPermissions.map(function (vehiclePermission) {
-                return {
-                    function_group_id: data.functionalGroups[vehiclePermission.functionalGroupName],
-                    rpc_id: data.rpcNames[vehiclePermission.rpcName],
-                    vehicle_id: data.vehicleDataNames[vehiclePermission.vehicleName]
-                };
-            });
-            next(null, rpcPermissionDbObjs, vehiclePermissionDbObjs);
-        },
-        function (rpcPermissions, vehicleDataPermissions, next) {
             //insert the generated permissions
-            const addRpcPermissionCommands = rpcPermissions.map(function (perm) {
-                return databaseCheckInsert('rpc_permission', 'function_group_id', perm);
-            });
-            const addVehiclePermissionCommands = vehicleDataPermissions.map(function (perm) {
-                return databaseCheckInsert('rpc_vehicle_parameters', 'function_group_id', perm);         
-            });
-            async.parallel(addRpcPermissionCommands.concat(addVehiclePermissionCommands), next);             
+            //databaseCheckPropMultiInsert('function_group_permissions', 'function_group_id', permissionDbObjs, next);
+            databaseCheckMultiInsert('function_group_permissions', permissionDbObjs, next);
         }
     ], function (err) {
         if (err) {
@@ -207,6 +191,7 @@ function insertAppRequest (appObj, callback) {
             });
         },
         function (next) {
+            //insert vendor info
             app.locals.db.sqlCommand(vendorInsertStr, function (err, data) {
                 next(err);
             });            
@@ -250,33 +235,13 @@ function addExtraAppInformation (appObj, callback) {
             app.locals.db.sqlCommand(queryStr, function (err, data) {
                 next(err, data.rows[0].max);                
             }); 
-        },
-        //hash the names of permissions for easy lookup to their ids
-        rpcNameHash: function (next) {
-            const rpcNamesStr = sql.select('*').from('rpc_names').toString();
-            app.locals.db.sqlCommand(rpcNamesStr, function (err, data) {
-                let hash = {};
-                for (let i = 0; i < data.rows.length; i++) {
-                    hash[data.rows[i].rpc_name] = data.rows[i].id;
-                }
-                next(err, hash);
-            });                    
-        },
-        vehicleDataNameHash: function (next) {
-            const vehicleNamesStr = sql.select('*').from('vehicle_data').toString();
-            app.locals.db.sqlCommand(vehicleNamesStr, function (err, data) {
-                let hash = {};
-                for (let i = 0; i < data.rows.length; i++) {
-                    hash[data.rows[i].component_name] = data.rows[i].id;
-                }
-                next(err, hash);
-            });                    
-        },
+        }
     }, function (err, data) {
         if (err) {
             app.locals.log.error(err);
         }
 		//insert the extra information about the app
+
         const appCountries = appObj.countries.map(function (country) {
             return {
                 app_id: data.appId,
@@ -290,24 +255,11 @@ function addExtraAppInformation (appObj, callback) {
             };
         });
 
-        const rpcPermissions = appObj.permissions.filter(function (perm) {
-        	return !perm.is_parameter;
-        });       
-        const vehicleDataPermissions = appObj.permissions.filter(function (perm) {
-        	return perm.is_parameter;
-        }); 
-
-        const rpcPermissionIds = rpcPermissions.map(function (permission) {
+        const permissions = appObj.permissions.map(function (perm) {
             return {
                 app_id: data.appId,
-                rpc_id: data.rpcNameHash[permission.key]
-            };
-        });       
-        const vehicleDataPermissionIds = vehicleDataPermissions.map(function (permission) {
-            return {
-                app_id: data.appId,
-                vehicle_id: data.vehicleDataNameHash[permission.key]
-            };
+                permission_name: perm.key
+            }
         });
 
         let insertStrings = [];
@@ -317,25 +269,23 @@ function addExtraAppInformation (appObj, callback) {
         if (displayNames.length > 0) {
             insertStrings.push(sql.insert('display_names').values(displayNames).toString());
         }
-        if (rpcPermissionIds.length > 0) {
-            insertStrings.push(sql.insert('app_rpc_permissions').values(rpcPermissionIds).toString());
-        }
-        if (vehicleDataPermissionIds.length > 0) {
-            insertStrings.push(sql.insert('app_vehicle_permissions').values(vehicleDataPermissionIds).toString());
+        if (permissions.length > 0) {
+            insertStrings.push(sql.insert('app_permissions').values(permissions).toString());
         }
 
         const insertFunctions = insertStrings.map(function (insertStr) {
             return function (next) {
                 app.locals.db.sqlCommand(insertStr, function (err, data) {
-                    next(err);
+                    //do not error out if some insert fails for whatever reason. do log it
+                    if (err) {
+                        app.locals.log.error(err);
+                    }                    
+                    next(); 
                 });                 
             }
         });
 
         async.parallel(insertFunctions, function (err) {
-            if (err) {
-                app.locals.log.error(err);
-            }
             callback(); //done
         });
     });         
@@ -345,7 +295,7 @@ function addExtraAppInformation (appObj, callback) {
 function performUpdateCycle (dataArray, tableName, databasePropName, moduleFuncName, errorCallback, transformDataFunc, callback) {
     const dataChecker = dataArray.map(function (datum) {
         return function (next) {
-            databaseQueryExists(tableName, databasePropName, datum, function (exists) {
+            databaseQueryPropExists(tableName, databasePropName, datum, function (exists) {
                 if (exists) {
                     next();
                 }
@@ -384,7 +334,7 @@ function databaseUpdate (tableName, databasePropName, moduleFuncName, transformD
         });
         //stage two: uses the updated data array and previously known information to check and store
         //data that previously did not exist in the database
-        databaseCheckMultiInsert(tableName, databasePropName, transformedDataArray, callback);
+        databaseCheckPropMultiInsert(tableName, databasePropName, transformedDataArray, callback);
     });
 }
 
@@ -404,9 +354,11 @@ function collectData (moduleFunction, callback) {
 }
 
 //executes on an array of data to insert into the database
-function databaseCheckMultiInsert (tableName, databasePropName, dataArray, callback) {
+function databaseCheckPropMultiInsert (tableName, databasePropName, dataArray, callback) {
     const dataChecker = dataArray.map(function (datum) {
-        return databaseCheckInsert(tableName, databasePropName, datum);
+        let propQuery = {};
+        propQuery[databasePropName] = datum[databasePropName];
+        return databaseCheckInsert(tableName, propQuery, datum);
     });
     //run the insert functions
     async.parallel(dataChecker, function (err) {
@@ -414,12 +366,21 @@ function databaseCheckMultiInsert (tableName, databasePropName, dataArray, callb
     });
 }
 
-//inserts a piece of data in the database only if it was checked through a property that the data doesn't exist yet
-//doesn't actually execute an insert: returns a function to be passed into async to be executed in the future
-function databaseCheckInsert (tableName, databasePropName, datum) {
-    //check the DB for the piece of datum using one of its properties
+//executes on an array of data to insert into the database
+function databaseCheckMultiInsert (tableName, dataArray, callback) {
+    const dataChecker = dataArray.map(function (datum) {
+        return databaseCheckInsert(tableName, datum, datum);
+    });
+    //run the insert functions
+    async.parallel(dataChecker, function (err) {
+        callback(err);
+    });
+}
+
+function databaseCheckInsert (tableName, propQuery, datum) {
+    //check the DB for if the datum exists. use the whole propQuery object for the existence check
     return function (next) {
-        databaseQueryExists(tableName, databasePropName, datum[databasePropName], function (exists) {
+        databaseQueryExists(tableName, propQuery, function (exists) {
             if (exists) {
                 next(); //don't add it
             }
@@ -441,12 +402,18 @@ function databaseInsert (tableName, datum, callback) {
 
 //given a table name, a property to query and the value of the query,
 //check whether that data exists in the database
-function databaseQueryExists (tableName, databasePropName, dataPropValue, callback) {
+function databaseQueryPropExists (tableName, databasePropName, dataPropValue, callback) {
     let propQuery = {};
     propQuery[databasePropName] = dataPropValue;
+    databaseQueryExists(tableName, propQuery, callback);
+}
+
+//given a table name and a query object,
+//check whether that data exists in the database
+function databaseQueryExists (tableName, propQuery, callback) {
     databaseQuerySelect('*', tableName, propQuery, function (err, data) {
-    	//return whether the data doesn't exist in the DB
-    	callback(data.length !== 0);
+        //return whether the data doesn't exist in the DB
+        callback(data.length !== 0);
     });
 }
 
