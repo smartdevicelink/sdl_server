@@ -29,7 +29,7 @@
                 </li>
                 -->
             </ul>
-            <button type="button" onclick='$("#user-sidebar").show()' class="btn btn-link"><i class="fa fa-fw fa-user-o color-white"></i></button>
+            <button type="button" onclick='$("#user-sidebar").show()' class="btn btn-link hover-color-green"><i class="fa fa-fw fa-user-o color-white"></i></button>
         </div>
     </nav>
 
@@ -200,18 +200,16 @@
                 <div class="app-table">
                     <h4>Policy Table Preview</h2>
                     <div class="policy-table">
-                        <pre class="prettyprint linenums">class Voila {
-    public:
-      // Voila
-      static const string VOILA = "Voila";
-
-      // will not interfere with embedded <a href="#voila2">tags</a>.
-class Voila {
-      public:
-      // Voila
-      static const string VOILA = "Voila";
-
-      // will not interfere with embedded <a href="#voila2">tags</a>.
+                        <pre class="prettyprint linenums hidenums">{
+    "6ff40ba7-e1d2-425c-b60e-231847377caa": {
+        "keep_context": false,
+        "steal_focus": false,
+        "priority": "NONE",
+        "default_hmi": "NONE",
+        "groups": [
+        "Base-4"
+        ]
+    }
 }</pre>
                     </div>
                 </div>
@@ -258,8 +256,8 @@ class Voila {
                         </a>
                     </div>
                     <div>
-                        <a href="#" class="btn btn-card btn-user-sidebar btn-style-green">Logout</a>
-                        <a href="#" class="btn btn-card btn-user-sidebar btn-style-white">Invite Members</a>
+                        <a href="login.html" class="btn btn-card btn-user-sidebar btn-style-green">Logout</a>
+                        <a href="inviteusers.html" class="btn btn-card btn-user-sidebar btn-style-white">Invite Members</a>
                     </div>
                 </div>
 

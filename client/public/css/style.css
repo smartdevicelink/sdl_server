@@ -1,55 +1,55 @@
 @font-face {
     font-family: 'LivioNorm';
-    src: url('./fonts/LivioNorm/LivioNorm-Light-WebS.eot');
-    src: url('./fonts/LivioNorm/LivioNorm-Light-WebS.eot?#iefix') format('embedded-opentype'),
-    url('./fonts/LivioNorm/LivioNorm-Light-WebS.woff2') format('woff2'),
-    url('./fonts/LivioNorm/LivioNorm-Light-WebS.woff') format('woff'),
-    url('./fonts/LivioNorm/LivioNorm-Light-WebS.ttf') format('ttf'),
-    url('./fonts/LivioNorm/LivioNorm-Light-WebS.svg') format('svg');
+    src: url('../fonts/LivioNorm/LivioNorm-Light-WebS.eot');
+    src: url('../fonts/LivioNorm/LivioNorm-Light-WebS.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/LivioNorm/LivioNorm-Light-WebS.woff2') format('woff2'),
+    url('../fonts/LivioNorm/LivioNorm-Light-WebS.woff') format('woff'),
+    url('../fonts/LivioNorm/LivioNorm-Light-WebS.ttf') format('ttf'),
+    url('../fonts/LivioNorm/LivioNorm-Light-WebS.svg') format('svg');
     font-weight: 200;
 }
 
 @font-face {
     font-family: 'LivioNorm';
-    src: url('./fonts/LivioNorm/LivioNorm-Regular-WebS.eot');
-    src: url('./fonts/LivioNorm/LivioNorm-Regular-WebS.eot?#iefix') format('embedded-opentype'),
-    url('./fonts/LivioNorm/LivioNorm-Regular-WebS.woff2') format('woff2'),
-    url('./fonts/LivioNorm/LivioNorm-Regular-WebS.woff') format('woff'),
-    url('./fonts/LivioNorm/LivioNorm-Regular-WebS.ttf') format('ttf'),
-    url('./fonts/LivioNorm/LivioNorm-Regular-WebS.svg') format('svg');
+    src: url('../fonts/LivioNorm/LivioNorm-Regular-WebS.eot');
+    src: url('../fonts/LivioNorm/LivioNorm-Regular-WebS.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/LivioNorm/LivioNorm-Regular-WebS.woff2') format('woff2'),
+    url('../fonts/LivioNorm/LivioNorm-Regular-WebS.woff') format('woff'),
+    url('../fonts/LivioNorm/LivioNorm-Regular-WebS.ttf') format('ttf'),
+    url('../fonts/LivioNorm/LivioNorm-Regular-WebS.svg') format('svg');
     font-weight: 400;
 }
 
 @font-face {
     font-family: 'LivioNorm';
-    src: url('./fonts/LivioNorm/LivioNorm-Medium-WebS.eot');
-    src: url('./fonts/LivioNorm/LivioNorm-Medium-WebS.eot?#iefix') format('embedded-opentype'),
-    url('./fonts/LivioNorm/LivioNorm-Medium-WebS.woff2') format('woff2'),
-    url('./fonts/LivioNorm/LivioNorm-Medium-WebS.woff') format('woff'),
-    url('./fonts/LivioNorm/LivioNorm-Medium-WebS.ttf') format('ttf'),
-    url('./fonts/LivioNorm/LivioNorm-Medium-WebS.svg') format('svg');
+    src: url('../fonts/LivioNorm/LivioNorm-Medium-WebS.eot');
+    src: url('../fonts/LivioNorm/LivioNorm-Medium-WebS.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/LivioNorm/LivioNorm-Medium-WebS.woff2') format('woff2'),
+    url('../fonts/LivioNorm/LivioNorm-Medium-WebS.woff') format('woff'),
+    url('../fonts/LivioNorm/LivioNorm-Medium-WebS.ttf') format('ttf'),
+    url('../fonts/LivioNorm/LivioNorm-Medium-WebS.svg') format('svg');
     font-weight: 500;
 }
 
 @font-face {
     font-family: 'LivioNorm';
-    src: url('./fonts/LivioNorm/LivioNorm-Bold-WebS.eot');
-    src: url('./fonts/LivioNorm/LivioNorm-Bold-WebS.eot?#iefix') format('embedded-opentype'),
-    url('./fonts/LivioNorm/LivioNorm-Bold-WebS.woff2') format('woff2'),
-    url('./fonts/LivioNorm/LivioNorm-Bold-WebS.woff') format('woff'),
-    url('./fonts/LivioNorm/LivioNorm-Bold-WebS.ttf') format('ttf'),
-    url('./fonts/LivioNorm/LivioNorm-Bold-WebS.svg') format('svg');
+    src: url('../fonts/LivioNorm/LivioNorm-Bold-WebS.eot');
+    src: url('../fonts/LivioNorm/LivioNorm-Bold-WebS.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/LivioNorm/LivioNorm-Bold-WebS.woff2') format('woff2'),
+    url('../fonts/LivioNorm/LivioNorm-Bold-WebS.woff') format('woff'),
+    url('../fonts/LivioNorm/LivioNorm-Bold-WebS.ttf') format('ttf'),
+    url('../fonts/LivioNorm/LivioNorm-Bold-WebS.svg') format('svg');
     font-weight: 600;
 }
 
 @font-face {
     font-family: 'LivioMono';
-    src: url('./fonts/LivioNorm/LivioMono-Regular-WebS.eot');
-    src: url('./fonts/LivioNorm/LivioMono-Regular-WebS.eot?#iefix') format('embedded-opentype'),
-    url('./fonts/LivioNorm/LivioMono-Regular-WebS.woff2') format('woff2'),
-    url('./fonts/LivioNorm/LivioMono-Regular-WebS.woff') format('woff'),
-    url('./fonts/LivioNorm/LivioMono-Regular-WebS.ttf') format('ttf'),
-    url('./fonts/LivioNorm/LivioMono-Regular-WebS.svg') format('svg');
+    src: url('../fonts/LivioNorm/LivioMono-Regular-WebS.eot');
+    src: url('../fonts/LivioNorm/LivioMono-Regular-WebS.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/LivioNorm/LivioMono-Regular-WebS.woff2') format('woff2'),
+    url('../fonts/LivioNorm/LivioMono-Regular-WebS.woff') format('woff'),
+    url('../fonts/LivioNorm/LivioMono-Regular-WebS.ttf') format('ttf'),
+    url('../fonts/LivioNorm/LivioMono-Regular-WebS.svg') format('svg');
     font-weight: 400;
 }
 
@@ -87,8 +87,13 @@ h4 {
     font-weight: bold;
 }
 
-textarea, input, button {
-    outline: none;
+a, textarea, input, button, label, a:focus, textarea:focus, input:focus, button:focus, label:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+form input:valid {
+    color: #78C970 !important;
 }
 
 .w-auto {
@@ -96,6 +101,10 @@ textarea, input, button {
 }
 .text-wrap {
     white-space: normal !important;
+}
+
+.text-muted {
+    color: #CCCCCC !important;
 }
 
 div.horizontal-divider {
@@ -128,6 +137,7 @@ div.horizontal-divider .text {
 .navbar-brand {
     color: #FFFFFF!important;
     margin-right: 0px;
+    width: auto;
 }
 
 .nav-bg {
@@ -145,7 +155,6 @@ div.horizontal-divider .text {
 
 
 .content {
-    position: fixed;
     min-height: 100%;
 }
 
@@ -157,7 +166,7 @@ div.horizontal-divider .text {
 
 .sidebar {
     position: fixed;
-    top: 51px;
+    top: 57px;
     bottom: 0;
     left: 0;
     z-index: 1000;
@@ -320,6 +329,12 @@ div.horizontal-divider .text {
 /*
 * Buttons
 */
+.btn {
+    border: none;
+}
+.btn-group-vertical>.btn:hover, .btn-group>.btn:hover {
+    z-index: 1;
+}
 .btn-user-sidebar {
     display: flex;
     justify-content: center;
@@ -505,8 +520,11 @@ input:checked + .slider:before {
     background-color: #F4F5F7;
 }
 
-.hover-color-green:hover {
-    color: #78C970;
+.hover-color-green:hover, .hover-color-green:hover > * {
+    color: #78C970 !important;
+}
+.hover-color-red:hover, .hover-color-red:hover > * {
+    color: #FF5E71 !important;
 }
 
 
@@ -540,7 +558,7 @@ input:checked + .slider:before {
     box-shadow: 0 20px 70px 0 #efefef;
     border: none;
     margin: auto;
-    margin-top: 100px;
+    margin-top: 3rem;
 }
 .card-settings {
     padding: 25px 25px;
@@ -555,6 +573,7 @@ input:checked + .slider:before {
     font-size: 14px;
     border: none;
     border-bottom: 1px solid #384F61;
+    line-height: 2rem;
 }
 .card-link {
     margin-bottom: 2rem;
@@ -562,13 +581,25 @@ input:checked + .slider:before {
     color: #384F61;
     text-transform: uppercase;
     letter-spacing: 2px;
+    /*
+    justify-content: space-between;
+    align-items: center;
+    display: flex;
+    */
+}
+.card-link a {
+    color: inherit;
+}
+.card-link a:hover {
+    text-decoration: none;
+    color: #78C970;
 }
 .card-link .active {
     border-bottom: solid 1px #78C970;
     color: #78C970;
 }
 .card-link-spacer {
-    margin: 0px 30px;
+    margin: 0px 20px;
 }
 .auth-content {
     width: 350px;
@@ -611,6 +642,7 @@ input:checked + .slider:before {
     color: #384F61;
     font-size: 15px;
     margin-top: 35px;
+    letter-spacing: .1em;
 }
 .settings-content label {
     font-size: 14px;
@@ -663,6 +695,7 @@ input:checked + .slider:before {
     border-bottom: 1px solid #EEEEEE;
     justify-content: space-between;
     color: #384F61;
+    letter-spacing: .1em;
 }
 .another-member:hover {
     background-color: #384F61;
@@ -684,11 +717,36 @@ input:checked + .slider:before {
 }
 
 
+.back-to-top {
+    cursor: pointer;
+    position: fixed;
+    bottom: 70px;
+    right: 20px;
+    display:none;
+    border: none;
+    background-color: #78C970;
+    color: #FFFFFF;
+}
+.back-to-top:hover {
+    background-color: #384F61;
+    color: #FFFFFF;
+}
+
+
 /*
 * code-prettify custom CSS override
 */
 pre.prettyprint {
     border: none !important;
+}
+
+.prettyprint ol.linenums {
+    padding-left: 60px;
+    display: inline-table;
+}
+
+.hidenums > ol{
+    padding-left: 0px !important;
 }
 
 li.L0, li.L1, li.L2, li.L3, li.L4,
