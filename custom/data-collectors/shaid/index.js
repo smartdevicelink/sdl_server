@@ -1,5 +1,5 @@
 const shaidkit = require('shaidkit');
-const config = require('../../../config.js');
+const config = require('../../../settings.js');
 
 //initialize the shaid kit
 let shaidInitObj = {

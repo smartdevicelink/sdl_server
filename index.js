@@ -4,7 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const EventEmitter = require('events');
-const config = require('./config.js'); //configuration module
+const config = require('./settings.js'); //configuration module
 //load custom modules described in the config
 const log = require(`./custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`./custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded

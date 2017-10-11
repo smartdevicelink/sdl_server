@@ -3,7 +3,8 @@
     "version": "1.0.0",
     "license": "BSD-3-Clause",
     "description": "Integrates with SHAID to allow managing app permissions through policy tables",
-    "author": "Nick Schwab <nick.schwab@livio.io>",
+    "author": "Livio",
+    "contributors": ["Nick Schwab <nick.schwab@livio.io>", "Chris Rokita <chris@livio.io>"],
     "private": true,
     "scripts": {
         "dev": "node build/dev-server.js",

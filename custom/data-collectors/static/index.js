@@ -1,4 +1,4 @@
-const config = require('../../../config.js');
+const config = require('../../../settings.js');
 const permissions = require('./permissions.js');
 
 module.exports = function (log) {
