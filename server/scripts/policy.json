@@ -99,6 +99,12 @@
                         "FULL",
                         "LIMITED"]
                     },
+                    "GetSystemCapability": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
                     "ListFiles": {
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
@@ -474,6 +480,36 @@
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
                         "LIMITED"]
+                    }
+                }
+            },
+            "RemoteControl": {
+                "rpcs": {
+                    "ButtonPress": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED"]
+                    },
+                    "GetInteriorVehicleData": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED"]
+                    },
+                    "SetInteriorVehicleData": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED"]
+                    },
+                    "OnInteriorVehicleData": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED"]
+                    },
+                    "SystemRequest": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
                     }
                 }
             },
@@ -936,6 +972,24 @@
                     },
                     "PerformAudioPassThru": {
                         "hmi_levels": ["BACKGROUND"]
+                    }
+                }
+            },
+            "DialNumberOnlyGroup": {
+                "rpcs": {
+                    "DialNumber": {
+                        "hmi_levels": ["FULL",
+                        "LIMITED"]
+                    }
+                }
+            },
+            "HapticGroup": {
+                "rpcs": {
+                    "OnTouchEvent": {
+                        "hmi_levels": ["FULL"]
+                    },
+                    "SendHapticData": {
+                        "hmi_levels": ["FULL"]
                     }
                 }
             }
