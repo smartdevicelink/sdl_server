@@ -5,16 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const EventEmitter = require('events');
 const config = require('./settings.js'); //configuration module
-//load custom modules described in the config
-const log = require(`./custom/loggers/${config.loggerModule}/index.js`);
-const db = require(`./custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
-
-//require an array of modules used to get updated information from sources (ex. SHAID) to the database
-const collectors = config.collectors.map(function (module) {
-    return require(`./custom/data-collectors/${module}/index.js`)(log);
-});
-
-const builder = require(`./custom/policy-builders/${config.builderModule}/index.js`)(log);
+const log = require(`./custom/loggers/${config.loggerModule}/index.js`); //logger module
 
 const versions = ["1"];
 const rootLocation = __dirname + '/../client/public';
@@ -22,21 +13,13 @@ const rootLocation = __dirname + '/../client/public';
 let app = express();
 app.use(bodyParser.json()); //allow json parsing
 app.use(bodyParser.urlencoded({extended: true})); //for parsing application/x-www-form-urlencoded
-//TODO: postpone UI until after initial launch
-//app.use(express.static(rootLocation)); //expose webpages
-
-//attach custom modules
-app.locals.config = config;
-app.locals.log = log;
-app.locals.db = db;
-app.locals.collectors = collectors;
-app.locals.builder = builder;
-app.locals.events = new EventEmitter();
 
 //load all routes located in the app directory using a v<version number> naming convention
 for (let i in versions){
     app.use(["/api/v"+versions[i], "/api/"+versions[i]], require("./app/v" + versions[i] + "/app"));
 }
+
+app.use(express.static(__dirname + '/dist'));
 
 //global routes
 
@@ -65,6 +48,4 @@ app.use(function (req, res) {
 //start the server
 app.listen(config.policyServerPort, function () {
     log.info(`Policy server started on port ${config.policyServerPort}!`);
-    log.info(`Updating database information and generating functional groups...`);
-    app.locals.events.emit('update');
 });
