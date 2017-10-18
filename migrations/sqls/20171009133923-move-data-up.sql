@@ -57,6 +57,13 @@ ADD "icon_url" TEXT;
 
 DROP TABLE IF EXISTS function_group_permissions;
 
+UPDATE message_text
+SET status = 'PRODUCTION'
+WHERE status = 'STAGING';
+
+UPDATE module_config
+SET status = 'PRODUCTION'
+WHERE status = 'STAGING';
 
 CREATE OR REPLACE VIEW view_module_config AS
 SELECT module_config.* 
