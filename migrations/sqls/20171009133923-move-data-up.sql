@@ -38,13 +38,54 @@ CREATE TABLE forgot_password_hash (
 )
 WITH ( OIDS = FALSE );
 
+CREATE TABLE app_auto_approval (
+    "app_uuid" VARCHAR(36),
+    "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+    PRIMARY KEY (app_uuid)
+)
+WITH ( OIDS = FALSE );
+
 ALTER TABLE app_permissions
 ADD "hmi_level" hmi_level;
 
 ALTER TABLE function_group_info
 ADD "deleted_ts" TIMESTAMP WITHOUT TIME ZONE;
 
+ALTER TABLE app_info
+ADD "denial_message" TEXT,
+ADD "icon_url" TEXT;
+
 DROP TABLE IF EXISTS function_group_permissions;
+
+
+CREATE OR REPLACE VIEW view_module_config AS
+SELECT module_config.* 
+FROM (
+SELECT status, max(id) AS id
+    FROM module_config
+    GROUP BY status
+) AS vmc
+INNER JOIN module_config ON vmc.id = module_config.id;
+
+
+CREATE OR REPLACE VIEW view_message_text AS
+SELECT message_text.* 
+FROM (
+SELECT message_category, language_id, status, max(id) AS id
+    FROM message_text
+    GROUP BY message_category, language_id, status
+) AS vcfm
+INNER JOIN message_text ON vcfm.id = message_text.id;
+
+
+CREATE OR REPLACE VIEW view_function_group_info AS
+SELECT function_group_info.* 
+FROM (
+SELECT property_name, status, max(id) AS id
+    FROM function_group_info
+    GROUP BY property_name, status
+) AS vfgi
+INNER JOIN function_group_info ON vfgi.id = function_group_info.id;
 
 
 INSERT INTO permissions (name, type)

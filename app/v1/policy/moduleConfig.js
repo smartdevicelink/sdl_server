@@ -1,16 +1,13 @@
-let app = require('../app.js'),
-    bricks = require('sql-bricks'),
-    moduleConfigObj;
+const app = require('../app'),
+    bricks = require('sql-bricks');
+let moduleConfigObj;
 
-module.exports = function (appObj) {
-    app = appObj;
-    return {
-        createModuleConfig: createModuleConfig,
-        getModuleConfig: function () {
-            return moduleConfigObj;
-        }
-    };
-}
+module.exports = {
+    createModuleConfig: createModuleConfig,
+    getModuleConfig: function () {
+        return moduleConfigObj;
+    }
+};
 
 function createModuleConfig (callback){
     let sql = app.locals.db.sqlCommand;
