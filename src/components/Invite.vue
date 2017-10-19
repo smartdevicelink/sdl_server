@@ -10,27 +10,36 @@
                     <div class="settings-content">
                         <h4>Invite Members</h4>
 
-                        <invitee
-                            v-for="(item, index) in invitees"
-                            v-bind:item="item"
-                            v-bind:index="index"
-                            v-bind:key="index">
-                        </invitee>
+                        <form id="inviteForm" v-on:submit.prevent="inviteClick">
+
+                            <invitee
+                                v-for="(item, index) in invitees"
+                                v-bind:item="item"
+                                v-bind:index="index"
+                                v-bind:key="index">
+                            </invitee>
 
 
-                        <div v-on:click="addInvitee" id="addMember" class="another-member pointer">
-                            <span>Add another member</span>
-                            <i class="fa fa-plus"></i>
-                        </div>
+                            <div v-on:click="addInvitee" id="addMember" class="another-member pointer">
+                                <span>Add another member</span>
+                                <i class="fa fa-plus"></i>
+                            </div>
 
-                        <div class="form-row">
-                            <label for="message" class="col-form-label">Custom Message</label>
-                            <textarea type="text" rows="5" class="form-control" id="message"></textarea>
-                        </div>
+                            <div class="form-row">
+                                <label for="message" class="col-form-label">Custom Message</label>
+                                <textarea type="text" rows="5" class="form-control" id="message"></textarea>
+                            </div>
 
-                        <div>
-                            <button type="submit" class="btn btn-card btn-style-green">Send Invitation</button>
-                        </div>
+                            <div>
+                                <vue-ladda
+                                    type="submit"
+                                    class="btn btn-card btn-style-green"
+                                    data-style="zoom-in"
+                                    v-bind:loading="button_loading">
+                                    Send Invitation(s)
+                                </vue-ladda>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -39,17 +48,10 @@
 </template>
 
 <script>
+import { eventBus } from '../main.js';
 export default {
     data: function(){
         return {
-            "user": {
-                "first_name": "Nick",
-                "last_name": "Schwab",
-                "email": "nick.schwab@livio.io",
-                "password": null,
-                "new_password_1": null,
-                "new_password_2": null
-            },
             "button_loading": false,
             "invitees": [{
                 "first_name": null,
@@ -66,20 +68,19 @@ export default {
                 "email": null
             });
         },
-        "saveClick": function(){
-            // TODO: submit the forgot password request
-            if(this.user.new_password_1 != this.user.new_password_2){
-                // new password must match
-                return alert("Your new password and re-typed password must match");
-            }
+        "inviteClick": function(){
+            // TODO: send the invites
             this.button_loading = true;
             setTimeout(() => {
-                alert(JSON.stringify(this.user, null, "\t"));
+                alert(JSON.stringify(this.invitees, null, "\t"));
                 this.button_loading = false;
             }, 2000);
         }
     },
     created: function(){
+        eventBus.$on("removeInvitee", (index)=> {
+            this.invitees.splice(index, 1);
+        });
     },
     mounted: function(){
         //this.$methods.addInvitee();

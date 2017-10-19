@@ -102,7 +102,7 @@
                         "category": "Entertainment",
                         "platform": "iOS",
                         "icon_url": null,
-                        "status": "pending"
+                        "approval_status": "pending"
                     },
                     {
                         "id": 2,
@@ -110,7 +110,7 @@
                         "category": "Entertainment",
                         "platform": "Android",
                         "icon_url": null,
-                        "status": "pending"
+                        "approval_status": "pending"
                     },
                     {
                         "id": 3,
@@ -118,7 +118,7 @@
                         "category": "Entertainment",
                         "platform": "Skynet",
                         "icon_url": null,
-                        "status": "pending"
+                        "approval_status": "pending"
                     }
                 ],
                 "apps_approved": [
@@ -128,7 +128,7 @@
                         "category": "Entertainment",
                         "platform": "Android",
                         "icon_url": null,
-                        "status": "approved"
+                        "approval_status": "approved"
                     },
                     {
                         "id": 5,
@@ -136,7 +136,7 @@
                         "category": "Entertainment",
                         "platform": "iOS",
                         "icon_url": null,
-                        "status": "approved"
+                        "approval_status": "approved"
                     }
                 ],
                 "apps_denied": [
@@ -146,7 +146,7 @@
                         "category": "Navigation",
                         "platform": "Android",
                         "icon_url": null,
-                        "status": "denied"
+                        "approval_status": "denied"
                     },
                     {
                         "id": 7,
@@ -154,10 +154,53 @@
                         "category": "Navigation",
                         "platform": "Android",
                         "icon_url": null,
-                        "status": "denied"
+                        "approval_status": "denied"
                     }
                 ]
             }
+        },
+        beforeCreate: function(){
+            this.$http.get("applications", {
+                "params": {
+                    "approval_status": "PENDING"
+                }
+            }).then(response => {
+                // success
+                response.json().then(parsed => {
+                    this.apps_pending = parsed.applications;
+                });
+            }, response => {
+                // error
+                console.log("Error receiving PENDING applications. Status code: " + response.status);
+            });
+
+            this.$http.get("applications", {
+                "params": {
+                    "approval_status": "ACCEPTED"
+                }
+            }).then(response => {
+                // success
+                response.json().then(parsed => {
+                    this.apps_approved = parsed.applications;
+                });
+            }, response => {
+                // error
+                console.log("Error receiving ACCEPTED applications. Status code: " + response.status);
+            });
+
+            this.$http.get("applications", {
+                "params": {
+                    "approval_status": "DENIED"
+                }
+            }).then(response => {
+                // success
+                response.json().then(parsed => {
+                    this.apps_denied = parsed.applications;
+                });
+            }, response => {
+                // error
+                console.log("Error receiving DENIED applications. Status code: " + response.status);
+            });
         }
     }
 </script>

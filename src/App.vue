@@ -27,12 +27,20 @@
 </template>
 
 <script>
+import { eventBus } from './main.js';
 import Header from './components/common/Header.vue'
 import Footer from './components/common/Footer.vue'
 export default {
-  components: {
-      "page-header": Header,
-      "page-footer": Footer
-  }
+      components: {
+          "page-header": Header,
+          "page-footer": Footer
+      },
+      created () {
+          eventBus.$on("logout", ()=> {
+              console.log("logout");
+              this.$session.destroy();
+              this.$router.push("/");
+          });
+      }
 }
 </script>

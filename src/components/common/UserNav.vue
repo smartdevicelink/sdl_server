@@ -12,7 +12,7 @@
             </router-link>
         </div>
         <div>
-            <router-link to="/login" class="btn btn-card btn-user-sidebar btn-style-green">Logout</router-link>
+            <b-btn v-on:click="logout" class="btn btn-card btn-user-sidebar btn-style-green">Logout</b-btn>
             <router-link to="/invite" class="btn btn-card btn-user-sidebar btn-style-white">Invite Members</router-link>
         </div>
     </div>
@@ -34,6 +34,9 @@
                 this.style = {
                     "display": "none"
                 };
+            },
+            "logout": function(){
+                eventBus.$emit("logout");
             }
         },
         created () {
@@ -41,7 +44,6 @@
                 this.style = {
                     "display": "block"
                 };
-                console.log("received openUserNav");
             });
         }
     }

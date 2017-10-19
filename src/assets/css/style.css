@@ -252,6 +252,11 @@ div.horizontal-divider .text {
 * Application Tables
 */
 
+.table-w-33 {
+    width: 33%;
+    min-width: 300px;
+}
+
 .app-table {
     margin-top: 1rem;
     margin-bottom: 2rem;
