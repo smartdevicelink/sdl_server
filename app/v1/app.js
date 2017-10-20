@@ -33,7 +33,8 @@ app.post('/forgot', forgot.post);
 app.post('/register', register.post);
 app.get('/applications', applications.get);
 app.post('/applications/action', applications.actionPost);
+app.post('/applications/auto', applications.autoPost);
 app.post('/staging/policy', policy.postStaging);
 app.post('/production/policy', policy.postProduction);
 
-app.post('/webhook', shaid.webhook); //webhook route
+app.get('/webhook', shaid.webhook); //webhook route

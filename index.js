@@ -35,7 +35,7 @@ app.get("/loaderio-8e4d80eaf952e3e972feea1072b80f9f", function (req, res) {
 
 //error catcher
 app.use(function (err, req, res, next) {
-    app.locals.log.error(err);
+    log.error(err);
     res.sendStatus(500);
     return;
 });

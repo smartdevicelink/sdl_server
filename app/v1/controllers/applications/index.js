@@ -59,7 +59,7 @@ function get (req, res, next) {
 		sampleApp.uuid = req.body.uuid;
 	}
 
-	res.status(200).send([sampleApp]);
+	res.status(200).send({applications: [sampleApp]});
 }
 
 function actionPost (req, res, next) {
@@ -79,7 +79,25 @@ function validateActionPost (req, res) {
 	}	
 }
 
+function autoPost (req, res, next) {
+	validateAutoPost(req, res);
+	if (res.errorMsg) {
+		return res.status(400).send({ error: res.errorMsg });
+	}
+	sampleApp.uuid = req.body.uuid;
+	sampleApp.is_auto_approved_enabled = req.body.is_auto_approved_enabled;
+	//TODO: STUB
+	res.sendStatus(200);
+}
+
+function validateAutoPost (req, res) {
+	if (!req.body.uuid || !req.body.is_auto_approved_enabled) {
+		return res.errorMsg = "Uuid and auto approved required";
+	}	
+}
+
 module.exports = {
 	get: get,
-	actionPost: actionPost
+	actionPost: actionPost,
+	autoPost: autoPost
 };

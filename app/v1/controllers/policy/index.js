@@ -14,7 +14,7 @@ function post (isProduction) {
 		}
 
 		//TODO: STUB
-		res.status(200).send(policy_table);		
+		res.status(200).send({data: [{policy_table: {}}]});		
 	}
 }
 
@@ -50,7 +50,7 @@ function constructStaticPolicyTable (isProduction) {
         funcGroup.functionGroupSkeleton(isProduction),
         funcGroup.constructFunctionGroupObj
     ];
-    const funcGroupMakeFlow = app.locals.flow(makeFunctionGroupInfo, {method: 'waterfall', pass: 'one'});
+    const funcGroupMakeFlow = app.locals.flow(makeFunctionGroupInfo, {method: 'waterfall'});
     
     //MODULE CONFIG
     const getModuleConfig = [
@@ -63,14 +63,14 @@ function constructStaticPolicyTable (isProduction) {
         moduleConfig.moduleConfigSkeleton(isProduction),
         moduleConfig.constructModuleConfigObj
     ];
-    const moduleConfigMakeFlow = app.locals.flow(makeModuleConfig, {method: 'waterfall', pass: 'one'});
+    const moduleConfigMakeFlow = app.locals.flow(makeModuleConfig, {method: 'waterfall'});
     
     //CONSUMER FRIENDLY MESSAGES
     const makeMessages = [
         utils.setupSqlCommand(app.locals.sql.messageText),
         messages.messagesSkeleton(isProduction)
     ];
-    const messagesMakeFlow = app.locals.flow(makeMessages, {method: 'waterfall', pass: 'one'});
+    const messagesMakeFlow = app.locals.flow(makeMessages, {method: 'waterfall'});
 
     //now combine all flows that make each part of the static table and combine them
     const policyTableMakeFlow = app.locals.flow([moduleConfigMakeFlow, funcGroupMakeFlow, messagesMakeFlow], {method: 'parallel'});
@@ -78,9 +78,9 @@ function constructStaticPolicyTable (isProduction) {
         if (err) {
             return app.locals.log.error(err);
         }
-        console.log(res[0]);
-        console.log(res[1]);
-        console.log(res[2]);
+        //console.log(res[0]);
+        //console.log(res[1]);
+        //console.log(res[2]);
     });
 }
 
