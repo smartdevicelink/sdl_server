@@ -37,4 +37,4 @@ app.post('/applications/auto', applications.autoPost);
 app.post('/staging/policy', policy.postStaging);
 app.post('/production/policy', policy.postProduction);
 
-app.get('/webhook', shaid.webhook); //webhook route
+app.post('/webhook', shaid.webhook); //webhook route
