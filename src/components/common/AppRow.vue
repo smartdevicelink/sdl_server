@@ -10,7 +10,7 @@
         <td>{{ item.category.name }}</td>
         <td class="actions">
             <div class="app-action pull-right">
-                <template v-if="item.approval_status === 'pending'">
+                <template v-if="item.approval_status === 'PENDING'">
                     <router-link v-bind:to="'/applications/' + item.id" class="btn btn-dark btn-sm">Review</router-link>
                 </template>
                 <template v-else>
@@ -39,8 +39,8 @@
         computed: {
             classStatusDot: function(){
                 return {
-                    "color-red": this.item.approval_status == "denied",
-                    "color-green": this.item.approval_status == "approved"
+                    "color-red": this.item.approval_status == "DENIED",
+                    "color-green": this.item.approval_status == "ACCEPTED"
                 }
             },
             actionIcon: function(){

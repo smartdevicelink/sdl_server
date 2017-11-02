@@ -13,7 +13,7 @@
                     v-model="environment"
                     :options="environmentOptions"
                     name="chooseEnvironment" />
-                <div v-if="policytable !== null" class="policy-table">
+                <div v-if="policytable !== null">
                     <pre class="prettyprint linenums hidenums">{{ policytable }}</pre>
                     <a id="back-to-top" v-on:click.prevent="toTop" class="btn btn-primary btn-lg back-to-top" role="button"><i class="fa fa-fw fa-chevron-up"></i></a>
                 </div>
@@ -42,6 +42,9 @@ export default {
             "policytable": null
         };
     },
+    updated: function(){
+        PR.prettyPrint();
+    },
     methods: {
         "toTop": function(){
             $('body,html').animate({
@@ -60,7 +63,6 @@ export default {
                 response.json().then(parsed => {
                     if(parsed.data && parsed.data.length){
                         this.policytable = parsed.data[0];
-                        PR.prettyPrint();
                     }else{
                         console.log("No policy table returned");
                     }

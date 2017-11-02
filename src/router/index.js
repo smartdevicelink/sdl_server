@@ -19,12 +19,17 @@ const router = new Router({
     routes: [
         {
             path: '/',
-            redirect: '/login'
+            redirect: '/applications'
+            //redirect: '/login'
         },
         {
             path: '/login',
             name: 'Login',
             component: Login,
+            meta: {
+                auth: false,
+                title: 'Policy Server - Login'
+            },
             props: (route) => ({
                 "email": route.query.email,
                 "password": route.query.password
@@ -34,6 +39,10 @@ const router = new Router({
             path: '/register',
             name: 'Register',
             component: Register,
+            meta: {
+                auth: false,
+                title: 'Policy Server - Register'
+            },
             props: (route) => ({
                 "email": route.query.email,
                 "password": route.query.password
@@ -42,14 +51,19 @@ const router = new Router({
         {
             path: '/forgot/',
             name: 'Forgot',
-            component: Forgot
+            component: Forgot,
+            meta: {
+                auth: false,
+                title: 'Policy Server - Password Reset'
+            }
         },
         {
             path: '/applications/',
             name: 'Applications',
             component: Applications,
             meta: {
-                auth: true
+                auth: true,
+                title: 'Policy Server - Applications'
             }
         },
         {
@@ -57,7 +71,8 @@ const router = new Router({
             name: 'ApplicationDetails',
             component: ApplicationDetails,
             meta: {
-                auth: true
+                auth: true,
+                title: 'Policy Server - Application Details'
             }
         },
         {
@@ -65,23 +80,30 @@ const router = new Router({
             name: 'FunctionalGroups',
             component: FunctionalGroups,
             meta: {
-                auth: true
+                auth: true,
+                title: 'Policy Server - Functional Groups'
             }
         },
         {
-            path: '/functionalgroups/:id',
+            path: '/functionalgroups/manage',
             name: 'FunctionalGroupDetails',
             component: FunctionalGroupDetails,
             meta: {
-                auth: true
-            }
+                auth: true,
+                title: 'Policy Server - Manage Functional Group'
+            },
+            props: (route) => ({
+                "environment": route.query.environment || "staging",
+                "id": route.query.id || null
+            })
         },
         {
             path: '/policytable/',
             name: 'PolicyTable',
             component: PolicyTable,
             meta: {
-                auth: true
+                auth: true,
+                title: 'Policy Server - Policy Table Preview'
             }
         },
         {
@@ -89,7 +111,8 @@ const router = new Router({
             name: 'User',
             component: User,
             meta: {
-                auth: true
+                auth: true,
+                title: 'Policy Server - User Settings'
             }
         },
         {
@@ -97,13 +120,18 @@ const router = new Router({
             name: 'Invite',
             component: Invite,
             meta: {
-                auth: true
+                auth: true,
+                title: 'Policy Server - Invite Users'
             }
         },
         {
-          path: '*',
-          name: '404',
-          component: NotFound
+            path: '*',
+            name: '404',
+            component: NotFound,
+            meta: {
+                auth: false,
+                title: 'Policy Server - Page Not Found'
+            }
         }
     ],
     scrollBehavior: function(to, from, savedPosition) {
@@ -112,7 +140,8 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-    if(to.matched.some(record => record.meta.auth) && !router.app.$session.exists()){
+    document.title = to.meta.title || "Policy Server";
+    if(false && to.matched.some(record => record.meta.auth) && !router.app.$session.exists()){
         // must log in
         next({
             "path": "/login",

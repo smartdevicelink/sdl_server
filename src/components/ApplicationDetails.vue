@@ -155,7 +155,7 @@
                     </div>
                 </div>
 
-                <div class="app-table">
+                <div v-if="policytable != null"class="app-table">
                     <h4>Policy Table Preview</h4>
                     <div class="policy-table">
                         <pre class="prettyprint linenums hidenums">{{ policytable }}</pre>
@@ -283,9 +283,10 @@ export default {
             }).then(response => {
                 // success
                 console.log("policy table retrieved");
+                console.log(response);
                 response.json().then(parsed => {
-                    if(parsed.data && parsed.data.length && parsed.data[0].app_policies[this.app.uuid]){
-                        this.policytable = parsed.data[0].app_policies[this.app.uuid];
+                    if(parsed.data && parsed.data.length && parsed.data[0].policy_table.app_policies[this.app.uuid]){
+                        this.policytable = parsed.data[0].policy_table.app_policies[this.app.uuid];
                         PR.prettyPrint();
                     }else{
                         console.log("No policy table returned");

@@ -25,11 +25,22 @@ export default {
         };
     },
     beforeCreate: function(){
-        console.log("TODO: fetch pending app count and unallocated permission count")
-        setTimeout(() => {
-            this.badge_counts.applications = 4;
-            this.badge_counts.functional_groups = 2;
-        }, 200);
+        this.$http.get("applications", {
+            "params": {
+                "approval_status": "PENDING"
+            }
+        }).then(response => {
+            // success
+            response.json().then(parsed => {
+                this.badge_counts.applications = parsed.applications.length;
+            });
+        }, response => {
+            // error
+            console.log("Error receiving PENDING applications. Status code: " + response.status);
+        });
+
+        // TODO: get function group badge number count
+
     }
 }
 </script>
