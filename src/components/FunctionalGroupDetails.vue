@@ -7,8 +7,9 @@
 
             <div class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content">
                 <div class="pull-right">
-                    <template v-if="!fg.id">
+                    <template v-if="intent == 'edit'">
                         <b-btn class="btn btn-dark btn-sm align-middle d-none">Revert Version</b-btn>
+                        <b-btn v-if="fg.status != 'PRODUCTION'" class="btn btn-style-green btn-sm align-middle">Move to Production</b-btn>
                         <b-btn v-b-modal.copyModal class="btn btn-dark btn-sm align-middle">Copy as Template</b-btn>
                         <b-btn v-b-modal.deleteModal class="btn btn-danger btn-sm align-middle">Delete</b-btn>
                     </template>
@@ -19,28 +20,29 @@
 
                     <div class="form-row">
                         <h4 for="name">Name</h4>
-                        <input v-model="fg.name" type="email" class="form-control" id="email" required>
+                        <input v-model="fg.name" :disabled="fg.status == 'PRODUCTION'" type="email" class="form-control" id="email" required>
                     </div>
 
                     <div class="form-row">
                         <h4 for="description">Description</h4>
-                        <textarea v-model="fg.description" type="text" rows="2" class="form-control" id="description"></textarea>
+                        <textarea v-model="fg.description" :disabled="fg.status == 'PRODUCTION'" type="text" rows="2" class="form-control" id="description"></textarea>
                     </div>
 
                     <div class="form-row">
                         <h4 for="consent-prompt">User Consent Prompt</h4>
                         <b-form-select
-                            v-model="selected_prompt_index"
+                            v-model="fg.selected_prompt_id"
+                            :disabled="fg.status == 'PRODUCTION'"
                             class="custom-select w-100">
                             <option value="null">Select an optional Consent Prompt...</option>
                             <option
-                                v-for="(item, index) in fg.consent_prompts"
-                                v-bind:value="index">
+                                v-for="(item, index) in consent_prompts"
+                                v-bind:value="item.id">
                                 {{ item.name }}
                             </option>
                         </b-form-select>
-                        <div v-if="fg.consent_prompts[selected_prompt_index]" class="white-box">
-                            {{ fg.consent_prompts[selected_prompt_index] ? fg.consent_prompts[selected_prompt_index].prompt : '' }}
+                        <div v-if="consent_prompts[selected_prompt_index]" class="white-box">
+                            {{ consent_prompts[selected_prompt_index] ? consent_prompts[selected_prompt_index].prompt : '' }}
                         </div>
                     </div>
 
@@ -51,12 +53,13 @@
                             <rpc-item
                                 v-for="(item, index) in fg.rpcs"
                                 v-if="item.selected"
+                                v-bind:status="fg.status"
                                 v-bind:item="item"
                                 v-bind:index="index"
                                 v-bind:key="index">
                             </rpc-item>
 
-                            <div v-b-modal.addRpcModal id="add" class="another-rpc pointer">
+                            <div v-if="fg.status != 'PRODUCTION'" v-b-modal.addRpcModal id="add" class="another-rpc pointer">
                                 <i class="fa fa-plus middle-middle"></i>
                             </div>
                         </div>
@@ -64,12 +67,13 @@
 
                     <div>
                         <vue-ladda
+                            v-if="fg.status != 'PRODUCTION'"
                             type="submit"
                             class="btn btn-card btn-style-green"
                             data-style="zoom-in"
                             v-on:click="saveGroup()"
                             v-bind:loading="save_button_loading">
-                            Save to Staging Policy Table
+                            Save
                         </vue-ladda>
                     </div>
                 </div>
@@ -128,630 +132,22 @@
 <script>
 import { eventBus } from '../main.js';
 export default {
+    props: ['id','intent'],
     data: function(){
         return {
             "fg": {
                 "id": null,
-                "name": "MyFunctionalGroupName",
-                "description": "An awesome functional group that does stuff.",
-                "user_consent_prompt_id": null,
+                "name": null,
+                "description": null,
+                "status": "STAGING",
+                "selected_prompt_id": "null",
                 "rpcs": [
-                    {
-                        "name": "GetVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": true
-                    },
-                    {
-                        "name": "SubscribeVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    },
-                    {
-                        "name": "OnVehicleData",
-                        "parameters": [
-                            {
-                                "id": 1,
-                                "key": "rpm",
-                                "name": "RPMs"
-                            },
-                            {
-                                "id": 2,
-                                "key": "speed",
-                                "name": "Speed"
-                            },
-                            {
-                                "id": 3,
-                                "key": "prndl",
-                                "name": "Transmission Gear (PRNDL)"
-                            },
-                            {
-                                "id": 4,
-                                "key": "beltStatus",
-                                "name": "Seatbelt Status"
-                            },
-                            {
-                                "id": 5,
-                                "key": "airbagStatus",
-                                "name": "Airbag Status"
-                            },
-                            {
-                                "id": 6,
-                                "key": "fuelLevel",
-                                "name": "Fuel Level"
-                            }
-                        ],
-                        "selected_parameters": [],
-                        "selected": false
-                    }
-                ],
-                "consent_prompts": [
-                    {
-                        "id": 1,
-                        "name": "waffles",
-                        "prompt": "i like waffles"
-                    },
-                    {
-                        "id": 2,
-                        "name": "pancakes",
-                        "prompt": "i like pancakes too"
-                    },
-                    {
-                        "id": 3,
-                        "name": "bacon",
-                        "prompt": "%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press Yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%''s use of your data. Please press Yes to allow or No to deny."
-                    }
                 ]
             },
             "rpc_search": null,
             "delete_button_loading": false,
             "copy_button_loading": false,
-            "save_button_loading": false,
-            "selected_prompt_index": null
+            "save_button_loading": false
         };
     },
     methods: {
@@ -798,11 +194,240 @@ export default {
         }
     },
     computed: {
+        selected_prompt_index: function(){
+            var index = null;
+            for(var i in this.consent_prompts){
+                if(this.consent_prompts[i].id == this.fg.selected_prompt_id){
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        }
     },
     created: function(){
-        eventBus.$on("removeRpc", (index)=> {
-            this.invitees.splice(index, 1);
+        // listen for checkbox changes in RPC components
+        eventBus.$on("rpcCheckboxChecked", (rpc_index, item_index, item_type, is_checked)=> {
+            console.log({
+                rpc_index,
+                item_index,
+                item_type,
+                is_checked
+            });
+            if(item_type == "parameter"){
+                this.fg.rpcs[rpc_index].parameters[item_index].selected = is_checked;
+            }else if(item_type == "hmi"){
+                this.fg.rpcs[rpc_index].hmi_levels[item_index].selected = is_checked;
+            }
         });
+
+        // TODO: get consent prompts
+        this.consent_prompts = [
+            {
+                "id": 1,
+                "name": "waffles",
+                "prompt": "i like waffles"
+            },
+            {
+                "id": 2,
+                "name": "pancakes",
+                "prompt": "i like pancakes too"
+            },
+            {
+                "id": 3,
+                "name": "bacon",
+                "prompt": "%appName% is requesting the use of the following vehicle information and permissions: %functionalGroupLabels%. If you press Yes, you agree that %vehicleMake% will not be liable for any damages or loss of privacy related to %appName%''s use of your data. Please press Yes to allow or No to deny."
+            }
+        ];
+
+        // TODO: fetch the desired functional group
+        if(this.id){
+            setTimeout(()=>{
+                this.fg = {
+                    "id": 1,
+                    "name": "MyFunctionalGroupName",
+                    "description": "An awesome functional group that does stuff.",
+                    "status": "STAGING",
+                    "selected_prompt_id": 1,
+                    "rpcs": [
+                        {
+                            "name": "GetVehicleData",
+                            "parameters": [
+                                {
+                                    "id": 1,
+                                    "key": "rpm",
+                                    "name": "RPMs",
+                                    "selected": true,
+                                },
+                                {
+                                    "id": 2,
+                                    "key": "speed",
+                                    "name": "Speed"
+                                },
+                                {
+                                    "id": 3,
+                                    "key": "prndl",
+                                    "name": "Transmission Gear (PRNDL)",
+                                    "selected": true
+                                },
+                                {
+                                    "id": 4,
+                                    "key": "beltStatus",
+                                    "name": "Seatbelt Status"
+                                },
+                                {
+                                    "id": 5,
+                                    "key": "airbagStatus",
+                                    "name": "Airbag Status"
+                                },
+                                {
+                                    "id": 6,
+                                    "key": "fuelLevel",
+                                    "name": "Fuel Level"
+                                }
+                            ],
+                            "hmi_levels": [
+                                {
+                                    "name": "HMI_FULL",
+                                    "value": "HMI_FULL",
+                                    "selected": true
+                                },
+                                {
+                                    "name": "HMI_LIMITED",
+                                    "value": "HMI_LIMITED"
+                                },
+                                {
+                                    "name": "HMI_BACKGROUND",
+                                    "value": "HMI_BACKGROUND",
+                                    "selected": true
+                                },
+                                {
+                                    "name": "HMI_NONE",
+                                    "value": "HMI_NONE"
+                                }
+                            ],
+                            "selected": true
+                        },
+                        {
+                            "name": "SubscribeVehicleData",
+                            "parameters": [
+                                {
+                                    "id": 1,
+                                    "key": "rpm",
+                                    "name": "RPMs",
+                                    "selected": true,
+                                },
+                                {
+                                    "id": 2,
+                                    "key": "speed",
+                                    "name": "Speed"
+                                },
+                                {
+                                    "id": 3,
+                                    "key": "prndl",
+                                    "name": "Transmission Gear (PRNDL)",
+                                    "selected": true
+                                },
+                                {
+                                    "id": 4,
+                                    "key": "beltStatus",
+                                    "name": "Seatbelt Status"
+                                },
+                                {
+                                    "id": 5,
+                                    "key": "airbagStatus",
+                                    "name": "Airbag Status"
+                                },
+                                {
+                                    "id": 6,
+                                    "key": "fuelLevel",
+                                    "name": "Fuel Level"
+                                }
+                            ],
+                            "hmi_levels": [
+                                {
+                                    "name": "HMI_FULL",
+                                    "value": "HMI_FULL",
+                                    "selected": true
+                                },
+                                {
+                                    "name": "HMI_LIMITED",
+                                    "value": "HMI_LIMITED"
+                                },
+                                {
+                                    "name": "HMI_BACKGROUND",
+                                    "value": "HMI_BACKGROUND",
+                                    "selected": true
+                                },
+                                {
+                                    "name": "HMI_NONE",
+                                    "value": "HMI_NONE"
+                                }
+                            ],
+                            "selected": false
+                        },
+                        {
+                            "name": "OnVehicleData",
+                            "parameters": [
+                                {
+                                    "id": 1,
+                                    "key": "rpm",
+                                    "name": "RPMs",
+                                    "selected": true,
+                                },
+                                {
+                                    "id": 2,
+                                    "key": "speed",
+                                    "name": "Speed"
+                                },
+                                {
+                                    "id": 3,
+                                    "key": "prndl",
+                                    "name": "Transmission Gear (PRNDL)",
+                                    "selected": true
+                                },
+                                {
+                                    "id": 4,
+                                    "key": "beltStatus",
+                                    "name": "Seatbelt Status"
+                                },
+                                {
+                                    "id": 5,
+                                    "key": "airbagStatus",
+                                    "name": "Airbag Status"
+                                },
+                                {
+                                    "id": 6,
+                                    "key": "fuelLevel",
+                                    "name": "Fuel Level"
+                                }
+                            ],
+                            "hmi_levels": [
+                                {
+                                    "name": "HMI_FULL",
+                                    "value": "HMI_FULL",
+                                    "selected": true
+                                },
+                                {
+                                    "name": "HMI_LIMITED",
+                                    "value": "HMI_LIMITED"
+                                },
+                                {
+                                    "name": "HMI_BACKGROUND",
+                                    "value": "HMI_BACKGROUND",
+                                    "selected": true
+                                },
+                                {
+                                    "name": "HMI_NONE",
+                                    "value": "HMI_NONE"
+                                }
+                            ],
+                            "selected": false
+                        }
+                    ]
+                };
+            },700);
+        }
     },
     mounted: function(){
         //this.$methods.addInvitee();

@@ -37,7 +37,7 @@
                     <small id="blankHelp" class="form-text text-muted">
                         Start from scratch with a blank template
                     </small>
-                    <router-link v-bind:to="{ path: 'functionalgroups/manage' }">
+                    <router-link v-bind:to="{ path: 'functionalgroups/manage', query: { intent: 'create' } }">
                         <button type="button" aria-describedby="blankHelp" class="btn btn-card btn-style-green">Create New Blank Functional Group</button>
                     </router-link>
                     <div class="horizontal-divider">
@@ -59,7 +59,7 @@
                             {{ item.name }}
                         </option>
                     </b-form-select>
-                    <router-link v-bind:to="{ path: 'functionalgroups/manage', query: { id: selected_group_id} }">
+                    <router-link v-bind:to="{ path: 'functionalgroups/manage', query: { id: selected_group_id, intent: 'create' } }">
                         <b-btn v-bind:disabled="is_clone_disabled" type="button" aria-describedby="copyHelp" class="btn btn-card btn-style-green">Create New Functional Group Based on Existing Group</b-btn>
                     </router-link>
                 </b-modal>
@@ -151,6 +151,10 @@
         },
         mounted: function(){
             this.environmentClick();
+        },
+        beforeDestroy () {
+            // ensure closing of all modals
+            this.$refs.functionalGroupModal.onAfterLeave();
         }
     }
 </script>

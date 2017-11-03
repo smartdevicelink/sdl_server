@@ -93,8 +93,8 @@ const router = new Router({
                 title: 'Policy Server - Manage Functional Group'
             },
             props: (route) => ({
-                "environment": route.query.environment || "staging",
-                "id": route.query.id || null
+                "id": route.query.id || null,
+                "intent": route.query.intent || "create"
             })
         },
         {

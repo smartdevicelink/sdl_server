@@ -6,19 +6,52 @@
                 stacked
                 class="color-bg-gray color-primary"
                 v-model="selected"
-                :options="options">
+                v-bind:disabled="is_disabled"
+                :options="options"
+                v-on:change="checkboxUpdated">
             </b-form-checkbox-group>
         </div>
     </div>
 </template>
 
 <script>
+    import { eventBus } from '../../main.js';
     export default {
-        props: ['options','header'],
+        props: ['type','rpcIndex','options','header','status'],
         data () {
             return {
                 selected: [] // Must be an array reference!
             };
+        },
+        computed: {
+            is_disabled: function(){
+                return this.status == 'PRODUCTION';
+            },
+            is_checked: function(){
+
+            }
+        },
+        methods: {
+            checkboxUpdated: function(){
+                for(var option_index in this.options){
+                    // determine if each option is checked
+                    var is_checked = false;
+                    for(var index in this.selected){
+                        if(this.selected[index] == option_index){
+                            is_checked = true;
+                            break;
+                        }
+                    }
+                    eventBus.$emit("rpcCheckboxChecked", this.rpcIndex, option_index, this.type, is_checked);
+                }
+            }
+        },
+        created: function(){
+            for(var index in this.options){
+                if(this.options[index].selected){
+                    this.selected.push(index);
+                }
+            }
         }
     }
 </script>
