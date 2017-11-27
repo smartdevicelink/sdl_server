@@ -303,7 +303,10 @@
                 "user_consent_prompt": "Notifications",
                 "rpcs": {
                     "Alert": {
-                        "hmi_levels": ["BACKGROUND"]
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED"
+                        ]
                     }
                 }
             },
@@ -959,19 +962,30 @@
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
                         "LIMITED"]
+                    },
+                    "OnWayPointChange": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED"]                        
                     }
                 }
             },
             "BackgroundAPT": {
                 "rpcs": {
                     "EndAudioPassThru": {
-                        "hmi_levels": ["BACKGROUND"]
+                        "hmi_levels": ["BACKGROUND", 
+                        "FULL",
+                        "LIMITED"]
                     },
                     "OnAudioPassThru": {
-                        "hmi_levels": ["BACKGROUND"]
+                        "hmi_levels": ["BACKGROUND", 
+                        "FULL",
+                        "LIMITED"]
                     },
                     "PerformAudioPassThru": {
-                        "hmi_levels": ["BACKGROUND"]
+                        "hmi_levels": ["BACKGROUND", 
+                        "FULL",
+                        "LIMITED"]
                     }
                 }
             },

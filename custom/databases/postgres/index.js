@@ -33,7 +33,7 @@ module.exports = function (log) {
         log.error('idle client error', err.message, err.stack);
     });  
 
-    return {
+    const self = {
         //exported functions. these are required to implement
         //this function executes the SQL command in <query> and returns a response using the callback function
         //the callback requires an error parameter and a response from the SQL query
@@ -43,4 +43,5 @@ module.exports = function (log) {
             });
         }
     }
+    return self;
 }

@@ -16,11 +16,11 @@ function messagesSkeleton (isProduction) {
                 ];
             }
         }
-        let finalHash = utils.hashify({}, finalMessages, transGeneric('tts'));
-        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line1'));
-        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line2'));
-        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('text_body'));
-        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('label'));
+        let finalHash = utils.hashify({}, finalMessages, transGeneric('tts'), null);
+        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line1'), null);
+        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line2'), null);
+        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('text_body'), null);
+        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('label'), null);
 
         const finalObj = {
             "version": "000.000.001", //TODO: what to do with the versioning?

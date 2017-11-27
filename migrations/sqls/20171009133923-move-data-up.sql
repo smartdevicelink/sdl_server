@@ -1,6 +1,6 @@
 CREATE TABLE function_group_hmi_levels (
     "function_group_id" INTEGER NOT NULL REFERENCES function_group_info(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    "permission_name" VARCHAR(64) NOT NULL REFERENCES permissions(name) ON UPDATE CASCADE ON DELETE CASCADE,
+    "permission_name" VARCHAR(64) NOT NULL,
     "hmi_level" hmi_level NOT NULL,
     PRIMARY KEY (function_group_id, permission_name, hmi_level)
 )
@@ -8,8 +8,8 @@ WITH ( OIDS = FALSE );
 
 CREATE TABLE function_group_parameters (
     "function_group_id" INTEGER NOT NULL REFERENCES function_group_info(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    "rpc_name" VARCHAR(64) NOT NULL REFERENCES permissions(name) ON UPDATE CASCADE ON DELETE CASCADE,
-    "parameter" VARCHAR(64) NOT NULL REFERENCES permissions(name) ON UPDATE CASCADE ON DELETE CASCADE,
+    "rpc_name" VARCHAR(64) NOT NULL,
+    "parameter" VARCHAR(64) NOT NULL,
     PRIMARY KEY (function_group_id, rpc_name, parameter)
 )
 WITH ( OIDS = FALSE );
@@ -45,11 +45,33 @@ CREATE TABLE app_auto_approval (
 )
 WITH ( OIDS = FALSE );
 
+CREATE TABLE hmi_level_conversion (
+    "hmi_level_enum" hmi_level NOT NULL,
+    "hmi_level_text" TEXT NOT NULL,
+    PRIMARY KEY (hmi_level_enum)
+)
+WITH ( OIDS = FALSE );
+
+INSERT INTO hmi_level_conversion (hmi_level_enum, hmi_level_text)
+VALUES (
+    'FULL', 'HMI_FULL'
+), 
+(
+    'LIMITED', 'HMI_LIMITED'
+),
+(
+    'BACKGROUND', 'HMI_BACKGROUND'
+),
+(
+    'NONE', 'HMI_NONE'
+);
+
 ALTER TABLE app_permissions
 ADD "hmi_level" TEXT;
 
 ALTER TABLE function_group_info
-ADD "deleted_ts" TIMESTAMP WITHOUT TIME ZONE;
+ADD "deleted_ts" TIMESTAMP WITHOUT TIME ZONE,
+ADD "description" TEXT;
 
 ALTER TABLE app_info
 ADD "denial_message" TEXT,
@@ -64,6 +86,7 @@ WHERE status = 'STAGING';
 UPDATE module_config
 SET status = 'PRODUCTION'
 WHERE status = 'STAGING';
+
 
 CREATE OR REPLACE VIEW view_module_config AS
 SELECT module_config.* 
@@ -93,6 +116,24 @@ SELECT property_name, status, max(id) AS id
     GROUP BY property_name, status
 ) AS vfgi
 INNER JOIN function_group_info ON vfgi.id = function_group_info.id;
+
+
+CREATE OR REPLACE VIEW view_partial_app_info AS
+SELECT app_uuid, approval_status, max(id) AS id 
+FROM app_info 
+GROUP BY app_uuid, approval_status;
+
+
+CREATE OR REPLACE VIEW view_mapped_permissions AS
+SELECT function_group_id AS id, permission_name AS name, status, property_name
+FROM view_function_group_info
+INNER JOIN function_group_hmi_levels
+ON view_function_group_info.id = function_group_hmi_levels.function_group_id
+UNION 
+SELECT function_group_id AS id, parameter AS name, status, property_name
+FROM view_function_group_info
+INNER JOIN function_group_parameters
+ON view_function_group_info.id = function_group_parameters.function_group_id;
 
 
 INSERT INTO hmi_levels (id)
@@ -2200,681 +2241,8 @@ WHERE NOT EXISTS (
 );
 
 
-
-INSERT INTO permissions (name, type)
-SELECT 'RegisterAppInterface' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'RegisterAppInterface'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'UnregisterAppInterface' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'UnregisterAppInterface'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SetGlobalProperties' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SetGlobalProperties'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'ResetGlobalProperties' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'ResetGlobalProperties'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'AddCommand' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'AddCommand'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'DeleteCommand' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'DeleteCommand'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'AddSubMenu' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'AddSubMenu'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'DeleteSubMenu' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'DeleteSubMenu'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'CreateInteractionChoiceSet' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'CreateInteractionChoiceSet'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'PerformInteraction' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'PerformInteraction'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'DeleteInteractionChoiceSet' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'DeleteInteractionChoiceSet'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'Alert' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'Alert'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'Show' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'Show'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'Speak' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'Speak'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SetMediaClockTimer' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SetMediaClockTimer'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'PerformAudioPassThru' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'PerformAudioPassThru'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'EndAudioPassThru' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'EndAudioPassThru'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SubscribeButton' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SubscribeButton'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'UnsubscribeButton' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'UnsubscribeButton'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SubscribeVehicleData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'UnsubscribeVehicleData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'GetVehicleData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'GetVehicleData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'ReadDID' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'ReadDID'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'GetDTCs' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'GetDTCs'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'ButtonPress' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'ButtonPress'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'GetInteriorVehicleData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'GetInteriorVehicleData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SetInteriorVehicleData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SetInteriorVehicleData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnInteriorVehicleData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnInteriorVehicleData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'ScrollableMessage' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'ScrollableMessage'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'Slider' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'Slider'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'ShowConstantTBT' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'ShowConstantTBT'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'AlertManeuver' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'AlertManeuver'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'UpdateTurnList' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'UpdateTurnList'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'ChangeRegistration' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'ChangeRegistration'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'GenericResponse' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'GenericResponse'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'GetSystemCapability' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'GetSystemCapability'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'PutFile' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'PutFile'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'DeleteFile' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'DeleteFile'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'ListFiles' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'ListFiles'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SetAppIcon' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SetAppIcon'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SetDisplayLayout' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SetDisplayLayout'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'DiagnosticMessage' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'DiagnosticMessage'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SystemRequest' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SystemRequest'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SendLocation' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SendLocation'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'DialNumber' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'DialNumber'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'GetWayPoints' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'GetWayPoints'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SubscribeWayPoints' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SubscribeWayPoints'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'UnsubscribeWayPoints' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'UnsubscribeWayPoints'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnHMIStatus' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnHMIStatus'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnAppInterfaceUnregistered' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnAppInterfaceUnregistered'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnButtonEvent' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnButtonEvent'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnButtonPress' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnButtonPress'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnVehicleData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnVehicleData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnCommand' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnCommand'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnTBTClientState' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnTBTClientState'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnDriverDistraction' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnDriverDistraction'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnPermissionsChange' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnPermissionsChange'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnAudioPassThru' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnAudioPassThru'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnLanguageChange' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnLanguageChange'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnKeyboardInput' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnKeyboardInput'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnTouchEvent' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnTouchEvent'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SendHapticData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SendHapticData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnSystemRequest' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnSystemRequest'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnHashChange' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnHashChange'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnWayPointChange' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnWayPointChange'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'EncodedSyncPData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'EncodedSyncPData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'SyncPData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'SyncPData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnEncodedSyncPData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnEncodedSyncPData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'OnSyncPData' AS name, 'RPC' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'OnSyncPData'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'gps' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'gps'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'speed' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'speed'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'rpm' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'rpm'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'fuelLevel' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'fuelLevel'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'fuelLevel_State' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'fuelLevel_State'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'instantFuelConsumption' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'instantFuelConsumption'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'externalTemperature' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'externalTemperature'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'prndl' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'prndl'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'tirePressure' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'tirePressure'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'odometer' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'odometer'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'beltStatus' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'beltStatus'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'bodyInformation' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'bodyInformation'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'deviceStatus' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'deviceStatus'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'driverBraking' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'driverBraking'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'wiperStatus' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'wiperStatus'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'headLampStatus' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'headLampStatus'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'engineTorque' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'engineTorque'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'accPedalPosition' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'accPedalPosition'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'steeringWheelAngle' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'steeringWheelAngle'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'eCallInfo' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'eCallInfo'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'airbagStatus' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'airbagStatus'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'emergencyEvent' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'emergencyEvent'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'clusterModeStatus' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'clusterModeStatus'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'myKey' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'myKey'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'vin' AS name, 'PARAMETER' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'vin'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'RADIO' AS name, 'MODULE' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'RADIO'
-);
-
-INSERT INTO permissions (name, type)
-SELECT 'CLIMATE' AS name, 'MODULE' AS type
-WHERE NOT EXISTS (
-    SELECT * FROM permissions perm2
-    WHERE perm2.name = 'CLIMATE'
-);
-
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'Base-4' AS property_name, 'null' AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
+SELECT 'Base-4' AS property_name, null AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'Base-4'
@@ -2909,70 +2277,70 @@ WHERE NOT EXISTS (
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'PropriataryData-1' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'PropriataryData-1' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'PropriataryData-1'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'PropriataryData-2' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'PropriataryData-2' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'PropriataryData-2'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'ProprietaryData-3' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'ProprietaryData-3' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'ProprietaryData-3'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'RemoteControl' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'RemoteControl' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'RemoteControl'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'Emergency-1' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'Emergency-1' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'Emergency-1'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'Navigation-1' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'Navigation-1' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'Navigation-1'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'Base-6' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'Base-6' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'Base-6'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'OnKeyboardInputOnlyGroup' AS property_name, 'null' AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
+SELECT 'OnKeyboardInputOnlyGroup' AS property_name, null AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'OnKeyboardInputOnlyGroup'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'OnTouchEventOnlyGroup' AS property_name, 'null' AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
+SELECT 'OnTouchEventOnlyGroup' AS property_name, null AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'OnTouchEventOnlyGroup'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'DiagnosticMessageOnly' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'DiagnosticMessageOnly' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'DiagnosticMessageOnly'
@@ -2986,902 +2354,47 @@ WHERE NOT EXISTS (
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'BaseBeforeDataConsent' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'BaseBeforeDataConsent' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'BaseBeforeDataConsent'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'SendLocation' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'SendLocation' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'SendLocation'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'WayPoints' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'WayPoints' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'WayPoints'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'BackgroundAPT' AS property_name, 'null' AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+SELECT 'BackgroundAPT' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'BackgroundAPT'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'DialNumberOnlyGroup' AS property_name, 'null' AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
+SELECT 'DialNumberOnlyGroup' AS property_name, null AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'DialNumberOnlyGroup'
 );
 
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT 'HapticGroup' AS property_name, 'null' AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
+SELECT 'HapticGroup' AS property_name, null AS user_consent_prompt, 'true' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = 'HapticGroup'
 );
 
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'gps' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'gps'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'gps' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'gps'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'gps' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'gps'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'gps' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'gps'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'speed' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'speed'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'speed' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'speed'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'speed' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'speed'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'speed' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'speed'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'rpm' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'rpm'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'rpm' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'rpm'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'rpm' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'rpm'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'rpm' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'rpm'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'fuelLevel' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'fuelLevel'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'fuelLevel' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'fuelLevel'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'fuelLevel' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'fuelLevel'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'fuelLevel' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'fuelLevel'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'fuelLevel_State' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'fuelLevel_State'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'fuelLevel_State' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'fuelLevel_State'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'fuelLevel_State' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'fuelLevel_State'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'fuelLevel_State' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'fuelLevel_State'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'instantFuelConsumption' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'instantFuelConsumption'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'instantFuelConsumption' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'instantFuelConsumption'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'instantFuelConsumption' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'instantFuelConsumption'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'instantFuelConsumption' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'instantFuelConsumption'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'externalTemperature' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'externalTemperature'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'externalTemperature' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'externalTemperature'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'externalTemperature' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'externalTemperature'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'externalTemperature' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'externalTemperature'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'prndl' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'prndl'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'prndl' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'prndl'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'prndl' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'prndl'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'prndl' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'prndl'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'tirePressure' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'tirePressure'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'tirePressure' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'tirePressure'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'tirePressure' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'tirePressure'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'tirePressure' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'tirePressure'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'odometer' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'odometer'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'odometer' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'odometer'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'odometer' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'odometer'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'odometer' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'odometer'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'beltStatus' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'beltStatus'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'beltStatus' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'beltStatus'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'beltStatus' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'beltStatus'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'beltStatus' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'beltStatus'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'bodyInformation' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'bodyInformation'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'bodyInformation' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'bodyInformation'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'bodyInformation' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'bodyInformation'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'bodyInformation' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'bodyInformation'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'deviceStatus' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'deviceStatus'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'deviceStatus' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'deviceStatus'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'deviceStatus' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'deviceStatus'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'deviceStatus' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'deviceStatus'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'driverBraking' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'driverBraking'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'driverBraking' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'driverBraking'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'driverBraking' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'driverBraking'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'driverBraking' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'driverBraking'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'wiperStatus' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'wiperStatus'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'wiperStatus' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'wiperStatus'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'wiperStatus' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'wiperStatus'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'wiperStatus' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'wiperStatus'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'headLampStatus' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'headLampStatus'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'headLampStatus' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'headLampStatus'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'headLampStatus' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'headLampStatus'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'headLampStatus' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'headLampStatus'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'engineTorque' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'engineTorque'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'engineTorque' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'engineTorque'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'engineTorque' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'engineTorque'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'engineTorque' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'engineTorque'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'accPedalPosition' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'accPedalPosition'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'accPedalPosition' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'accPedalPosition'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'accPedalPosition' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'accPedalPosition'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'accPedalPosition' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'accPedalPosition'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'steeringWheelAngle' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'steeringWheelAngle'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'steeringWheelAngle' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'steeringWheelAngle'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'steeringWheelAngle' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'steeringWheelAngle'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'steeringWheelAngle' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'steeringWheelAngle'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'eCallInfo' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'eCallInfo'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'eCallInfo' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'eCallInfo'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'eCallInfo' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'eCallInfo'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'eCallInfo' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'eCallInfo'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'airbagStatus' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'airbagStatus'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'airbagStatus' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'airbagStatus'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'airbagStatus' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'airbagStatus'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'airbagStatus' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'airbagStatus'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'emergencyEvent' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'emergencyEvent'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'emergencyEvent' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'emergencyEvent'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'emergencyEvent' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'emergencyEvent'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'emergencyEvent' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'emergencyEvent'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'clusterModeStatus' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'clusterModeStatus'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'clusterModeStatus' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'clusterModeStatus'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'clusterModeStatus' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'clusterModeStatus'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'clusterModeStatus' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'clusterModeStatus'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'myKey' AS child_permission_name, 'OnVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'myKey'
-    AND pr.parent_permission_name = 'OnVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'myKey' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'myKey'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'myKey' AS child_permission_name, 'SubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'myKey'
-    AND pr.parent_permission_name = 'SubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'myKey' AS child_permission_name, 'UnsubscribeVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'myKey'
-    AND pr.parent_permission_name = 'UnsubscribeVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'vin' AS child_permission_name, 'GetVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'vin'
-    AND pr.parent_permission_name = 'GetVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'RADIO' AS child_permission_name, 'ButtonPress' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'RADIO'
-    AND pr.parent_permission_name = 'ButtonPress'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'RADIO' AS child_permission_name, 'GetInteriorVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'RADIO'
-    AND pr.parent_permission_name = 'GetInteriorVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'RADIO' AS child_permission_name, 'SetInteriorVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'RADIO'
-    AND pr.parent_permission_name = 'SetInteriorVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'RADIO' AS child_permission_name, 'OnInteriorVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'RADIO'
-    AND pr.parent_permission_name = 'OnInteriorVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'RADIO' AS child_permission_name, 'SystemRequest' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'RADIO'
-    AND pr.parent_permission_name = 'SystemRequest'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'CLIMATE' AS child_permission_name, 'ButtonPress' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'CLIMATE'
-    AND pr.parent_permission_name = 'ButtonPress'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'CLIMATE' AS child_permission_name, 'GetInteriorVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'CLIMATE'
-    AND pr.parent_permission_name = 'GetInteriorVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'CLIMATE' AS child_permission_name, 'SetInteriorVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'CLIMATE'
-    AND pr.parent_permission_name = 'SetInteriorVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'CLIMATE' AS child_permission_name, 'OnInteriorVehicleData' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'CLIMATE'
-    AND pr.parent_permission_name = 'OnInteriorVehicleData'
-);
-
-INSERT INTO permission_relations (child_permission_name, parent_permission_name)
-SELECT 'CLIMATE' AS child_permission_name, 'SystemRequest' AS parent_permission_name
-WHERE NOT EXISTS (
-    SELECT * FROM permission_relations pr
-    WHERE pr.child_permission_name = 'CLIMATE'
-    AND pr.parent_permission_name = 'SystemRequest'
-);
 
 INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
 SELECT id AS function_group_id, 'AddCommand' AS permission_name, 'BACKGROUND' AS hmi_level
@@ -4650,6 +3163,16 @@ WHERE property_name = 'Location-1';
 
 INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
 SELECT id AS function_group_id, 'Alert' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'Notifications';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'Alert' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'Notifications';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'Alert' AS permission_name, 'LIMITED' AS hmi_level
 FROM function_group_info
 WHERE property_name = 'Notifications';
 
@@ -6189,7 +4712,32 @@ FROM function_group_info
 WHERE property_name = 'WayPoints';
 
 INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnWayPointChange' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'WayPoints';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnWayPointChange' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'WayPoints';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnWayPointChange' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'WayPoints';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
 SELECT id AS function_group_id, 'EndAudioPassThru' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'BackgroundAPT';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'EndAudioPassThru' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'BackgroundAPT';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'EndAudioPassThru' AS permission_name, 'LIMITED' AS hmi_level
 FROM function_group_info
 WHERE property_name = 'BackgroundAPT';
 
@@ -6199,7 +4747,27 @@ FROM function_group_info
 WHERE property_name = 'BackgroundAPT';
 
 INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAudioPassThru' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'BackgroundAPT';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAudioPassThru' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'BackgroundAPT';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
 SELECT id AS function_group_id, 'PerformAudioPassThru' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'BackgroundAPT';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAudioPassThru' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'BackgroundAPT';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAudioPassThru' AS permission_name, 'LIMITED' AS hmi_level
 FROM function_group_info
 WHERE property_name = 'BackgroundAPT';
 

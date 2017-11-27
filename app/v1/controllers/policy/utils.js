@@ -1,21 +1,22 @@
 const app = require('../../app');
+const check = require('check-types');
 
-//given an existing hash, an array of homogenous objects and a function that transforms those objects into
-//an array of ordered properties, convert all the objects into one nested accumulated hash in
-//order to change how the data is constructed
-function hashify (hash, array, transformFunc) {
+//given an existing hash, an array of homogenous objects, a function that transforms those objects into
+//an array of ordered properties, and a value, convert all the objects into one nested accumulated hash in
+//order to change how the data is constructed. all leaflets become the leaf value
+function hashify (hash, array, transformFunc, leafValue) {
     for (let i = 0; i < array.length; i++) {
         //get the order of values to nest into each other
         const order = transformFunc(array[i]);
         let nestedHash = hash; //the current nested level of the hash
         for (let j = 0; j < order.length; j++) {
             if (!nestedHash[order[j]]) {
-                //non-existing properties get added with values of objects, or null if it's the last element to add
+                //non-existing properties get added with values of objects, or leafValue if it's the last element to add
                 if (j < order.length - 1) {
                     nestedHash[order[j]] = {};
                 }
                 else {
-                    nestedHash[order[j]] = null;
+                    nestedHash[order[j]] = leafValue;
                 }
             }
             nestedHash = nestedHash[order[j]];
@@ -24,13 +25,58 @@ function hashify (hash, array, transformFunc) {
     return hash;
 }
 
-//given a SQL command, sets up a function to execute the query and pass back the results
-function setupSqlCommand (sqlString) {
-    return function (next) {
-        app.locals.db.sqlCommand(sqlString, function (err, res) {
-            next(err, res.rows);
-        });     
+//iterates over the array, using the callback to let the caller
+//manage how to structure the object response using the template as a base.
+//can be stacked on each other by calling flattenRecurse carefully in the callback
+//the return of the callback can be one object or an array of objects
+function flattenRecurse (arr, template, cb) {
+    let results = [];
+    for (let i = 0; i < arr.length; i++) {
+        let templateClone = JSON.parse(JSON.stringify(template));
+        const templates = cb(templateClone, arr[i]);
+        if (check.array(templates)) {
+            results = results.concat(templates);
+        }
+        else {
+            results.push(templates);
+        }
     }
+    return results;
+}
+
+//given a hash whose properties to look up are also hashes, an array
+//of properties, and a callback function that informs the caller when to replace a
+//hash with an array, recursively finds all hashes that match the specificiations 
+//in the property array, and converts them to arrays
+function arrayify (hash, propArray, cb) {
+    //do not mutate propArray
+    const propArrayCopy = propArray.concat();
+    if (propArrayCopy.length > 0) { //nest deeper into the object
+        const value = propArrayCopy.shift(); //remove first element
+        if (value !== null) { //jump to the property name specified in the value
+            arrayify(hash[value], propArrayCopy, function (array) {
+                hash[value] = array;
+            });
+        }
+        else { //iterate through the properties in this level
+            for (let key in hash) {
+                arrayify(hash[key], propArrayCopy, function (array) {
+                    hash[value] = array;
+                });
+            }   
+        }
+    }
+    else { //hit final destination
+        //convert the hash into an array and return the result
+        //all property names are dropped in the process
+        let converted = [];
+        for (let key in hash) {
+            converted.push(hash[key]);
+        }
+        if (typeof cb === 'function') { //pass the new array to a callback
+            cb(converted);
+        }
+    }  
 }
 
 //generic function that filters an array of SQL objects with ids attached to them depending on the mode specified
@@ -78,7 +124,8 @@ function filterArrayByStatus (array, uniqueProperties, isProduction) {
 
 
 module.exports = {
-	hashify: hashify,
-	setupSqlCommand: setupSqlCommand,
-	filterArrayByStatus: filterArrayByStatus
+    hashify: hashify,
+	arrayify: arrayify,
+    filterArrayByStatus: filterArrayByStatus,
+    flattenRecurse: flattenRecurse
 }

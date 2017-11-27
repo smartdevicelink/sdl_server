@@ -17,7 +17,7 @@ function moduleConfigSkeleton (isProduction) {
                 element['seconds']
             ];
         }        
-        let finalHash = utils.hashify({}, moduleConfigRetries, transRetries);
+        let finalHash = utils.hashify({}, moduleConfigRetries, transRetries, null);
         next(null, utils.filterArrayByStatus(moduleConfigs, ['CONSTANT'], isProduction), hashToModuleConfigObj(finalHash));
     }
 }

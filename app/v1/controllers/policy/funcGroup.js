@@ -1,32 +1,37 @@
 const utils = require('./utils');
 
-function functionGroupSkeleton (isProduction) {
-    return function (groupDataArray, next) {
-        const info = groupDataArray[0];
-        const hmiLevels = groupDataArray[1];
-        const parameters = groupDataArray[2];
+function functionGroupSkeleton (groupDataArray, next) {
+    const info = groupDataArray[0];
+    const hmiLevels = groupDataArray[1];
+    const parameters = groupDataArray[2];
 
-        //transform the arrays into hashes with lookups by id for fast referencing
-        function transHmiLevels (element) {
-            return [
-                element['function_group_id'],
-                element['permission_name'],
-                'hmi_levels',
-                element['hmi_level']
-            ];
-        }
-        function transParameters (element) {
-            return [
-                element['function_group_id'],
-                element['rpc_name'],
-                'parameters',
-                element['parameter']
-            ];
-        }
-        let finalHash = utils.hashify({}, hmiLevels, transHmiLevels);
-        finalHash = utils.hashify(finalHash, parameters, transParameters);
+    //transform the arrays into hashes with lookups by id for fast referencing
+    function transHmiLevels (element) {
+        return [
+            element['function_group_id'],
+            element['permission_name'],
+            'hmi_levels',
+            element['hmi_level']
+        ];
+    }
+    function transParameters (element) {
+        return [
+            element['function_group_id'],
+            element['rpc_name'],
+            'parameters',
+            element['parameter']
+        ];
+    }
+
+    let finalHash = utils.hashify({}, hmiLevels, transHmiLevels, null);
+    finalHash = utils.hashify(finalHash, parameters, transParameters, null);
+    next(null, info, finalHash);
+}
+
+function transformFuncGroupInfo (isProduction) {
+    return function (funcGroupInfo, funcGroupHash, next) {
         //pass along the filtered function_group_info results and the transformed func group object
-        next(null, utils.filterArrayByStatus(info, ['property_name'], isProduction), hashToRpcObject(finalHash));
+        next(null, utils.filterArrayByStatus(funcGroupInfo, ['property_name'], isProduction), hashToRpcObject(funcGroupHash));
     }
 }
 
@@ -72,6 +77,12 @@ function hashToRpcObject (hash) {
 }
 
 function constructFunctionGroupObj (funcGroupInfo, funcGroupSkeleton, next) {
+    //remove the IDs and replace them with the property names of the function group for the reverse hash
+    let propHash = {};
+    for (let i = 0; i < funcGroupInfo.length; i++) {
+        propHash[funcGroupInfo[i].id] = funcGroupInfo[i].property_name;
+    }
+
     //combine the two data into the full functional group objects
     //remove the IDs, using funcGroupInfo as the final array of IDs to use
     let functionalGroupings = {};
@@ -87,13 +98,14 @@ function constructFunctionGroupObj (funcGroupInfo, funcGroupSkeleton, next) {
         else {
             functionalGroupings[funcInfo.property_name].rpcs = null;
         }
-        
     }
+
     next(null, functionalGroupings);
 }
 
 module.exports = {
-	functionGroupSkeleton: functionGroupSkeleton,
+    functionGroupSkeleton: functionGroupSkeleton,
+	transformFuncGroupInfo: transformFuncGroupInfo,
 	hashToRpcObject: hashToRpcObject,
 	constructFunctionGroupObj: constructFunctionGroupObj
 };

@@ -5,3 +5,12 @@ POLICY TABLE DIFFERENCES (10/11/2017)
 removed Notifications-RC group obj
 added DialNumberOnlyGroup group obj with a DialNumber RPC given FULL and LIMITED
 removed moduleType property in app_policies object
+
+POLICY TABLE DIFFERENCES (10/25/2017)
+Notifications functional group now includes FULL and LIMITED hmi levels
+
+POLICY TABLE DIFFERENCES (11/2/2017)
+BackgroundAPT functional group now includes FULL and LIMITED hmi levels in all its RPCs
+
+POLICY TABLE DIFFERENCES (11/7/2017)
+added OnWayPointChange RPC to WayPoints functional group with hmi levels BACKGROUND, FULL and LIMITED

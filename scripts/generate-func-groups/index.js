@@ -34,9 +34,12 @@ const funcGroupInfoStatement = funcGroupNames.map(function (funcGroupName) {
 	if (funcGroupObj.user_consent_prompt === undefined) {
 		funcGroupObj.user_consent_prompt = null;
 	}
+	else { //manually add quotes around the string
+		funcGroupObj.user_consent_prompt = "'" + funcGroupObj.user_consent_prompt + "'";
+	}
 	return `
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
-SELECT '${funcGroupName}' AS property_name, '${funcGroupObj.user_consent_prompt}' AS user_consent_prompt, '${alwaysAllowed}' AS is_default, 'PRODUCTION' AS status
+SELECT '${funcGroupName}' AS property_name, ${funcGroupObj.user_consent_prompt} AS user_consent_prompt, '${alwaysAllowed}' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
     SELECT * FROM function_group_info fgi
     WHERE fgi.property_name = '${funcGroupName}'

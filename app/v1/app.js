@@ -8,6 +8,7 @@ const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); /
 const sql = require('../../lib/sql'); //module for easily setting up SQL commands
 const flow = require('../../lib/flow'); //module for executing asynchronous functions without nesting
 const shaid = require('../../lib/shaid'); //module for communicating with SHAID
+const Cron = require('cron').CronJob; 
 
 //set up the app locals object
 app.locals.config = config;
@@ -26,6 +27,9 @@ const forgot = require('./controllers/forgot');
 const register = require('./controllers/register');
 const applications = require('./controllers/applications');
 const policy = require('./controllers/policy');
+const permissions = require('./controllers/permissions');
+const groups = require('./controllers/groups');
+const messages = require('./controllers/messages');
 
 //route definitions
 app.post('/login', login.post);
@@ -36,5 +40,35 @@ app.post('/applications/action', applications.actionPost);
 app.post('/applications/auto', applications.autoPost);
 app.post('/staging/policy', policy.postStaging);
 app.post('/production/policy', policy.postProduction);
-
 app.post('/webhook', shaid.webhook); //webhook route
+app.post('/permissions/update', permissions.post);
+app.get('/permissions/unmapped', permissions.get);
+app.get('/groups', groups.get);
+app.delete('/groups', groups.delete);
+app.get('/messages', messages.get);
+app.post('/groups', groups.postAddGroup);
+app.post('/groups/promote', groups.postPromote);
+
+/*
+NEW APIS
+set a flag in the API call whether or not to return the RPC array. if not, just return the counts.
+return the counts if true, too, just with all the RPC stuff (permission_count)
+
+have another check that checks whether the user consent prompt exists in the consumer friendly messages
+this includes when promoting a functional group record to production status
+
+when editing a PRODUCTION record, and saving it, that record needs to be a new STAGING record in the db
+that record can be edited as a STAGING record whenever. if promoting to PRODUCTION, make a new clone
+of that STAGING record but with PRODUCTION status
+*/
+
+//get and store permission info from SHAID on startup
+permissions.update();
+
+//get and store app info from SHAID on startup
+shaid.queryAndStoreApplications({}, function () {
+	log.info("App information updated");
+});
+
+//cron job for running permission updates. runs once a day at midnight
+new Cron('00 00 00 * * *', permissions.update, null, true);
