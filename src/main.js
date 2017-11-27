@@ -5,12 +5,19 @@ import App from './App'
 import router from './router'
 import BootstrapVue from 'bootstrap-vue'
 import VueLadda from 'vue-ladda'
+import VueSession from 'vue-session'
+import VueResource from 'vue-resource'
 import SideNav from './components/common/SideNav.vue'
 import UserNav from './components/common/UserNav.vue'
 import AppRow from './components/common/AppRow.vue'
 import Invitee from './components/common/Invitee.vue'
+import FunctionalGroupItem from './components/common/FunctionalGroupItem.vue'
+import RpcItem from './components/common/RpcItem'
+import RpcChecklist from './components/common/RpcChecklist'
 
 Vue.use(BootstrapVue);
+Vue.use(VueSession);
+Vue.use(VueResource);
 
 Vue.config.productionTip = false
 
@@ -25,6 +32,11 @@ Vue.component("page-side-nav", SideNav);
 Vue.component("page-user-nav", UserNav);
 Vue.component("app-row", AppRow);
 Vue.component("invitee", Invitee);
+Vue.component("functional-group-item", FunctionalGroupItem);
+Vue.component("rpc-item", RpcItem);
+Vue.component("rpc-checklist", RpcChecklist);
+
+Vue.http.options.root = 'http://localhost:3000/api/v1';
 
 export const eventBus = new Vue();
 

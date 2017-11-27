@@ -10,20 +10,26 @@ import FunctionalGroupDetails from '@/components/FunctionalGroupDetails'
 import PolicyTable from '@/components/PolicyTable'
 import User from '@/components/User'
 import Invite from '@/components/Invite'
+import NotFound from '@/components/NotFound'
 
 Vue.use(Router)
 
-export default new Router({
+const router = new Router({
     mode: 'history',
     routes: [
         {
             path: '/',
-            redirect: '/login'
+            redirect: '/applications'
+            //redirect: '/login'
         },
         {
             path: '/login',
             name: 'Login',
             component: Login,
+            meta: {
+                auth: false,
+                title: 'Policy Server - Login'
+            },
             props: (route) => ({
                 "email": route.query.email,
                 "password": route.query.password
@@ -33,6 +39,10 @@ export default new Router({
             path: '/register',
             name: 'Register',
             component: Register,
+            meta: {
+                auth: false,
+                title: 'Policy Server - Register'
+            },
             props: (route) => ({
                 "email": route.query.email,
                 "password": route.query.password
@@ -41,45 +51,107 @@ export default new Router({
         {
             path: '/forgot/',
             name: 'Forgot',
-            component: Forgot
+            component: Forgot,
+            meta: {
+                auth: false,
+                title: 'Policy Server - Password Reset'
+            }
         },
         {
             path: '/applications/',
             name: 'Applications',
-            component: Applications
+            component: Applications,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Applications'
+            }
         },
         {
             path: '/applications/:id',
             name: 'ApplicationDetails',
-            component: ApplicationDetails
+            component: ApplicationDetails,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Application Details'
+            }
         },
         {
             path: '/functionalgroups/',
             name: 'FunctionalGroups',
-            component: FunctionalGroups
+            component: FunctionalGroups,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Functional Groups'
+            }
         },
         {
-            path: '/functionalgroups/:id',
+            path: '/functionalgroups/manage',
             name: 'FunctionalGroupDetails',
-            component: FunctionalGroupDetails
+            component: FunctionalGroupDetails,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Manage Functional Group'
+            },
+            props: (route) => ({
+                "id": route.query.id || null,
+                "intent": route.query.intent || "create"
+            })
         },
         {
             path: '/policytable/',
             name: 'PolicyTable',
-            component: PolicyTable
+            component: PolicyTable,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Policy Table Preview'
+            }
         },
         {
             path: '/user/',
             name: 'User',
-            component: User
+            component: User,
+            meta: {
+                auth: true,
+                title: 'Policy Server - User Settings'
+            }
         },
         {
-          path: '/invite/',
-          name: 'Invite',
-          component: Invite
+            path: '/invite/',
+            name: 'Invite',
+            component: Invite,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Invite Users'
+            }
+        },
+        {
+            path: '*',
+            name: '404',
+            component: NotFound,
+            meta: {
+                auth: false,
+                title: 'Policy Server - Page Not Found'
+            }
         }
     ],
     scrollBehavior: function(to, from, savedPosition) {
       return { x: 0, y: 0 }
     }
-})
+});
+
+router.beforeEach((to, from, next) => {
+    document.title = to.meta.title || "Policy Server";
+    if(false && to.matched.some(record => record.meta.auth) && !router.app.$session.exists()){
+        // must log in
+        next({
+            "path": "/login",
+            "query": {
+                "redirect": to.fullPath
+            }
+        });
+    }else{
+        next();
+    }
+});
+
+export default router;

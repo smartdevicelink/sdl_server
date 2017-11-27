@@ -1,8 +1,8 @@
 <template>
     <nav class="navbar navbar-expand-md navbar-dark fixed-top header-bg">
-        <a class="navbar-brand col-sm-3 col-md-2">
+        <router-link to="/" class="navbar-brand col-sm-3 col-md-2">
             <img src="~@/assets/images/sdl_ps_logo@2x.png" class="nav-sdl-logo"/>
-        </a>
+        </router-link>
         <button class="navbar-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -15,7 +15,7 @@
                 </li>
                 -->
             </ul>
-            <button type="button" v-on:click="openUserNav" class="btn btn-link hover-color-green">
+            <button v-if="is_logged_in" type="button" v-on:click="openUserNav" class="btn btn-link hover-color-green">
                 <i class="fa fa-fw fa-user-o color-white"></i>
             </button>
         </div>
@@ -25,10 +25,19 @@
 <script>
     import { eventBus } from '../../main.js';
     export default {
+        data: function(){
+            return {
+                "is_logged_in": this.$session.exists()
+            };
+        },
         methods: {
             "openUserNav": function(){
                 eventBus.$emit("openUserNav");
-                console.log("sending openUserNav");
+            }
+        },
+        watch: {
+            "$route": function(to, from){
+                this.is_logged_in = this.$session.exists();
             }
         }
     }
