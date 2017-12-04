@@ -2395,7 +2395,6 @@ WHERE NOT EXISTS (
     WHERE fgi.property_name = 'HapticGroup'
 );
 
-
 INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
 SELECT id AS function_group_id, 'AddCommand' AS permission_name, 'BACKGROUND' AS hmi_level
 FROM function_group_info
@@ -5078,11 +5077,6 @@ WHERE property_name = 'VehicleInfo-3';
 
 INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'OnVehicleData' AS rpc_name, 'tirePressure' AS parameter
-FROM function_group_info
-WHERE property_name = 'VehicleInfo-3';
-
-INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
-SELECT id AS function_group_id, 'OnVehicleData' AS rpc_name, 'vin' AS parameter
 FROM function_group_info
 WHERE property_name = 'VehicleInfo-3';
 

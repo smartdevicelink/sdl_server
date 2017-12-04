@@ -13,8 +13,11 @@
                     v-model="environment"
                     :options="environmentOptions"
                     name="chooseEnvironment" />
-                <div class="alert color-bg-red color-white d-table" role="alert">
-                    ** Notice: There are <b>{{ unused_count.rpcs }} RPCs</b> and <b>{{ unused_count.parameters }} parameters</b> not currently being used in a functional group.
+                <div v-if="unused_count.rpcs !== 0 || unused_count.parameters !== 0" class="alert color-bg-red color-white d-table" role="alert">
+                    ** Notice: {{ unused_permissions_text }} not currently being used in a functional group.
+                    <div v-for="perm in unmapped_permissions">
+                        {{ perm.name }} ({{ perm.type }})
+                    </div>
                 </div>
                 <h4>Functional Groups</h4>
                 <section class="tiles">
@@ -59,9 +62,12 @@
                             {{ item.name }}
                         </option>
                     </b-form-select>
+                    <b-btn v-bind:disabled="is_clone_disabled" v-on:click="cloneGroupById()" type="button" aria-describedby="copyHelp" class="btn btn-card btn-style-green">Create New Functional Group Based on Existing Group</b-btn>
+                    <!--
                     <router-link v-bind:to="{ path: 'functionalgroups/manage', query: { id: selected_group_id, intent: 'create' } }">
                         <b-btn v-bind:disabled="is_clone_disabled" type="button" aria-describedby="copyHelp" class="btn btn-card btn-style-green">Create New Functional Group Based on Existing Group</b-btn>
                     </router-link>
+                    -->
                 </b-modal>
 
             </main>
@@ -87,66 +93,109 @@
                 "selected_group_id": null,
                 "is_clone_disabled": true,
                 "unused_count": {
-                    "rpcs": 2,
-                    "parameters": 12
+                    "rpcs": 0,
+                    "parameters": 0
                 },
+                "unmapped_permissions": [],
                 "functional_groups": []
             }
         },
+        computed: {
+            unused_permissions_text: function () {
+                const rpcCount = this.unused_count.rpcs;
+                const parameterCount = this.unused_count.parameters;
+                let output = "";
+                if (rpcCount !== 1) {
+                    output += "There are " + rpcCount + " RPCs";
+                }
+                else {
+                    output += "There is " + rpcCount + " RPC";
+                }
+                if (parameterCount !== 1) {
+                    output += " and " + parameterCount + " parameters";
+                }
+                else {
+                    output += " and " + parameterCount + " parameter";
+                }
+                return output;
+            },
+        },
         methods: {
-            "environmentClick": function(){
+            "environmentClick": function () {
                 this.functional_groups = [];
                 console.log("Selected environment: " + this.environment);
-                // TODO: get functional groups
-                setTimeout(()=>{
-                    this.functional_groups = [
-                        {
-                            "id": 1,
-                            "name": "drivingCharacteristics-3",
-                            "description": "This functional group does some stuff and then also does some things. They’re both important. Yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda.",
-                            "permission_count": 4
-                        },
-                        {
-                            "id": 2,
-                            "name": "drivingCharacteristics-3",
-                            "description": "This functional group does some stuff.",
-                            "permission_count": 4
-                        },
-                        {
-                            "id": 3,
-                            "name": "drivingCharacteristics-3",
-                            "description": "This functional group does some stuff and then also does some things. They’re both important. Yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda.",
-                            "permission_count": 4
-                        },
-                        {
-                            "id": 4,
-                            "name": "drivingCharacteristics-3",
-                            "description": "This functional group does some stuff and then also does some things. They’re both important. Yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda.",
-                            "permission_count": 4
-                        },
-                        {
-                            "id": 5,
-                            "name": "drivingCharacteristics-3",
-                            "description": "This functional group does some stuff and then also does some things. They’re both important. Yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda.",
-                            "permission_count": 4
-                        },
-                        {
-                            "id": 5,
-                            "name": "drivingCharacteristics-3",
-                            "description": "This functional group does some stuff and then also does some things. They’re both important. Yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda.",
-                            "permission_count": 4
-                        },
-                        {
-                            "id": 5,
-                            "name": "drivingCharacteristics-3",
-                            "description": "This functional group does some stuff and then also does some things. They’re both important. Yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda yadda.",
-                            "permission_count": 4
-                        }
-                    ];
-                }, 300);
+                //get high level functional group data
+                this.getFunctionalGroupData();
+                //get unmapped permissions
+                this.getUnmappedPermissions();
             },
-            "selectedFunctionalGroup": function(){
+            "getFunctionalGroupData": function () {
+                this.$http.get("groups?environment=" + this.environment, {})
+                    .then(response => {
+                        // success
+                        response.json().then(parsed => {
+                            if(parsed.groups && parsed.groups.length){
+                                this.functional_groups = parsed.groups;
+                            }else{
+                                console.log("No functional data returned");
+                            }
+                        });
+                    }, response => {
+                        // error
+                        console.log("Error fetching functional group data: " + response.body.error);
+                    });                
+            },
+            "getUnmappedPermissions": function () {
+                this.$http.get("permissions/unmapped?environment=" + this.environment, {})
+                    .then(response => {
+                        // success
+                        response.json().then(parsed => {
+                            this.unmapped_permissions = parsed.permissions;
+                            this.unused_count.rpcs = parsed.unmapped_rpc_count;
+                            this.unused_count.parameters = parsed.unmapped_parameter_count;
+                        });
+                    }, response => {
+                        // error
+                        console.log("Error fetching functional group data: " + response.body.error);
+                    });                
+            },
+            "selectedFunctionalGroup": function () {
                 this.is_clone_disabled = this.selected_group_id != "null" ? false : true;
+            },
+            "cloneGroupById": function () {
+                //using selected_group_id, query the server for the full functional group info, then clone that via a save
+                this.getFunctionalGroupInfo(this.selected_group_id, (err, response) => {
+                    if (response) {
+                        response.json().then(json => {
+                            const fg = json.groups[0];
+                            this.saveFunctionalGroupInfo(fg, () => {
+                                //process complete! refresh the data on the page
+                                this.environmentClick();
+                                this.$refs.functionalGroupModal.hide();
+                            });
+                        });                  
+                    }
+                });
+            },
+            "getFunctionalGroupInfo": function (id, cb) {
+                this.httpRequest("get", "groups?id=" + id, null, cb); 
+            },
+            "saveFunctionalGroupInfo": function (functionalGroup, cb) {
+                this.httpRequest("post", "groups", functionalGroup, cb);
+            },
+            "httpRequest": function (action, route, body, cb) {
+                if (action === "delete" || action === "get") {
+                    if (body !== null) {
+                        body = {body: body};
+                    }
+                }
+                this.$http[action](route, body)
+                    .then(response => {
+                        cb(null, response);
+                    }, response => {
+                        console.error(response.body.error);
+                        cb(response, null);
+                    });
             }
         },
         mounted: function(){

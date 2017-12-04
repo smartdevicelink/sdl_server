@@ -1,6 +1,13 @@
 <template>
     <div class="white-box rpc-container">
-        <h5>{{ item.name }}<i v-on:click="removeRpc()" class="pointer pull-right fa fa-times hover-color-red" aria-hidden="true"></i></h5>
+        <h5>{{ item.name }}
+            <i 
+                v-on:click="removeRpc()" 
+                v-if="this.status !== 'PRODUCTION'" 
+                class="pointer pull-right fa fa-times hover-color-red" 
+                aria-hidden="true">
+            </i>
+        </h5>
         <div class="white-box d-flex padding-0">
             <rpc-checklist
             v-bind:type="'parameter'"
@@ -9,7 +16,7 @@
             v-bind:status="status"
             v-bind:rpcIndex="index"
             />
-            <rpc-checklist
+            <hmi-selector
                 v-bind:type="'hmi'"
                 v-bind:header="'Supported HMI Levels'"
                 v-bind:status="status"

@@ -14,6 +14,7 @@ import Invitee from './components/common/Invitee.vue'
 import FunctionalGroupItem from './components/common/FunctionalGroupItem.vue'
 import RpcItem from './components/common/RpcItem'
 import RpcChecklist from './components/common/RpcChecklist'
+import HmiSelector from './components/common/HmiSelector'
 
 Vue.use(BootstrapVue);
 Vue.use(VueSession);
@@ -35,8 +36,9 @@ Vue.component("invitee", Invitee);
 Vue.component("functional-group-item", FunctionalGroupItem);
 Vue.component("rpc-item", RpcItem);
 Vue.component("rpc-checklist", RpcChecklist);
+Vue.component("hmi-selector", HmiSelector);
 
-Vue.http.options.root = 'http://localhost:3000/api/v1';
+Vue.http.options.root = '/api/v1';
 
 export const eventBus = new Vue();
 

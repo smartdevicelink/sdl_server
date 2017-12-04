@@ -8,7 +8,7 @@ const config = require('./settings.js'); //configuration module
 const log = require(`./custom/loggers/${config.loggerModule}/index.js`); //logger module
 
 const versions = ["1"];
-const rootLocation = __dirname + '/../client/public';
+const htmlLocation = __dirname + '/dist/index.html';
 
 let app = express();
 app.use(bodyParser.json()); //allow json parsing
@@ -19,6 +19,7 @@ for (let i in versions){
     app.use(["/api/v"+versions[i], "/api/"+versions[i]], require("./app/v" + versions[i] + "/app"));
 }
 
+//load up the html, js and css content that makes up the UI
 app.use(express.static(__dirname + '/dist'));
 
 //global routes
@@ -40,9 +41,9 @@ app.use(function (err, req, res, next) {
     return;
 });
 
-//404 catch-all
+//catch-all route. serve the index.html file again. this is so vue-router's history mode functions
 app.use(function (req, res) {
-    res.sendStatus(404);
+    res.sendFile(htmlLocation);
 });
 
 //start the server

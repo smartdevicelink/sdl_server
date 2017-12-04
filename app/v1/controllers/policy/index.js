@@ -43,12 +43,6 @@ const makePolicyTable = [
     setupFunctionalGroups(false),
     setupAppPolicies(false, test)
 ];
-//module conf: about 5 ms
-//cons msg: about 20 ms
-//func groups: about 10 ms
-//app pols: about 18 ms
-//no app policies: about 30 ms
-//SQL method: about 38 ms
 
 const policyTableMakeFlow = app.locals.flow(makePolicyTable, {method: 'parallel'});
 
@@ -62,22 +56,13 @@ policyTableMakeFlow(function (err, res) {
     console.log(res[3]);*/
 });
 
-
-function post (isProduction) {
+function postFromCore (isProduction) {
 	return function (req, res, next) {
-		validatePost(req, res);
+        validateCorePost(req, res);
 		if (res.errorMsg) {
 			return res.status(400).send({ error: res.errorMsg });
 		}
-
-        const makePolicyTable = [
-            setupModuleConfig(isProduction),
-            setupConsumerFriendlyMessages(isProduction),
-            setupFunctionalGroups(isProduction),
-            setupAppPolicies(isProduction, test)
-        ];
-        const policyTableMakeFlow = app.locals.flow(makePolicyTable, {method: 'parallel'});
-        policyTableMakeFlow(function (err, res) {
+        generatePolicyTable(isProduction, req.body.policy_table.app_policies, true, function (err, pieces) {
             if (err) {
                 app.locals.log.error(err);
                 return res.sendStatus(500);
@@ -86,20 +71,80 @@ function post (isProduction) {
                 data: [
                     {  
                         policy_table: {
-                            module_config: res[0],
-                            functional_groupings: res[1],
-                            consumer_friendly_messages: res[2],
-                            app_policies: res[3]
+                            module_config: pieces[0],
+                            functional_groupings: pieces[1],
+                            consumer_friendly_messages: pieces[2],
+                            app_policies: pieces[3]
                         }
                     }
                 ]
             }
-            res.status(200).send(policyTable);
+            res.status(200).send(policyTable); 
         });
 	}
 }
 
-function validatePost (req, res) {
+function getPreview (req, res, next) {
+    const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
+    generatePolicyTable(isProduction, null, true, function (err, pieces) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.sendStatus(500);
+        }
+        const policyTable = {
+            data: [
+                {  
+                    policy_table: {
+                        module_config: pieces[0],
+                        functional_groupings: pieces[1],
+                        consumer_friendly_messages: pieces[2]
+                    }
+                }
+            ]
+        }
+        res.status(200).send(policyTable); 
+    });
+}
+
+function postAppPolicy (req, res, next) {
+    const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
+    validateAppPolicyOnlyPost(req, res);
+    if (res.errorMsg) {
+        return res.status(400).send({ error: res.errorMsg });
+    }
+    generatePolicyTable(isProduction, req.body.policy_table.app_policies, false, function (err, pieces) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.sendStatus(500);
+        }
+        const policyTable = {
+            data: [
+                {  
+                    policy_table: {
+                        app_policies: pieces[0]
+                    }
+                }
+            ]
+        }
+        res.status(200).send(policyTable); 
+    });
+}
+
+function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
+    let makePolicyTable = [];
+    if (returnPreview) {
+        makePolicyTable.push(setupModuleConfig(isProduction));
+        makePolicyTable.push(setupFunctionalGroups(isProduction));
+        makePolicyTable.push(setupConsumerFriendlyMessages(isProduction));
+    }
+    if (appPolicyObj) { //existence of appPolicyObj implies to return the app policy object
+        makePolicyTable.push(setupAppPolicies(isProduction, appPolicyObj));
+    }
+    const policyTableMakeFlow = app.locals.flow(makePolicyTable, {method: 'parallel'});
+    policyTableMakeFlow(cb);
+}
+
+function validateCorePost (req, res) {
     if (!req.body.policy_table) {
         return res.errorMsg = "Please provide policy table information";
     } else if (!req.body.policy_table.app_policies) {
@@ -114,6 +159,14 @@ function validatePost (req, res) {
         return res.errorMsg = "Please provide module config information";
     } else if (!req.body.policy_table.usage_and_error_counts) {
         return res.errorMsg = "Please provide usage and error counts information";
+    }
+}
+
+function validateAppPolicyOnlyPost (req, res) {
+    if (!req.body.policy_table) {
+        return res.errorMsg = "Please provide policy table information";
+    } else if (!req.body.policy_table.app_policies) {
+        return res.errorMsg = "Please provide app policies information";
     }
 }
 
@@ -190,6 +243,8 @@ function mapAppBaseInfo (isProduction) {
 }
 
 module.exports = {
-	postStaging: post(false),
-	postProduction: post(true)
+    postFromCoreStaging: postFromCore(false),
+    postFromCoreProduction: postFromCore(true),
+    getPreview: getPreview,
+    postAppPolicy: postAppPolicy
 };

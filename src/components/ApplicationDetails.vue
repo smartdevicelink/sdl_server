@@ -117,12 +117,14 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Type</th>
+                                    <th>HMI Level Requested</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="permission in app.permissions">
-                                    <td>{{ permission.name }}</td>
+                                    <td>{{ permission.key }}</td>
                                     <td>{{ permission.type }}</td>
+                                    <td>{{ permission.hmi_level }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -276,9 +278,14 @@ export default {
             });
         },
         getPolicy: function(){
-            this.$http.post((this.app.approval_status == "ACCEPTED" ? "production" : "staging") + "/policy", {
-                "app_policies": {
-                    [this.app.uuid]: {}
+            //
+            //this.$http.post((this.app.approval_status == "ACCEPTED" ? "production" : "staging") + "/policy", {
+            const envName = this.app.approval_status == "ACCEPTED" ? "production" : "staging";
+            this.$http.post("policy/apps?environment=" + envName, { 
+                "policy_table": {
+                    "app_policies": {
+                        [this.app.uuid]: {}
+                    }
                 }
             }).then(response => {
                 // success
@@ -295,6 +302,7 @@ export default {
             }, response => {
                 // error
                 console.log("Error fetching policy table. Status code: " + response.status);
+                console.log(response.body.error);
             });
         }
     },

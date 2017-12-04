@@ -23,7 +23,8 @@ export default {
         }
     },
     beforeCreate: function(){
-        this.$http.get("https://raw.githubusercontent.com/smartdevicelink/sdl_server/master/package.json").then(response => {
+        //TODO: when master is updated, change the url from 'redesign' to 'master'
+        this.$http.get("https://raw.githubusercontent.com/smartdevicelink/sdl_server/redesign/package.json").then(response => {
             // success
             response.json().then(parsed => {
                 this.latest_version = parsed.version;

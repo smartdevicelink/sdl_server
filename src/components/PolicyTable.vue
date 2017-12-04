@@ -14,7 +14,8 @@
                     :options="environmentOptions"
                     name="chooseEnvironment" />
                 <div v-if="policytable !== null">
-                    <pre class="prettyprint linenums hidenums">{{ policytable }}</pre>
+                    <!--<pre class="prettyprint linenums hidenums">{{ policytable }}</pre>-->
+                    <vue-json-pretty :data="policytable"></vue-json-pretty>
                     <a id="back-to-top" v-on:click.prevent="toTop" class="btn btn-primary btn-lg back-to-top" role="button"><i class="fa fa-fw fa-chevron-up"></i></a>
                 </div>
             </main>
@@ -25,7 +26,12 @@
 
 <script>
 import * as $ from 'jquery'
+import VueJsonPretty from 'vue-json-pretty'
+
 export default {
+    components: {
+        VueJsonPretty
+    },
     data: function(){
         return {
             "environment": "staging",
@@ -42,9 +48,6 @@ export default {
             "policytable": null
         };
     },
-    updated: function(){
-        PR.prettyPrint();
-    },
     methods: {
         "toTop": function(){
             $('body,html').animate({
@@ -55,8 +58,9 @@ export default {
             }, 500);
         },
         "environmentClick": function(){
+            const self = this;
             console.log("Selected environment: " + this.environment);
-            this.$http.post(this.environment + "/policy", {
+            this.$http.get("policy/preview?environment=" + this.environment, {
             }).then(response => {
                 // success
                 console.log("policy table retrieved");
@@ -70,8 +74,9 @@ export default {
             }, response => {
                 // error
                 console.log("Error fetching policy table. Status code: " + response.status);
+                console.log("Error fetching policy table. Error message: " + response.body.error);
             });
-        }
+        },
     },
     created: function(){
         $(document).ready(function(){

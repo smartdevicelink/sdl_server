@@ -12,6 +12,8 @@ const outputFileName = 'output.log'; //the name of the output file
 //I'm sorry
 
 //PERMISSION DEFINITION OUTPUT
+//DO NOT USE. PERMISSION DEFINITIONS NOW RECEIVED THROUGH SHAID
+/*
 const permissionStatement = permissions.permissionNames.map(function (permission) {
 	return `
 INSERT INTO permissions (name, type)
@@ -25,7 +27,7 @@ WHERE NOT EXISTS (
 //const permissionStatement = sql.insert('permissions').values(permissionObjs).toString();
 //writeToBuffer(utils.formatInsertOutput(permissionStatement));
 writeToBuffer(permissionStatement.join(''));
-
+*/
 //FUNCTION GROUP INFO OUTPUT
 const funcGroupNames = Object.keys(funcGroups);
 const funcGroupInfoStatement = funcGroupNames.map(function (funcGroupName) {
@@ -51,6 +53,8 @@ WHERE NOT EXISTS (
 writeToBuffer(funcGroupInfoStatement.join(''));
 
 //PERMISSION RELATIONS OUTPUT
+//DO NOT USE. PERMISSION RELATIONS NOW RECEIVED THROUGH SHAID
+/*
 const relationStatement = permissions.permissionRelations.map(function (permRelation) {
 
 	return `
@@ -66,6 +70,7 @@ WHERE NOT EXISTS (
 //const relationStatement = sql.insert('permission_relations').values(relationObjs).toString();
 //writeToBuffer(utils.formatInsertOutput(relationStatement));
 writeToBuffer(relationStatement.join(''));
+*/
 
 //FUNCTION GROUP PERMISSIONS OUTPUT
 //Get the permission IDs via join statements

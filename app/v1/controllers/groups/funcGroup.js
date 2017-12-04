@@ -24,7 +24,7 @@ function makeFunctionGroups (info, next) {
     //get aggregate information such as rpc count and parameter count for each functional group
     let hashRpcs = utils.hashify({}, hmiLevels, transAggregateRpcs, null);
     let hashParameters = utils.hashify({}, parameters, transAggregateParameters, null);
-
+    
     //count up the results.
     for (let id in hashRpcs) {
         hashRpcs[id] = Object.keys(hashRpcs[id]).length;
@@ -123,6 +123,14 @@ function makeFunctionGroups (info, next) {
     next(null, hashedBaseInfo);
 }
 
+//modifies the original reference. sends the template back in an array
+function arrayifyOneFuncGroup (template, next) {
+    utils.arrayify(template, ['rpcs', null, 'hmi_levels']);
+    utils.arrayify(template, ['rpcs', null, 'parameters']);
+    utils.arrayify(template, ['rpcs']);
+    next(null, [template]);
+}
+
 //generates a template response that can be used to describe any specific function group info
 function generateTemplate (info, next) {
     const rpcs = info[0];
@@ -164,8 +172,8 @@ function generateTemplate (info, next) {
         template.rpcs[rpc.name] = obj;      
     }
 
-    //it's just as fast, if not faster, to setup the template not worrying about storing references
-    //in multiple places, then blasting them all out with parse/stringify. it's also safer.
+    //it's just as fast, if not faster, to setup the template, not worrying about storing references
+    //in multiple places, and blasting them all out with parse/stringify. it's also safer.
     next(null, JSON.parse(JSON.stringify(template)));
 }
 
@@ -177,7 +185,9 @@ function baseTemplate () {
         status: "",
         selected_prompt_id: 0,
         selected_rpc_count: 0,
-        selected_parameter_count: 0
+        selected_parameter_count: 0,
+        is_default: false,
+        user_consent_prompt: null
     };
 }
 
@@ -258,5 +268,6 @@ module.exports = {
     generateTemplate: generateTemplate,
     baseTemplate: baseTemplate,
     makeFunctionGroups: makeFunctionGroups,
-    convertFuncGroupJson: convertFuncGroupJson
+    convertFuncGroupJson: convertFuncGroupJson,
+    arrayifyOneFuncGroup: arrayifyOneFuncGroup
 };

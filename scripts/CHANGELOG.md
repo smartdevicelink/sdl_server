@@ -14,3 +14,6 @@ BackgroundAPT functional group now includes FULL and LIMITED hmi levels in all i
 
 POLICY TABLE DIFFERENCES (11/7/2017)
 added OnWayPointChange RPC to WayPoints functional group with hmi levels BACKGROUND, FULL and LIMITED
+
+POLICY TABLE NOTICE (11/29/2017)
+vin for OnVehicleData is an allowable state. Currently in VehicleInfo-3

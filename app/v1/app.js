@@ -38,16 +38,20 @@ app.post('/register', register.post);
 app.get('/applications', applications.get);
 app.post('/applications/action', applications.actionPost);
 app.post('/applications/auto', applications.autoPost);
-app.post('/staging/policy', policy.postStaging);
-app.post('/production/policy', policy.postProduction);
+//begin policy table routes
+app.post('/staging/policy', policy.postFromCoreStaging);
+app.post('/production/policy', policy.postFromCoreProduction);
+app.get('/policy/preview', policy.getPreview);
+app.post('/policy/apps', policy.postAppPolicy);
+//end policy table routes
 app.post('/webhook', shaid.webhook); //webhook route
 app.post('/permissions/update', permissions.post);
 app.get('/permissions/unmapped', permissions.get);
 app.get('/groups', groups.get);
 app.delete('/groups', groups.delete);
-app.get('/messages', messages.get);
 app.post('/groups', groups.postAddGroup);
 app.post('/groups/promote', groups.postPromote);
+app.get('/messages', messages.get);
 
 /*
 NEW APIS
@@ -63,7 +67,7 @@ of that STAGING record but with PRODUCTION status
 */
 
 //get and store permission info from SHAID on startup
-permissions.update();
+permissions.update(function () {});
 
 //get and store app info from SHAID on startup
 shaid.queryAndStoreApplications({}, function () {
