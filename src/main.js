@@ -15,6 +15,8 @@ import FunctionalGroupItem from './components/common/FunctionalGroupItem.vue'
 import RpcItem from './components/common/RpcItem'
 import RpcChecklist from './components/common/RpcChecklist'
 import HmiSelector from './components/common/HmiSelector'
+import ConsumerMessageItem from './components/common/ConsumerMessageItem.vue'
+import MessageItem from './components/common/MessageItem'
 
 Vue.use(BootstrapVue);
 Vue.use(VueSession);
@@ -37,6 +39,8 @@ Vue.component("functional-group-item", FunctionalGroupItem);
 Vue.component("rpc-item", RpcItem);
 Vue.component("rpc-checklist", RpcChecklist);
 Vue.component("hmi-selector", HmiSelector);
+Vue.component("consumer-message-item", ConsumerMessageItem);
+Vue.component("message-item", MessageItem);
 
 Vue.http.options.root = '/api/v1';
 

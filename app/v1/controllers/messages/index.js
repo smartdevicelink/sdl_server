@@ -1,26 +1,158 @@
 const app = require('../../app');
 const setupSql = app.locals.sql.setupSqlCommand;
+const setupInsertsSql = app.locals.sql.setupSqlInsertsNoError;
+const messageUtils = require('./messages');
+const languages = require('./languages');
+const check = require('check-types');
 
-function get (req, res, next) {
+// const exFlow = app.locals.flow([
+//     setupSql(app.locals.sql.getMessages.info(true))
+// ], {method: 'waterfall'});
+// exFlow(function (err, messages) {
+//     //console.log(JSON.stringify(messages, null, 4));
+// }); 
+
+//need two pieces of info: all categories of a certain language (just en-us)
+//and the max id of every category. The first piece is so the message text preview is
+//in the language of the user, and the second category is in case an entry for that
+//category in that language doesn't exist, so fall back to another text
+function getMessageCategories (isProduction, cb) {
+    const LANG_FILTER = 'en-us';
+
+    const getMessagesFlow = app.locals.flow([
+        setupSql(app.locals.sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
+        setupSql(app.locals.sql.getMessages.categoryByMaxId(isProduction, LANG_FILTER))
+    ], {method: 'parallel'});
+
+    const getCategoriesFlow = app.locals.flow([
+        getMessagesFlow,
+        messageUtils.combineMessageInfo.bind(null, LANG_FILTER)
+    ], {method: 'waterfall'});
+
+    getCategoriesFlow(cb);
+}
+
+function getInfo (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
     const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
-    getMessageCategories(isProduction, function (err, categories) {
+    const returnTemplate = !!req.query.template; //coerce to boolean
+
+    if (returnTemplate) { //template mode. return just the shell of a message
+        chosenFlow = makeCategoryTemplateFlow();
+    }
+    else if (req.query.category) { //filter by message category
+        chosenFlow = getCategoryInfoFlow(isProduction, req.query.category);
+    }
+    else { //get all message info at the highest level, filtering in PRODUCTION or STAGING mode
+        chosenFlow = getMessageCategories.bind(null, isProduction);
+    }
+
+    chosenFlow(function (err, messages) {
         if (err) {
             app.locals.log.error(err);
             return res.sendStatus(500);
         }
-        return res.status(200).send({messages: categories}); 
+        return res.status(200).send({messages: messages}); 
+    }); 
+}
+
+function getCategoryInfoFlow (isProduction, category) {
+    const getInfoFlow = app.locals.flow([
+        makeCategoryTemplateFlow(),
+        setupSql(app.locals.sql.getMessages.byCategory(isProduction, category))
+    ], {method: 'parallel'});
+
+    return app.locals.flow([
+        getInfoFlow,
+        messageUtils.transformMessages
+    ], {method: 'waterfall'});
+}
+
+function makeCategoryTemplateFlow () {
+    const getTemplateInfo = app.locals.flow([
+        setupSql(app.locals.sql.getLanguages),
+    ], {method: 'parallel'});
+
+    return app.locals.flow([
+        getTemplateInfo,
+        messageUtils.generateCategoryTemplate
+    ], {method: 'waterfall'});
+}
+
+function post (isProduction) {
+    return function (req, res, next) {
+        validatePost(req, res);
+        if (res.errorMsg) {
+            return res.status(400).send({ error: res.errorMsg });
+        }    
+        const messageFlow = addMessageFlow(req.body, isProduction);
+        if (messageFlow) {
+            messageFlow(function () {
+                res.sendStatus(200);
+            });
+        }
+        else {
+            res.status(400).send({ error: "No messages to save" });
+        }
+    }
+}
+
+function addMessageFlow (messages, isProduction) {
+    const newMessages = messageUtils.convertMessagesJson(messages, isProduction);
+    if (newMessages.length === 0) { //the format of the request is correct, but there's no messages to actually store!
+        return null;
+    }
+    return app.locals.flow(setupInsertsSql(app.locals.sql.insert.messages(newMessages)), {method: 'parallel'});
+}
+
+function validatePost (req, res) {
+    //base check
+    if (!check.object(req.body.messages)) {
+        return res.errorMsg = "Required: messages (object)"
+    }
+    for (let lang in req.body.messages) {
+        const langObj = req.body.messages[lang];
+        if (!check.string(langObj.language_id) || !check.string(langObj.message_category) ) {
+            return res.errorMsg = "Required for message: language_id, message_category";
+        }
+    }
+}
+
+function del (req, res, next) {
+    validateDelete(req, res);
+    if (res.errorMsg) {
+        return res.status(400).send({ error: res.errorMsg });
+    }
+    const deleteFlow = flow([
+        setupSql(app.locals.sql.delete.messageCategory(req.body.message_category))
+    ], {method: 'series'});
+
+    deleteFlow(function () {
+        res.sendStatus(200);
     });
 }
 
-function getMessageCategories (isProduction, cb) {
-    const getMessagesFlow = app.locals.flow([
-        setupSql(app.locals.sql.messageCategories(isProduction, 'en-us')) //english results only
-    ], {method: 'waterfall'});
-    getMessagesFlow(cb);
+function validateDelete (req, res) {
+    if (!check.number(req.body.message_category)) {
+        return res.errorMsg = "Required for deletion: message_category";
+    }
+}
+
+function postUpdate (req, res, next) {
+    languages.updateLanguages(function (err) {
+        if (err) {
+            return res.sendStatus(500);
+        }
+        return res.sendStatus(200);
+    });
 }
 
 module.exports = {
-    get: get,
-    getMessageCategories: getMessageCategories
+    getInfo: getInfo,
+    getMessageCategories: getMessageCategories, //used by the groups module
+    postAddMessage: post(false),
+    postPromoteMessage: post(true),
+    delete: del,
+    postUpdate: postUpdate,
+    updateLanguages: languages.updateLanguages
 };

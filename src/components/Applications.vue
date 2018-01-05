@@ -100,7 +100,7 @@
                 "apps_denied": []
             }
         },
-        beforeCreate: function(){
+        beforeCreate: function(){ 
             this.$http.get("applications", {
                 "params": {
                     "approval_status": "PENDING"

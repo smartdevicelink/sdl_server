@@ -27,6 +27,7 @@ function get (req, res, next) {
                 type: perm.type
             }
         });
+
         return res.status(200).send({
             permissions: permissions,
             unmapped_rpc_count: unmappedRpcCount,

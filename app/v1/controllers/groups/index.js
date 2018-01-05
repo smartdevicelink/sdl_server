@@ -8,16 +8,16 @@ const messages = require('../messages/index.js');
 const check = require('check-types');
 
 
-let flowex = createFuncGroupFlow('idFilter', 5, true);
+//let flowex = createFuncGroupFlow('idFilter', 5, true);
 //let flowex = createFuncGroupFlow('statusFilter', true, false);
 // let flowex = makeTemplateFlowStart();
 // flowex.push(funcGroup.arrayifyOneFuncGroup);
 // flowex = flow(flowex, {method: 'waterfall'});
 
-flowex(function (err, res) {
+//flowex(function (err, res) {
     //console.log(JSON.stringify(res, null, 4));
     //console.log(res);
-});
+//});
 
 function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
@@ -61,7 +61,7 @@ function makeTemplateFlowStart () {
 }
 
 //helper function that allows retrieving functional group info easily
-function createFuncGroupFlow (filterTypeFunc, value, includeRpcs) {
+function createFuncGroupFlow (filterTypeProp, value, includeRpcs) {
     let makeTemplateArray;
     if (includeRpcs) {
         makeTemplateArray = makeTemplateFlowStart();
@@ -76,9 +76,9 @@ function createFuncGroupFlow (filterTypeFunc, value, includeRpcs) {
     const makeTemplateFlow = flow(makeTemplateArray, {method: 'waterfall'});
 
     const getFuncGroupFlow = flow([
-        setupSql(app.locals.sql.getFuncGroup.base[filterTypeFunc](value)),
-        setupSql(app.locals.sql.getFuncGroup.hmiLevels[filterTypeFunc](value)),
-        setupSql(app.locals.sql.getFuncGroup.parameters[filterTypeFunc](value)),
+        setupSql(app.locals.sql.getFuncGroup.base[filterTypeProp](value)),
+        setupSql(app.locals.sql.getFuncGroup.hmiLevels[filterTypeProp](value)),
+        setupSql(app.locals.sql.getFuncGroup.parameters[filterTypeProp](value)),
         messages.getMessageCategories.bind(null, false) //get consent prompt values (always returns a value as if in STAGING mode)
     ], {method: 'parallel'});
 
@@ -113,7 +113,7 @@ function post (isProduction) {
 }
 
 //NOTE: this will not warn the user if a change is made in a consumer friendly message in STAGING
-//such that the STAGING value will be returned in staging mode but in PRODCUTION mode the older value gets used
+//such that the STAGING value will be returned in staging mode but in PRODUCTION mode the older value gets used
 function validatePromptExistence (isProduction, req, res, cb) {
     const consentPrompt = req.body.user_consent_prompt;
     //find if the consentPrompt of this functional group exists in the context
@@ -122,6 +122,7 @@ function validatePromptExistence (isProduction, req, res, cb) {
     if (consentPrompt === null) {
         return cb(); //stop here
     }
+
     messages.getMessageCategories(false, function (err, categories) {
         const category = categories.find(function (category) {
             return category.message_category === consentPrompt;
@@ -171,8 +172,6 @@ function validateFuncGroup (req, res) {
         for (let j = 0; j < rpcs[i].parameters.length; j++) {
             const params = rpcs[i].parameters[j];
             if (!check.string(params.key) || !check.boolean(params.selected)) {
-                console.log(rpcs[i].name)
-                console.log(rpcs[i].parameters[j])
                 return res.errorMsg = "Required for parameter: key, selected";
             }
         }

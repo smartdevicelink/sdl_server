@@ -123,7 +123,6 @@
         methods: {
             "environmentClick": function () {
                 this.functional_groups = [];
-                console.log("Selected environment: " + this.environment);
                 //get high level functional group data
                 this.getFunctionalGroupData();
                 //get unmapped permissions

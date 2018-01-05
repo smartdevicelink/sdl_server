@@ -3,31 +3,34 @@ const utils = require('./utils');
 function messagesSkeleton (isProduction) {
     return function (results, next) {
         const finalMessages = utils.filterArrayByStatus(results, ['message_category', 'language_id'], isProduction);
-
-        //transform the arrays into hashes, slowly constructing the full object from the pruned finalMessages
-        function transGeneric (property) {
-            return function (element) {
-                return [
-                    element['message_category'],
-                    'languages',
-                    element['language_id'],
-                    property,
-                    element[property]
-                ];
-            }
-        }
-        let finalHash = utils.hashify({}, finalMessages, transGeneric('tts'), null);
-        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line1'), null);
-        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line2'), null);
-        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('text_body'), null);
-        finalHash = utils.hashify(finalHash, finalMessages, transGeneric('label'), null);
-
+        let finalHash = hashifyMessages(finalMessages);
         const finalObj = {
             "version": "000.000.001", //TODO: what to do with the versioning?
             "messages": hashToMessagesObject(finalHash)
         }
         next(null, finalObj);
     }
+}
+
+function hashifyMessages (finalMessages) {
+    //transform the arrays into hashes, slowly constructing the full object from the pruned finalMessages
+    function transGeneric (property) {
+        return function (element) {
+            return [
+                element['message_category'],
+                'languages',
+                element['language_id'],
+                property,
+                element[property]
+            ];
+        }
+    }
+    let finalHash = utils.hashify({}, finalMessages, transGeneric('tts'), null);
+    finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line1'), null);
+    finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line2'), null);
+    finalHash = utils.hashify(finalHash, finalMessages, transGeneric('text_body'), null);
+    finalHash = utils.hashify(finalHash, finalMessages, transGeneric('label'), null);    
+    return finalHash;
 }
 
 //transform the hash into a valid consumer friendly message object under the keys
@@ -68,5 +71,6 @@ function hashToMessagesObject (hash) {
 
 
 module.exports = {
-    messagesSkeleton: messagesSkeleton
+    messagesSkeleton: messagesSkeleton,
+    hashifyMessages: hashifyMessages
 }

@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const EventEmitter = require('events');
 const config = require('./settings.js'); //configuration module
+const packageJson = require('./package.json'); //configuration module
 const log = require(`./custom/loggers/${config.loggerModule}/index.js`); //logger module
 
 const versions = ["1"];
@@ -29,9 +30,9 @@ app.get("/health", function (req, res) {
     res.sendStatus(200);
 });
 
-//loader.io verification route for load testing
-app.get("/loaderio-8e4d80eaf952e3e972feea1072b80f9f", function (req, res) {
-    res.send("loaderio-8e4d80eaf952e3e972feea1072b80f9f");
+//version endpoint (based on package.json version)
+app.get("/version", function (req, res) {
+    res.status(200).send(packageJson.version)
 });
 
 //error catcher

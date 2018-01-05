@@ -10,6 +10,9 @@
             <router-link tag="li" class="nav-item" to="/functionalgroups" active-class="active">
                 <a class="nav-link">Functional Groups <span v-if="badge_counts.functional_groups" class="badge badge-circle badge-danger">{{ badge_counts.functional_groups }}</span></a>
             </router-link>
+            <router-link tag="li" class="nav-item" to="/consumermessages" active-class="active">
+                <a class="nav-link">Consumer Messages <span v-if="badge_counts.consumer_messages" class="badge badge-circle badge-danger">{{ badge_counts.consumer_messages }}</span></a>
+            </router-link>
         </ul>
     </nav>
 </template>
@@ -20,7 +23,8 @@ export default {
         return {
             "badge_counts": {
                 "applications": 0,
-                "functional_groups": 0
+                "functional_groups": 0,
+                "consumer_messages": 0
             }
         };
     },

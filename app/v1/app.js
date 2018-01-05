@@ -51,7 +51,10 @@ app.get('/groups', groups.get);
 app.delete('/groups', groups.delete);
 app.post('/groups', groups.postAddGroup);
 app.post('/groups/promote', groups.postPromote);
-app.get('/messages', messages.get);
+app.get('/messages', messages.getInfo);
+app.post('/messages', messages.postAddMessage); 
+app.post('/messages/promote', messages.postPromoteMessage); 
+app.post('/messages/update', messages.updateLanguages);
 
 /*
 NEW APIS
@@ -68,11 +71,16 @@ of that STAGING record but with PRODUCTION status
 
 //get and store permission info from SHAID on startup
 permissions.update(function () {});
+//get and store language code info from the GitHub SDL RPC specification on startup
+messages.updateLanguages(function () {
+	log.info("Language list updated");
+});
 
 //get and store app info from SHAID on startup
 shaid.queryAndStoreApplications({}, function () {
 	log.info("App information updated");
 });
 
-//cron job for running permission updates. runs once a day at midnight
+//cron job for running updates. runs once a day at midnight
 new Cron('00 00 00 * * *', permissions.update, null, true);
+new Cron('00 00 00 * * *', messages.updateLanguages, null, true);

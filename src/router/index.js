@@ -7,6 +7,8 @@ import Applications from '@/components/Applications'
 import ApplicationDetails from '@/components/ApplicationDetails'
 import FunctionalGroups from '@/components/FunctionalGroups'
 import FunctionalGroupDetails from '@/components/FunctionalGroupDetails'
+import ConsumerMessages from '@/components/ConsumerMessages'
+import ConsumerMessageDetails from '@/components/ConsumerMessageDetails'
 import PolicyTable from '@/components/PolicyTable'
 import User from '@/components/User'
 import Invite from '@/components/Invite'
@@ -105,6 +107,28 @@ const router = new Router({
                 auth: true,
                 title: 'Policy Server - Policy Table Preview'
             }
+        },
+        {
+            path: '/consumermessages/',
+            name: 'ConsumerMessages',
+            component: ConsumerMessages,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Consumer Friendly Messages'
+            }
+        },
+        {
+            path: '/consumermessages/manage',
+            name: 'ConsumerMessageDetails',
+            component: ConsumerMessageDetails,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Manage Consumer Friendly Message'
+            },
+            props: (route) => ({
+                "message_category": route.query.message_category || null,
+                "intent": route.query.intent || "create"
+            })
         },
         {
             path: '/user/',

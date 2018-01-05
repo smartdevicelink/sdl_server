@@ -1,6 +1,7 @@
 const app = require('../../app');
 const setupSql = app.locals.sql.setupSqlCommand;
 const appInfo = require('./appInfo.js');
+const check = require('check-types');
 
 function get (req, res, next) {
 	//prioritize id, uuid, approval status, in that order.
@@ -37,17 +38,18 @@ function actionPost (req, res, next) {
 	if (res.errorMsg) {
 		return res.status(400).send({ error: res.errorMsg });
 	}
-	//get the app by id, modify its approval status, and insert that as a new record in the database
-	//one of the functions in /lib/shaid/utils.js already does the work of inserting an app into the database
-	const constructAppFlow = createAppInfoFlow('idFilter', req.body.id);
-
+	//get app by id, and modify the existing entry in the database to change the approval status
+	const modifyAppFlow = [
+		setupSql(app.locals.sql.changeAppApprovalStatus(req.body.id, req.body.approval_status))
+	];
+	/*
 	const storeAppFlow = [
 		constructAppFlow,
 		appInfo.modifyApprovalStatus(req.body.approval_status),
 		app.locals.shaid.storeApps(true)
 	];
-
-	handleResponseStatusFlow(storeAppFlow, res);
+	*/
+	handleResponseStatusFlow(modifyAppFlow, res);
 }
 
 function validateActionPost (req, res) {
@@ -66,17 +68,23 @@ function autoPost (req, res, next) {
 	if (res.errorMsg) {
 		return res.status(400).send({ error: res.errorMsg });
 	}
+	
+	let chosenFlow;
 
-	//get the app by uuid, change its auto approved status, and restore it
-	const constructAppFlow = createAppInfoFlow('multiFilter', {app_uuid: req.body.uuid});
+	if (req.body.is_auto_approved_enabled) {
+		//add the uuid to the auto approval table
+		const appObj = {
+			is_auto_approved_enabled: req.body.is_auto_approved_enabled,
+			uuid: req.body.uuid
+		};
+		chosenFlow = app.locals.sql.setupSqlInsertsNoError(app.locals.sql.insert.appAutoApproval(appObj));
+	}
+	else {
+		//remove the uuid from the auto approval table
+		chosenFlow = [setupSql(app.locals.sql.delete.autoApproval(req.body.uuid))];
+	}
 
-	const storeAppFlow = [
-		constructAppFlow,
-		appInfo.modifyAutoApprovalStatus(req.body.is_auto_approved_enabled),
-		app.locals.shaid.storeApps(true)
-	];
-
-	handleResponseStatusFlow(storeAppFlow, res);
+	handleResponseStatusFlow(chosenFlow, res);
 }
 
 //helper function to execute a flow in waterfall mode, sending statuses back based on the results
@@ -91,7 +99,7 @@ function handleResponseStatusFlow (flow, res) {
 }
 
 function validateAutoPost (req, res) {
-	if (!req.body.uuid || !req.body.is_auto_approved_enabled) {
+	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_auto_approved_enabled)) {
 		return res.errorMsg = "Uuid and auto approved required";
 	}	
 }

@@ -1,7 +1,7 @@
 <template>
     <nav v-if="isDifferentVersion()" class="navbar fixed-bottom upgrade-alert">
         <div class="mx-auto h-100">
-            <span class="align-middle text-center">** Notice: A new version of the SDL Policy Server (v2.1) is available.</span>
+            <span class="align-middle text-center">** Notice: A new version of the SDL Policy Server (v{{latest_version}}) is available.</span>
             <a href="https://github.com/smartdevicelink/sdl_server" target="_blank">
                 <button type="button" class="btn btn-update btn-sm h-100">Update Now</button>
             </a>
@@ -14,7 +14,7 @@ export default {
     data: function(){
         return {
             "latest_version": null,
-            "current_version": "1"
+            "current_version": "1.0.0"
         };
     },
     methods: {
@@ -23,6 +23,14 @@ export default {
         }
     },
     beforeCreate: function(){
+        //get current version
+        this.$http.get("/version").then(response => {
+            // success
+            this.current_version = response.body;
+        }, response => {
+            // error
+            console.log("Error checking local Policy Server version. Status code: " + response.status);
+        });
         //TODO: when master is updated, change the url from 'redesign' to 'master'
         this.$http.get("https://raw.githubusercontent.com/smartdevicelink/sdl_server/redesign/package.json").then(response => {
             // success
@@ -31,7 +39,7 @@ export default {
             });
         }, response => {
             // error
-            console.log("Error checking Policy Server version. Status code: " + response.status);
+            console.log("Error checking remote Policy Server version. Status code: " + response.status);
         });
     }
 }

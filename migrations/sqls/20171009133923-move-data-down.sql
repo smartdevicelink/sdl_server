@@ -1,3 +1,5 @@
+DROP VIEW IF EXISTS view_mapped_permissions_production;
+DROP VIEW IF EXISTS view_mapped_permissions_staging;
 DROP VIEW IF EXISTS view_mapped_permissions;
 DROP VIEW IF EXISTS view_partial_app_info;
 DROP VIEW IF EXISTS view_function_group_info;
