@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>SDL Policy Server - Login</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link rel="stylesheet" href="./css/font-awesome.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top header-bg">
+        <a class="navbar-brand col-sm-3 col-md-2"><img src="./images/sdl_ps_logo@2x.png" class="nav-sdl-logo"/></a>
+        <button class="navbar-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav mr-auto">
+                <!--
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">View Policy Table/</a>
+                </li>
+                -->
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container-fluid content color-bg-gray">
+        <div class="row">
+            <div class="card">
+                <div class="auth-content">
+                    <div class="form-group card-link">
+                        <a href="login.html">Sign In</a>
+                        <span class="card-link-spacer">/</span>
+                        <a href="register.html" class="active">Register</a>
+                    </div>
+                    <div class="register">
+                        <form>
+                            <div class="form-group">
+                                <input type="email" class="" id="email" placeholder="Email" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="" id="temporaryPassword" placeholder="Temporary Password" required>
+                                <small id="passwordHelpBlock" class="form-text text-muted">
+                                    Check your email
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="" id="setPassword" placeholder="Create New Password" aria-describedby="passwordHelpBlock" pattern=".{6,}" required>
+                                <small id="passwordHelpBlock" class="form-text text-muted">
+                                    Must be at least 6 characters
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="" id="retypePassword" placeholder="Re-type Password" pattern=".{6,}" required>
+                            </div>
+                            <button type="submit" class="btn btn-card btn-style-green">Register</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar fixed-bottom upgrade-alert">
+        <div class="mx-auto h-100">
+            <span class="align-middle text-center">** Notice: A new version of the SDL Policy Server (v2.1) is available.</span>
+            <button type="button" class="btn btn-update btn-sm h-100">Update Now</button>
+        </div>
+    </nav>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+    <script>
+        var password = document.getElementById("setPassword")
+        , confirm_password = document.getElementById("retypePassword");
+
+        function validatePassword(){
+            if(password.value != confirm_password.value) {
+                confirm_password.setCustomValidity("Passwords Don't Match");
+            } else {
+                confirm_password.setCustomValidity('');
+            }
+        }
+
+        password.onchange = validatePassword;
+        confirm_password.onkeyup = validatePassword;
+    </script>
+</body>
+</html>
