@@ -70,12 +70,15 @@ ALTER TABLE app_permissions
 ADD "hmi_level" TEXT;
 
 ALTER TABLE function_group_info
-ADD "deleted_ts" TIMESTAMP WITHOUT TIME ZONE,
-ADD "description" TEXT;
+ADD "description" TEXT,
+ADD "is_deleted" BOOLEAN NOT NULL DEFAULT FALSE;
 
 ALTER TABLE app_info
 ADD "denial_message" TEXT,
 ADD "icon_url" TEXT;
+
+ALTER TABLE message_text
+ADD "is_deleted" BOOLEAN NOT NULL DEFAULT FALSE;
 
 DROP TABLE IF EXISTS function_group_permissions;
 
