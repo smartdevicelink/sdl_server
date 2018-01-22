@@ -1,39 +1,50 @@
 <template>
     <div class="white-box rpc-container">
-        <h5>{{ index }} ({{ item.status }})</h5>
-        <table style="width:100%">
-            <tr>
-                <td><b>tts</b></td>
-                <input v-model="item.tts" style="width:100%;border-style:inset;"/>
-            </tr>
-            <tr>
-                <td><b>line1</b></td>
-                <input v-model="item.line1" style="width:100%;border-style:inset;"/>
-            </tr>
-            <tr>
-                <td><b>line2</b></td>
-                <input v-model="item.line2" style="width:100%;border-style:inset;"/>
-            </tr>
-            <tr>
-                <td><b>text_body</b></td>
-                <input v-model="item.text_body" style="width:100%;border-style:inset;"/>
-            </tr>
-            <tr>
-                <td><b>label</b></td>
-                <input v-model="item.label" style="width:100%;border-style:inset;"/>
-            </tr>
-        </table>
-        <!-- save button -->
-        <div>
-            <vue-ladda
-                type="submit"
-                class="btn btn-card btn-style-green"
-                data-style="zoom-in"
-                v-on:click="saveMessageGroup()"
-                v-bind:loading="save_button_loading">
-                Save
-            </vue-ladda>
+        <h5></h5>
+        <h5>{{ index }}
+            <i
+                v-on:click="removeLanguage()"
+                v-if="this.status !== 'PRODUCTION'"
+                class="pointer pull-right fa fa-times hover-color-red"
+                aria-hidden="true">
+            </i>
+        </h5>
+
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label">TTS</label>
+            <div class="col-sm-10">
+                <input v-model="item.tts" class="form-control">
+            </div>
         </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label">Line 1</label>
+            <div class="col-sm-10">
+                <input v-model="item.line1" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label">Line 2</label>
+            <div class="col-sm-10">
+                <input v-model="item.line2" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label">Text Body</label>
+            <div class="col-sm-10">
+                <input v-model="item.text_body" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label">Label</label>
+            <div class="col-sm-10">
+                <input v-model="item.label" class="form-control">
+            </div>
+        </div>
+        
     </div>
 </template>
 
@@ -42,7 +53,6 @@
         props: ['item','index'],
         data () {
             return {
-                "save_button_loading": false
             };
         },
         methods: {
@@ -58,6 +68,9 @@
                         console.error(response.body.error);
                         this.save_button_loading = false;
                     });
+            },
+            "removeLanguage": function() {
+                this.item.selected = false;
             }
         }
     }

@@ -13,6 +13,11 @@
                     v-model="environment"
                     :options="environmentOptions"
                     name="chooseEnvironment" />
+
+                <div class="pull-right">
+                    <b-btn v-if="environment == 'staging'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote all to production</b-btn>
+                </div>
+
                 <div v-if="unused_count.rpcs !== 0 || unused_count.parameters !== 0" class="alert color-bg-red color-white d-table" role="alert">
                     ** Notice: {{ unused_permissions_text }} not currently being used in a functional group.
                     <div v-for="perm in unmapped_permissions">
@@ -71,6 +76,21 @@
                 </b-modal>
 
             </main>
+
+            <!-- PROMOTE GROUP MODAL -->
+            <b-modal ref="promoteModal" title="Promote Functional Groups to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                <small class="form-text text-muted">
+                    This will promote all staging Functional Groups to production, modifying the production policy table. Are you sure you want to do this?
+                </small>
+                <vue-ladda
+                    type="button"
+                    class="btn btn-card btn-style-green"
+                    data-style="zoom-in"
+                    v-on:click="promoteMessages()"
+                    v-bind:loading="promote_button_loading">
+                    Yes, promote to production!
+                </vue-ladda>
+            </b-modal>
         </div>
     </div>
 </template>
@@ -142,7 +162,7 @@
                     }, response => {
                         // error
                         console.log("Error fetching functional group data: " + response.body.error);
-                    });                
+                    });
             },
             "getUnmappedPermissions": function () {
                 this.$http.get("permissions/unmapped?environment=" + this.environment, {})
@@ -156,7 +176,7 @@
                     }, response => {
                         // error
                         console.log("Error fetching functional group data: " + response.body.error);
-                    });                
+                    });
             },
             "selectedFunctionalGroup": function () {
                 this.is_clone_disabled = this.selected_group_id != "null" ? false : true;
@@ -172,12 +192,12 @@
                                 this.environmentClick();
                                 this.$refs.functionalGroupModal.hide();
                             });
-                        });                  
+                        });
                     }
                 });
             },
             "getFunctionalGroupInfo": function (id, cb) {
-                this.httpRequest("get", "groups?id=" + id, null, cb); 
+                this.httpRequest("get", "groups?id=" + id, null, cb);
             },
             "saveFunctionalGroupInfo": function (functionalGroup, cb) {
                 this.httpRequest("post", "groups", functionalGroup, cb);

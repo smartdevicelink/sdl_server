@@ -7,6 +7,10 @@
 
             <div class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content">
 
+                <div class="pull-right">
+                    <b-btn v-b-modal.deleteModal v-if="intent == 'edit'" class="btn btn-danger btn-sm align-middle">Delete</b-btn>
+                </div>
+
                 <div class="functional-content">
                     <h4>Consumer Message</h4>
 
@@ -40,10 +44,10 @@
                             data-style="zoom-in"
                             v-on:click="saveMessageGroup()"
                             v-bind:loading="save_button_loading">
-                            Save All
+                            Save Consumer Message
                         </vue-ladda>
                     </div>
-                
+
                 </div>
 
             </div>
@@ -62,6 +66,21 @@
                     </li>
                 </ul>
             </b-modal>
+
+            <!-- DELETE GROUP MODAL -->
+            <b-modal ref="deleteModal" title="Delete Consumer Message" hide-footer id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                <small class="form-text text-muted">
+                    Are you sure you want to delete this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately revoked from the staging policy table, and will be revoked from the production policy table upon the next promotion to production.
+                </small>
+                <vue-ladda
+                    type="button"
+                    class="btn btn-card btn-danger"
+                    data-style="zoom-in"
+                    v-on:click="deleteGroup()"
+                    v-bind:loading="delete_button_loading">
+                    Yes, delete this consumer message!
+                </vue-ladda>
+            </b-modal>
         </div>
     </div>
 </template>
@@ -75,6 +94,7 @@ import { eventBus } from '../main.js';
                 "messages": {},
                 "lang_search": null,
                 "save_button_loading": false,
+                "delete_button_loading": false,
                 "copyMessageCategory": null
             };
         },
@@ -100,13 +120,13 @@ import { eventBus } from '../main.js';
                     return !lang.selected && (lang.language_id.toLowerCase().indexOf(this.lang_search.toLowerCase()) > -1);
                 }
             },
-            "saveMessageGroup": function () { //TODO: remove all this
-                this.save_button_loading = true;
+            "saveMessageGroup": function (callback) {
                 //save all messages in the messages object
-                this.httpRequest("post", "messages", {messages: this.messages}, (err, res) => {
-                    this.save_button_loading = false;
-                    this.$router.push("/consumermessages");
-                });
+                this.httpRequest("post", "messages", {messages: this.messages}, callback);
+            },
+            "deleteMessageGroup": function (callback) {
+                //save all messages in the messages object
+                this.httpRequest("delete", "messages", {messages: this.messages}, callback);
             },
             "getConsumerMessageInfo": function (getTemplate, cb) {
                 let queryInfo;
@@ -129,9 +149,9 @@ import { eventBus } from '../main.js';
                             if (cb) {
                                 cb(); //done
                             }
-                        });                    
+                        });
                     }
-                }); 
+                });
             },
             "httpRequest": function (action, route, body, cb) {
                 if (action === "delete" || action === "get") {
@@ -146,7 +166,26 @@ import { eventBus } from '../main.js';
                         console.error(response.body.error);
                         cb(response, null);
                     });
-            }
+            },
+            "deleteGroup": function () {
+                this.handleModalClick("delete_button_loading", "deleteModal", "deleteMessageGroup");
+            },
+            "saveGroup": function () {
+                this.handleModalClick("save_button_loading", null, "saveMessageGroup");
+            },
+            "handleModalClick": function (loadingProp, modalName, methodName) {
+                //show a loading icon for the modal, and call the methodName passed in
+                //when finished, turn off the loading icon, hide the modal, and push the
+                //user back to the functional groups page
+                this[loadingProp] = true;
+                this[methodName](() => {
+                    this[loadingProp] = false;
+                    if (modalName) {
+                        this.$refs[modalName].hide();
+                    }
+                    this.$router.push("/consumermessages");
+                });
+            },
         },
         created: function () {
             //only get info if the intent was made to edit an existing message
@@ -158,6 +197,7 @@ import { eventBus } from '../main.js';
         beforeDestroy () {
             // ensure closing of all modals
             this.$refs.addLanguageModal.onAfterLeave();
+            this.$refs.deleteModal.onAfterLeave();
         }
     }
 </script>

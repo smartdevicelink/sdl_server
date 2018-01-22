@@ -7,10 +7,8 @@
 
             <div class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content">
                 <div class="pull-right">
-                    <template v-if="intent == 'edit'">
-                        <b-btn class="btn btn-dark btn-sm align-middle d-none">Revert Version</b-btn>
-                        <b-btn v-b-modal.promoteModal v-if="fg.status != 'PRODUCTION'" class="btn btn-style-green btn-sm align-middle">Move to Production</b-btn>
-                        <b-btn v-b-modal.copyModal class="btn btn-dark btn-sm align-middle">Copy as Template</b-btn>
+                    <template v-if="fg.status != 'PRODUCTION'">
+                        <b-btn v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote to production</b-btn>
                         <b-btn v-b-modal.deleteModal class="btn btn-danger btn-sm align-middle">Delete</b-btn>
                     </template>
                 </div>
@@ -46,13 +44,13 @@
 
                     <!-- Is default checkbox -->
                     <div class="form-row">
-                        <h4 for="is-default">Make Default Functional Group</h4>              
+                        <h4 for="is-default">Make Default Functional Group</h4>
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_default"
                             v-bind:disabled="fg.status == 'PRODUCTION'">
                             Always allow applications access to this functional group
-                        </b-form-checkbox>   
+                        </b-form-checkbox>
                     </div>
 
                     <!-- TODO: create container for RPCs -->
@@ -205,15 +203,15 @@ import { eventBus } from '../main.js';
             },
             "handleModalClick": function (loadingProp, modalName, methodName) {
                 //show a loading icon for the modal, and call the methodName passed in
-                //when finished, turn off the loading icon, hide the modal, and push the 
+                //when finished, turn off the loading icon, hide the modal, and push the
                 //user back to the functional groups page
                 this[loadingProp] = true;
                 this[methodName](() => {
                     this[loadingProp] = false;
                     if (modalName) {
-                        this.$refs[modalName].hide(); 
+                        this.$refs[modalName].hide();
                     }
-                    this.$router.push("/functionalgroups");               
+                    this.$router.push("/functionalgroups");
                 });
             },
             "getConsentPrompts": function () {
@@ -227,14 +225,14 @@ import { eventBus } from '../main.js';
                                     return {
                                         "id": msg.id,
                                         "name": msg.message_category,
-                                        "prompt": msg.tts                                   
+                                        "prompt": msg.tts
                                     }
                                 });
                                 this.consent_prompts = transformedMessages;
                             }
-                        });                    
+                        });
                     }
-                }); 
+                });
             },
             "getFunctionalGroupInfo": function (getTemplate, cb) {
                 let queryInfo;
@@ -255,9 +253,9 @@ import { eventBus } from '../main.js';
                             if (cb) {
                                 cb(); //done
                             }
-                        });                    
+                        });
                     }
-                }); 
+                });
             },
             "saveFunctionalGroupInfo": function (cb) {
                 this.httpRequest("post", "groups", this.fg, cb);
@@ -266,7 +264,7 @@ import { eventBus } from '../main.js';
                 this.httpRequest("post", "groups/promote", this.fg, cb);
             },
             "deleteFunctionalGroupInfo": function (cb) {
-                this.httpRequest("delete", "groups", {id: this.fg.id}, cb);          
+                this.httpRequest("delete", "groups", {id: this.fg.id}, cb);
             },
             "httpRequest": function (action, route, body, cb) {
                 if (action === "delete" || action === "get") {

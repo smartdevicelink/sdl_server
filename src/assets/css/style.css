@@ -348,6 +348,9 @@ div.horizontal-divider .text {
     height: 200px;
     cursor: pointer;
 }
+.opacity-30 {
+    opacity: .3;
+}
 .tiles > a:hover, .tiles article:hover {
     color: #FFFFFF;
     background-color: #4A5E71;
@@ -415,6 +418,10 @@ div.horizontal-divider .text {
 .btn {
     border: none;
 }
+.btn-sm {
+    font-size: .875rem !important;
+    padding: .25rem .5rem !important;
+}
 .btn-group {
     margin-bottom: 1em;
 }
@@ -427,35 +434,35 @@ div.horizontal-divider .text {
     align-items: center;
 }
 .btn-danger {
-    background-color: #FF5E71;
-    border: none;
+    background-color: #FF5E71 !important;
+    border: none !important;
 }
 .btn-success {
-    background-color: #78C970;
-    border: none;
+    background-color: #78C970 !important;
+    border: none !important;
 }
 .btn-toggle {
-    background-color: #CCCCCC;
-    color: #384F61;
-    border: none;
+    background-color: #CCCCCC !important;
+    color: #384F61 !important;
+    border: none !important;
 }
 .btn-toggle.active {
-    background-color: #384F61;
-    color: #FFFFFF;
-    border: none;
+    background-color: #384F61 !important;
+    color: #FFFFFF !important;
+    border: none !important;
 }
 .btn-dark {
-    background-color: #4A5E71;
+    background-color: #4A5E71 !important;
 }
 .btn-update {
-    background-color: #FF2841;
-    color: #FFFFFF;
+    background-color: #FF2841 !important;
+    color: #FFFFFF !important;
     margin-left: 20px;
     font-size: 18px;
     border-radius: 0px;
 }
 .btn-update:hover {
-    background-color: #BB2839;
+    background-color: #BB2839 !important;
 }
 .btn-card {
     width: 100%;
@@ -463,21 +470,21 @@ div.horizontal-divider .text {
     margin-top: 20px;
 }
 .btn-style-green {
-    background-color: #78C970;
-    color: #FFFFFF;
+    background-color: #78C970 !important;
+    color: #FFFFFF !important;
 }
 .btn-style-green:hover {
-    background-color: #4A5E71;
-    color: #FFFFFF;
+    background-color: #4A5E71 !important;
+    color: #FFFFFF !important;
 }
 .btn-style-white {
-    background-color: #FFFFFF;
-    color: #384F61;
-    border: solid 1px #384F61;
+    background-color: #FFFFFF !important;
+    color: #384F61 !important;
+    border: solid 1px #384F61 !important;
 }
 .btn-style-white:hover {
-    background-color: #384F61;
-    color: #FFFFFF;
+    background-color: #384F61 !important;
+    color: #FFFFFF !important;
 }
 
 .app-action {
@@ -829,6 +836,9 @@ input:checked + .slider:before {
 }
 .rpc-container .form-group {
     margin: 10px;
+}
+.rpc-container input.form-control {
+    border: 1px solid #CCCCCC;
 }
 .rpc-container .custom-control {
     margin-left: 15px !important;

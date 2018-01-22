@@ -5,7 +5,7 @@
             <page-side-nav/>
             <page-user-nav/>
 
-            <!--TODO: add a select language option to get back tts in different languages for the description? --> 
+            <!--TODO: add a select language option to get back tts in different languages for the description? -->
 
             <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
                 <b-form-radio-group id="selectEnvironment"
@@ -17,7 +17,7 @@
                     name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote to Production</b-btn>
+                    <b-btn v-if="environment == 'staging'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote all to production</b-btn>
                 </div>
 
                 <h4>Consumer Friendly Messages</h4>
@@ -29,11 +29,11 @@
                         v-bind:key="item.id"
                         >
                     </consumer-message-item>
-                    
+
                     <!--TODO: the plus sign on this add button changes to white, while the functional group equivalent stays black -->
-                    <router-link 
-                        v-bind:to="{ path: 'consumermessages/manage', query: { intent: 'create' } }" 
-                        v-if="environment == 'staging'" 
+                    <router-link
+                        v-bind:to="{ path: 'consumermessages/manage', query: { intent: 'create' } }"
+                        v-if="environment == 'staging'"
                         class="tile-plus"
                         >
                             <div class="tile-plus-container content-middle">
@@ -44,9 +44,9 @@
             </main>
 
             <!-- PROMOTE GROUP MODAL -->
-            <b-modal ref="promoteModal" title="Promote Messages to Production Status" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+            <b-modal ref="promoteModal" title="Promote Consumer Messages to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                 <small class="form-text text-muted">
-                    Promoting will set the statuses of all recent message changes in all languages to production. This change is permanent and will take precedence over all previous entries.
+                    This will promote all staging Consumer Messages and their associated languages to production, modifying the production policy table. Are you sure you want to do this?
                 </small>
                 <vue-ladda
                     type="button"
@@ -54,7 +54,7 @@
                     data-style="zoom-in"
                     v-on:click="promoteMessages()"
                     v-bind:loading="promote_button_loading">
-                    Promote to Production
+                    Yes, promote to production!
                 </vue-ladda>
             </b-modal>
         </div>
@@ -95,7 +95,7 @@
                 this[methodName](() => {
                     this[loadingProp] = false;
                     if (modalName) {
-                        this.$refs[modalName].hide(); 
+                        this.$refs[modalName].hide();
                     }
                     this.environmentClick();
                 });
@@ -127,7 +127,7 @@
                             cb(mappedResults);
                         }
                     });
-                }                
+                }
             },
             "getConsumerMessageInfo": function (category, cb) {
                 let url = "messages?environment=" + this.environment;
@@ -143,12 +143,12 @@
                                 console.log("No message data returned");
                                 cb();
                             }
-                        });                    
+                        });
                     }
                     else {
                         cb();
                     }
-                }); 
+                });
             },
             "environmentClick": function () {
                 //get high level message data
