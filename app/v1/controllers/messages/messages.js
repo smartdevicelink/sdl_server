@@ -4,18 +4,41 @@ const utils = require('../policy/utils.js');
 function combineMessageInfo (languageChoice, messageInfo, next) {
     const filteredCategories = messageInfo[0];
     const fallbackCategories = messageInfo[1];
+    const changedEntries = messageInfo[2];
+    const allMessages = messageInfo[3]; //for finding how many languages exist per category
+
     //add fallback categories first by category name, then use filtered categories for overwriting
+
+    //make all categories PRODUCTION status by default
     let hash = {};
     for (let i = 0; i < fallbackCategories.length; i++) {
         hash[fallbackCategories[i].message_category] = fallbackCategories[i];
+        hash[fallbackCategories[i].message_category].status = 'PRODUCTION';
     }
     for (let i = 0; i < filteredCategories.length; i++) {
         hash[filteredCategories[i].message_category] = filteredCategories[i];
+        hash[fallbackCategories[i].message_category].status = 'PRODUCTION';
     }
+
+    //change the status of the entries so instead it means whether any entry in that category has been modified
+    //go through each changed entry to determine that. 
+    for (let i = 0; i < changedEntries.length; i++) {
+        hash[changedEntries[i].message_category].status = 'STAGING';
+    }
+
+    //add language count for each category
+    for (let i = 0; i < allMessages.length; i++) {
+        if (hash[allMessages[i].message_category].language_count === undefined) {
+            hash[allMessages[i].message_category].language_count = 0;
+        }
+        hash[allMessages[i].message_category].language_count++;
+    }    
+
     let categories = [];
     for (let category in hash) {
         categories.push(hash[category]);
     }
+
     next(null, categories);
 }
 

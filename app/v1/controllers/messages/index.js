@@ -21,7 +21,9 @@ function getMessageCategories (isProduction, cb) {
 
     const getMessagesFlow = app.locals.flow([
         setupSql(app.locals.sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
-        setupSql(app.locals.sql.getMessages.categoryByMaxId(isProduction, LANG_FILTER))
+        setupSql(app.locals.sql.getMessages.categoryByMaxId(isProduction, LANG_FILTER)),
+        setupSql(app.locals.sql.getMessages.categoryChangesOnly()),
+        setupSql(app.locals.sql.getMessages.status(isProduction))
     ], {method: 'parallel'});
 
     const getCategoriesFlow = app.locals.flow([
@@ -40,7 +42,7 @@ function getInfo (req, res, next) {
     if (returnTemplate) { //template mode. return just the shell of a message
         chosenFlow = makeCategoryTemplateFlow();
     }
-    else if (req.query.category) { //filter by message category
+    else if (req.query.category) { //filter by message category. this is the 'detailed' mode
         chosenFlow = getCategoryInfoFlow(isProduction, req.query.category);
     }
     else { //get all message info at the highest level, filtering in PRODUCTION or STAGING mode
@@ -117,7 +119,7 @@ function validatePost (req, res) {
         }
     }
 }
-
+/*
 function del (req, res, next) {
     validateDelete(req, res);
     if (res.errorMsg) {
@@ -131,7 +133,7 @@ function del (req, res, next) {
         res.sendStatus(200);
     });
 }
-
+*/
 function validateDelete (req, res) {
     if (!check.number(req.body.message_category)) {
         return res.errorMsg = "Required for deletion: message_category";
@@ -152,7 +154,7 @@ module.exports = {
     getMessageCategories: getMessageCategories, //used by the groups module
     postAddMessage: post(false),
     postPromoteMessage: post(true),
-    delete: del,
+    //delete: del,
     postUpdate: postUpdate,
     updateLanguages: languages.updateLanguages
 };

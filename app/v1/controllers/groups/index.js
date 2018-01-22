@@ -178,20 +178,6 @@ function validateFuncGroup (req, res) {
     }
 }
 
-function del (req, res, next) {
-    validateDelete(req, res);
-    if (res.errorMsg) {
-        return res.status(400).send({ error: res.errorMsg });
-    }
-    const deleteFlow = flow([
-        setupSql(app.locals.sql.delete.funcGroup(req.body.id))
-    ], {method: 'series'});
-
-    deleteFlow(function () {
-        res.sendStatus(200);
-    });
-}
-
 function validateDelete (req, res) {
     if (!check.number(req.body.id)) {
         return res.errorMsg = "Required for deletion: id";
@@ -201,6 +187,5 @@ function validateDelete (req, res) {
 module.exports = {
     get: get,
     postAddGroup: post(false),
-    postPromote: post(true),
-    delete: del
+    postPromote: post(true)
 };
