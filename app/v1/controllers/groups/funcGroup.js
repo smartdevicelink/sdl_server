@@ -44,6 +44,7 @@ function makeFunctionGroups (info, next) {
         hashedBaseInfo[baseInfo[i].id].description = baseInfo[i].description;
         hashedBaseInfo[baseInfo[i].id].user_consent_prompt = baseInfo[i].user_consent_prompt;
         hashedBaseInfo[baseInfo[i].id].is_default = baseInfo[i].is_default;
+        hashedBaseInfo[baseInfo[i].id].is_deleted = baseInfo[i].is_deleted;
         hashedBaseInfo[baseInfo[i].id].selected_rpc_count = hashRpcs[baseInfo[i].id];
         hashedBaseInfo[baseInfo[i].id].selected_parameter_count = hashParameters[baseInfo[i].id];
         //if the hash lookup is undefined, use 0
@@ -187,6 +188,7 @@ function baseTemplate () {
         selected_rpc_count: 0,
         selected_parameter_count: 0,
         is_default: false,
+        is_deleted: false,
         user_consent_prompt: null
     };
 }
