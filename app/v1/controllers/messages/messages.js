@@ -58,7 +58,8 @@ function generateCategoryTemplate (info, next) {
             line2: null,
             text_body: null,
             tts: null,
-            selected: false //for the UI
+            selected: false, //for the UI
+            is_deleted: false 
         }
     }
     next(null, template);
@@ -81,6 +82,7 @@ function transformMessages (info, next) {
         template[text.language_id].text_body = text.text_body;
         template[text.language_id].tts = text.tts;
         template[text.language_id].selected = true;
+        template[text.language_id].is_deleted = text.is_deleted;
     }
 
     next(null, template);
@@ -114,7 +116,8 @@ function convertMessagesJson (messagesObj, isProduction) {
             line2: msg.line2,
             text_body: msg.text_body,
             tts: msg.tts,        
-            status: statusName
+            status: statusName,
+            is_deleted: msg.is_deleted
         };
     });
 }
