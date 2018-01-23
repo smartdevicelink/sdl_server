@@ -5,6 +5,7 @@ DROP VIEW IF EXISTS view_partial_app_info;
 DROP VIEW IF EXISTS view_function_group_info;
 DROP VIEW IF EXISTS view_message_text;
 DROP VIEW IF EXISTS view_module_config;
+DROP TABLE IF EXISTS message_group CASCADE;
 DROP TABLE IF EXISTS hmi_level_conversion;
 DROP TABLE IF EXISTS app_auto_approval;
 DROP TABLE IF EXISTS forgot_password_hash;

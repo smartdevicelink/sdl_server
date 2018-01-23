@@ -16,7 +16,7 @@ WITH ( OIDS = FALSE );
 
 CREATE TABLE user_accounts (
     "id" SERIAL NOT NULL,
-    "invited_by_id" INT REFERENCES user_accounts (id) ON UPDATE CASCADE,
+    "invited_by_id" INT REFERENCES user_accounts (id) ON UPDATE CASCADE ON DELETE SET NULL,
     "email" TEXT NOT NULL,
     "first_name" TEXT,
     "last_name" TEXT,
@@ -31,7 +31,7 @@ WITH ( OIDS = FALSE );
 
 CREATE TABLE forgot_password_hash (
     "nonce_uuid" VARCHAR(36) NOT NULL,
-    "user_id" INT NOT NULL REFERENCES user_accounts (id),
+    "user_id" INT NOT NULL REFERENCES user_accounts (id) ON UPDATE CASCADE ON DELETE CASCADE,
     "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     "updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     PRIMARY KEY (nonce_uuid)
@@ -51,6 +51,41 @@ CREATE TABLE hmi_level_conversion (
     PRIMARY KEY (hmi_level_enum)
 )
 WITH ( OIDS = FALSE );
+
+CREATE TABLE message_group (
+    "id" SERIAL NOT NULL,
+    "category_name" TEXT NOT NULL,
+    "status" edit_status NOT NULL DEFAULT 'STAGING',
+    "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+    "updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+    "is_deleted" BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id)
+)
+WITH ( OIDS = FALSE );
+
+ALTER TABLE message_text
+ADD "message_group_id" INT REFERENCES message_group (id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+INSERT INTO message_group (category_name, status)
+SELECT message_category, status 
+FROM message_text
+GROUP BY message_category, status;
+
+UPDATE message_text 
+SET message_group_id = (
+    SELECT id 
+    FROM message_group mg
+    WHERE mg.category_name = message_text.message_category
+    AND mg.status = message_text.status
+    LIMIT 1
+);
+
+ALTER TABLE message_text
+ALTER COLUMN "message_group_id" SET NOT NULL,
+DROP COLUMN "message_category",
+DROP COLUMN "status",
+DROP COLUMN "created_ts",
+DROP COLUMN "updated_ts";
 
 INSERT INTO hmi_level_conversion (hmi_level_enum, hmi_level_text)
 VALUES (
@@ -77,14 +112,7 @@ ALTER TABLE app_info
 ADD "denial_message" TEXT,
 ADD "icon_url" TEXT;
 
-ALTER TABLE message_text
-ADD "is_deleted" BOOLEAN NOT NULL DEFAULT FALSE;
-
 DROP TABLE IF EXISTS function_group_permissions;
-
-UPDATE message_text
-SET status = 'PRODUCTION'
-WHERE status = 'STAGING';
 
 UPDATE module_config
 SET status = 'PRODUCTION'
@@ -99,20 +127,6 @@ SELECT status, max(id) AS id
     GROUP BY status
 ) AS vmc
 INNER JOIN module_config ON vmc.id = module_config.id;
-
-
-CREATE OR REPLACE VIEW view_message_text AS
-SELECT message_text.* 
-FROM (
-SELECT message_category, language_id, status, max(id) AS id
-    FROM message_text
-    WHERE EXISTS (
-        SELECT id FROM languages
-        WHERE languages.id = language_id
-    )
-    GROUP BY message_category, language_id, status
-) AS vcfm
-INNER JOIN message_text ON vcfm.id = message_text.id;
 
 
 CREATE OR REPLACE VIEW view_function_group_info AS
