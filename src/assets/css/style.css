@@ -383,6 +383,12 @@ div.horizontal-divider .text {
     margin-top: 1em;
 }
 
+.tiles .language-count {
+    position: absolute;
+    bottom: 20px;
+    margin-top: 1em;
+}
+
 .tiles a.tile-plus {
     border: 3px solid #4A5E71;
 }
@@ -394,6 +400,20 @@ div.horizontal-divider .text {
     font-size: 120px;
     font-weight: 300;
     margin: auto;
+}
+
+.tiles .message-status-tag {
+    position: relative;
+    text-align: right;
+    margin-top: 1em;
+    bottom: 5px;
+}
+
+.tiles .func-status-tag {
+    position: relative;
+    text-align: right;
+    margin-top: 1em;
+    bottom: 5px;
 }
 
 

@@ -8,6 +8,12 @@
             <div class="permission-count">
                 {{ item.selected_rpc_count + item.selected_parameter_count }} {{ permissionString(item) }}
             </div>
+            <div class="func-status-tag" v-if="item.status=='PRODUCTION'" v-bind:style="{ color: 'green' }">
+                {{item.status}}
+            </div>
+            <div class="func-status-tag" v-else v-bind:style="{ color: 'orange' }">
+                {{item.status}}
+            </div>
         </div>
     </router-link>
 </template>
