@@ -4,7 +4,7 @@
         <h5>{{ index }}
             <i
                 v-on:click="removeLanguage()"
-                v-if="this.status !== 'PRODUCTION'"
+                v-if="this.environment !== 'PRODUCTION'"
                 class="pointer pull-right fa fa-times hover-color-red"
                 aria-hidden="true">
             </i>
@@ -44,20 +44,19 @@
                 <input v-model="item.label" class="form-control">
             </div>
         </div>
-        
+
     </div>
 </template>
 
 <script>
     export default {
-        props: ['item','index'],
+        props: ['item','index','environment'],
         data () {
             return {
             };
         },
         methods: {
             "saveMessageGroup": function () {
-                this.save_button_loading = true;
                 let body = { messages: {} };
                 body.messages[this.index] = this.item;
                 this.$http.post("messages", body)

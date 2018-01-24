@@ -1,17 +1,14 @@
 <template>
     <router-link v-bind:to="{ path: 'functionalgroups/manage', query: { id: item.id, intent: 'edit'}}" v-bind:class="{ 'opacity-30': item.is_deleted }">
         <div>
-            <h5>{{ item.name }}<i class="pull-right fa fa-pencil display-hover" aria-hidden="true"></i></h5>
+            <h5>{{ item.name }}<i v-if="environment != 'PRODUCTION'" class="pull-right fa fa-pencil display-hover" aria-hidden="true"></i></h5>
             <div class="description">
                 {{ item.description }}
             </div>
             <div class="permission-count">
                 {{ item.selected_rpc_count + item.selected_parameter_count }} {{ permissionString(item) }}
             </div>
-            <div class="func-status-tag" v-if="item.status=='PRODUCTION'" v-bind:style="{ color: 'green' }">
-                {{item.status}}
-            </div>
-            <div class="func-status-tag" v-else v-bind:style="{ color: 'orange' }">
+            <div v-if="environment != 'PRODUCTION'" class="func-status-tag">
                 {{item.status}}
             </div>
         </div>
@@ -20,7 +17,7 @@
 
 <script>
     export default {
-        props: ['item'],
+        props: ['item','environment'],
         data () {
             return {};
         },

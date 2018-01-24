@@ -8,8 +8,9 @@
             <div class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content">
                 <div class="pull-right">
                     <template v-if="fg.status != 'PRODUCTION'">
-                        <b-btn v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote to production</b-btn>
-                        <b-btn v-b-modal.deleteModal class="btn btn-danger btn-sm align-middle">Delete</b-btn>
+                        <b-btn v-b-modal.promoteModal v-if="intent != 'create'" class="btn btn-style-green btn-sm align-middle">Promote to production</b-btn>
+                        <b-btn v-b-modal.deleteModal v-if="fg.is_deleted == false" class="btn btn-danger btn-sm align-middle">Delete</b-btn>
+                        <b-btn v-on:click="undeleteGroup()" v-if="fg.is_deleted == true" class="btn btn-success btn-sm align-middle">Undelete</b-btn>
                     </template>
                 </div>
 
@@ -191,6 +192,9 @@ import { eventBus } from '../main.js';
             },
             "deleteGroup": function () {
                 this.handleModalClick("delete_button_loading", "deleteModal", "deleteFunctionalGroupInfo");
+            },
+            "undeleteGroup": function() {
+                this.fg.is_deleted = false;
             },
             "saveGroup": function () {
                 this.handleModalClick("save_button_loading", null, "saveFunctionalGroupInfo");

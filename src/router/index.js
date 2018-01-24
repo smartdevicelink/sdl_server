@@ -96,7 +96,7 @@ const router = new Router({
             },
             props: (route) => ({
                 "id": route.query.id || null,
-                "intent": route.query.intent || "create"
+                "environment": route.query.environment || "PRODUCTION"
             })
         },
         {
@@ -126,8 +126,8 @@ const router = new Router({
                 title: 'Policy Server - Manage Consumer Friendly Message'
             },
             props: (route) => ({
-                "message_category": route.query.message_category || null,
-                "intent": route.query.intent || "create"
+                "id": route.query.id || null,
+                "environment": route.query.environment || "PRODUCTION"
             })
         },
         {
