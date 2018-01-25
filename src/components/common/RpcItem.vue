@@ -1,10 +1,10 @@
 <template>
     <div class="white-box rpc-container">
         <h5>{{ item.name }}
-            <i 
-                v-on:click="removeRpc()" 
-                v-if="this.status !== 'PRODUCTION'" 
-                class="pointer pull-right fa fa-times hover-color-red" 
+            <i
+                v-on:click="removeRpc()"
+                v-if="!fieldsDisabled"
+                class="pointer pull-right fa fa-times hover-color-red"
                 aria-hidden="true">
             </i>
         </h5>
@@ -14,6 +14,7 @@
             v-bind:header="'parameters'"
             v-bind:options="parameters"
             v-bind:status="status"
+            v-bind:fieldsDisabled="fieldsDisabled"
             v-bind:rpcIndex="index"
             />
             <hmi-selector
@@ -21,6 +22,7 @@
                 v-bind:header="'Supported HMI Levels'"
                 v-bind:status="status"
                 v-bind:options="hmi_levels"
+                v-bind:fieldsDisabled="fieldsDisabled"
                 v-bind:rpcIndex="index"
             />
         </div>
@@ -29,7 +31,7 @@
 
 <script>
     export default {
-        props: ['item','index','status'],
+        props: ['item','index','status','fieldsDisabled'],
         data () {
             return {
             };

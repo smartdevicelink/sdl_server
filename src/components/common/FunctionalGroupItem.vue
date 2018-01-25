@@ -1,5 +1,5 @@
 <template>
-    <router-link v-bind:to="{ path: 'functionalgroups/manage', query: { id: item.id, intent: 'edit'}}" v-bind:class="{ 'opacity-30': item.is_deleted }">
+    <router-link v-bind:to="{ path: 'functionalgroups/manage', query: { id: item.id, environment: environment}}" v-bind:class="{ 'opacity-30': item.is_deleted }">
         <div>
             <h5>{{ item.name }}<i v-if="environment != 'PRODUCTION'" class="pull-right fa fa-pencil display-hover" aria-hidden="true"></i></h5>
             <div class="description">
@@ -8,8 +8,10 @@
             <div class="permission-count">
                 {{ item.selected_rpc_count + item.selected_parameter_count }} {{ permissionString(item) }}
             </div>
-            <div v-if="environment != 'PRODUCTION'" class="func-status-tag">
-                {{item.status}}
+            <div
+                v-if="environment != 'PRODUCTION' || item.is_deleted"
+                class="func-status-tag color-green">
+                CHANGED {{ item.is_deleted ? "(DELETED)" : "" }}
             </div>
         </div>
     </router-link>

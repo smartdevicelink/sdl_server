@@ -6,7 +6,7 @@
                 stacked
                 class="color-bg-gray color-primary"
                 v-model="selected"
-                v-bind:disabled="is_disabled"
+                v-bind:disabled="fieldsDisabled"
                 :options="options"
                 v-on:change="checkboxUpdated">
             </b-form-checkbox-group>
@@ -17,16 +17,13 @@
 <script>
     import { eventBus } from '../../main.js';
     export default {
-        props: ['type','rpcIndex','options','header','status'],
+        props: ['type','rpcIndex','options','header','status','fieldsDisabled'],
         data () {
             return {
                 selected: [] // Must be an array reference!
             };
         },
         computed: {
-            is_disabled: function(){
-                return this.status == 'PRODUCTION';
-            },
             is_checked: function(){
 
             }

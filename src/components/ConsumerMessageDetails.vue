@@ -9,8 +9,8 @@
 
                 <div class="pull-right">
                     <template v-if="environment == 'STAGING' && id != null">
-                        <b-btn id="delete" v-if="message.is_deleted === false" v-b-modal.deleteModal class="btn btn-danger btn-sm align-middle">Mark for deletion</b-btn>
-                        <b-btn id="undelete" v-if="message.is_deleted === true" v-on:click="undeleteMessageGroup()" class="btn btn-success btn-sm align-middle">Undelete</b-btn>
+                        <b-btn id="delete" v-if="message.is_deleted === false" v-on:click="showDeleteModal()" class="btn btn-danger btn-sm align-middle">Delete</b-btn>
+                        <b-btn id="undelete" v-else v-on:click="showUndeleteModal()" class="btn btn-success btn-sm align-middle">Restore</b-btn>
                     </template>
                 </div>
 
@@ -21,7 +21,7 @@
                     <div class="form-row">
                         <h4 for="name">Name</h4>
                         <!-- TODO: first input in the textbox is ignored -->
-                        <input v-model="message.message_category" :disabled="environment != 'STAGING'" type="email" class="form-control" id="email">
+                        <input v-model="message.message_category" :disabled="id" type="email" class="form-control" id="email">
                     </div>
 
                     <!-- TODO: create container for RPCs -->
@@ -36,7 +36,7 @@
                             v-bind:key="key">
                         </message-item>
 
-                        <div v-b-modal.addLanguageModal id="add" class="another-rpc pointer">
+                        <div v-if="environment == 'STAGING'" v-b-modal.addLanguageModal id="add" class="another-rpc pointer">
                             <i class="fa fa-plus middle-middle"></i>
                         </div>
                     </div>
@@ -76,13 +76,28 @@
             <!-- DELETE GROUP MODAL -->
             <b-modal ref="deleteModal" title="Delete Consumer Message" hide-footer id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                 <small class="form-text text-muted">
-                    Are you sure you want to delete this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately revoked from the staging policy table when you press the save button, and will be revoked from the production policy table upon the next promotion to production.
+                    Are you sure you want to delete this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately revoked from the staging policy table, and will be revoked from the production policy table upon the next promotion to production.
                 </small>
                 <b-btn
                     v-on:click="deleteMessageGroup()"
                     class="btn btn-card btn-danger">
                     Yes, mark this message for deletion
                 </b-btn>
+            </b-modal>
+
+            <!-- UNDELETE GROUP MODAL -->
+            <b-modal ref="undeleteModal" title="Restore Consumer Message" hide-footer id="undeleteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                <small class="form-text text-muted">
+                    Are you sure you want to restore this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately restored on the staging policy table, and will be restored on the production policy table upon the next promotion to production.
+                </small>
+                <vue-ladda
+                    type="button"
+                    class="btn btn-card btn-success"
+                    data-style="zoom-in"
+                    v-on:click="undeleteMessageGroup()"
+                    v-bind:loading="undelete_button_loading">
+                    Yes, restore this consumer message
+                </vue-ladda>
             </b-modal>
         </div>
     </div>
@@ -97,7 +112,8 @@ import { eventBus } from '../main.js';
                 "message": {},
                 "lang_search": null,
                 "save_button_loading": false,
-                "delete_button_loading": false
+                "delete_button_loading": false,
+                "undelete_button_loading": false
             };
         },
         methods: {
@@ -119,16 +135,27 @@ import { eventBus } from '../main.js';
                 // and not saving languages which were not selected
                 this.httpRequest("post", "messages", {messages: this.message}, callback);
             },
-            "deleteMessageGroup": function (callback) {
-                //save all messages in the messages object
+            "showDeleteModal": function() {
+                this.$refs.deleteModal.show();
+            },
+            "showUndeleteModal": function() {
+                this.$refs.undeleteModal.show();
+            },
+            "deleteMessageGroup": function (cb) {
                 this.message.is_deleted = true;
-                this.$refs.deleteModal.hide();
+                this.httpRequest("post", "messages", this.message, cb);
             },
             "undeleteMessageGroup": function() {
                 this.message.is_deleted = false;
+                this.httpRequest("post", "messages", this.message, cb);
             },
             "getConsumerMessageInfo": function (cb) {
-                let queryInfo = "messages?id=" + this.id;
+                let queryInfo = "messages";
+                if(!this.id){
+                    queryInfo += "?template=true";
+                }else{
+                    queryInfo += "?id=" + this.id;
+                }
                 this.httpRequest("get", queryInfo, null, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
@@ -161,6 +188,9 @@ import { eventBus } from '../main.js';
             "deleteGroup": function () {
                 this.handleModalClick("delete_button_loading", "deleteModal", "deleteMessageGroup");
             },
+            "undeleteGroup": function () {
+                this.handleModalClick("undelete_button_loading", "undeleteModal", "undeleteMessageGroup");
+            },
             "saveGroup": function () {
                 this.handleModalClick("save_button_loading", null, "saveMessageGroup");
             },
@@ -179,14 +209,13 @@ import { eventBus } from '../main.js';
             },
         },
         created: function () {
-            if(this.id){
-                this.getConsumerMessageInfo();
-            }
+            this.getConsumerMessageInfo();
         },
         beforeDestroy () {
             // ensure closing of all modals
             this.$refs.addLanguageModal.onAfterLeave();
             this.$refs.deleteModal.onAfterLeave();
+            this.$refs.undeleteModal.onAfterLeave();
         }
     }
 </script>

@@ -8,8 +8,10 @@
             <div class="language-count">
                 {{item.language_count}} language{{ item.language_count !== 1 ? "s" : "" }}
             </div>
-            <div v-if="environment != 'PRODUCTION'" class="message-status-tag">
-                {{item.status}}
+            <div
+                v-if="item.status != 'PRODUCTION' || item.is_deleted"
+                class="message-status-tag color-green">
+                CHANGED {{ item.is_deleted ? "(DELETED)" : "" }}
             </div>
         </div>
     </router-link>
