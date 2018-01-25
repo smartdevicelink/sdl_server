@@ -5,7 +5,7 @@
             <b-form-select
                 v-model="selected_hmi_level"
                 :options="selected"
-                :disabled="is_disabled"
+                :disabled="fieldsDisabled"
                 v-on:input="selectionUpdated">
             </b-form-select>
         </div>
@@ -15,7 +15,7 @@
 <script>
     import { eventBus } from '../../main.js';
     export default {
-        props: ['type','rpcIndex','options','header','status'],
+        props: ['type','rpcIndex','options','header','status','fieldsDisabled'],
         data () {
             return {
                 selected_hmi_level: this.options[0].text, //default to the first value in options
@@ -23,9 +23,6 @@
             };
         },
         computed: {
-            is_disabled: function(){
-                return this.status == 'PRODUCTION';
-            },
             selected_hmi_value: function () {
                 //find the value of selected_hmi_level
                 const optObj = this.options.find(opt => {

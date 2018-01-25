@@ -7,9 +7,10 @@
 
             <div class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content">
                 <div class="pull-right">
-                    <template v-if="fg.status != 'PRODUCTION'">
-                        <b-btn v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote to production</b-btn>
-                        <b-btn v-b-modal.deleteModal class="btn btn-danger btn-sm align-middle">Delete</b-btn>
+                    <template v-if="environment == 'STAGING' && id != null">
+                        <b-btn v-b-modal.promoteModal v-if="false" class="btn btn-style-green btn-sm align-middle">Promote to production</b-btn>
+                        <b-btn v-if="fg.is_deleted == false" v-on:click="showDeleteModal()" class="btn btn-danger btn-sm align-middle">Delete</b-btn>
+                        <b-btn v-else v-on:click="showUndeleteModal()" class="btn btn-success btn-sm align-middle">Restore</b-btn>
                     </template>
                 </div>
 
@@ -19,13 +20,13 @@
                     <!-- Name -->
                     <div class="form-row">
                         <h4 for="name">Name</h4>
-                        <input v-model="fg.name" :disabled="fg.status == 'PRODUCTION'" type="email" class="form-control" id="email" required>
+                        <input v-model="fg.name" :disabled="id" type="email" class="form-control" id="email" required>
                     </div>
 
                     <!-- Description -->
                     <div class="form-row">
                         <h4 for="description">Description</h4>
-                        <textarea v-model="fg.description" :disabled="fg.status == 'PRODUCTION'" type="text" rows="2" class="form-control" id="description"></textarea>
+                        <textarea v-model="fg.description" :disabled="fieldsDisabled" type="text" rows="2" class="form-control" id="description"></textarea>
                     </div>
 
                     <!-- User Consent Prompt -->
@@ -34,7 +35,7 @@
                         <b-form-select
                             v-model="fg.user_consent_prompt"
                             :options="consentPromptOptions"
-                            :disabled="fg.status == 'PRODUCTION'"
+                            :disabled="fieldsDisabled"
                             class="custom-select w-100">
                         </b-form-select>
                         <div v-if="selectPromptText" class="white-box">
@@ -48,7 +49,7 @@
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_default"
-                            v-bind:disabled="fg.status == 'PRODUCTION'">
+                            v-bind:disabled="fieldsDisabled">
                             Always allow applications access to this functional group
                         </b-form-checkbox>
                     </div>
@@ -61,12 +62,14 @@
                                 v-for="(item, index) in fg.rpcs"
                                 v-if="item.selected"
                                 v-bind:status="fg.status"
+                                v-bind:environment="environment"
+                                v-bind:fieldsDisabled="fieldsDisabled"
                                 v-bind:item="item"
                                 v-bind:index="index"
                                 v-bind:key="index">
                             </rpc-item>
 
-                            <div v-if="fg.status != 'PRODUCTION'" v-b-modal.addRpcModal id="add" class="another-rpc pointer">
+                            <div v-if="!fieldsDisabled" v-b-modal.addRpcModal id="add" class="another-rpc pointer">
                                 <i class="fa fa-plus middle-middle"></i>
                             </div>
                         </div>
@@ -74,13 +77,14 @@
 
                     <div>
                         <vue-ladda
-                            v-if="fg.status != 'PRODUCTION'"
                             type="submit"
-                            class="btn btn-card btn-style-green"
+                            class="btn btn-card"
                             data-style="zoom-in"
+                            v-if="!fieldsDisabled"
                             v-on:click="saveGroup()"
-                            v-bind:loading="save_button_loading">
-                            Save
+                            v-bind:loading="save_button_loading"
+                            v-bind:class="{ 'btn-style-green': !fg.is_deleted, 'btn-danger': fg.is_deleted }">
+                            Save functional group
                         </vue-ladda>
                     </div>
                 </div>
@@ -104,7 +108,7 @@
                 <!-- DELETE GROUP MODAL -->
                 <b-modal ref="deleteModal" title="Delete Functional Group" hide-footer id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                     <small class="form-text text-muted">
-                        Deleting a functional group is irreversible. You can create functional groups from templates, but any changes you've made to this current version will be lost. To continue, press "Delete," otherwise, click the x.
+                        Are you sure you want to delete this Functional Group? By doing so, the Functional Group will be immediately removed from the staging policy table, and will be removed from the production policy table upon the next promotion to production.
                     </small>
                     <vue-ladda
                         type="button"
@@ -112,7 +116,22 @@
                         data-style="zoom-in"
                         v-on:click="deleteGroup()"
                         v-bind:loading="delete_button_loading">
-                        Delete
+                        Yes, delete this functional group
+                    </vue-ladda>
+                </b-modal>
+
+                <!-- UNDELETE GROUP MODAL -->
+                <b-modal ref="undeleteModal" title="Restore Functional Group" hide-footer id="undeleteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                    <small class="form-text text-muted">
+                        Are you sure you want to restore this Functional Group? By doing so, the Functional Group will be immediately restored on the staging policy table, and will be restored on the production policy table upon the next promotion to production.
+                    </small>
+                    <vue-ladda
+                        type="button"
+                        class="btn btn-card btn-success"
+                        data-style="zoom-in"
+                        v-on:click="undeleteGroup()"
+                        v-bind:loading="undelete_button_loading">
+                        Yes, restore this functional group
                     </vue-ladda>
                 </b-modal>
 
@@ -154,7 +173,7 @@
 <script>
 import { eventBus } from '../main.js';
     export default {
-        props: ['id','intent'],
+        props: ['id','environment'],
         data: function(){
             return {
                 "fg": {
@@ -170,6 +189,7 @@ import { eventBus } from '../main.js';
                 },
                 "rpc_search": null,
                 "delete_button_loading": false,
+                "undelete_button_loading": false,
                 "copy_button_loading": false,
                 "save_button_loading": false,
                 "promote_button_loading": false,
@@ -189,8 +209,17 @@ import { eventBus } from '../main.js';
                     return !rpc.selected && (rpc.name.toLowerCase().indexOf(this.rpc_search.toLowerCase()) > -1);
                 }
             },
+            "showDeleteModal": function() {
+                this.$refs.deleteModal.show();
+            },
+            "showUndeleteModal": function() {
+                this.$refs.undeleteModal.show();
+            },
             "deleteGroup": function () {
                 this.handleModalClick("delete_button_loading", "deleteModal", "deleteFunctionalGroupInfo");
+            },
+            "undeleteGroup": function() {
+                this.handleModalClick("undelete_button_loading", "undeleteModal", "undeleteFunctionalGroupInfo");
             },
             "saveGroup": function () {
                 this.handleModalClick("save_button_loading", null, "saveFunctionalGroupInfo");
@@ -216,7 +245,7 @@ import { eventBus } from '../main.js';
             },
             "getConsentPrompts": function () {
                 //use STAGING mode exclusively
-                this.httpRequest("get", "messages?environment=staging", null, (err, response) => {
+                this.httpRequest("get", "messages?environment="+this.environment.toLowerCase(), null, (err, response) => {
                     if (response) {
                         //returns all en-us results under the environment specified
                         response.json().then(parsed => {
@@ -229,24 +258,25 @@ import { eventBus } from '../main.js';
                                     }
                                 });
                                 this.consent_prompts = transformedMessages;
+                                console.log(this.consent_prompts);
                             }
                         });
                     }
                 });
             },
-            "getFunctionalGroupInfo": function (getTemplate, cb) {
-                let queryInfo;
-                if (getTemplate) {
-                    queryInfo = "groups?template=true";
-                }
-                else {
-                    queryInfo = "groups?id=" + this.id;
+            "getFunctionalGroupInfo": function (cb) {
+                let queryInfo = "groups";
+                if(!this.id){
+                    queryInfo += "?template=true";
+                }else{
+                    queryInfo += "?id=" + this.id;
                 }
                 this.httpRequest("get", queryInfo, null, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
                             if (parsed.groups && parsed.groups[0]) {
                                 this.fg = parsed.groups[0];
+                                console.log(this.fg);
                             } else {
                                 console.log("No functional data returned");
                             }
@@ -264,7 +294,12 @@ import { eventBus } from '../main.js';
                 this.httpRequest("post", "groups/promote", this.fg, cb);
             },
             "deleteFunctionalGroupInfo": function (cb) {
-                this.httpRequest("delete", "groups", {id: this.fg.id}, cb);
+                this.fg.is_deleted = true;
+                this.httpRequest("post", "groups", this.fg, cb);
+            },
+            "undeleteFunctionalGroupInfo": function (cb) {
+                this.fg.is_deleted = false;
+                this.httpRequest("post", "groups", this.fg, cb);
             },
             "httpRequest": function (action, route, body, cb) {
                 if (action === "delete" || action === "get") {
@@ -291,6 +326,9 @@ import { eventBus } from '../main.js';
                 return this.consent_prompts.find(prompt => {
                     return prompt.name === this.fg.user_consent_prompt;
                 });
+            },
+            fieldsDisabled: function () {
+                return (this.fg.is_deleted || this.environment != 'STAGING');
             }
         },
         created: function(){
@@ -312,7 +350,7 @@ import { eventBus } from '../main.js';
             //group and if the id was actually passed in. otherwise return a template of a functional group
             //get consent prompts regardless in case a new functional group from scratch is desired
             this.getConsentPrompts();
-            this.getFunctionalGroupInfo(this.id === null || this.intent !== "edit", () => {});
+            this.getFunctionalGroupInfo();
         },
         mounted: function(){
             //this.$methods.addInvitee();
@@ -321,6 +359,7 @@ import { eventBus } from '../main.js';
             // ensure closing of all modals
             this.$refs.copyModal.onAfterLeave();
             this.$refs.deleteModal.onAfterLeave();
+            this.$refs.undeleteModal.onAfterLeave();
             this.$refs.addRpcModal.onAfterLeave();
             this.$refs.promoteModal.onAfterLeave();
         }

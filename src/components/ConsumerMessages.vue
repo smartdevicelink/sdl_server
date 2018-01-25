@@ -17,7 +17,7 @@
                     name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-if="environment == 'staging'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote all to production</b-btn>
+                    <b-btn v-if="environment == 'STAGING'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
                 <h4>Consumer Friendly Messages</h4>
@@ -25,15 +25,15 @@
                     <consumer-message-item
                         v-for="(item, index) in consumer_messages"
                         v-bind:item="item"
+                        v-bind:environment="environment"
                         v-bind:index="index"
                         v-bind:key="item.id"
                         >
                     </consumer-message-item>
 
-                    <!--TODO: the plus sign on this add button changes to white, while the functional group equivalent stays black -->
                     <router-link
-                        v-bind:to="{ path: 'consumermessages/manage', query: { intent: 'create' } }"
-                        v-if="environment == 'staging'"
+                        v-bind:to="{ path: 'consumermessages/manage', query: { environment: environment } }"
+                        v-if="environment == 'STAGING'"
                         class="tile-plus"
                         >
                             <div class="tile-plus-container content-middle">
@@ -65,15 +65,15 @@
     export default {
         data () {
             return {
-                "environment": "staging",
+                "environment": "STAGING",
                 "environmentOptions": [
                     {
                         "text": "Staging",
-                        "value": "staging"
+                        "value": "STAGING"
                     },
                     {
                         "text": "Production",
-                        "value": "production"
+                        "value": "PRODUCTION"
                     }
                 ],
                 "consumer_messages": [],

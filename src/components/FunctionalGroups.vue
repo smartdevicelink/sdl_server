@@ -15,7 +15,7 @@
                     name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-if="environment == 'staging'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote all to production</b-btn>
+                    <b-btn v-if="environment == 'STAGING'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
                 <div v-if="unused_count.rpcs !== 0 || unused_count.parameters !== 0" class="alert color-bg-red color-white d-table" role="alert">
@@ -29,15 +29,27 @@
                     <functional-group-item
                         v-for="(item, index) in functional_groups"
                         v-bind:item="item"
+                        v-bind:environment="environment"
                         v-bind:index="index"
                         v-bind:key="item.id"
                         >
                     </functional-group-item>
-                    <a v-if="environment == 'staging'" v-b-modal.functionalGroupModal class="tile-plus">
+                    <router-link
+                        v-bind:to="{ path: 'functionalgroups/manage', query: { environment: environment } }"
+                        v-if="environment == 'STAGING'"
+                        class="tile-plus"
+                        >
+                            <div class="tile-plus-container content-middle">
+                                +
+                            </div>
+                    </router-link>
+                    <!-- DISABLED MODAL VERSION W/ CLONING AS TEMPLATE -->
+                    <a v-if="false && environment == 'STAGING'" v-b-modal.functionalGroupModal class="tile-plus">
                         <div class="tile-plus-container content-middle">
                             +
                         </div>
                     </a>
+                    <!-- END DISABLED MODAL VERSION -->
                 </section>
 
                 <!-- NEW FUNCTIONAL GROUP MODAL -->
@@ -99,15 +111,15 @@
     export default {
         data () {
             return {
-                "environment": "staging",
+                "environment": "STAGING",
                 "environmentOptions": [
                     {
                         "text": "Staging",
-                        "value": "staging"
+                        "value": "STAGING"
                     },
                     {
                         "text": "Production",
-                        "value": "production"
+                        "value": "PRODUCTION"
                     }
                 ],
                 "selected_group_id": null,
