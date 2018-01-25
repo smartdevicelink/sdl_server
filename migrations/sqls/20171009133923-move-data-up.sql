@@ -54,7 +54,7 @@ WITH ( OIDS = FALSE );
 
 CREATE TABLE message_group (
     "id" SERIAL NOT NULL,
-    "category_name" TEXT NOT NULL,
+    "message_category" TEXT NOT NULL,
     "status" edit_status NOT NULL DEFAULT 'STAGING',
     "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     "updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
@@ -66,7 +66,7 @@ WITH ( OIDS = FALSE );
 ALTER TABLE message_text
 ADD "message_group_id" INT REFERENCES message_group (id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-INSERT INTO message_group (category_name, status)
+INSERT INTO message_group (message_category, status)
 SELECT message_category, status 
 FROM message_text
 GROUP BY message_category, status;
@@ -75,7 +75,7 @@ UPDATE message_text
 SET message_group_id = (
     SELECT id 
     FROM message_group mg
-    WHERE mg.category_name = message_text.message_category
+    WHERE mg.message_category = message_text.message_category
     AND mg.status = message_text.status
     LIMIT 1
 );
@@ -86,6 +86,10 @@ DROP COLUMN "message_category",
 DROP COLUMN "status",
 DROP COLUMN "created_ts",
 DROP COLUMN "updated_ts";
+
+UPDATE message_group
+SET status = 'PRODUCTION'
+WHERE status = 'STAGING';
 
 INSERT INTO hmi_level_conversion (hmi_level_enum, hmi_level_text)
 VALUES (
@@ -117,6 +121,30 @@ DROP TABLE IF EXISTS function_group_permissions;
 UPDATE module_config
 SET status = 'PRODUCTION'
 WHERE status = 'STAGING';
+
+
+CREATE OR REPLACE VIEW view_message_group_staging AS
+SELECT max(id) AS id, message_category
+FROM message_group
+GROUP BY message_category;
+
+CREATE OR REPLACE VIEW view_message_group_production AS
+SELECT max(id) AS id, message_category
+FROM message_group
+WHERE status = 'PRODUCTION'
+GROUP BY message_category;
+
+CREATE OR REPLACE VIEW view_message_text_staging AS
+SELECT message_category, message_text.*
+FROM view_message_group_staging
+INNER JOIN message_text
+ON message_text.message_group_id = view_message_group_staging.id;
+
+CREATE OR REPLACE VIEW view_message_text_production AS
+SELECT message_category, message_text.*
+FROM view_message_group_production
+INNER JOIN message_text
+ON message_text.message_group_id = view_message_group_production.id;
 
 
 CREATE OR REPLACE VIEW view_module_config AS

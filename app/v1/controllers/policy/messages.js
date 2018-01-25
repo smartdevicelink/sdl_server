@@ -1,15 +1,12 @@
 const utils = require('./utils');
 
-function messagesSkeleton (isProduction) {
-    return function (results, next) {
-        const finalMessages = utils.filterArrayByStatus(results, ['message_category', 'language_id'], isProduction);
-        let finalHash = hashifyMessages(finalMessages);
-        const finalObj = {
-            "version": "000.000.001", //TODO: what to do with the versioning?
-            "messages": hashToMessagesObject(finalHash)
-        }
-        next(null, finalObj);
+function messagesSkeleton (results, next) {
+    let finalHash = hashifyMessages(results);
+    const finalObj = {
+        "version": "000.000.001", //TODO: what to do with the versioning?
+        "messages": hashToMessagesObject(finalHash)
     }
+    next(null, finalObj);
 }
 
 function hashifyMessages (finalMessages) {

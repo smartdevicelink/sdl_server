@@ -186,8 +186,8 @@ function setupModuleConfig (isProduction) {
 
 function setupConsumerFriendlyMessages (isProduction) {
     const makeMessages = [
-        app.locals.sql.setupSqlCommand(app.locals.sql.messageText),
-        messages.messagesSkeleton(isProduction)
+        app.locals.sql.setupSqlCommand(app.locals.sql.getMessages.status(isProduction)),
+        messages.messagesSkeleton
     ];
     return app.locals.flow(makeMessages, {method: 'waterfall'});  
 }

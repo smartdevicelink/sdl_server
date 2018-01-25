@@ -79,7 +79,7 @@ function createFuncGroupFlow (filterTypeProp, value, includeRpcs) {
         setupSql(app.locals.sql.getFuncGroup.base[filterTypeProp](value)),
         setupSql(app.locals.sql.getFuncGroup.hmiLevels[filterTypeProp](value)),
         setupSql(app.locals.sql.getFuncGroup.parameters[filterTypeProp](value)),
-        messages.getMessageCategories.bind(null, false) //get consent prompt values (always returns a value as if in STAGING mode)
+        messages.getMessageGroups.bind(null, false) //get consent prompt values (always returns a value as if in STAGING mode)
     ], {method: 'parallel'});
 
     const getAllInfoFlow = flow([
@@ -123,7 +123,7 @@ function validatePromptExistence (isProduction, req, res, cb) {
         return cb(); //stop here
     }
 
-    messages.getMessageCategories(false, function (err, categories) {
+    messages.getMessageGroups(false, function (err, categories) {
         const category = categories.find(function (category) {
             return category.message_category === consentPrompt;
         });

@@ -16,19 +16,19 @@ const check = require('check-types');
 //and the max id of every category. The first piece is so the message text preview is
 //in the language of the user, and the second category is in case an entry for that
 //category in that language doesn't exist, so fall back to another text
-function getMessageCategories (isProduction, cb) {
+function getMessageGroups (isProduction, cb) {
     const LANG_FILTER = 'en-us';
 
     const getMessagesFlow = app.locals.flow([
         setupSql(app.locals.sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
-        setupSql(app.locals.sql.getMessages.categoryByMaxId(isProduction, LANG_FILTER)),
-        setupSql(app.locals.sql.getMessages.categoryChangesOnly()),
-        setupSql(app.locals.sql.getMessages.status(isProduction))
+        setupSql(app.locals.sql.getMessages.categoryByMaxId(isProduction)),
+        setupSql(app.locals.sql.getMessages.status(isProduction)),
+        setupSql(app.locals.sql.getMessages.group(isProduction))
     ], {method: 'parallel'});
 
     const getCategoriesFlow = app.locals.flow([
         getMessagesFlow,
-        messageUtils.combineMessageInfo.bind(null, LANG_FILTER)
+        messageUtils.combineMessageCategoryInfo
     ], {method: 'waterfall'});
 
     getCategoriesFlow(cb);
@@ -46,7 +46,7 @@ function getInfo (req, res, next) {
         chosenFlow = getCategoryInfoFlow(isProduction, req.query.category);
     }
     else { //get all message info at the highest level, filtering in PRODUCTION or STAGING mode
-        chosenFlow = getMessageCategories.bind(null, isProduction);
+        chosenFlow = getMessageGroups.bind(null, isProduction);
     }
 
     chosenFlow(function (err, messages) {
@@ -61,7 +61,8 @@ function getInfo (req, res, next) {
 function getCategoryInfoFlow (isProduction, category) {
     const getInfoFlow = app.locals.flow([
         makeCategoryTemplateFlow(),
-        setupSql(app.locals.sql.getMessages.byCategory(isProduction, category))
+        setupSql(app.locals.sql.getMessages.byCategory(isProduction, category)),
+        setupSql(app.locals.sql.getMessages.group(isProduction, category))
     ], {method: 'parallel'});
 
     return app.locals.flow([
@@ -100,11 +101,18 @@ function post (isProduction) {
 }
 
 function addMessageFlow (messages, isProduction) {
-    const newMessages = messageUtils.convertMessagesJson(messages, isProduction);
-    if (newMessages.length === 0) { //the format of the request is correct, but there's no messages to actually store!
+    const newData = messageUtils.convertMessagesJson(messages, isProduction);
+    const messageGroups = newData[0];
+    const messageTexts = newData[1];
+
+    if (messageGroups.length === 0) { //the format of the request is correct, but there's no messages to actually store!
         return null;
     }
-    return app.locals.flow(setupInsertsSql(app.locals.sql.insert.messages(newMessages)), {method: 'parallel'});
+    //store the sets of data
+    return flow([
+        flow(setupInsertsSql(app.locals.sql.insert.messageGroups(messageGroups)), {method: 'parallel'}),
+        flow(setupInsertsSql(app.locals.sql.insert.messageTexts(messageTexts)), {method: 'parallel'})
+    ], {method: 'series'});
 }
 
 function validatePost (req, res) {
@@ -151,7 +159,7 @@ function postUpdate (req, res, next) {
 
 module.exports = {
     getInfo: getInfo,
-    getMessageCategories: getMessageCategories, //used by the groups module
+    getMessageGroups: getMessageGroups, //used by the groups module
     postAddMessage: post(false),
     postPromoteMessage: post(true),
     //delete: del,
