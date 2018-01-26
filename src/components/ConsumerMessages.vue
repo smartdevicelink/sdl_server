@@ -129,11 +129,8 @@
                     });
                 }
             },
-            "getConsumerMessageInfo": function (category, cb) {
+            "getConsumerMessageInfo": function (cb) {
                 let url = "messages?environment=" + this.environment;
-                if (category) {
-                    url += "&category=" + category;
-                }
                 this.httpRequest("get", url, {}, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
@@ -152,7 +149,7 @@
             },
             "environmentClick": function () {
                 //get high level message data
-                this.getConsumerMessageInfo(null, messages => {
+                this.getConsumerMessageInfo(messages => {
                     this.consumer_messages = messages;
                 });
             },

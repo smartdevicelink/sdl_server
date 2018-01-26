@@ -31,12 +31,13 @@
                             v-for="(value, key) in message.languages"
                             v-if="value.selected"
                             v-bind:item="value"
+                            v-bind:fieldsDisabled="fieldsDisabled"
                             v-bind:environment="environment"
                             v-bind:index="key"
                             v-bind:key="key">
                         </message-item>
 
-                        <div v-if="environment == 'STAGING'" v-b-modal.addLanguageModal id="add" class="another-rpc pointer">
+                        <div v-if="!fieldsDisabled" v-b-modal.addLanguageModal id="add" class="another-rpc pointer">
                             <i class="fa fa-plus middle-middle"></i>
                         </div>
                     </div>
@@ -46,11 +47,11 @@
                             type="submit"
                             class="btn btn-card"
                             data-style="zoom-in"
-                            v-if="environment == 'STAGING'"
+                            v-if="!fieldsDisabled"
                             v-on:click="saveMessageGroup()"
                             v-bind:loading="save_button_loading"
                             v-bind:class="{ 'btn-style-green': !message.is_deleted, 'btn-danger': message.is_deleted }">
-                            {{ message && message.is_deleted ? 'Save deleted message' : 'Save message' }}
+                            Save consumer message
                         </vue-ladda>
                     </div>
 
@@ -76,12 +77,12 @@
             <!-- DELETE GROUP MODAL -->
             <b-modal ref="deleteModal" title="Delete Consumer Message" hide-footer id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                 <small class="form-text text-muted">
-                    Are you sure you want to delete this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately revoked from the staging policy table, and will be revoked from the production policy table upon the next promotion to production.
+                    Are you sure you want to delete this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately removed from the staging policy table, and will be removed from the production policy table upon the next promotion to production.
                 </small>
                 <b-btn
                     v-on:click="deleteMessageGroup()"
                     class="btn btn-card btn-danger">
-                    Yes, mark this message for deletion
+                    Yes, delete this consumer message
                 </b-btn>
             </b-modal>
 
@@ -161,6 +162,7 @@ import { eventBus } from '../main.js';
                         response.json().then(parsed => {
                             if (parsed.messages && parsed.messages.length) {
                                 this.message = parsed.messages[0];
+                                console.log(this.message);
                             } else {
                                 console.log("No message data returned");
                             }
@@ -207,6 +209,11 @@ import { eventBus } from '../main.js';
                     this.$router.push("/consumermessages");
                 });
             },
+        },
+        computed: {
+            fieldsDisabled: function () {
+                return (this.message.is_deleted || this.environment != 'STAGING');
+            }
         },
         created: function () {
             this.getConsumerMessageInfo();

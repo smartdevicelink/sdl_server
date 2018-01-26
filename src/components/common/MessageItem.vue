@@ -4,7 +4,7 @@
         <h5>{{ index }}
             <i
                 v-on:click="removeLanguage()"
-                v-if="this.environment !== 'PRODUCTION'"
+                v-if="!fieldsDisabled"
                 class="pointer pull-right fa fa-times hover-color-red"
                 aria-hidden="true">
             </i>
@@ -13,35 +13,35 @@
         <div class="form-group row">
             <label class="col-sm-2 col-form-label">TTS</label>
             <div class="col-sm-10">
-                <input v-model="item.tts" class="form-control">
+                <input v-model="item.tts" :disabled="fieldsDisabled" class="form-control">
             </div>
         </div>
 
         <div class="form-group row">
             <label class="col-sm-2 col-form-label">Line 1</label>
             <div class="col-sm-10">
-                <input v-model="item.line1" class="form-control">
+                <input v-model="item.line1" :disabled="fieldsDisabled" class="form-control">
             </div>
         </div>
 
         <div class="form-group row">
             <label class="col-sm-2 col-form-label">Line 2</label>
             <div class="col-sm-10">
-                <input v-model="item.line2" class="form-control">
+                <input v-model="item.line2" :disabled="fieldsDisabled" class="form-control">
             </div>
         </div>
 
         <div class="form-group row">
             <label class="col-sm-2 col-form-label">Text Body</label>
             <div class="col-sm-10">
-                <input v-model="item.text_body" class="form-control">
+                <input v-model="item.text_body" :disabled="fieldsDisabled" class="form-control">
             </div>
         </div>
 
         <div class="form-group row">
             <label class="col-sm-2 col-form-label">Label</label>
             <div class="col-sm-10">
-                <input v-model="item.label" class="form-control">
+                <input v-model="item.label" :disabled="fieldsDisabled" class="form-control">
             </div>
         </div>
 
@@ -50,7 +50,7 @@
 
 <script>
     export default {
-        props: ['item','index','environment'],
+        props: ['item','index','environment','fieldsDisabled'],
         data () {
             return {
             };
@@ -62,7 +62,7 @@
                 this.$http.post("messages", body)
                     .then(response => {
                         this.save_button_loading = false;
-                        this.$router.go(); //reload current page+
+                        this.$router.go(); //reload current page
                     }, response => {
                         console.error(response.body.error);
                         this.save_button_loading = false;

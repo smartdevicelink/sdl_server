@@ -254,7 +254,7 @@ import { eventBus } from '../main.js';
                                     return {
                                         "id": msg.id,
                                         "name": msg.message_category,
-                                        "prompt": msg.tts
+                                        "prompt": msg.text
                                     }
                                 });
                                 this.consent_prompts = transformedMessages;

@@ -9,7 +9,7 @@
                 {{ item.selected_rpc_count + item.selected_parameter_count }} {{ permissionString(item) }}
             </div>
             <div
-                v-if="environment != 'PRODUCTION' || item.is_deleted"
+                v-if="item.status != 'PRODUCTION' || item.is_deleted"
                 class="func-status-tag color-green">
                 CHANGED {{ item.is_deleted ? "(DELETED)" : "" }}
             </div>
