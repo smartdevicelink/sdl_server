@@ -38,13 +38,17 @@ function getInfo (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
     const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
     const returnTemplate = !!req.query.template; //coerce to boolean
-
     if (returnTemplate) { //template mode. return just the shell of a message
         chosenFlow = makeCategoryTemplateFlow();
     }
+    else if (req.query.id) { //get messages of a specific id 
+        chosenFlow = getMessageDetailsFlow(req.query.id);
+    }
+    /*
     else if (req.query.category) { //filter by message category. this is the 'detailed' mode
         chosenFlow = getCategoryInfoFlow(isProduction, req.query.category);
     }
+    */
     else { //get all message info at the highest level, filtering in PRODUCTION or STAGING mode
         chosenFlow = getMessageGroups.bind(null, isProduction);
     }
@@ -56,6 +60,19 @@ function getInfo (req, res, next) {
         }
         return res.status(200).send({messages: messages}); 
     }); 
+}
+
+function getMessageDetailsFlow (id) {
+    const getInfoFlow = app.locals.flow([
+        makeCategoryTemplateFlow(),
+        setupSql(app.locals.sql.getMessages.byId(id)),
+        setupSql(app.locals.sql.getMessages.groupById(id))
+    ], {method: 'parallel'});
+
+    return app.locals.flow([
+        getInfoFlow,
+        messageUtils.transformMessages
+    ], {method: 'waterfall'});
 }
 
 function getCategoryInfoFlow (isProduction, category) {

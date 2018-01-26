@@ -33,7 +33,7 @@ function combineMessageCategoryInfo (messageInfo, next) {
     //combine the two hashes
     for (let category in tempHash) {
         const textInfo = tempHash[category];
-        groupsHash[category].text = textInfo.tts;
+        groupsHash[category].text = textInfo.tts; //attach the tts to a custom property so the UI can display a message
         groupsHash[category].language_count = textInfo.language_count;
     }
 
