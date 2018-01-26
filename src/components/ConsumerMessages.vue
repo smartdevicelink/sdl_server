@@ -101,20 +101,19 @@
                 });
             },
             "promoteAllMessages": function (cb) {
-                //get the full information of all entries shown here
-                //and send each category block back as a promoted message group
-                //get by categories
-                const messageCategories = this.consumer_messages.map(function (msg) {
-                    return msg.message_category;
-                });
-                this.mapAsync(messageCategories, this.getConsumerMessageInfo, fullMessageInfo => {
-                    //promote all these messages
-                    this.mapAsync(fullMessageInfo, this.promoteMessageGroup, cb); //done
-                });
+                // build an array of STAGING message IDs
+                var staging_ids = [];
+                for(var i = 0; i < this.consumer_messages.length; i++){
+                    if(this.consumer_messages[i].status == "STAGING"){
+                        staging_ids.push(this.consumer_messages[i].id);
+                    }
+                }
+                
+                staging_ids.length ? this.promoteMessageGroup(staging_ids, cb) : cb();
             },
-            "promoteMessageGroup": function (messages, cb) {
+            "promoteMessageGroup": function (id, cb) {
                 //save all messages in the messages object
-                this.httpRequest("post", "messages/promote", {messages: messages}, cb);
+                this.httpRequest("post", "messages/promote", {id: id}, cb);
             },
             "mapAsync": function (array, func, cb) {
                 let count = array.length;
