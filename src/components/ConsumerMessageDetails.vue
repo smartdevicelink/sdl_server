@@ -134,7 +134,7 @@ import { eventBus } from '../main.js';
                 // TODO
                 // back-end should clean the data by removing ids
                 // and not saving languages which were not selected
-                this.httpRequest("post", "messages", {messages: this.message}, callback);
+                this.httpRequest("post", "messages", {messages: [this.message]}, callback);
             },
             "showDeleteModal": function() {
                 this.$refs.deleteModal.show();
