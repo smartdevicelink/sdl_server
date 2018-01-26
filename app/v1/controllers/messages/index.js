@@ -62,6 +62,7 @@ function getInfo (req, res, next) {
     }); 
 }
 
+//for one id
 function getMessageDetailsFlow (id) {
     const getInfoFlow = app.locals.flow([
         makeCategoryTemplateFlow(),
@@ -99,25 +100,66 @@ function makeCategoryTemplateFlow () {
     ], {method: 'waterfall'});
 }
 
-function post (isProduction) {
-    return function (req, res, next) {
-        validatePost(req, res);
-        if (res.errorMsg) {
-            return res.status(400).send({ error: res.errorMsg });
-        }    
-        const messageFlow = addMessageFlow(req.body, isProduction);
-        if (messageFlow) {
-            messageFlow(function () {
-                res.sendStatus(200);
-            });
-        }
-        else {
-            res.status(400).send({ error: "No messages to save" });
-        }
+//only for staging records
+function postStaging (req, res, next) {
+    validatePost(req, res);
+    if (res.errorMsg) {
+        return res.status(400).send({ error: res.errorMsg });
+    }    
+    const messageFlow = addMessageFlow(false, req.body);
+    if (messageFlow) {
+        messageFlow(function () {
+            res.sendStatus(200);
+        });
+    }
+    else {
+        res.status(400).send({ error: "No messages to save" });
     }
 }
 
-function addMessageFlow (messages, isProduction) {
+function promoteIds (req, res, next) {
+    validatePromote(req, res);
+    if (res.errorMsg) {
+        return res.status(400).send({ error: res.errorMsg });
+    }  
+    //make sure the data in id is an array in the end
+    if (check.number(req.body.id)) {
+        req.body.id = [req.body.id];
+    }    
+    //ignore the id if the message group is a PRODUCTION record. promote staging only.
+    const promoteMessagesFlow = app.locals.flow([
+        getMessagesDetailsSqlFlow(req.body.id),
+        promoteIdsInsert
+    ], {method: 'waterfall'});
+
+    promoteMessagesFlow(function () {
+        res.sendStatus(200); //done
+    });
+}
+
+//for an array of ids. only returns STAGING records. meant solely for the promotion route
+//doesn't make an object out of the data
+function getMessagesDetailsSqlFlow (ids) {
+    return app.locals.flow([
+        setupSql(app.locals.sql.getMessages.groupsByIds(ids)),
+        setupSql(app.locals.sql.getMessages.byIds(ids))
+    ], {method: 'parallel'});
+}
+
+function promoteIdsInsert (data, next) {
+    app.locals.flow([
+        app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageGroups(data[0])), {method: 'parallel'}),
+        app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageTexts(data[1])), {method: 'parallel'})
+    ], {method: 'series'})(next);
+}
+
+function validatePromote (req, res) {
+    if (!check.array(req.body.id) && !check.number(req.body.id)) {
+        res.errorMsg = "Required: id (array) or id (number)"
+    }
+}
+
+function addMessageFlow (isProduction, messages) {
     const newData = messageUtils.convertMessagesJson(messages, isProduction);
     const messageGroups = newData[0];
     const messageTexts = newData[1];
@@ -126,21 +168,39 @@ function addMessageFlow (messages, isProduction) {
         return null;
     }
     //store the sets of data
-    return flow([
-        flow(setupInsertsSql(app.locals.sql.insert.messageGroups(messageGroups)), {method: 'parallel'}),
-        flow(setupInsertsSql(app.locals.sql.insert.messageTexts(messageTexts)), {method: 'parallel'})
+    return app.locals.flow([
+        app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageGroups(messageGroups)), {method: 'parallel'}),
+        app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageTexts(messageTexts)), {method: 'parallel'})
     ], {method: 'series'});
 }
 
 function validatePost (req, res) {
     //base check
-    if (!check.object(req.body.messages)) {
-        return res.errorMsg = "Required: messages (object)"
+    if (!check.array(req.body.messages)) {
+        return res.errorMsg = "Required: messages (array)"
     }
-    for (let lang in req.body.messages) {
-        const langObj = req.body.messages[lang];
-        if (!check.string(langObj.language_id) || !check.string(langObj.message_category) ) {
-            return res.errorMsg = "Required for message: language_id, message_category";
+    for (let i = 0; i < req.body.messages.length; i++) {
+        const msg = req.body.messages[i];
+        if (!check.string(msg.message_category) || !check.boolean(msg.is_deleted) ) {
+            return res.errorMsg = "Required for message: message_category (string), is_deleted (boolean)";
+        }        
+        for (let j = 0; j < msg.languages.length; j++) {
+            const lang = msg.languages[j];
+            if (
+                !check.string(lang.language_id) 
+                || !check.boolean(lang.selected)
+                || (
+                    !check.string(lang.line1)
+                    && !check.string(lang.line2)
+                    && !check.string(lang.tts)
+                    && !check.string(lang.text_body)
+                    && !check.string(lang.label)
+                    )
+                )
+                {
+                return res.errorMsg = `Required for language: language_id, selected, and at least one of the following: 
+                    line1, line2, tts, text_body, label`;
+            }
         }
     }
 }
@@ -177,8 +237,8 @@ function postUpdate (req, res, next) {
 module.exports = {
     getInfo: getInfo,
     getMessageGroups: getMessageGroups, //used by the groups module
-    postAddMessage: post(false),
-    postPromoteMessage: post(true),
+    postAddMessage: postStaging,
+    postPromoteMessages: promoteIds,
     //delete: del,
     postUpdate: postUpdate,
     updateLanguages: languages.updateLanguages

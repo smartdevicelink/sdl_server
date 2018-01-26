@@ -53,7 +53,7 @@ app.post('/groups', groups.postAddGroup);
 app.post('/groups/promote', groups.postPromote);
 app.get('/messages', messages.getInfo);
 app.post('/messages', messages.postAddMessage); 
-app.post('/messages/promote', messages.postPromoteMessage); 
+app.post('/messages/promote', messages.postPromoteMessages); 
 app.post('/messages/update', messages.updateLanguages);
 
 /*
