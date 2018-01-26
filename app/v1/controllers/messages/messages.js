@@ -77,7 +77,7 @@ function generateCategoryTemplate (info, next) {
             label: ""
         });
     }
-    next(null, template);
+    next(null, [template]);
 }
 
 function hashifyTemplate (template) {
@@ -99,7 +99,7 @@ function arrayifyTemplate (template) {
 }
 
 function transformMessages (info, next) {
-    let template = info[0];
+    let template = info[0][0]; //comes back as an array of messages
     const texts = info[1];
     const group = info[2][0];
     template = hashifyTemplate(template);
