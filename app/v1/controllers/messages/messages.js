@@ -134,11 +134,19 @@ function transformMessages (info, next) {
 }
 
 function convertMessagesJson (messagesObj, isProduction) {
+    let statusName = "";
+    if (isProduction) {
+        statusName = 'PRODUCTION';
+    }
+    else {
+        statusName = 'STAGING';
+    }
+
     //get all the group-related information first
     const messageGroups = messagesObj.messages.map(function (msg) {
         return {
             message_category: msg.message_category,
-            status: isProduction,
+            status: statusName,
             is_deleted: msg.is_deleted
         };
     });
