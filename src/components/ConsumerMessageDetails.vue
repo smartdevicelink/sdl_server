@@ -69,7 +69,7 @@
                         v-if="isLangAvailable(value)"
                         v-on:click="addLanguage(value)"
                     >
-                    {{ key }}<i v-b-tooltip.hover.auto title="" class="fa fa-info-circle pull-right"></i>
+                    {{ value.language_id }}<i v-b-tooltip.hover.auto title="" class="fa fa-info-circle pull-right"></i>
                     </li>
                 </ul>
             </b-modal>

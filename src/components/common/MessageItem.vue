@@ -1,7 +1,7 @@
 <template>
     <div class="white-box rpc-container">
         <h5></h5>
-        <h5>{{ index }}
+        <h5>{{ item.language_id }}
             <i
                 v-on:click="removeLanguage()"
                 v-if="!fieldsDisabled"
