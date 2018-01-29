@@ -134,6 +134,7 @@ import { eventBus } from '../main.js';
                 // TODO
                 // back-end should clean the data by removing ids
                 // and not saving languages which were not selected
+
                 this.httpRequest("post", "messages", {messages: [this.message]}, callback);
             },
             "showDeleteModal": function() {
@@ -216,6 +217,7 @@ import { eventBus } from '../main.js';
             }
         },
         created: function () {
+            console.log(async);
             this.getConsumerMessageInfo();
         },
         beforeDestroy () {

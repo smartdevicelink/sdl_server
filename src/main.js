@@ -29,6 +29,8 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 import './assets/css/font-awesome.min.css'
 import './assets/css/style.css'
 import './assets/js/run_prettify.js'
+import async from 'async';
+Object.definePrototype(Vue.prototype, '$async', { value: async });
 
 Vue.component("vue-ladda", VueLadda);
 Vue.component("page-side-nav", SideNav);
