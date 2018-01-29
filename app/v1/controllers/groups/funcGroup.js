@@ -235,7 +235,8 @@ function convertFuncGroupJson (obj, isProduction) {
         'property_name': obj.name,
         'user_consent_prompt': obj.user_consent_prompt,
         'description': obj.description,
-        'is_default': obj.is_default
+        'is_default': obj.is_default,
+        'is_deleted': obj.is_deleted
     };
     if (isProduction) {
         baseInfo.status = 'PRODUCTION';

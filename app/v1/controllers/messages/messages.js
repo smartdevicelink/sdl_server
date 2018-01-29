@@ -151,8 +151,6 @@ function convertMessagesJson (messagesObj, isProduction) {
         };
     });
 
-
-
     //now get all the message text information
     let messageTexts = [];
     for (let i = 0; i < messagesObj.messages.length; i++) {
@@ -176,40 +174,6 @@ function convertMessagesJson (messagesObj, isProduction) {
     
     return [messageGroups, messageTexts];
 }
-
-// function convertMessagesJson (messagesObj, isProduction) {
-//     let statusName = "";
-//     if (isProduction) {
-//         statusName = 'PRODUCTION';
-//     }
-//     else {
-//         statusName = 'STAGING';
-//     }
-//     //break the JSON down into smaller objects for SQL insertion
-//     let messagesArray = [];
-//     for (let lang in messagesObj.messages) {
-//         messagesArray.push(messagesObj.messages[lang]);
-//     }
-//     //remove entries with selected = false
-//     messagesArray = messagesArray.filter(function (msg) {
-//         return msg.selected;
-//     });
-
-//     //all messages should change to isProduction status
-//     return messagesArray.map(function (msg) {
-//         return {
-//             language_id: msg.language_id,
-//             message_category: msg.message_category,
-//             label: msg.label,
-//             line1: msg.line1,
-//             line2: msg.line2,
-//             text_body: msg.text_body,
-//             tts: msg.tts,        
-//             status: statusName,
-//             is_deleted: msg.is_deleted
-//         };
-//     });
-// }
 
 module.exports = {
     combineMessageCategoryInfo: combineMessageCategoryInfo,
