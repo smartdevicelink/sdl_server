@@ -150,6 +150,9 @@ function convertMessagesJson (messagesObj, isProduction) {
             is_deleted: msg.is_deleted
         };
     });
+
+
+
     //now get all the message text information
     let messageTexts = [];
     for (let i = 0; i < messagesObj.messages.length; i++) {
@@ -157,15 +160,17 @@ function convertMessagesJson (messagesObj, isProduction) {
         const langs = messagesObj.messages[i].languages;
         for (let j = 0; j < langs.length; j++) {
             const text = langs[j];
-            messageTexts.push({
-                language_id: text.language_id,
-                tts: text.tts,
-                line1: text.line1,
-                line2: text.line2,
-                text_body: text.text_body,
-                label: text.label,
-                message_category: category
-            });
+            if (text.selected) {
+                messageTexts.push({
+                    language_id: text.language_id,
+                    tts: text.tts,
+                    line1: text.line1,
+                    line2: text.line2,
+                    text_body: text.text_body,
+                    label: text.label,
+                    message_category: category
+                });                
+            }
         }        
     }
     
