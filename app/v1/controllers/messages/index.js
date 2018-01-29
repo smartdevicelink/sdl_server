@@ -126,14 +126,32 @@ function promoteIds (req, res, next) {
     if (check.number(req.body.id)) {
         req.body.id = [req.body.id];
     }    
-    //ignore the id if the message group is a PRODUCTION record. promote staging only.
-    const promoteMessagesFlow = app.locals.flow([
-        getMessagesDetailsSqlFlow(req.body.id),
-        promoteIdsInsert
-    ], {method: 'waterfall'});
 
-    promoteMessagesFlow(function () {
-        res.sendStatus(200); //done
+    //get all the info from the ids
+    getMessagesDetailsSqlFlow(req.body.id)(function (err, data) {
+        let groups = data[0];
+        let messages = data[1];
+
+        let groupsHash = {};
+        for (let i = 0; i < groups.length; i++) {
+            groupsHash[groups[i].id] = groups[i];
+            //group status should be changed to PRODUCTION
+            groups[i].status = 'PRODUCTION';
+        }
+
+        //add message_category to each message
+        for (let i = 0; i < messages.length; i++) {
+            messages[i].message_category = groupsHash[messages[i].message_group_id].message_category;
+        }
+
+        const insertFlow = app.locals.flow([
+            app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageGroups(groups)), {method: 'parallel'}),
+            app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageTexts(messages)), {method: 'parallel'})
+        ], {method: 'series'}); 
+
+        insertFlow(function () {
+            res.sendStatus(200); //done
+        });
     });
 }
 
@@ -144,13 +162,6 @@ function getMessagesDetailsSqlFlow (ids) {
         setupSql(app.locals.sql.getMessages.groupsByIds(ids)),
         setupSql(app.locals.sql.getMessages.byIds(ids))
     ], {method: 'parallel'});
-}
-
-function promoteIdsInsert (data, next) {
-    app.locals.flow([
-        app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageGroups(data[0])), {method: 'parallel'}),
-        app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageTexts(data[1])), {method: 'parallel'})
-    ], {method: 'series'})(next);
 }
 
 function validatePromote (req, res) {
