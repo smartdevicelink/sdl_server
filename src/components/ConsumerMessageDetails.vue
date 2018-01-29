@@ -145,11 +145,11 @@ import { eventBus } from '../main.js';
             },
             "deleteMessageGroup": function (cb) {
                 this.message.is_deleted = true;
-                this.httpRequest("post", "messages", this.message, cb);
+                this.httpRequest("post", "messages", {messages: [this.message]}, cb);
             },
             "undeleteMessageGroup": function() {
                 this.message.is_deleted = false;
-                this.httpRequest("post", "messages", this.message, cb);
+                this.httpRequest("post", "messages", {messages: [this.message]}, cb);
             },
             "getConsumerMessageInfo": function (cb) {
                 let queryInfo = "messages";
