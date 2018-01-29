@@ -48,7 +48,7 @@
                             class="btn btn-card"
                             data-style="zoom-in"
                             v-if="!fieldsDisabled"
-                            v-on:click="saveMessageGroup()"
+                            v-on:click="saveGroup()"
                             v-bind:loading="save_button_loading"
                             v-bind:class="{ 'btn-style-green': !message.is_deleted, 'btn-danger': message.is_deleted }">
                             Save consumer message
