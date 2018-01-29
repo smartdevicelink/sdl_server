@@ -217,7 +217,7 @@ import { eventBus } from '../main.js';
             }
         },
         created: function () {
-            console.log(async);
+            console.log(this.$async);
             this.getConsumerMessageInfo();
         },
         beforeDestroy () {
