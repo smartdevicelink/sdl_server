@@ -1,6 +1,5 @@
 const app = require('../../app');
 const setupSql = app.locals.sql.setupSqlCommand;
-const setupInsertsSql = app.locals.sql.setupSqlInsertsNoError;
 const messageUtils = require('./messages');
 const languages = require('./languages');
 const check = require('check-types');
@@ -41,14 +40,9 @@ function getInfo (req, res, next) {
     if (returnTemplate) { //template mode. return just the shell of a message
         chosenFlow = makeCategoryTemplateFlow();
     }
-    else if (req.query.id) { //get messages of a specific id 
+    else if (req.query.id) { //get messages of a specific id. this is the 'detailed' mode 
         chosenFlow = getMessageDetailsFlow(req.query.id);
     }
-    /*
-    else if (req.query.category) { //filter by message category. this is the 'detailed' mode
-        chosenFlow = getCategoryInfoFlow(isProduction, req.query.category);
-    }
-    */
     else { //get all message info at the highest level, filtering in PRODUCTION or STAGING mode
         chosenFlow = getMessageGroups.bind(null, isProduction);
     }
@@ -100,21 +94,17 @@ function makeCategoryTemplateFlow () {
     ], {method: 'waterfall'});
 }
 
-//only for staging records
 function postStaging (req, res, next) {
     validatePost(req, res);
     if (res.errorMsg) {
         return res.status(400).send({ error: res.errorMsg });
     }    
-    const messageFlow = addMessageFlow(false, req.body);
-    if (messageFlow) {
-        messageFlow(function () {
-            res.sendStatus(200);
-        });
-    }
-    else {
-        res.status(400).send({ error: "No messages to save" });
-    }
+    //convert the JSON to sql-like statements
+    const newData = messageUtils.convertMessagesJson(req.body);
+    //force group status to STAGING
+    messageUtils.insertMessageSqlFlow(false, newData, function () {
+        res.sendStatus(200);
+    });
 }
 
 function promoteIds (req, res, next) {
@@ -126,36 +116,18 @@ function promoteIds (req, res, next) {
     if (check.number(req.body.id)) {
         req.body.id = [req.body.id];
     }    
+    //get all the info from the ids and insert them
+    const getAndInsertFlow = app.locals.flow([
+        getMessagesDetailsSqlFlow(req.body.id),
+        messageUtils.insertMessageSqlFlow.bind(null, true) //force group status to PRODUCTION
+    ], {method: 'waterfall'});
 
-    //get all the info from the ids
-    getMessagesDetailsSqlFlow(req.body.id)(function (err, data) {
-        let groups = data[0];
-        let messages = data[1];
-
-        let groupsHash = {};
-        for (let i = 0; i < groups.length; i++) {
-            groupsHash[groups[i].id] = groups[i];
-            //group status should be changed to PRODUCTION
-            groups[i].status = 'PRODUCTION';
-        }
-
-        //add message_category to each message
-        for (let i = 0; i < messages.length; i++) {
-            messages[i].message_category = groupsHash[messages[i].message_group_id].message_category;
-        }
-
-        const insertFlow = app.locals.flow([
-            app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageGroups(groups)), {method: 'parallel'}),
-            app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageTexts(messages)), {method: 'parallel'})
-        ], {method: 'series'}); 
-
-        insertFlow(function () {
-            res.sendStatus(200); //done
-        });
+    getAndInsertFlow(function () {
+        res.sendStatus(200); //done
     });
 }
 
-//for an array of ids. only returns STAGING records. meant solely for the promotion route
+//for an array of ids. filters out PRODUCTION records. meant solely for the promotion route
 //doesn't make an object out of the data
 function getMessagesDetailsSqlFlow (ids) {
     return app.locals.flow([
@@ -168,21 +140,6 @@ function validatePromote (req, res) {
     if (!check.array(req.body.id) && !check.number(req.body.id)) {
         res.errorMsg = "Required: id (array) or id (number)"
     }
-}
-
-function addMessageFlow (isProduction, messages) {
-    const newData = messageUtils.convertMessagesJson(messages, isProduction);
-    const messageGroups = newData[0];
-    const messageTexts = newData[1];
-
-    if (messageGroups.length === 0) { //the format of the request is correct, but there's no messages to actually store!
-        return null;
-    }
-    //store the sets of data
-    return app.locals.flow([
-        app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageGroups(messageGroups)), {method: 'parallel'}),
-        app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageTexts(messageTexts)), {method: 'parallel'})
-    ], {method: 'series'});
 }
 
 function validatePost (req, res) {
@@ -209,8 +166,7 @@ function validatePost (req, res) {
                     )
                 )
                 {
-                return res.errorMsg = `Required for language: language_id, selected, and at least one of the following: 
-                    line1, line2, tts, text_body, label`;
+                return res.errorMsg = "Required for language: language_id, selected, and at least one of the following: line1, line2, tts, text_body, label";
             }
         }
     }
@@ -229,13 +185,13 @@ function del (req, res, next) {
         res.sendStatus(200);
     });
 }
-*/
+
 function validateDelete (req, res) {
     if (!check.number(req.body.message_category)) {
         return res.errorMsg = "Required for deletion: message_category";
     }
 }
-
+*/
 function postUpdate (req, res, next) {
     languages.updateLanguages(function (err) {
         if (err) {
