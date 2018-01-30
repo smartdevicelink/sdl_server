@@ -32,11 +32,15 @@ function combineMessageCategoryInfo (messageInfo, next) {
         tempHash[allMessages[i].message_category].language_count++;
     }    
 
+    //if there's a deleted category, the tempHash may have those deleted categories included
+    //because it's using a different query, and we do not want that info for the groupsHash if that happens
     //combine the two hashes
     for (let category in tempHash) {
         const textInfo = tempHash[category];
-        groupsHash[category].text = textInfo.tts; //attach the tts to a custom property so the UI can display a message
-        groupsHash[category].language_count = textInfo.language_count;
+        if (groupsHash[category]) { //existence check
+            groupsHash[category].text = textInfo.tts; //attach the tts to a custom property so the UI can display a message
+            groupsHash[category].language_count = textInfo.language_count;            
+        }
     }
 
     let categories = [];
