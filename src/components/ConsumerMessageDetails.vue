@@ -80,7 +80,7 @@
                     Are you sure you want to delete this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately removed from the staging policy table, and will be removed from the production policy table upon the next promotion to production.
                 </small>
                 <b-btn
-                    v-on:click="deleteMessageGroup()"
+                    v-on:click="deleteGroup()"
                     class="btn btn-card btn-danger">
                     Yes, delete this consumer message
                 </b-btn>
@@ -95,7 +95,7 @@
                     type="button"
                     class="btn btn-card btn-success"
                     data-style="zoom-in"
-                    v-on:click="undeleteMessageGroup()"
+                    v-on:click="undeleteGroup()"
                     v-bind:loading="undelete_button_loading">
                     Yes, restore this consumer message
                 </vue-ladda>
@@ -131,10 +131,6 @@ import { eventBus } from '../main.js';
             },
             "saveMessageGroup": function (callback) {
                 // save the entire group w/ languages
-                // TODO
-                // back-end should clean the data by removing ids
-                // and not saving languages which were not selected
-
                 this.httpRequest("post", "messages", {messages: [this.message]}, callback);
             },
             "showDeleteModal": function() {
