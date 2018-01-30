@@ -143,7 +143,7 @@ import { eventBus } from '../main.js';
                 this.message.is_deleted = true;
                 this.httpRequest("post", "messages", {messages: [this.message]}, cb);
             },
-            "undeleteMessageGroup": function() {
+            "undeleteMessageGroup": function(cb) {
                 this.message.is_deleted = false;
                 this.httpRequest("post", "messages", {messages: [this.message]}, cb);
             },
