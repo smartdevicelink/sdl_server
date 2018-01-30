@@ -5,8 +5,6 @@
             <page-side-nav/>
             <page-user-nav/>
 
-            <!--TODO: add a select language option to get back tts in different languages for the description? -->
-
             <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
                 <b-form-radio-group id="selectEnvironment"
                     buttons
@@ -108,7 +106,7 @@
                         staging_ids.push(this.consumer_messages[i].id);
                     }
                 }
-                
+
                 staging_ids.length ? this.promoteMessageGroup(staging_ids, cb) : cb();
             },
             "promoteMessageGroup": function (id, cb) {
