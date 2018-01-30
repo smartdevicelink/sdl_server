@@ -39,7 +39,8 @@ module.exports = function (log) {
         //the callback requires an error parameter and a response from the SQL query
         sqlCommand: function (query, callback) {
             pool.query(query, function (err, res) {
-                callback(err, res);
+                //always return an array 
+                callback(err, (res && res.rows) ? res.rows : []);
             });
         }
     }

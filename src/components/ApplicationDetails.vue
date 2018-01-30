@@ -160,7 +160,8 @@
                 <div v-if="policytable != null"class="app-table">
                     <h4>Policy Table Preview</h4>
                     <div class="policy-table">
-                        <pre class="prettyprint linenums hidenums">{{ policytable }}</pre>
+                        <!--<pre class="prettyprint linenums hidenums">{{ policytable }}</pre>-->
+                        <vue-json-pretty :data="policytable"></vue-json-pretty>
                     </div>
                 </div>
 
@@ -200,7 +201,12 @@
 </template>
 
 <script>
+import VueJsonPretty from 'vue-json-pretty'
+
 export default {
+    components: {
+        VueJsonPretty
+    },
     data: function(){
         return {
             "actions_visible": false,
@@ -281,7 +287,7 @@ export default {
             //
             //this.$http.post((this.app.approval_status == "ACCEPTED" ? "production" : "staging") + "/policy", {
             const envName = this.app.approval_status == "ACCEPTED" ? "production" : "staging";
-            this.$http.post("policy/apps?environment=" + envName, { 
+            this.$http.post("policy/apps?environment=" + envName, {
                 "policy_table": {
                     "app_policies": {
                         [this.app.uuid]: {}

@@ -115,9 +115,15 @@ function post (isProduction) {
 //NOTE: this will not warn the user if a change is made in a consumer friendly message in STAGING
 //such that the STAGING value will be returned in staging mode but in PRODUCTION mode the older value gets used
 function validatePromptExistence (isProduction, req, res, cb) {
-    const consentPrompt = req.body.user_consent_prompt;
     //find if the consentPrompt of this functional group exists in the context
     //of the target environment
+    //if user_consent_prompt is an empty string, then also treat it as valid, but convert it into null
+    //for insertion into the database
+    if (req.body.user_consent_prompt === "") {
+        req.body.user_consent_prompt = null;
+    }
+    const consentPrompt = req.body.user_consent_prompt;
+
     //if user_consent_prompt is null, then there is no prompt, which is a valid option
     if (consentPrompt === null) {
         return cb(); //stop here

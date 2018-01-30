@@ -38,7 +38,7 @@
                             :disabled="fieldsDisabled"
                             class="custom-select w-100">
                         </b-form-select>
-                        <div v-if="selectPromptText" class="white-box">
+                        <div v-if="selectPromptText && selectPromptText.id" class="white-box">
                             {{ selectPromptText.prompt }}
                         </div>
                     </div>
@@ -256,6 +256,11 @@ import { eventBus } from '../main.js';
                                         "name": msg.message_category,
                                         "prompt": msg.text
                                     }
+                                });
+                                transformedMessages.unshift({
+                                    "id": null,
+                                    "name": "",
+                                    "prompt": null
                                 });
                                 this.consent_prompts = transformedMessages;
                                 console.log(this.consent_prompts);
