@@ -244,7 +244,6 @@ import { eventBus } from '../main.js';
                 });
             },
             "getConsentPrompts": function () {
-                //use STAGING mode exclusively
                 this.httpRequest("get", "messages?environment="+this.environment.toLowerCase(), null, (err, response) => {
                     if (response) {
                         //returns all en-us results under the environment specified

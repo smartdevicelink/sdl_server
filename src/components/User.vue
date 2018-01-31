@@ -68,9 +68,9 @@ export default {
     data: function(){
         return {
             "user": {
-                "first_name": "Nick",
-                "last_name": "Schwab",
-                "email": "nick.schwab@livio.io",
+                "first_name": "Roger",
+                "last_name": "Humaan",
+                "email": "support@smartdevicelink.com",
                 "password": null,
                 "new_password_1": null,
                 "new_password_2": null

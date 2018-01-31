@@ -1,3 +1,6 @@
+/*  CODE REVIEW:
+    - delete this file?
+*/
 function post (req, res, next) {
 	validatePost(req, res);
 	if (res.errorMsg) {
@@ -11,7 +14,7 @@ function post (req, res, next) {
 function validatePost (req, res) {
 	if (!req.body.email) {
 		return res.errorMsg = "Email required";
-	}	
+	}
 }
 
 module.exports = {

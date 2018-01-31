@@ -113,19 +113,6 @@
                 //save all messages in the messages object
                 this.httpRequest("post", "messages/promote", {id: id}, cb);
             },
-            "mapAsync": function (array, func, cb) {
-                let count = array.length;
-                let mappedResults = [];
-                for (let i = 0; i < array.length; i++) {
-                    func(array[i], data => {
-                        mappedResults.push(data);
-                        count--;
-                        if (count === 0) {
-                            cb(mappedResults);
-                        }
-                    });
-                }
-            },
             "getConsumerMessageInfo": function (cb) {
                 let url = "messages?environment=" + this.environment;
                 this.httpRequest("get", url, {}, (err, response) => {

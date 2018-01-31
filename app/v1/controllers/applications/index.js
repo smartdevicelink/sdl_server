@@ -3,6 +3,12 @@ const setupSql = app.locals.sql.setupSqlCommand;
 const appInfo = require('./appInfo.js');
 const check = require('check-types');
 
+/*  CODE REVIEW:
+    - describe the behavior and benefits of using "flow"
+	- should "flow" be an extension of the "async" library?
+	- create a standardized API response structure/delivery library (e.g. "Parcel" in SHAID)
+*/
+
 function get (req, res, next) {
 	//prioritize id, uuid, approval status, in that order.
 	//only one parameter can be acted upon in one request
@@ -14,7 +20,7 @@ function get (req, res, next) {
 		chosenFlow = createAppInfoFlow('idFilter', req.query.id);
 	}
 	else if (req.query.uuid) { //filter by app uuid
-		chosenFlow = createAppInfoFlow('multiFilter', {app_uuid: req.query.uuid});	
+		chosenFlow = createAppInfoFlow('multiFilter', {app_uuid: req.query.uuid});
 	}
 	else if (req.query.approval_status) { //filter by approval status
 		chosenFlow = createAppInfoFlow('multiFilter', {approval_status: req.query.approval_status});
@@ -29,7 +35,7 @@ function get (req, res, next) {
 			return res.sendStatus(500);
 		}
 		return res.status(200).send({applications: apps});
-	});		
+	});
 }
 
 //TODO: emailing system for messaging the developer about the approval status change
@@ -68,7 +74,7 @@ function autoPost (req, res, next) {
 	if (res.errorMsg) {
 		return res.status(400).send({ error: res.errorMsg });
 	}
-	
+
 	let chosenFlow;
 
 	if (req.body.is_auto_approved_enabled) {
@@ -95,13 +101,13 @@ function handleResponseStatusFlow (flow, res) {
 			return res.sendStatus(500);
 		}
 		return res.sendStatus(200);
-	});	
+	});
 }
 
 function validateAutoPost (req, res) {
 	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_auto_approved_enabled)) {
 		return res.errorMsg = "Uuid and auto approved required";
-	}	
+	}
 }
 
 //helper function that gets back app information depending on the filters passed in

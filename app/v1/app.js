@@ -1,6 +1,10 @@
 const express = require('express');
 let app = express();
 
+/* 	CODE REVIEW:
+	- enable run dev to connect to local database and support hotloading changes
+*/
+
 //custom modules
 const config = require('../../settings.js'); //configuration module
 const log = require(`../../custom/loggers/${config.loggerModule}/index.js`);
@@ -8,7 +12,7 @@ const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); /
 const sql = require('../../lib/sql'); //module for easily setting up SQL commands
 const flow = require('../../lib/flow'); //module for executing asynchronous functions without nesting
 const shaid = require('../../lib/shaid'); //module for communicating with SHAID
-const Cron = require('cron').CronJob; 
+const Cron = require('cron').CronJob;
 
 //set up the app locals object
 app.locals.config = config;
@@ -52,8 +56,8 @@ app.get('/groups', groups.get);
 app.post('/groups', groups.postAddGroup);
 app.post('/groups/promote', groups.postPromote);
 app.get('/messages', messages.getInfo);
-app.post('/messages', messages.postAddMessage); 
-app.post('/messages/promote', messages.postPromoteMessages); 
+app.post('/messages', messages.postAddMessage);
+app.post('/messages/promote', messages.postPromoteMessages);
 app.post('/messages/update', messages.updateLanguages);
 
 /*

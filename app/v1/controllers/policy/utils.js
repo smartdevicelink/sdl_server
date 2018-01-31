@@ -1,6 +1,11 @@
 const app = require('../../app');
 const check = require('check-types');
 
+/*  CODE REVIEW:
+    - avoid the use of synchronous functions. use async library
+    - use callbacks instead of returns
+*/
+
 //given an existing hash, an array of homogenous objects, a function that transforms those objects into
 //an array of ordered properties, and a value, convert all the objects into one nested accumulated hash in
 //order to change how the data is constructed. all leaflets become the leaf value
@@ -46,7 +51,7 @@ function flattenRecurse (arr, template, cb) {
 
 //given a hash whose properties to look up are also hashes, an array
 //of properties, and a callback function that informs the caller when to replace a
-//hash with an array, recursively finds all hashes that match the specificiations 
+//hash with an array, recursively finds all hashes that match the specificiations
 //in the property array, and converts them to arrays
 function arrayify (hash, propArray, cb) {
     //do not mutate propArray
@@ -63,7 +68,7 @@ function arrayify (hash, propArray, cb) {
                 arrayify(hash[key], propArrayCopy, function (array) {
                     hash[value] = array;
                 });
-            }   
+            }
         }
     }
     else { //hit final destination
@@ -76,11 +81,11 @@ function arrayify (hash, propArray, cb) {
         if (typeof cb === 'function') { //pass the new array to a callback
             cb(converted);
         }
-    }  
+    }
 }
 
 //generic function that filters an array of SQL objects with ids attached to them depending on the mode specified
-//uniqueProperties is an array of properties from each object in the array in non production mode for 
+//uniqueProperties is an array of properties from each object in the array in non production mode for
 //checking for uniqueness among other objects
 function filterArrayByStatus (array, uniqueProperties, isProduction) {
     //PRODUCTION mode: Only elements with statuses of PRODUCTION are used
@@ -119,7 +124,7 @@ function filterArrayByStatus (array, uniqueProperties, isProduction) {
             }
             return false;
         });
-    }       
+    }
 }
 
 

@@ -23,7 +23,7 @@
     export default {
         data () {
             return {
-                "email": "jonathan@livio.io",
+                "email": "support@smartdevicelink.com",
                 "style": {
                     "display": "none"
                 }

@@ -1,3 +1,7 @@
+/*  CODE REVIEW:
+    - replace all synchronous control flow with asynchronous control flow
+    - describe the use case of needing functions to return another function
+*/
 function constructFullAppObjs (res, next) {
     const appBase = res[0];
     const appCountries = res[1];
@@ -13,10 +17,10 @@ function constructFullAppObjs (res, next) {
 
     for (let i = 0; i < appCategories.length; i++) {
         hashedCategories[appCategories[i].id] = appCategories[i].display_name;
-    }    
+    }
     for (let i = 0; i < appAutoApprovals.length; i++) {
         hashedAutoApproval[appAutoApprovals[i].app_uuid] = true;
-    }  
+    }
 
     //convert appBase to hash by id for fast assignment of other information
     const hashedApps = {};

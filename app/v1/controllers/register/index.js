@@ -1,3 +1,6 @@
+/*  CODE REVIEW:
+    - delete this file?
+*/
 function post (req, res, next) {
 	validatePost(req, res);
 	if (res.errorMsg) {
@@ -14,7 +17,7 @@ function post (req, res, next) {
 function validatePost (req, res) {
 	if (!req.body.email || !req.body.password || !req.body.new_password_1 || !req.body.new_password_2) {
 		return res.errorMsg = "Invalid credentials";
-	}	
+	}
 }
 
 module.exports = {
