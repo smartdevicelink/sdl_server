@@ -92,13 +92,13 @@
             <!-- PROMOTE GROUP MODAL -->
             <b-modal ref="promoteModal" title="Promote Functional Groups to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                 <small class="form-text text-muted">
-                    This will promote all staging Functional Groups to production, modifying the production policy table. Are you sure you want to do this?
+                    This will promote all modified Functional Groups to production, immediately updating the production policy table. Are you sure you want to do this?
                 </small>
                 <vue-ladda
                     type="button"
                     class="btn btn-card btn-style-green"
                     data-style="zoom-in"
-                    v-on:click="promoteMessages()"
+                    v-on:click="promoteGroupsClick()"
                     v-bind:loading="promote_button_loading">
                     Yes, promote to production!
                 </vue-ladda>
@@ -122,6 +122,7 @@
                         "value": "PRODUCTION"
                     }
                 ],
+                "promote_button_loading": false,
                 "selected_group_id": null,
                 "is_clone_disabled": true,
                 "unused_count": {
@@ -160,6 +161,18 @@
                 //get unmapped permissions
                 this.getUnmappedPermissions();
             },
+            "handleModalClick": function (loadingProp, modalName, methodName) {
+                //show a loading icon for the modal, and call the methodName passed in
+                //when finished, turn off the loading icon, hide the modal, and reload the info
+                this[loadingProp] = true;
+                this[methodName](() => {
+                    this[loadingProp] = false;
+                    if (modalName) {
+                        this.$refs[modalName].hide();
+                    }
+                    this.environmentClick();
+                });
+            },
             "getFunctionalGroupData": function () {
                 this.$http.get("groups?environment=" + this.environment, {})
                     .then(response => {
@@ -189,6 +202,20 @@
                         // error
                         console.log("Error fetching functional group data: " + response.body.error);
                     });
+            },
+            "promoteGroupsClick": function () {
+                this.handleModalClick("promote_button_loading", "promoteModal", "promoteAllGroups");
+            },
+            "promoteAllGroups": function (cb) {
+                // build an array of STAGING IDs
+                var staging_ids = [];
+                for(var i = 0; i < this.functional_groups.length; i++){
+                    if(this.functional_groups[i].status == "STAGING"){
+                        staging_ids.push(this.functional_groups[i].id);
+                    }
+                }
+
+                staging_ids.length ? this.httpRequest("post", "groups/promote", {id: staging_ids}, cb) : cb();
             },
             "selectedFunctionalGroup": function () {
                 this.is_clone_disabled = this.selected_group_id != "null" ? false : true;
@@ -235,6 +262,7 @@
         beforeDestroy () {
             // ensure closing of all modals
             this.$refs.functionalGroupModal.onAfterLeave();
+            this.$refs.promoteModal.onAfterLeave();
         }
     }
 </script>
