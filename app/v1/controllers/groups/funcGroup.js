@@ -1,4 +1,7 @@
+const app = require('../../app');
 const utils = require('../policy/utils.js');
+const setupSqlCommands = app.locals.sql.setupSqlCommands;
+const setupInsertsSql = app.locals.sql.setupSqlInsertsNoError;
 
 //the function that makes the API response given that all the information is known
 function makeFunctionGroups (info, next) {
@@ -120,8 +123,14 @@ function makeFunctionGroups (info, next) {
     utils.arrayify(hashedBaseInfo, [], function (array) { 
         hashedBaseInfo = array;
     });
+
     //done!
-    next(null, hashedBaseInfo);
+    //order functional groups since that got messed up here
+    next(null, hashedBaseInfo.sort(function (a, b) {
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+        return 0;
+    }));
 }
 
 //modifies the original reference. sends the template back in an array
@@ -208,7 +217,7 @@ function hashedRelationsTransform (relations) {
     return response;
 }
 
-function convertFuncGroupJson (obj, isProduction) {
+function convertFuncGroupJson (obj) {
     //break the JSON down into smaller objects for SQL insertion
     //transform the object so that entries with selected = false are removed
     transformFuncGroupsSelected(obj);
@@ -238,14 +247,9 @@ function convertFuncGroupJson (obj, isProduction) {
         'is_default': obj.is_default,
         'is_deleted': obj.is_deleted
     };
-    if (isProduction) {
-        baseInfo.status = 'PRODUCTION';
-    }
-    else {
-        baseInfo.status = 'STAGING';
-    }
 
-    return [baseInfo, hmiLevels, parameters];
+    //make base info an array of one object
+    return [[baseInfo], hmiLevels, parameters];
 }
 
 //given a func group object sent through the UI, remove all elements with selected = false
@@ -267,10 +271,70 @@ function transformFuncGroupsSelected (obj) {
     }
 }
 
+//accepts SQL-like data of function groups, hmi levels, and parameters, along with a status to alter the groups' statuses
+//inserts all this information, automatically linking together hmi levels and parameters to their groups
+//executes immediately
+function insertFuncGroupSql (isProduction, data, next) {
+    const groupInfo = data[0];
+    const hmiLevels = data[1];
+    const parameters = data[2];
+
+    let statusName;
+    if (isProduction) {
+        statusName = "PRODUCTION";
+    }
+    else {
+        statusName = "STAGING";
+    }
+
+    for (let i = 0; i < groupInfo.length; i++) {
+        //group status should be changed to whatever the parent function wants
+        groupInfo[i].status = statusName;
+    }
+
+    //insert message groups
+    const insertGroups = app.locals.flow(setupSqlCommands(app.locals.sql.insert.funcGroupInfo(groupInfo)), {method: 'parallel'});
+    insertGroups(function (err, res) {
+        //flatten the nested arrays to get one array of groups
+        const newGroupInfo = res.map(function (elem) {
+            return elem[0];
+        });        
+
+        //create a link between the old functional group and the new one using the property name
+        //use the old functional group to find the matching functional group id of the hmi levels and parameters
+        //use the new functional group to replace the hmi levels and parameters ids with the new functional group id
+        let newGroupPropertyNameToIdHash = {}; //property name to new id
+        for (let i = 0; i < newGroupInfo.length; i++) {
+            newGroupPropertyNameToIdHash[newGroupInfo[i].property_name] = newGroupInfo[i].id;
+        }
+        let oldGroupIdtoIdHash = {}; //old id to property name to new id
+        for (let i = 0; i < groupInfo.length; i++) {
+            oldGroupIdtoIdHash[groupInfo[i].id] = newGroupPropertyNameToIdHash[groupInfo[i].property_name];
+        }        
+        //add group id to each hmi level and parameter object
+        for (let i = 0; i < hmiLevels.length; i++) {
+            hmiLevels[i].function_group_id = oldGroupIdtoIdHash[hmiLevels[i].function_group_id];
+        }
+        for (let i = 0; i < parameters.length; i++) {
+            parameters[i].function_group_id = oldGroupIdtoIdHash[parameters[i].function_group_id];
+        }
+
+        //insert hmi levels and parameters
+        const insertExtraInfo = app.locals.flow([
+            app.locals.flow(setupInsertsSql(app.locals.sql.insert.funcHmiLevels(hmiLevels)), {method: 'parallel'}),
+            app.locals.flow(setupInsertsSql(app.locals.sql.insert.funcParameters(parameters)), {method: 'parallel'})
+        ], {method: 'parallel'});
+        insertExtraInfo(function (err, res) {
+            next(); //done
+        });        
+    });
+}
+
 module.exports = {
     generateTemplate: generateTemplate,
     baseTemplate: baseTemplate,
     makeFunctionGroups: makeFunctionGroups,
     convertFuncGroupJson: convertFuncGroupJson,
-    arrayifyOneFuncGroup: arrayifyOneFuncGroup
+    arrayifyOneFuncGroup: arrayifyOneFuncGroup,
+    insertFuncGroupSql: insertFuncGroupSql
 };

@@ -102,7 +102,7 @@ function postStaging (req, res, next) {
     //convert the JSON to sql-like statements
     const newData = messageUtils.convertMessagesJson(req.body);
     //force group status to STAGING
-    messageUtils.insertMessageSqlFlow(false, newData, function () {
+    messageUtils.insertMessageSql(false, newData, function () {
         res.sendStatus(200);
     });
 }
@@ -119,7 +119,7 @@ function promoteIds (req, res, next) {
     //get all the info from the ids and insert them
     const getAndInsertFlow = app.locals.flow([
         getMessagesDetailsSqlFlow(req.body.id),
-        messageUtils.insertMessageSqlFlow.bind(null, true) //force group status to PRODUCTION
+        messageUtils.insertMessageSql.bind(null, true) //force group status to PRODUCTION
     ], {method: 'waterfall'});
 
     getAndInsertFlow(function () {

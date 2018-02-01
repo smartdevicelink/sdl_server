@@ -176,8 +176,8 @@ function convertMessagesJson (messagesObj) {
 
 //accepts SQL-like data of message groups and message texts, along with a status to alter the message groups' statuses
 //inserts message group and message text information, automatically linking together texts to their groups
-//execute immediately
-function insertMessageSqlFlow (isProduction, data, next) {
+//executes immediately
+function insertMessageSql (isProduction, data, next) {
     const messageGroups = data[0];
     const messageTexts = data[1];
 
@@ -204,7 +204,7 @@ function insertMessageSqlFlow (isProduction, data, next) {
 
         //create a link between the old message group and the new one using the message category
         //use the old message group to find the matching message group id of the message text
-        //use the new message group to replace the message text with the new message group id
+        //use the new message group to replace the message text ids with the new message group id
         let newGroupCategoryToIdHash = {}; //category to new id
         for (let i = 0; i < newGroups.length; i++) {
             newGroupCategoryToIdHash[newGroups[i].message_category] = newGroups[i].id;
@@ -231,5 +231,5 @@ module.exports = {
     transformMessages: transformMessages,
     generateCategoryTemplate: generateCategoryTemplate,
     convertMessagesJson: convertMessagesJson,
-    insertMessageSqlFlow: insertMessageSqlFlow
+    insertMessageSql: insertMessageSql
 }

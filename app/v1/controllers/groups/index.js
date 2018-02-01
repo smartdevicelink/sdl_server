@@ -3,6 +3,7 @@ const app = require('../../app');
 const flow = app.locals.flow;
 const setupSql = app.locals.sql.setupSqlCommand;
 const setupInsertsSql = app.locals.sql.setupSqlInsertsNoError;
+const setupSqlCommands = app.locals.sql.setupSqlCommands;
 const funcGroup = require('./funcGroup.js');
 const messages = require('../messages/index.js');
 const check = require('check-types');
@@ -93,22 +94,75 @@ function createFuncGroupFlow (filterTypeProp, value, includeRpcs) {
     ], {method: 'waterfall'});
 }
 
-function post (isProduction) {
-    return function (req, res, next) {
-        validateFuncGroup(req, res);
+function postStaging (req, res, next) {
+    validateFuncGroup(req, res);
+    if (res.errorMsg) {
+        return res.status(400).send({ error: res.errorMsg });
+    }
+    //check in staging mode
+    validatePromptExistence(false, req, res, function () {
         if (res.errorMsg) {
             return res.status(400).send({ error: res.errorMsg });
-        }
-        validatePromptExistence(isProduction, req, res, function () {
-            if (res.errorMsg) {
-                return res.status(400).send({ error: res.errorMsg });
-            }        
-            //for an edit, the new func group should be in STAGING
-            //for a promote, the new func group should be in PRODUCTION
-            addFuncGroupFlow(req.body, isProduction)(function () {
-                res.sendStatus(200);
-            });
-        });        
+        }        
+        //convert the JSON to sql-like statements
+        const funcGroupSqlObj = funcGroup.convertFuncGroupJson(req.body);
+        //force function group status to STAGING
+        funcGroup.insertFuncGroupSql(false, funcGroupSqlObj, function () {
+            res.sendStatus(200);
+        });
+    });        
+}
+
+// //TODO: replace this with insertFuncGroupSql
+// function addFuncGroupFlow (funcGroupObj, isProduction) {
+//     const funcGroupSqlObj = funcGroup.convertFuncGroupJson(funcGroupObj, isProduction);
+
+//     const insertFuncMiscFlow = flow([
+//         flow(setupInsertsSql(app.locals.sql.insert.funcHmiLevels(funcGroupSqlObj[1])), {method: 'parallel'}), //hmi levels
+//         flow(setupInsertsSql(app.locals.sql.insert.funcParameters(funcGroupSqlObj[2])), {method: 'parallel'}) //parameters
+//     ], {method: 'parallel'});
+
+//     return flow([
+//         flow(setupInsertsSql(app.locals.sql.insert.funcGroupInfo(funcGroupSqlObj[0])), {method: 'parallel'}), //base info 
+//         insertFuncMiscFlow
+//     ], {method: 'series'});
+// }
+
+function promoteIds (req, res, next) {
+    validatePromote(req, res);
+    if (res.errorMsg) {
+        return res.status(400).send({ error: res.errorMsg });
+    }  
+    //make sure the data in id is an array in the end
+    if (check.number(req.body.id)) {
+        req.body.id = [req.body.id];
+    } 
+    //TODO: check prompt existence in production mode
+    //get function group information first so prompt existence checks can be attempted
+
+    const getAndInsertFlow = app.locals.flow([
+        getFunctionGroupDetailsSqlFlow(req.body.id),
+        funcGroup.insertFuncGroupSql.bind(null, true) //force group status to PRODUCTION
+    ], {method: 'waterfall'}); 
+
+    getAndInsertFlow(function () {
+        res.sendStatus(200); //done
+    });
+}
+
+//for an array of ids. filters out PRODUCTION records. meant solely for the promotion route
+//doesn't make an object out of the data
+function getFunctionGroupDetailsSqlFlow (ids) {
+    return app.locals.flow([
+        setupSql(app.locals.sql.getFuncGroup.base.ids(ids)),
+        setupSql(app.locals.sql.getFuncGroup.hmiLevels.ids(ids)),
+        setupSql(app.locals.sql.getFuncGroup.parameters.ids(ids))
+    ], {method: 'parallel'});
+}
+
+function validatePromote (req, res) {
+    if (!check.array(req.body.id) && !check.number(req.body.id)) {
+        res.errorMsg = "Required: id (array) or id (number)"
     }
 }
 
@@ -138,20 +192,6 @@ function validatePromptExistence (isProduction, req, res, cb) {
         }
         cb(); //done
     });    
-}
-
-function addFuncGroupFlow (funcGroupObj, isProduction) {
-    const funcGroupSqlObj = funcGroup.convertFuncGroupJson(funcGroupObj, isProduction);
-
-    const insertFuncMiscFlow = flow([
-        flow(setupInsertsSql(app.locals.sql.insert.funcHmiLevels(funcGroupSqlObj[1])), {method: 'parallel'}), //hmi levels
-        flow(setupInsertsSql(app.locals.sql.insert.funcParameters(funcGroupSqlObj[2])), {method: 'parallel'}) //parameters
-    ], {method: 'parallel'});
-
-    return flow([
-        flow(setupInsertsSql(app.locals.sql.insert.funcGroupInfo(funcGroupSqlObj[0])), {method: 'parallel'}), //base info 
-        insertFuncMiscFlow
-    ], {method: 'series'});
 }
 
 function validateFuncGroup (req, res) {
@@ -192,6 +232,6 @@ function validateDelete (req, res) {
 
 module.exports = {
     get: get,
-    postAddGroup: post(false),
-    postPromote: post(true)
+    postAddGroup: postStaging,
+    postPromote: promoteIds
 };
