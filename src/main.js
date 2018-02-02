@@ -28,7 +28,6 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import './assets/css/font-awesome.min.css'
 import './assets/css/style.css'
-//import './assets/js/run_prettify.js'
 import async from 'async';
 Object.defineProperty(Vue.prototype, '$async', { value: async });
 

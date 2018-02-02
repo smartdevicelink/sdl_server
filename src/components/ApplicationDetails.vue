@@ -300,7 +300,6 @@ export default {
                 response.json().then(parsed => {
                     if(parsed.data && parsed.data.length && parsed.data[0].policy_table.app_policies[this.app.uuid]){
                         this.policytable = parsed.data[0].policy_table.app_policies[this.app.uuid];
-                        PR.prettyPrint();
                     }else{
                         console.log("No policy table returned");
                     }
