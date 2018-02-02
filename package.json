@@ -15,12 +15,12 @@
     "start": "npm run dev",
     "build": "node build/build.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start-pg-staging": "npm run-script db-migrate-up-pg-staging && NODE_ENV=staging node index.js",
-    "start-pg-production": "npm run-script db-migrate-up-pg-production && NODE_ENV=production node index.js",
+    "start-pg-staging": "npm run build && npm run db-migrate-up-pg-staging && NODE_ENV=staging node index.js",
+    "start-pg-production": "npm run build && npm run db-migrate-up-pg-production && NODE_ENV=production node index.js",
     "db-migrate": "node_modules/db-migrate/bin/db-migrate",
-    "db-migrate-up-pg-staging": "npm run-script db-migrate -- up -e pg-staging",
-    "db-migrate-up-pg-production": "npm run-script db-migrate -- up -e pg-production",
-    "db-migrate-reset-pg-staging": "npm run-script db-migrate -- reset -e pg-staging"
+    "db-migrate-up-pg-staging": "npm run db-migrate -- up -e pg-staging",
+    "db-migrate-up-pg-production": "npm run db-migrate -- up -e pg-production",
+    "db-migrate-reset-pg-staging": "npm run db-migrate -- reset -e pg-staging"
   },
   "dependencies": {
     "async": "^2.5.0",

@@ -1,7 +1,4 @@
-/*  CODE REVIEW:
-    - replace all synchronous control flow with asynchronous control flow
-    - describe the use case of needing functions to return another function
-*/
+
 function constructFullAppObjs (res, next) {
     const appBase = res[0];
     const appCountries = res[1];

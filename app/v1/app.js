@@ -1,10 +1,6 @@
 const express = require('express');
 let app = express();
 
-/* 	CODE REVIEW:
-	- enable run dev to connect to local database and support hotloading changes
-*/
-
 //custom modules
 const config = require('../../settings.js'); //configuration module
 const log = require(`../../custom/loggers/${config.loggerModule}/index.js`);
