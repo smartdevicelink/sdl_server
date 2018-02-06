@@ -32,7 +32,7 @@ export default {
             console.log("Error checking local Policy Server version. Status code: " + response.status);
         });
         //TODO: when master is updated, change the url from 'redesign' to 'master'
-        this.$http.get("https://raw.githubusercontent.com/smartdevicelink/sdl_server/redesign/package.json").then(response => {
+        this.$http.get("https://raw.githubusercontent.com/smartdevicelink/sdl_server/master/package.json").then(response => {
             // success
             response.json().then(parsed => {
                 this.latest_version = parsed.version;

@@ -3,12 +3,6 @@ const setupSql = app.locals.sql.setupSqlCommand;
 const appInfo = require('./appInfo.js');
 const check = require('check-types');
 
-/*  CODE REVIEW:
-    - describe the behavior and benefits of using "flow"
-	- should "flow" be an extension of the "async" library?
-	- create a standardized API response structure/delivery library (e.g. "Parcel" in SHAID)
-*/
-
 function get (req, res, next) {
 	//prioritize id, uuid, approval status, in that order.
 	//only one parameter can be acted upon in one request

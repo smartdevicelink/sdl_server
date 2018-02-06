@@ -1,6 +1,3 @@
-/*  CODE REVIEW:
-    - delete this file?
-*/
 function post (req, res, next) {
 	validatePost(req, res);
 	if (res.errorMsg) {

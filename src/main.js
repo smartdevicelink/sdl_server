@@ -1,15 +1,3 @@
-/*  CODE REVIEW:
-    - clean up unused assets (e.g. run_prettify.js)
-    - consolidate FG card element and CFM element into a shared vue element
-    - address "TODO: when master is updated, change the url from 'redesign' to 'master'"
-    - add more comments throughout HTML to designate key content areas
-    - consolidate API call logic for retrieving applications of various statuses for applications list
-    - evaluate all front-end TODO comments
-    - cool 404 page from Jonathan?
-    - remove ability to create a FG from a template?
-    - disable unused routes (e.g. login, registration, etc)
-*/
-
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
@@ -40,7 +28,6 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import './assets/css/font-awesome.min.css'
 import './assets/css/style.css'
-//import './assets/js/run_prettify.js'
 import async from 'async';
 Object.defineProperty(Vue.prototype, '$async', { value: async });
 

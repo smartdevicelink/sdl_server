@@ -1,11 +1,6 @@
 const app = require('../../app');
 const check = require('check-types');
 
-/*  CODE REVIEW:
-    - avoid the use of synchronous functions. use async library
-    - use callbacks instead of returns
-*/
-
 //given an existing hash, an array of homogenous objects, a function that transforms those objects into
 //an array of ordered properties, and a value, convert all the objects into one nested accumulated hash in
 //order to change how the data is constructed. all leaflets become the leaf value
