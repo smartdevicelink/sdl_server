@@ -20,14 +20,30 @@
 
                 <h4>Consumer Friendly Messages</h4>
                 <section class="tiles">
-                    <consumer-message-item
+                    <card-item
                         v-for="(item, index) in consumer_messages"
-                        v-bind:item="item"
+                        v-bind:item="{
+                            id: item.id,
+                            title: item.message_category,
+                            description: item.tts,
+                            count: item.language_count,
+                            is_deleted: item.is_deleted,
+                            status: item.status
+                        }"
                         v-bind:environment="environment"
+                        v-bind:link="{
+                            path: 'consumermessages/manage',
+                            query: {
+                                id: item.id,
+                                environment: environment
+                            }
+                        }"
+                        v-bind:count_label_plural="'languages'"
+                        v-bind:count_label_singular="'language'"
                         v-bind:index="index"
                         v-bind:key="item.id"
                         >
-                    </consumer-message-item>
+                    </card-item>
 
                     <router-link
                         v-bind:to="{ path: 'consumermessages/manage', query: { environment: environment } }"

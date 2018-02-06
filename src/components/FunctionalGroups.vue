@@ -26,14 +26,30 @@
                 </div>
                 <h4>Functional Groups</h4>
                 <section class="tiles">
-                    <functional-group-item
+                    <card-item
                         v-for="(item, index) in functional_groups"
-                        v-bind:item="item"
+                        v-bind:item="{
+                            id: item.id,
+                            title: item.name,
+                            description: item.description,
+                            count: item.selected_rpc_count,
+                            is_deleted: item.is_deleted,
+                            status: item.status
+                        }"
                         v-bind:environment="environment"
+                        v-bind:link="{
+                            path: 'functionalgroups/manage',
+                            query: {
+                                id: item.id,
+                                environment: environment
+                            }
+                        }"
+                        v-bind:count_label_plural="'permissions'"
+                        v-bind:count_label_singular="'permission'"
                         v-bind:index="index"
                         v-bind:key="item.id"
                         >
-                    </functional-group-item>
+                    </card-item>
                     <router-link
                         v-bind:to="{ path: 'functionalgroups/manage', query: { environment: environment } }"
                         v-if="environment == 'STAGING'"
