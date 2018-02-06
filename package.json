@@ -11,7 +11,7 @@
   ],
   "private": true,
   "scripts": {
-    "dev": "node build/dev-server.js",
+    "dev": "npm run-script db-migrate-up-pg-staging && NODE_ENV=staging node build/dev-server.js",
     "start": "npm run dev",
     "build": "node build/build.js",
     "test": "echo \"Error: no test specified\" && exit 1",

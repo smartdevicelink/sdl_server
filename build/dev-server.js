@@ -12,9 +12,12 @@ const express = require('express')
 const webpack = require('webpack')
 const proxyMiddleware = require('http-proxy-middleware')
 const webpackConfig = require('./webpack.dev.conf')
+//load ENV variables. must happen before the settings module load
+require('dotenv').config(); 
+const settings = require('../settings.js'); //configuration module
 
 // default port where dev server listens for incoming traffic
-const port = process.env.PORT || config.dev.port
+const port = settings.policyServerPort;
 // automatically open browser, if not set will be false
 const autoOpenBrowser = !!config.dev.autoOpenBrowser
 // Define HTTP proxies to your custom API backend
@@ -80,6 +83,18 @@ var portfinder = require('portfinder')
 portfinder.basePort = port
 
 console.log('> Starting dev server...')
+
+devMiddleware.waitUntilValid(() => {
+  //override index.js by not running it without invoking a function
+  process.env.OVERRIDE_ENTRY_POINT = true;
+  const main = require('../index.js'); //entry point to start the API server
+  main(app); //pass in the express app for use instead
+  if (autoOpenBrowser && process.env.NODE_ENV !== 'testing') {
+    opn(uri)
+  }
+})
+
+/*
 devMiddleware.waitUntilValid(() => {
   portfinder.getPort((err, port) => {
     if (err) {
@@ -96,7 +111,7 @@ devMiddleware.waitUntilValid(() => {
     _resolve()
   })
 })
-
+*/
 module.exports = {
   ready: readyPromise,
   close: () => {
