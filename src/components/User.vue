@@ -80,7 +80,7 @@ export default {
     },
     methods: {
         "saveClick": function(){
-            // TODO: submit the forgot password request
+            // TODO: submit the user's updated account information
             if(this.user.new_password_1 != this.user.new_password_2){
                 // new password must match
                 return alert("Your new password and re-typed password must match");

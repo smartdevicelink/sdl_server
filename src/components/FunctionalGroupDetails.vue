@@ -54,7 +54,7 @@
                         </b-form-checkbox>
                     </div>
 
-                    <!-- TODO: create container for RPCs -->
+                    <!-- RPC containers -->
                     <div class="form-row">
                         <h4 for="rpcs">RPCs</h4>
                         <div class="rpcs">

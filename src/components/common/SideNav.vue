@@ -28,7 +28,8 @@ export default {
             }
         };
     },
-    beforeCreate: function(){
+    created: function(){
+        // get number of pending applications
         this.$http.get("applications", {
             "params": {
                 "approval_status": "PENDING"
@@ -43,7 +44,17 @@ export default {
             console.log("Error receiving PENDING applications. Status code: " + response.status);
         });
 
-        // TODO: get function group badge number count
+        // get number of unmapped RPCs and parameters in PRODUCTION
+        this.$http.get("permissions/unmapped?environment=PRODUCTION", {})
+            .then(response => {
+                // success
+                response.json().then(parsed => {
+                    this.badge_counts.functional_groups = (parsed.unmapped_rpc_count + parsed.unmapped_parameter_count);
+                });
+            }, response => {
+                // error
+                console.log("Error fetching functional group data: " + response.body.error);
+            });
 
     }
 }

@@ -20,11 +20,10 @@
                     <!-- Name -->
                     <div class="form-row">
                         <h4 for="name">Name</h4>
-                        <!-- TODO: first input in the textbox is ignored -->
                         <input v-model="message.message_category" :disabled="id" type="email" class="form-control" id="email">
                     </div>
 
-                    <!-- TODO: create container for RPCs -->
+                    <!-- container for languages -->
                     <div class="form-row">
                         <h4>Languages</h4>
                         <message-item

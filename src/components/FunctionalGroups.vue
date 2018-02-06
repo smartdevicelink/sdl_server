@@ -15,7 +15,7 @@
                     name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-if="environment == 'STAGING'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
+                    <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
                 <div v-if="unused_count.rpcs !== 0 || unused_count.parameters !== 0" class="alert color-bg-red color-white d-table" role="alert">
@@ -134,6 +134,13 @@
             }
         },
         computed: {
+            can_promote: function() {
+                var show_button = false;
+                for(var i = 0; i < this.functional_groups.length; i++){
+                    if(this.functional_groups[i].status == "STAGING") show_button = true;
+                }
+                return show_button;
+            },
             unused_permissions_text: function () {
                 const rpcCount = this.unused_count.rpcs;
                 const parameterCount = this.unused_count.parameters;

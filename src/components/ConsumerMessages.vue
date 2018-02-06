@@ -15,7 +15,7 @@
                     name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-if="environment == 'STAGING'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
+                    <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
                 <h4>Consumer Friendly Messages</h4>
@@ -81,6 +81,13 @@
             }
         },
         computed: {
+            can_promote: function() {
+                var show_button = false;
+                for(var i = 0; i < this.consumer_messages.length; i++){
+                    if(this.consumer_messages[i].status == "STAGING") show_button = true;
+                }
+                return show_button;
+            },
         },
         methods: {
             "promoteMessages": function () {
