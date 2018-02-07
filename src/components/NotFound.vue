@@ -1,9 +1,10 @@
 <template>
     <div class="container-fluid content color-bg-gray">
         <div class="row">
-            <div class="card">
+            <div class="card not-found">
                 <div>
-                    <h3>404: Page Not Found</h3>
+                    <img src="~@/assets/images/404_animated.svg" alt="Page not found"/>
+                    <h3 class="text-center">Page Not Found</h3>
                 </div>
             </div>
         </div>

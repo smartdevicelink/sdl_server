@@ -951,6 +951,18 @@ input:checked + .slider:before {
 
 
 
+/*
+* 404 Page not found
+*/
+.not-found h3 {
+    color: #384f61 !important;
+}
+.not-found img {
+    width: 30em;
+}
+
+
+
 
 .padding-0 {
     padding: 0 !important;
