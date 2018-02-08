@@ -8,7 +8,10 @@ function get (req, res, next) {
     const findUnmappedPermissions = setupSql(app.locals.sql.unmappedPermissions(isProduction))
     findUnmappedPermissions(function (err, permissions) {
         if (err) {
-            return res.sendStatus(500);
+            return res.parcel
+                .setStatus(500)
+                .setMessage("Internal server error")
+                .deliver();
         }
         //get aggregate results
         let unmappedRpcCount = 0;
@@ -28,20 +31,28 @@ function get (req, res, next) {
             }
         });
 
-        return res.status(200).send({
-            permissions: permissions,
-            unmapped_rpc_count: unmappedRpcCount,
-            unmapped_parameter_count: unmappedParameterCount
-        });  
+        return res.parcel
+            .setStatus(200)
+            .setData({
+                permissions: permissions,
+                unmapped_rpc_count: unmappedRpcCount,
+                unmapped_parameter_count: unmappedParameterCount
+            })
+            .deliver();
     });
 }
 
 function post (req, res, next) {
     updatePermissions(function (err) {
         if (err) {
-            return res.sendStatus(500);
+            return res.parcel
+                .setStatus(500)
+                .setMessage("Internal server error")
+                .deliver();
         }
-        return res.sendStatus(200);
+        return res.parcel
+            .setStatus(200)
+            .deliver();
     });
 }
 

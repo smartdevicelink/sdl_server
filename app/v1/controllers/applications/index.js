@@ -26,18 +26,25 @@ function get (req, res, next) {
 	chosenFlow(function (err, apps) {
 		if (err) {
 			app.locals.log.error(err);
-			return res.sendStatus(500);
+			res.parcel.setStatus(500);
+		}else{
+			res.parcel
+				.setStatus(200)
+				.setData({
+					applications: apps
+				});
 		}
-		return res.status(200).send({applications: apps});
+		return res.parcel.deliver();
 	});
 }
 
 //TODO: emailing system for messaging the developer about the approval status change
 function actionPost (req, res, next) {
 	validateActionPost(req, res);
-	if (res.errorMsg) {
-		return res.status(400).send({ error: res.errorMsg });
+	if (res.parcel.message) {
+		return res.parcel.deliver();
 	}
+
 	//get app by id, and modify the existing entry in the database to change the approval status
 	const modifyAppFlow = [
 		setupSql(app.locals.sql.changeAppApprovalStatus(req.body.id, req.body.approval_status))
@@ -54,19 +61,20 @@ function actionPost (req, res, next) {
 
 function validateActionPost (req, res) {
 	if (!req.body.id || !req.body.approval_status) {
-		return res.errorMsg = "Id and approval status required";
-	}
-	if (req.body.approval_status !== 'PENDING'
+		res.parcel.setStatus(400).setMessage("Id and approval status required");
+	}else if (req.body.approval_status !== 'PENDING'
 		&& req.body.approval_status !== 'ACCEPTED'
 		&& req.body.approval_status !== 'DENIED') {
-		return res.errorMsg = "Invalid approval status value";
+			res.parcel.setStatus(400).setMessage("Invalid approval status value");
 	}
+
+	return;
 }
 
 function autoPost (req, res, next) {
 	validateAutoPost(req, res);
-	if (res.errorMsg) {
-		return res.status(400).send({ error: res.errorMsg });
+	if (res.parcel.message) {
+		return res.parcel.deliver();
 	}
 
 	let chosenFlow;
@@ -92,15 +100,16 @@ function handleResponseStatusFlow (flow, res) {
 	app.locals.flow(flow, {method: "waterfall"})(function (err, results) {
 		if (err) {
 			app.locals.log.error(err);
-			return res.sendStatus(500);
+			return res.parcel.setStatus(500).deliver();
 		}
-		return res.sendStatus(200);
+		return res.parcel.setStatus(200).deliver();
 	});
 }
 
 function validateAutoPost (req, res) {
 	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_auto_approved_enabled)) {
-		return res.errorMsg = "Uuid and auto approved required";
+		res.parcel.setStatus(400).setMessage("Uuid and auto approved required");
+		return;
 	}
 }
 

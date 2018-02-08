@@ -327,8 +327,8 @@ export default {
         }).then(response => {
             // success
             response.json().then(parsed => {
-                if(parsed.applications.length){
-                    this.app = parsed.applications[0];
+                if(parsed.data.applications.length){
+                    this.app = parsed.data.applications[0];
                     this.getPolicy();
                 }else{
                     console.log("No applications returned");

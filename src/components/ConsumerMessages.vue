@@ -141,8 +141,8 @@
                 this.httpRequest("get", url, {}, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
-                            if (parsed.messages) {
-                                cb(parsed.messages);
+                            if (parsed.data.messages) {
+                                cb(parsed.data.messages);
                             } else {
                                 console.log("No message data returned");
                                 cb();

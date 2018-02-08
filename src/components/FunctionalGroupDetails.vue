@@ -248,8 +248,8 @@ import { eventBus } from '../main.js';
                     if (response) {
                         //returns all en-us results under the environment specified
                         response.json().then(parsed => {
-                            if (parsed.messages && parsed.messages.length) {
-                                const transformedMessages = parsed.messages.map(function (msg) {
+                            if (parsed.data.messages && parsed.data.messages.length) {
+                                const transformedMessages = parsed.data.messages.map(function (msg) {
                                     return {
                                         "id": msg.id,
                                         "name": msg.message_category,
@@ -278,8 +278,8 @@ import { eventBus } from '../main.js';
                 this.httpRequest("get", queryInfo, null, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
-                            if (parsed.groups && parsed.groups[0]) {
-                                this.fg = parsed.groups[0];
+                            if (parsed.data.groups && parsed.data.groups[0]) {
+                                this.fg = parsed.data.groups[0];
                                 console.log(this.fg);
                             } else {
                                 console.log("No functional data returned");

@@ -37,7 +37,7 @@ export default {
         }).then(response => {
             // success
             response.json().then(parsed => {
-                this.badge_counts.applications = parsed.applications.length;
+                this.badge_counts.applications = parsed.data.applications.length;
             });
         }, response => {
             // error
@@ -49,7 +49,7 @@ export default {
             .then(response => {
                 // success
                 response.json().then(parsed => {
-                    this.badge_counts.functional_groups = (parsed.unmapped_rpc_count + parsed.unmapped_parameter_count);
+                    this.badge_counts.functional_groups = (parsed.data.unmapped_rpc_count + parsed.data.unmapped_parameter_count);
                 });
             }, response => {
                 // error

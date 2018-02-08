@@ -42,10 +42,18 @@ function get (req, res, next) {
     chosenFlow(function (err, groups) {
         if (err) {
             app.locals.log.error(err);
-            return res.sendStatus(500);
+            return res.parcel
+                .setStatus(500)
+                .setMessage("Internal server error")
+                .deliver();
         }
-        return res.status(200).send({groups: groups});
-    });     
+        return res.parcel
+            .setStatus(200)
+            .setData({
+                "groups": groups
+            })
+            .deliver();
+    });
 }
 
 function makeTemplateFlowStart () {
@@ -58,7 +66,7 @@ function makeTemplateFlowStart () {
     return [
         getTemplateInfo,
         funcGroup.generateTemplate
-    ];   
+    ];
 }
 
 //helper function that allows retrieving functional group info easily
@@ -96,21 +104,25 @@ function createFuncGroupFlow (filterTypeProp, value, includeRpcs) {
 
 function postStaging (req, res, next) {
     validateFuncGroup(req, res);
-    if (res.errorMsg) {
-        return res.status(400).send({ error: res.errorMsg });
+    if (res.parcel.message) {
+        res.parcel.deliver();
+        return;
     }
     //check in staging mode
     validatePromptExistence(false, req, res, function () {
-        if (res.errorMsg) {
-            return res.status(400).send({ error: res.errorMsg });
-        }        
+        if (res.parcel.message) {
+            res.parcel.deliver();
+            return;
+        }
         //convert the JSON to sql-like statements
         const funcGroupSqlObj = funcGroup.convertFuncGroupJson(req.body);
         //force function group status to STAGING
         funcGroup.insertFuncGroupSql(false, funcGroupSqlObj, function () {
-            res.sendStatus(200);
+            res.parcel
+                .setStatus(200)
+                .deliver();
         });
-    });        
+    });
 }
 
 // //TODO: replace this with insertFuncGroupSql
@@ -123,30 +135,32 @@ function postStaging (req, res, next) {
 //     ], {method: 'parallel'});
 
 //     return flow([
-//         flow(setupInsertsSql(app.locals.sql.insert.funcGroupInfo(funcGroupSqlObj[0])), {method: 'parallel'}), //base info 
+//         flow(setupInsertsSql(app.locals.sql.insert.funcGroupInfo(funcGroupSqlObj[0])), {method: 'parallel'}), //base info
 //         insertFuncMiscFlow
 //     ], {method: 'series'});
 // }
 
 function promoteIds (req, res, next) {
     validatePromote(req, res);
-    if (res.errorMsg) {
-        return res.status(400).send({ error: res.errorMsg });
-    }  
+    if (res.parcel.message) {
+        return res.parcel.deliver();
+    }
     //make sure the data in id is an array in the end
     if (check.number(req.body.id)) {
         req.body.id = [req.body.id];
-    } 
+    }
     //TODO: check prompt existence in production mode
     //get function group information first so prompt existence checks can be attempted
 
     const getAndInsertFlow = app.locals.flow([
         getFunctionGroupDetailsSqlFlow(req.body.id),
         funcGroup.insertFuncGroupSql.bind(null, true) //force group status to PRODUCTION
-    ], {method: 'waterfall'}); 
+    ], {method: 'waterfall'});
 
     getAndInsertFlow(function () {
-        res.sendStatus(200); //done
+        res.parcel
+            .setStatus(200)
+            .deliver(); //done
     });
 }
 
@@ -162,8 +176,11 @@ function getFunctionGroupDetailsSqlFlow (ids) {
 
 function validatePromote (req, res) {
     if (!check.array(req.body.id) && !check.number(req.body.id)) {
-        res.errorMsg = "Required: id (array) or id (number)"
+        res.parcel
+            .setStatus(400)
+            .setMessage("Required: id (array) or id (number)");
     }
+    return;
 }
 
 //NOTE: this will not warn the user if a change is made in a consumer friendly message in STAGING
@@ -188,37 +205,51 @@ function validatePromptExistence (isProduction, req, res, cb) {
             return category.message_category === consentPrompt;
         });
         if (!category) {
-            res.errorMsg = "The user consent prompt does not exist under this environment: " + consentPrompt;
+            res.parcel
+                .setStatus(400)
+                .setMessage("The user consent prompt does not exist under this environment: " + consentPrompt);
         }
         cb(); //done
-    });    
+    });
 }
 
 function validateFuncGroup (req, res) {
     //base check
     if (!check.string(req.body.name) || !check.boolean(req.body.is_default) || !check.array(req.body.rpcs)) {
-        return res.errorMsg = "Required for functional group: name, is_default, rpcs";
+        res.parcel
+            .setStatus(400)
+            .setMessage("Required for functional group: name, is_default, rpcs");
+        return;
     }
     //rpcs check
     const rpcs = req.body.rpcs;
     for (let i = 0; i < rpcs.length; i++) {
         //base check
-        if (!check.string(rpcs[i].name) || !check.array(rpcs[i].hmi_levels) 
+        if (!check.string(rpcs[i].name) || !check.array(rpcs[i].hmi_levels)
             || !check.boolean(rpcs[i].selected) || !check.array(rpcs[i].parameters)) {
-            return res.errorMsg = "Required for RPC element: name, hmi_levels, parameters, selected";
+                res.parcel
+                    .setStatus(400)
+                    .setMessage("Required for RPC element: name, hmi_levels, parameters, selected");
+                return;
         }
         //hmi levels check
         for (let j = 0; j < rpcs[i].hmi_levels.length; j++) {
             const levels = rpcs[i].hmi_levels[j];
             if (!check.string(levels.value) || !check.boolean(levels.selected)) {
-                return res.errorMsg = "Required for HMI level: value, selected";
+                res.parcel
+                    .setStatus(400)
+                    .setMessage("Required for HMI level: value, selected");
+                return;
             }
         }
         //parameters check
         for (let j = 0; j < rpcs[i].parameters.length; j++) {
             const params = rpcs[i].parameters[j];
             if (!check.string(params.key) || !check.boolean(params.selected)) {
-                return res.errorMsg = "Required for parameter: key, selected";
+                res.parcel
+                    .setStatus(400)
+                    .setMessage("Required for parameter: key, selected");
+                return;
             }
         }
     }
@@ -226,8 +257,11 @@ function validateFuncGroup (req, res) {
 
 function validateDelete (req, res) {
     if (!check.number(req.body.id)) {
-        return res.errorMsg = "Required for deletion: id";
+        res.parcel
+            .setStatus(400)
+            .setMessage("Required for deletion: id");
     }
+    return;
 }
 
 module.exports = {

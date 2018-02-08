@@ -8,6 +8,7 @@ const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); /
 const sql = require('../../lib/sql'); //module for easily setting up SQL commands
 const flow = require('../../lib/flow'); //module for executing asynchronous functions without nesting
 const shaid = require('../../lib/shaid'); //module for communicating with SHAID
+const parcel = require('./helpers/parcel');
 const Cron = require('cron').CronJob;
 
 //set up the app locals object
@@ -30,6 +31,9 @@ const policy = require('./controllers/policy');
 const permissions = require('./controllers/permissions');
 const groups = require('./controllers/groups');
 const messages = require('./controllers/messages');
+
+// extend response builder to all routes
+app.route("*").all(parcel.extendExpress);
 
 //route definitions
 app.post('/login', login.post);

@@ -156,8 +156,8 @@ import { eventBus } from '../main.js';
                 this.httpRequest("get", queryInfo, null, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
-                            if (parsed.messages && parsed.messages.length) {
-                                this.message = parsed.messages[0];
+                            if (parsed.data.messages && parsed.data.messages.length) {
+                                this.message = parsed.data.messages[0];
                                 console.log(this.message);
                             } else {
                                 console.log("No message data returned");

@@ -109,7 +109,7 @@
                 }).then(response => {
                     // success
                     response.json().then(parsed => {
-                        this[storage_attribute] = parsed.applications;
+                        this[storage_attribute] = parsed.data.applications;
                     });
                 }, response => {
                     // error

@@ -1,17 +1,23 @@
 function post (req, res, next) {
 	validatePost(req, res);
-	if (res.errorMsg) {
-		return res.status(400).send({ error: res.errorMsg });
+	if (res.parcel.message) {
+		res.parcel.deliver();
+		return;
 	}
 
 	//TODO: STUB
-	res.sendStatus(200);
+	res.parcel
+		.setStatus(200)
+		.deliver();
 }
 
 function validatePost (req, res) {
 	if (!req.body.email) {
-		return res.errorMsg = "Email required";
+		res.parcel
+			.setStatus(400)
+			.setMessage("Email required");
 	}
+	return;
 }
 
 module.exports = {

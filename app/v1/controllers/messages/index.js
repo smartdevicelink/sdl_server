@@ -9,7 +9,7 @@ const check = require('check-types');
 // ], {method: 'waterfall'});
 // exFlow(function (err, messages) {
 //     //console.log(JSON.stringify(messages, null, 4));
-// }); 
+// });
 
 //need two pieces of info: all categories of a certain language (just en-us)
 //and the max id of every category. The first piece is so the message text preview is
@@ -40,7 +40,7 @@ function getInfo (req, res, next) {
     if (returnTemplate) { //template mode. return just the shell of a message
         chosenFlow = makeCategoryTemplateFlow();
     }
-    else if (req.query.id) { //get messages of a specific id. this is the 'detailed' mode 
+    else if (req.query.id) { //get messages of a specific id. this is the 'detailed' mode
         chosenFlow = getMessageDetailsFlow(req.query.id);
     }
     else { //get all message info at the highest level, filtering in PRODUCTION or STAGING mode
@@ -50,10 +50,15 @@ function getInfo (req, res, next) {
     chosenFlow(function (err, messages) {
         if (err) {
             app.locals.log.error(err);
-            return res.sendStatus(500);
+            return res.parcel.setStatus(500).deliver();
         }
-        return res.status(200).send({messages: messages}); 
-    }); 
+        return res.parcel
+            .setStatus(200)
+            .setData({
+                "messages": messages
+            })
+            .deliver();
+    });
 }
 
 //for one id
@@ -96,26 +101,28 @@ function makeCategoryTemplateFlow () {
 
 function postStaging (req, res, next) {
     validatePost(req, res);
-    if (res.errorMsg) {
-        return res.status(400).send({ error: res.errorMsg });
-    }    
+    if (res.parcel.message) {
+        return res.parcel.deliver();
+    }
     //convert the JSON to sql-like statements
     const newData = messageUtils.convertMessagesJson(req.body);
     //force group status to STAGING
     messageUtils.insertMessageSql(false, newData, function () {
-        res.sendStatus(200);
+        res.parcel
+            .setStatus(200)
+            .deliver();
     });
 }
 
 function promoteIds (req, res, next) {
     validatePromote(req, res);
-    if (res.errorMsg) {
-        return res.status(400).send({ error: res.errorMsg });
-    }  
+    if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
     //make sure the data in id is an array in the end
     if (check.number(req.body.id)) {
         req.body.id = [req.body.id];
-    }    
+    }
     //get all the info from the ids and insert them
     const getAndInsertFlow = app.locals.flow([
         getMessagesDetailsSqlFlow(req.body.id),
@@ -123,7 +130,9 @@ function promoteIds (req, res, next) {
     ], {method: 'waterfall'});
 
     getAndInsertFlow(function () {
-        res.sendStatus(200); //done
+        res.parcel
+            .setStatus(200)
+            .deliver();
     });
 }
 
@@ -138,24 +147,33 @@ function getMessagesDetailsSqlFlow (ids) {
 
 function validatePromote (req, res) {
     if (!check.array(req.body.id) && !check.number(req.body.id)) {
-        res.errorMsg = "Required: id (array) or id (number)"
+        res.parcel
+            .setStatus(400)
+            .setMessage("Required: id (array) or id (number)");
     }
+    return;
 }
 
 function validatePost (req, res) {
     //base check
     if (!check.array(req.body.messages)) {
-        return res.errorMsg = "Required: messages (array)"
+        res.parcel
+            .setStatus(400)
+            .setMessage("Required: messages (array)");
+        return;
     }
     for (let i = 0; i < req.body.messages.length; i++) {
         const msg = req.body.messages[i];
         if (!check.string(msg.message_category) || !check.boolean(msg.is_deleted) ) {
-            return res.errorMsg = "Required for message: message_category (string), is_deleted (boolean)";
-        }        
+            res.parcel
+                .setStatus(400)
+                .setMessage("Required for message: message_category (string), is_deleted (boolean)");
+            return;
+        }
         for (let j = 0; j < msg.languages.length; j++) {
             const lang = msg.languages[j];
             if (
-                !check.string(lang.language_id) 
+                !check.string(lang.language_id)
                 || !check.boolean(lang.selected)
                 || (
                     !check.string(lang.line1)
@@ -166,7 +184,10 @@ function validatePost (req, res) {
                     )
                 )
                 {
-                return res.errorMsg = "Required for language: language_id, selected, and at least one of the following: line1, line2, tts, text_body, label";
+                    res.parcel
+                        .setStatus(400)
+                        .setMessage("Required for language: language_id, selected, and at least one of the following: line1, line2, tts, text_body, label");
+                    return;
             }
         }
     }
@@ -195,9 +216,14 @@ function validateDelete (req, res) {
 function postUpdate (req, res, next) {
     languages.updateLanguages(function (err) {
         if (err) {
-            return res.sendStatus(500);
+            return res.parcel
+                .setStatus(500)
+                .deliver();
         }
-        return res.sendStatus(200);
+        res.parcel
+            .setStatus(200)
+            .deliver();
+        return;
     });
 }
 

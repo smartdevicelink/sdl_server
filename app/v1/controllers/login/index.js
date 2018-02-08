@@ -1,20 +1,27 @@
 function post (req, res, next) {
 	validatePost(req, res);
-	if (res.errorMsg) {
-		return res.status(400).send({ error: res.errorMsg });
+	if (res.parcel.message) {
+		res.parcel.deliver();
+		return;
 	}
 
 	//TODO: STUB
 	const response = {
 		token: "12345678"
 	}
-	res.status(200).send(response);
+	res.parcel
+		.setStatus(200)
+		.setData(response)
+		.deliver();
 }
 
 function validatePost (req, res) {
 	if (!req.body.email || !req.body.password) {
-		return res.errorMsg = "Invalid credentials";
+		res.parcel
+			.setStatus(400)
+			.setMessage("Invalid credentials");
 	}
+	return;
 }
 
 module.exports = {

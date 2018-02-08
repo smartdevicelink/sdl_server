@@ -201,8 +201,8 @@
                     .then(response => {
                         // success
                         response.json().then(parsed => {
-                            if(parsed.groups && parsed.groups.length){
-                                this.functional_groups = parsed.groups;
+                            if(parsed.data.groups && parsed.data.groups.length){
+                                this.functional_groups = parsed.data.groups;
                             }else{
                                 console.log("No functional data returned");
                             }
@@ -217,9 +217,9 @@
                     .then(response => {
                         // success
                         response.json().then(parsed => {
-                            this.unmapped_permissions = parsed.permissions;
-                            this.unused_count.rpcs = parsed.unmapped_rpc_count;
-                            this.unused_count.parameters = parsed.unmapped_parameter_count;
+                            this.unmapped_permissions = parsed.data.permissions;
+                            this.unused_count.rpcs = parsed.data.unmapped_rpc_count;
+                            this.unused_count.parameters = parsed.data.unmapped_parameter_count;
                         });
                     }, response => {
                         // error
@@ -248,7 +248,7 @@
                 this.getFunctionalGroupInfo(this.selected_group_id, (err, response) => {
                     if (response) {
                         response.json().then(json => {
-                            const fg = json.groups[0];
+                            const fg = json.data.groups[0];
                             this.saveFunctionalGroupInfo(fg, () => {
                                 //process complete! refresh the data on the page
                                 this.environmentClick();
