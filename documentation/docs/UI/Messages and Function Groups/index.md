@@ -23,6 +23,7 @@ It should be noted that the cards under "Production" cannot be edited. If you wi
 |----------|---------|
 | Parameters | TODO: What is this? |
 | Supported HMI Levels | SDL Core interface display levels allowed by the app |
+
 ![Functional-Groups](./assets/Functional-Groups.png)
 
 ### Creating a New Functional Group

@@ -1,8 +1,12 @@
 # User Interface
 A majority of the modifications made to the policy table are done through SQL database queries. To make this easier, the policy server has a user interface that can be found by navigating to <a href="http://localhost:3000/">http://localhost:3000/</a> in a browser of your choice. There are four main pages to the policy server.
+
 [Applications](../applications)
+
 [Policy Table](../view-policy-table)
+
 [Functional Groupings](../messages-and-function-groups)
+
 [Consumer Friendly Messages](../messages-and-function-groups)
 
 ## Vue.js
