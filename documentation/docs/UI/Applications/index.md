@@ -12,12 +12,12 @@ This page displays a list of applications pulled from the SHAID server. When ini
 ### App Display Names
 | Property | Definition |
 |----------|---------|
-| Name   | Alternate strings to identify the application |
+| Name   | Alternate strings to identify the application. The app's name must match one of these in order for it to connect to core. |
 
 ### Requested Permissions
 | Property | Definition |
 |----------|---------|
-| Name        | String to identify the permission |
+| Name | Strings to identify the permission. |
 | Type | RPC  |
 | HMI Level Requested | BACKGROUND/FULL/NONE/LIMITED   |
 
@@ -38,8 +38,8 @@ An example of how the app and its required permissions will appear in the policy
     nicknames: [
       "App Display Names"
     ],
-    keep_context: boolean,
-    steal_focus: boolean,
+    keep_context: true,
+    steal_focus: true,
     priority: "NONE",
     default_hmi: "NONE",
     groups: [

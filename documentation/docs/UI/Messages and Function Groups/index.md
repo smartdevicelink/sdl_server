@@ -1,5 +1,5 @@
 # Consumer Messages & Functional Groups
-The pages for displaying lists of consumer messages and functional groups are structured in the same way, with both using For information on the properties of the consumer messages and functional groups, refer back to the earlier documentation regarding the [policy table](../../policy-table/overview).
+The pages for displaying lists of consumer messages and functional groups are structured in the same way, using similar Vue.js components. For information on the properties of the consumer messages and functional groups, refer back to the earlier documentation regarding the [policy table](../../Policy Table/Overview/index.md).
 
 ## Cards
 Each functional group or consumer message card will have identifying information displayed on a card. This information includes the name, and the number of permissions or languages. If the information in the card has been altered since the time of creation then it will have a "MODIFIED" tag. All cards are listed in alphabetical order by name.
@@ -7,7 +7,7 @@ Each functional group or consumer message card will have identifying information
 ![Functional-Groups-List.png](./assets/Functional-Groups-List.png)
 
 ### Editing
-It should be noted that the cards under "Production" cannot be edited. If you wish to edit an existing functional group that has been set to "Production" then you must click the blank card at the end of the list, select your functional group and select to "Create New Functional Group Based on Existing Group." This creates an updated version of the functional group on "Staging". This does not remove the old entry entirely but instead creates a new entry with the same information that can be edited. Deleting a newer entry will revert back to its previous version. Remember to hit the save button at the bottom of the page to keep any changes.
+It should be noted that the cards under "Production" cannot be edited. If you wish to edit an existing functional group that has been set to "Production" then you must create an entirely new functional group and copy the information over. Remember to hit the save button at the bottom of the page to keep any changes.
 ![Consumer-Messages-Save-Button](./assets/Consumer-Messages-Save-Button.png) 
 
 ## Functional Groups
@@ -21,7 +21,7 @@ It should be noted that the cards under "Production" cannot be edited. If you wi
 ### RPCs
 | Property | Definition |
 |----------|---------|
-| Parameters | TODO: What is this? |
+| Parameters | References possible vehicle information that can retrieved. This is only applicable to vehicle data RPCs. eg. GetVehicleData, SubscribeVehicleData |
 | Supported HMI Levels | SDL Core interface display levels allowed by the app |
 
 ![Functional-Groups](./assets/Functional-Groups.png)
@@ -31,7 +31,7 @@ When creating a new functional group, first consider if there should be a user c
 ![New Functional Group Sequence Diagram](./assets/functional_group_flowchart.jpg)
 
 ## Consumer Messages
-For information on the language object properties, refer back to the documentation on the <a href="../../policy-table/consumer-friendly-messages">consumer messages</a> object.
+For information on the language object properties, refer back to the documentation on the <a href="../../Policy Table/Consumer Friendly Messages/index.md">consumer messages</a> object.
 ![Consumer-Messages](./assets/Consumer-Messages.png)
 
 ## Staging

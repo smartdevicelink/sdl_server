@@ -6,4 +6,4 @@ All scripts for the intial data migration are located in the migrations folder. 
 ![Tables](./assets/PostgreSQL-Tables.png)
 
 ## Database Alterations
-Any action that generates newly created or updated data, such as modifying a consumer message, will first generate a SQL statement to execute the desired query. The policy server generates these statements with the npm module <a href="https://www.npmjs.com/package/sql-bricks-postgres">sql-bricks-postgres</a> in the /lib/sql directory and then queries the database.
+Any action that generates newly created or updated data, such as modifying a consumer message, will first generate a SQL statement to execute the desired query. The policy server generates these statements with the npm module <a href="https://www.npmjs.com/package/sql-bricks-postgres">sql-bricks-postgres</a>.
