@@ -1,4 +1,4 @@
-const app = require('../../app');
+const app = require('../app');
 const utils = require('../policy/utils.js');
 const setupSqlCommands = app.locals.sql.setupSqlCommands;
 const setupInsertsSql = app.locals.sql.setupSqlInsertsNoError;
@@ -133,90 +133,6 @@ function makeFunctionGroups (info, next) {
     }));
 }
 
-//modifies the original reference. sends the template back in an array
-function arrayifyOneFuncGroup (template, next) {
-    utils.arrayify(template, ['rpcs', null, 'hmi_levels']);
-    utils.arrayify(template, ['rpcs', null, 'parameters']);
-    utils.arrayify(template, ['rpcs']);
-    next(null, [template]);
-}
-
-//generates a template response that can be used to describe any specific function group info
-function generateTemplate (info, next) {
-    const rpcs = info[0];
-    const permissionRelations = info[1];
-    const hmiLevels = info[2];
-
-    let hmiLevelsHash = {};
-    for (let i = 0; i < hmiLevels.length; i++) {
-        hmiLevelsHash[hmiLevels[i].id] = {
-            name: hmiLevels[i].id,
-            value: hmiLevels[i].id,
-            selected: false
-        }
-    }
-
-    function transRelations (element) {
-        return [
-            element['parent_permission_name'],
-            element['child_permission_name']
-        ];
-    }
-
-    let template = baseTemplate();
-    template.rpcs = {};
-
-    const parameterRelations = hashedRelationsTransform(utils.hashify({}, permissionRelations, transRelations, null));
-
-    for (let i = 0; i < rpcs.length; i++) {
-        const rpc = rpcs[i];
-        let obj = {
-            name: rpc.name,
-            hmi_levels: hmiLevelsHash,
-            selected: false
-        };
-        if (parameterRelations[rpc.name]) {
-            //the permission exists in the parent permissions
-            obj.parameters = parameterRelations[rpc.name]
-        }
-        template.rpcs[rpc.name] = obj;      
-    }
-
-    //it's just as fast, if not faster, to setup the template, not worrying about storing references
-    //in multiple places, and blasting them all out with parse/stringify. it's also safer.
-    next(null, JSON.parse(JSON.stringify(template)));
-}
-
-function baseTemplate () {
-    return {
-        id: 0,
-        name: "",
-        description: "",
-        status: "",
-        selected_prompt_id: 0,
-        selected_rpc_count: 0,
-        selected_parameter_count: 0,
-        is_default: false,
-        is_deleted: false,
-        user_consent_prompt: null
-    };
-}
-
-function hashedRelationsTransform (relations) {
-    let response = {};
-    for (rpc in relations) {
-        response[rpc] = {};
-        for (parameter in relations[rpc]) {
-            response[rpc][parameter] = {
-                name: parameter,
-                key: parameter,
-                selected: false
-            };
-        }
-    }
-    return response;
-}
-
 function convertFuncGroupJson (obj) {
     //break the JSON down into smaller objects for SQL insertion
     //transform the object so that entries with selected = false are removed
@@ -331,10 +247,7 @@ function insertFuncGroupSql (isProduction, data, next) {
 }
 
 module.exports = {
-    generateTemplate: generateTemplate,
-    baseTemplate: baseTemplate,
     makeFunctionGroups: makeFunctionGroups,
     convertFuncGroupJson: convertFuncGroupJson,
-    arrayifyOneFuncGroup: arrayifyOneFuncGroup,
     insertFuncGroupSql: insertFuncGroupSql
-};
+}

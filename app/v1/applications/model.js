@@ -1,4 +1,4 @@
-
+//takes SQL data and converts it into a response for the UI to consume
 function constructFullAppObjs (res, next) {
     const appBase = res[0];
     const appCountries = res[1];
@@ -72,36 +72,6 @@ function constructFullAppObjs (res, next) {
     next(null, fullApps);
 }
 
-//given an app, modify its approval status
-function modifyApprovalStatus (newStatus) {
-    return function (apps, next) {
-        for (let i = 0; i < apps.length; i++) {
-            apps[i].approval_status = newStatus;
-            //remove the timestamps to force the app's insertion (and the id, to be safe)
-            delete apps[i].id;
-            delete apps[i].created_ts;
-            delete apps[i].updated_ts;
-        }
-        next(null, apps);
-    }
-}
-
-//given an app, modify its auto approval status
-function modifyAutoApprovalStatus (newAutoApproval) {
-    return function (apps, next) {
-        for (let i = 0; i < apps.length; i++) {
-            apps[i].is_auto_approved_enabled = newAutoApproval;
-            //remove the timestamps to force the app's insertion (and the id, to be safe)
-            delete apps[i].id;
-            delete apps[i].created_ts;
-            delete apps[i].updated_ts;
-        }
-        next(null, apps);
-    }
-}
-
 module.exports = {
-    constructFullAppObjs: constructFullAppObjs,
-    modifyApprovalStatus: modifyApprovalStatus,
-    modifyAutoApprovalStatus: modifyAutoApprovalStatus
-};
+    constructFullAppObjs: constructFullAppObjs
+}

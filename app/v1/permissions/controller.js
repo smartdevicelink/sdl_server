@@ -1,4 +1,4 @@
-const app = require('../../app');
+const app = require('../app');
 const utils = require('../policy/utils');
 const setupSql = app.locals.sql.setupSqlCommand;
 

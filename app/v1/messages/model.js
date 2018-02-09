@@ -1,5 +1,4 @@
-const app = require('../../app');
-const utils = require('../policy/utils.js');
+const app = require('../app');
 const setupSqlCommands = app.locals.sql.setupSqlCommands;
 const setupInsertsSql = app.locals.sql.setupSqlInsertsNoError;
 
@@ -51,39 +50,90 @@ function combineMessageCategoryInfo (messageInfo, next) {
     next(null, categories);
 }
 
-function getBaseTemplate () {
-    return {
-        id: 0,
-        message_category: "",
-        status: "",
-        is_deleted: false,
-        created_ts: 0,
-        updated_ts: 0,
-        languages: []
-    };
+function convertMessagesJson (messagesObj) {
+    //get all the group-related information first
+    const messageGroups = messagesObj.messages.map(function (msg) {
+        return {
+            id: msg.id, //keep the ID for future use
+            message_category: msg.message_category,
+            status: msg.status,
+            is_deleted: msg.is_deleted
+        };
+    });
+
+    //now get all the message text information, filtering out unselected messages
+    let messageTexts = [];
+    for (let i = 0; i < messagesObj.messages.length; i++) {
+        const langs = messagesObj.messages[i].languages;
+        for (let j = 0; j < langs.length; j++) {
+            const text = langs[j];
+            if (text.selected) {
+                messageTexts.push({
+                    language_id: text.language_id,
+                    tts: text.tts,
+                    line1: text.line1,
+                    line2: text.line2,
+                    text_body: text.text_body,
+                    label: text.label,
+                    message_group_id: text.message_category_id //for future reference
+                });                
+            }
+        }        
+    }
+    
+    return [messageGroups, messageTexts];
 }
 
-//pass an empty array in info[0] to not create the languages array in the template
-function generateCategoryTemplate (info, next) {
-    const languages = info[0];
+//accepts SQL-like data of message groups and message texts, along with a status to alter the message groups' statuses
+//inserts message group and message text information, automatically linking together texts to their groups
+//executes immediately
+function insertMessagesSql (isProduction, data, next) {
+    const messageGroups = data[0];
+    const messageTexts = data[1];
 
-    let template = getBaseTemplate();
-
-    for (let i = 0; i < languages.length; i++) {
-        const lang = languages[i].id;
-        template.languages.push({
-            id: 0,
-            language_id: lang,
-            selected: false,
-            message_category_id: 0,
-            line1: "",
-            line2: "",
-            tts: "",
-            text_body: "",
-            label: ""
-        });
+    let statusName;
+    if (isProduction) {
+        statusName = "PRODUCTION";
     }
-    next(null, [template]);
+    else {
+        statusName = "STAGING";
+    }
+
+    for (let i = 0; i < messageGroups.length; i++) {
+        //group status should be changed to whatever the parent function wants
+        messageGroups[i].status = statusName;
+    }
+
+    //insert message groups
+    const insertGroups = app.locals.flow(setupSqlCommands(app.locals.sql.insert.messageGroups(messageGroups)), {method: 'parallel'});
+    insertGroups(function (err, res) {
+        //flatten the nested arrays to get one array of groups
+        const newGroups = res.map(function (elem) {
+            return elem[0];
+        });
+
+        //create a link between the old message group and the new one using the message category
+        //use the old message group to find the matching message group id of the message text
+        //use the new message group to replace the message text ids with the new message group id
+        let newGroupCategoryToIdHash = {}; //category to new id
+        for (let i = 0; i < newGroups.length; i++) {
+            newGroupCategoryToIdHash[newGroups[i].message_category] = newGroups[i].id;
+        }
+        let oldGroupIdtoIdHash = {}; //old id to category to new id
+        for (let i = 0; i < messageGroups.length; i++) {
+            oldGroupIdtoIdHash[messageGroups[i].id] = newGroupCategoryToIdHash[messageGroups[i].message_category];
+        }        
+        //add group id to each message
+        for (let i = 0; i < messageTexts.length; i++) {
+            messageTexts[i].message_group_id = oldGroupIdtoIdHash[messageTexts[i].message_group_id];
+        }
+
+        //insert message texts
+        const insertTexts = app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageTexts(messageTexts)), {method: 'parallel'});
+        insertTexts(function (err, res) {
+            next(); //done
+        });
+    });
 }
 
 function hashifyTemplate (template) {
@@ -139,97 +189,9 @@ function transformMessages (info, next) {
     next(null, [template]);
 }
 
-function convertMessagesJson (messagesObj) {
-    //get all the group-related information first
-    const messageGroups = messagesObj.messages.map(function (msg) {
-        return {
-            id: msg.id, //keep the ID for future use
-            message_category: msg.message_category,
-            status: msg.status,
-            is_deleted: msg.is_deleted
-        };
-    });
-
-    //now get all the message text information, filtering out unselected messages
-    let messageTexts = [];
-    for (let i = 0; i < messagesObj.messages.length; i++) {
-        const langs = messagesObj.messages[i].languages;
-        for (let j = 0; j < langs.length; j++) {
-            const text = langs[j];
-            if (text.selected) {
-                messageTexts.push({
-                    language_id: text.language_id,
-                    tts: text.tts,
-                    line1: text.line1,
-                    line2: text.line2,
-                    text_body: text.text_body,
-                    label: text.label,
-                    message_group_id: text.message_category_id //for future reference
-                });                
-            }
-        }        
-    }
-    
-    return [messageGroups, messageTexts];
-}
-
-
-//accepts SQL-like data of message groups and message texts, along with a status to alter the message groups' statuses
-//inserts message group and message text information, automatically linking together texts to their groups
-//executes immediately
-function insertMessageSql (isProduction, data, next) {
-    const messageGroups = data[0];
-    const messageTexts = data[1];
-
-    let statusName;
-    if (isProduction) {
-        statusName = "PRODUCTION";
-    }
-    else {
-        statusName = "STAGING";
-    }
-
-    for (let i = 0; i < messageGroups.length; i++) {
-        //group status should be changed to whatever the parent function wants
-        messageGroups[i].status = statusName;
-    }
-
-    //insert message groups
-    const insertGroups = app.locals.flow(setupSqlCommands(app.locals.sql.insert.messageGroups(messageGroups)), {method: 'parallel'});
-    insertGroups(function (err, res) {
-        //flatten the nested arrays to get one array of groups
-        const newGroups = res.map(function (elem) {
-            return elem[0];
-        });
-
-        //create a link between the old message group and the new one using the message category
-        //use the old message group to find the matching message group id of the message text
-        //use the new message group to replace the message text ids with the new message group id
-        let newGroupCategoryToIdHash = {}; //category to new id
-        for (let i = 0; i < newGroups.length; i++) {
-            newGroupCategoryToIdHash[newGroups[i].message_category] = newGroups[i].id;
-        }
-        let oldGroupIdtoIdHash = {}; //old id to category to new id
-        for (let i = 0; i < messageGroups.length; i++) {
-            oldGroupIdtoIdHash[messageGroups[i].id] = newGroupCategoryToIdHash[messageGroups[i].message_category];
-        }        
-        //add group id to each message
-        for (let i = 0; i < messageTexts.length; i++) {
-            messageTexts[i].message_group_id = oldGroupIdtoIdHash[messageTexts[i].message_group_id];
-        }
-
-        //insert message texts
-        const insertTexts = app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageTexts(messageTexts)), {method: 'parallel'});
-        insertTexts(function (err, res) {
-            next(); //done
-        });
-    });
-}
-
 module.exports = {
     combineMessageCategoryInfo: combineMessageCategoryInfo,
-    transformMessages: transformMessages,
-    generateCategoryTemplate: generateCategoryTemplate,
     convertMessagesJson: convertMessagesJson,
-    insertMessageSql: insertMessageSql
+    insertMessagesSql: insertMessagesSql,
+    transformMessages: transformMessages
 }
