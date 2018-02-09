@@ -3,12 +3,12 @@ The pages for displaying lists of consumer messages and functional groups are st
 
 ## Cards
 Each functional group or consumer message card will have identifying information displayed on a card. This information includes the name, and the number of permissions or languages. If the information in the card has been altered since the time of creation then it will have a "MODIFIED" tag. All cards are listed in alphabetical order by name.
-![Consumer-Messages-List.png](/assets/Consumer-Messages-List.png)
-![Functional-Groups-List.png](/assets/Functional-Groups-List.png)
+![Consumer-Messages-List.png](./assets/Consumer-Messages-List.png)
+![Functional-Groups-List.png](./assets/Functional-Groups-List.png)
 
 ### Editing
 It should be noted that the cards under "Production" cannot be edited. If you wish to edit an existing functional group that has been set to "Production" then you must click the blank card at the end of the list, select your functional group and select to "Create New Functional Group Based on Existing Group." This creates an updated version of the functional group on "Staging". This does not remove the old entry entirely but instead creates a new entry with the same information that can be edited. Deleting a newer entry will revert back to its previous version. Remember to hit the save button at the bottom of the page to keep any changes.
-![Consumer-Messages-Save-Button](/assets/Consumer-Messages-Save-Button) 
+![Consumer-Messages-Save-Button](./assets/Consumer-Messages-Save-Button.png) 
 
 ## Functional Groups
 | Property | Definition |
@@ -23,7 +23,7 @@ It should be noted that the cards under "Production" cannot be edited. If you wi
 |----------|---------|
 | Parameters | TODO: What is this? |
 | Supported HMI Levels | SDL Core interface display levels allowed by the app |
-![Functional-Groups](/assets/Functional-Groups.png)
+![Functional-Groups](./assets/Functional-Groups.png)
 
 ### Creating a New Functional Group
 When creating a new functional group, first consider if there should be a user consent prompt associated with the group. If yes, the following diagram will walk through the correct steps.
@@ -31,7 +31,7 @@ When creating a new functional group, first consider if there should be a user c
 
 ## Consumer Messages
 For information on the language object properties, refer back to the documentation on the <a href="../../policy-table/consumer-friendly-messages">consumer messages</a> object.
-![Consumer-Messages](/assets/Consumer-Messages.png)
+![Consumer-Messages](./assets/Consumer-Messages.png)
 
 ## Staging
 This environment is where temporary or unfinished entries reside. They can be edited and reworked.

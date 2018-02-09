@@ -1,6 +1,6 @@
 # Applications
 This page displays a list of applications pulled from the SHAID server. When initially added, apps will be pending approval. Reviewing each app will give the user a detailed page on the important information associated with the app such as the requested permissions, developer contact information, and preview of what its segment in the policy table would look like.
-![Applications-List](/assets/Applications-List.png)
+![Applications-List](./assets/Applications-List.png)
 ### General App Info
 | Property | Definition |
 |----------|---------|
@@ -54,4 +54,4 @@ An example of how the app and its required permissions will appear in the policy
 ```
 ## Approved, Denied, & Pending
 Select approve in the top right corner if you would like to give this app the permissions it needs, otherwise select deny. If you choose to deny an applicaiton, you will be asked to provide your reasoning for doing so. Denying an application will notify the developer and any feedback will be sent to the developer via email. You can also choose to send the notification without feedback. Each time that an app is updated in the developer portal, the policy server will need approval once again. If this is an app which is from a trusted developer and is frequently updated for which you would always approve, you can choose under "General App Info" to "Automatically approve updates." This setting can be changed later if the need arises.
-![App-Details](/assets/App-Details.png)
+![App-Details](./assets/App-Details.png)
