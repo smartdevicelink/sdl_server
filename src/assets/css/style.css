@@ -951,6 +951,15 @@ input:checked + .slider:before {
 
 
 
+/*
+* 404 Page not found
+*/
+.not-found h3 {
+    color: #384f61 !important;
+}
+.not-found img {
+    width: 30em;
+}
 
 
 
@@ -983,34 +992,6 @@ input:checked + .slider:before {
 .back-to-top:hover {
     background-color: #384F61;
     color: #FFFFFF !important;
-}
-
-
-/*
-* code-prettify custom CSS override
-*/
-pre.prettyprint {
-    border: none !important;
-}
-
-.prettyprint ol.linenums {
-    padding-left: 60px;
-    display: inline-table;
-}
-
-.hidenums > ol{
-    padding-left: 0px !important;
-}
-
-li.L0, li.L1, li.L2, li.L3, li.L4,
-li.L5, li.L6, li.L7, li.L8, li.L9 {
-    list-style-type: decimal !important;
-    color: #B3B3B3;
-    line-height: 1.5rem;
-}
-
-li.L1, li.L3, li.L5, li.L7, li.L9 {
-    background-color: #F4F5F7 !important;
 }
 
 

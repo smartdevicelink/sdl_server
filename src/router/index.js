@@ -23,7 +23,7 @@ const router = new Router({
             path: '/',
             redirect: '/applications'
             //redirect: '/login'
-        },
+        },/*
         {
             path: '/login',
             name: 'Login',
@@ -58,7 +58,7 @@ const router = new Router({
                 auth: false,
                 title: 'Policy Server - Password Reset'
             }
-        },
+        },*/
         {
             path: '/applications/',
             name: 'Applications',
@@ -129,7 +129,7 @@ const router = new Router({
                 "id": route.query.id || null,
                 "environment": route.query.environment || "PRODUCTION"
             })
-        },
+        },/*
         {
             path: '/user/',
             name: 'User',
@@ -147,7 +147,7 @@ const router = new Router({
                 auth: true,
                 title: 'Policy Server - Invite Users'
             }
-        },
+        },*/
         {
             path: '*',
             name: '404',

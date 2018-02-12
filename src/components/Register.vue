@@ -50,7 +50,7 @@ export default {
     },
     methods: {
         "registerClick": function(){
-            // TODO: check the user's auth information and log them in
+            // TODO: check the user's auth information and register them
             if(!this.newPassword2 || !this.newPassword1 || this.newPassword1 != this.newPassword2){
                 // new password must match
                 return alert("Your new password and re-typed password must match");

@@ -100,49 +100,27 @@
                 "apps_denied": []
             }
         },
-        beforeCreate: function(){ 
-            this.$http.get("applications", {
-                "params": {
-                    "approval_status": "PENDING"
-                }
-            }).then(response => {
-                // success
-                response.json().then(parsed => {
-                    console.log(response);
-                    this.apps_pending = parsed.applications;
+        methods: {
+            "getApplications": function(status = "PENDING", storage_attribute ="apps_pending") {
+                this.$http.get("applications", {
+                    "params": {
+                        "approval_status": status
+                    }
+                }).then(response => {
+                    // success
+                    response.json().then(parsed => {
+                        this[storage_attribute] = parsed.data.applications;
+                    });
+                }, response => {
+                    // error
+                    console.log("Error receiving " + status + " applications. Status code: " + response.status);
                 });
-            }, response => {
-                // error
-                console.log("Error receiving PENDING applications. Status code: " + response.status);
-            });
-
-            this.$http.get("applications", {
-                "params": {
-                    "approval_status": "ACCEPTED"
-                }
-            }).then(response => {
-                // success
-                response.json().then(parsed => {
-                    this.apps_approved = parsed.applications;
-                });
-            }, response => {
-                // error
-                console.log("Error receiving ACCEPTED applications. Status code: " + response.status);
-            });
-
-            this.$http.get("applications", {
-                "params": {
-                    "approval_status": "DENIED"
-                }
-            }).then(response => {
-                // success
-                response.json().then(parsed => {
-                    this.apps_denied = parsed.applications;
-                });
-            }, response => {
-                // error
-                console.log("Error receiving DENIED applications. Status code: " + response.status);
-            });
+            }
+        },
+        created: function(){
+            this.getApplications("PENDING", "apps_pending");
+            this.getApplications("ACCEPTED", "apps_approved");
+            this.getApplications("DENIED", "apps_denied");
         }
     }
 </script>

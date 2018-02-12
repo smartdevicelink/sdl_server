@@ -15,19 +15,35 @@
                     name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-if="environment == 'STAGING'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
+                    <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
                 <h4>Consumer Friendly Messages</h4>
                 <section class="tiles">
-                    <consumer-message-item
+                    <card-item
                         v-for="(item, index) in consumer_messages"
-                        v-bind:item="item"
+                        v-bind:item="{
+                            id: item.id,
+                            title: item.message_category,
+                            description: item.tts,
+                            count: item.language_count,
+                            is_deleted: item.is_deleted,
+                            status: item.status
+                        }"
                         v-bind:environment="environment"
+                        v-bind:link="{
+                            path: 'consumermessages/manage',
+                            query: {
+                                id: item.id,
+                                environment: environment
+                            }
+                        }"
+                        v-bind:count_label_plural="'languages'"
+                        v-bind:count_label_singular="'language'"
                         v-bind:index="index"
                         v-bind:key="item.id"
                         >
-                    </consumer-message-item>
+                    </card-item>
 
                     <router-link
                         v-bind:to="{ path: 'consumermessages/manage', query: { environment: environment } }"
@@ -81,6 +97,13 @@
             }
         },
         computed: {
+            can_promote: function() {
+                var show_button = false;
+                for(var i = 0; i < this.consumer_messages.length; i++){
+                    if(this.consumer_messages[i].status == "STAGING") show_button = true;
+                }
+                return show_button;
+            },
         },
         methods: {
             "promoteMessages": function () {
@@ -113,26 +136,13 @@
                 //save all messages in the messages object
                 this.httpRequest("post", "messages/promote", {id: id}, cb);
             },
-            "mapAsync": function (array, func, cb) {
-                let count = array.length;
-                let mappedResults = [];
-                for (let i = 0; i < array.length; i++) {
-                    func(array[i], data => {
-                        mappedResults.push(data);
-                        count--;
-                        if (count === 0) {
-                            cb(mappedResults);
-                        }
-                    });
-                }
-            },
             "getConsumerMessageInfo": function (cb) {
                 let url = "messages?environment=" + this.environment;
                 this.httpRequest("get", url, {}, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
-                            if (parsed.messages) {
-                                cb(parsed.messages);
+                            if (parsed.data.messages) {
+                                cb(parsed.data.messages);
                             } else {
                                 console.log("No message data returned");
                                 cb();

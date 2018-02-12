@@ -23,11 +23,6 @@
                 selected: [] // Must be an array reference!
             };
         },
-        computed: {
-            is_checked: function(){
-
-            }
-        },
         methods: {
             checkboxUpdated: function(){
                 for(var option_index in this.options){

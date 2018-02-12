@@ -20,11 +20,10 @@
                     <!-- Name -->
                     <div class="form-row">
                         <h4 for="name">Name</h4>
-                        <!-- TODO: first input in the textbox is ignored -->
                         <input v-model="message.message_category" :disabled="id" type="email" class="form-control" id="email">
                     </div>
 
-                    <!-- TODO: create container for RPCs -->
+                    <!-- container for languages -->
                     <div class="form-row">
                         <h4>Languages</h4>
                         <message-item
@@ -157,8 +156,8 @@ import { eventBus } from '../main.js';
                 this.httpRequest("get", queryInfo, null, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
-                            if (parsed.messages && parsed.messages.length) {
-                                this.message = parsed.messages[0];
+                            if (parsed.data.messages && parsed.data.messages.length) {
+                                this.message = parsed.data.messages[0];
                                 console.log(this.message);
                             } else {
                                 console.log("No message data returned");
@@ -213,7 +212,6 @@ import { eventBus } from '../main.js';
             }
         },
         created: function () {
-            console.log(this.$async);
             this.getConsumerMessageInfo();
         },
         beforeDestroy () {

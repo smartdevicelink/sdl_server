@@ -7,7 +7,7 @@
         <td class="title">{{ item.name }}</td>
         <td>{{ item.updated_ts }}</td>
         <td>{{ item.platform }}</td>
-        <td>{{ item.category.name }}</td>
+        <td>{{ item.category.display_name }}</td>
         <td class="actions">
             <div class="app-action pull-right">
                 <template v-if="item.approval_status === 'PENDING'">

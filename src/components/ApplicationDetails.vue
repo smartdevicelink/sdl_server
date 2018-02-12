@@ -300,7 +300,6 @@ export default {
                 response.json().then(parsed => {
                     if(parsed.data && parsed.data.length && parsed.data[0].policy_table.app_policies[this.app.uuid]){
                         this.policytable = parsed.data[0].policy_table.app_policies[this.app.uuid];
-                        PR.prettyPrint();
                     }else{
                         console.log("No policy table returned");
                     }
@@ -328,8 +327,8 @@ export default {
         }).then(response => {
             // success
             response.json().then(parsed => {
-                if(parsed.applications.length){
-                    this.app = parsed.applications[0];
+                if(parsed.data.applications.length){
+                    this.app = parsed.data.applications[0];
                     this.getPolicy();
                 }else{
                     console.log("No applications returned");

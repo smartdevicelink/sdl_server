@@ -15,7 +15,7 @@
                     name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-if="environment == 'STAGING'" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
+                    <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
                 <div v-if="unused_count.rpcs !== 0 || unused_count.parameters !== 0" class="alert color-bg-red color-white d-table" role="alert">
@@ -26,14 +26,30 @@
                 </div>
                 <h4>Functional Groups</h4>
                 <section class="tiles">
-                    <functional-group-item
+                    <card-item
                         v-for="(item, index) in functional_groups"
-                        v-bind:item="item"
+                        v-bind:item="{
+                            id: item.id,
+                            title: item.name,
+                            description: item.description,
+                            count: item.selected_rpc_count,
+                            is_deleted: item.is_deleted,
+                            status: item.status
+                        }"
                         v-bind:environment="environment"
+                        v-bind:link="{
+                            path: 'functionalgroups/manage',
+                            query: {
+                                id: item.id,
+                                environment: environment
+                            }
+                        }"
+                        v-bind:count_label_plural="'permissions'"
+                        v-bind:count_label_singular="'permission'"
                         v-bind:index="index"
                         v-bind:key="item.id"
                         >
-                    </functional-group-item>
+                    </card-item>
                     <router-link
                         v-bind:to="{ path: 'functionalgroups/manage', query: { environment: environment } }"
                         v-if="environment == 'STAGING'"
@@ -92,13 +108,13 @@
             <!-- PROMOTE GROUP MODAL -->
             <b-modal ref="promoteModal" title="Promote Functional Groups to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                 <small class="form-text text-muted">
-                    This will promote all staging Functional Groups to production, modifying the production policy table. Are you sure you want to do this?
+                    This will promote all modified Functional Groups to production, immediately updating the production policy table. Are you sure you want to do this?
                 </small>
                 <vue-ladda
                     type="button"
                     class="btn btn-card btn-style-green"
                     data-style="zoom-in"
-                    v-on:click="promoteMessages()"
+                    v-on:click="promoteGroupsClick()"
                     v-bind:loading="promote_button_loading">
                     Yes, promote to production!
                 </vue-ladda>
@@ -122,6 +138,7 @@
                         "value": "PRODUCTION"
                     }
                 ],
+                "promote_button_loading": false,
                 "selected_group_id": null,
                 "is_clone_disabled": true,
                 "unused_count": {
@@ -133,6 +150,13 @@
             }
         },
         computed: {
+            can_promote: function() {
+                var show_button = false;
+                for(var i = 0; i < this.functional_groups.length; i++){
+                    if(this.functional_groups[i].status == "STAGING") show_button = true;
+                }
+                return show_button;
+            },
             unused_permissions_text: function () {
                 const rpcCount = this.unused_count.rpcs;
                 const parameterCount = this.unused_count.parameters;
@@ -160,13 +184,25 @@
                 //get unmapped permissions
                 this.getUnmappedPermissions();
             },
+            "handleModalClick": function (loadingProp, modalName, methodName) {
+                //show a loading icon for the modal, and call the methodName passed in
+                //when finished, turn off the loading icon, hide the modal, and reload the info
+                this[loadingProp] = true;
+                this[methodName](() => {
+                    this[loadingProp] = false;
+                    if (modalName) {
+                        this.$refs[modalName].hide();
+                    }
+                    this.environmentClick();
+                });
+            },
             "getFunctionalGroupData": function () {
                 this.$http.get("groups?environment=" + this.environment, {})
                     .then(response => {
                         // success
                         response.json().then(parsed => {
-                            if(parsed.groups && parsed.groups.length){
-                                this.functional_groups = parsed.groups;
+                            if(parsed.data.groups && parsed.data.groups.length){
+                                this.functional_groups = parsed.data.groups;
                             }else{
                                 console.log("No functional data returned");
                             }
@@ -181,14 +217,28 @@
                     .then(response => {
                         // success
                         response.json().then(parsed => {
-                            this.unmapped_permissions = parsed.permissions;
-                            this.unused_count.rpcs = parsed.unmapped_rpc_count;
-                            this.unused_count.parameters = parsed.unmapped_parameter_count;
+                            this.unmapped_permissions = parsed.data.permissions;
+                            this.unused_count.rpcs = parsed.data.unmapped_rpc_count;
+                            this.unused_count.parameters = parsed.data.unmapped_parameter_count;
                         });
                     }, response => {
                         // error
                         console.log("Error fetching functional group data: " + response.body.error);
                     });
+            },
+            "promoteGroupsClick": function () {
+                this.handleModalClick("promote_button_loading", "promoteModal", "promoteAllGroups");
+            },
+            "promoteAllGroups": function (cb) {
+                // build an array of STAGING IDs
+                var staging_ids = [];
+                for(var i = 0; i < this.functional_groups.length; i++){
+                    if(this.functional_groups[i].status == "STAGING"){
+                        staging_ids.push(this.functional_groups[i].id);
+                    }
+                }
+
+                staging_ids.length ? this.httpRequest("post", "groups/promote", {id: staging_ids}, cb) : cb();
             },
             "selectedFunctionalGroup": function () {
                 this.is_clone_disabled = this.selected_group_id != "null" ? false : true;
@@ -198,7 +248,7 @@
                 this.getFunctionalGroupInfo(this.selected_group_id, (err, response) => {
                     if (response) {
                         response.json().then(json => {
-                            const fg = json.groups[0];
+                            const fg = json.data.groups[0];
                             this.saveFunctionalGroupInfo(fg, () => {
                                 //process complete! refresh the data on the page
                                 this.environmentClick();
@@ -235,6 +285,7 @@
         beforeDestroy () {
             // ensure closing of all modals
             this.$refs.functionalGroupModal.onAfterLeave();
+            this.$refs.promoteModal.onAfterLeave();
         }
     }
 </script>
