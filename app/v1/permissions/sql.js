@@ -1,0 +1,119 @@
+//a repository of all the SQL statements
+const sql = require('sql-bricks-postgres');
+const config = require('../../../settings.js'); //configuration module
+const log = require(`../../../custom/loggers/${config.loggerModule}/index.js`);
+const db = require(`../../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
+
+const permissions = sql.select('*')
+    .from('permissions')
+    .toString();
+
+const permissionRelationsNoModules = sql.select('child_permission_name', 'parent_permission_name')
+    .from('permission_relations')
+    .innerJoin('permissions', {
+        'permissions.name': 'permission_relations.child_permission_name'
+    })
+    .where(
+        sql.notEq('type', 'MODULE')
+    )
+    .toString();
+
+module.exports = {
+    insert: {
+        permissions: insertPermissions,
+        permissionRelations: insertPermissionRelations
+    },
+    permissions: permissions,
+    permissionRelationsNoModules: permissionRelationsNoModules,
+    unmappedPermissions: findUnmappedPermissions
+}
+
+function insertPermissions (permissionObjs) {
+    return permissionObjs.map(function (permission) {
+        return sql.insert('permissions', 'name', 'type')
+            .select
+                (
+                `'${permission.name}' AS name`,
+                `'${permission.type}' AS type`
+                )
+            .where(
+                sql.not(
+                    sql.exists(
+                        sql.select('*')
+                        .from('permissions perm')
+                        .where({
+                            'perm.name': permission.name
+                        })
+                    )
+                )
+            )
+            .toString();
+    });
+}
+
+function insertPermissionRelations (permissionRelationObjs) {
+    return permissionRelationObjs.map(function (permissionRelation) {
+        return sql.insert('permission_relations', 'child_permission_name', 'parent_permission_name')
+            .select
+                (
+                `'${permissionRelation.child_permission_name}' AS child_permission_name`,
+                `'${permissionRelation.parent_permission_name}' AS parent_permission_name`
+                )
+            .where(
+                sql.not(
+                    sql.exists(
+                        sql.select('*')
+                            .from('permission_relations perm_rel')
+                            .where({
+                                'perm_rel.child_permission_name': permissionRelation.child_permission_name,
+                                'perm_rel.parent_permission_name': permissionRelation.parent_permission_name
+                            })
+                    )
+                )
+            )
+            .toString();
+    });
+}
+
+//these get all permissions not assigned to a functional group. permissions of type MODULE are excluded
+//since they don't belong in functional groups
+function findUnmappedPermissions (isProduction) {
+    /*const mappedPermsProduction = sql.select('*').from('view_mapped_permissions')
+        .where({status: 'PRODUCTION'});
+
+    const mappedPermsGroup = sql.select('max(id) AS id', 'property_name')
+        .from('view_mapped_permissions')
+        .groupBy('property_name');
+
+    const mappedPermsStaging = sql.select('mp.id', 'mp.property_name', 'view_mapped_permissions.name')
+        .from('(' + mappedPermsGroup + ') mp')
+        .innerJoin('view_mapped_permissions', {'view_mapped_permissions.id': 'mp.id'});*/
+
+    let chosenPermissionFilter;
+
+    if (isProduction) {
+        //filter out mapped permissions so only production entries exist,
+        //then find unmapped permissions from that reduced set
+        //chosenPermissionFilter = mappedPermsProduction;
+        chosenPermissionFilter = sql.select('*').from('view_mapped_permissions_production');
+    }
+    else {
+        //filter out mapped permissions based on highest id,
+        //then find unmapped permissions from that reduced set
+        //chosenPermissionFilter = mappedPermsStaging;
+        chosenPermissionFilter = sql.select('*').from('view_mapped_permissions_staging');
+    }
+
+    return sql.select('permissions.name', 'permissions.type')
+        .from('(' + chosenPermissionFilter + ') vmp')
+        .rightOuterJoin('permissions', {
+            'permissions.name': 'vmp.name'
+        })
+        .where(
+            sql.and(
+                sql.isNull('vmp.name'),
+                sql.notEq('permissions.type', 'MODULE')
+            )
+        )
+        .toString();
+}
