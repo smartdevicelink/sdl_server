@@ -1,7 +1,8 @@
-const sql = require('../sql');
-const flow = require('../flow');
-const log = require('../../custom/loggers/winston');
-const db = require('../../custom/databases/postgres')(log);
+const app = require('../app');
+const sql = app.locals.sql;
+const flow = app.locals.flow;
+const log = app.locals.log;
+const db = app.locals.db;
 
 function storeApps (includeApprovalStatus) {
     return function (apps, next) {
@@ -48,8 +49,8 @@ function storePermissions (permissions, next) {
     }
 
     //insert permissions first, then permission relations
-    const insertPermissions = sql.setupSqlInsertsNoError(sql.insert.permissions(permissionObjs));
-    const insertPermissionRelations = sql.setupSqlInsertsNoError(sql.insert.permissionRelations(permissionRelationObjs));
+    const insertPermissions = db.setupSqlCommands(sql.insert.permissions(permissionObjs));
+    const insertPermissionRelations = db.setupSqlCommands(sql.insert.permissionRelations(permissionRelationObjs));
     const insertArray = [
         flow(insertPermissions, {method: 'parallel'}),
         flow(insertPermissionRelations, {method: 'parallel'})
@@ -126,7 +127,7 @@ function filterApps (includeApprovalStatus) {
 function autoApprovalModifier (appObjs, next) {
     const appObjsMap = appObjs.map(function (appObj) {
         return function (next) {
-            const sqlAutoApprovalCheck = sql.setupSqlCommand(sql.checkAutoApproval(appObj.uuid));
+            const sqlAutoApprovalCheck = db.setupSqlCommand.bind(null, sql.checkAutoApproval(appObj.uuid));
             sqlAutoApprovalCheck(function (err, res) {
                 //if res is not an empty array, then a record was found in the app_auto_approval table
                 //change the status of this appObj to ACCEPTED
@@ -199,7 +200,7 @@ function convertAppObjsJson (appObjs, next) {
 
 function insertApps (appPieces, next) {
     //stage 1: insert vendors
-    const insertVendors = flow(sql.setupSqlCommands(sql.insert.vendors(appPieces.vendors)), {method: 'parallel'});
+    const insertVendors = flow(db.setupSqlCommands(sql.insert.vendors(appPieces.vendors)), {method: 'parallel'});
     //NOTE: relies on the order of the inserts being the same as the returning values
     insertVendors(function (err, res) {
         //flatten the nested arrays to get one array of vendors
@@ -216,7 +217,7 @@ function insertApps (appPieces, next) {
             appPieces.baseApps[i].vendor_id = tempIdToNewVendorIdHash[appPieces.baseApps[i].TEMP_ID];
         }
         //stage 2: insert app objects
-        const insertBaseApps = flow(sql.setupSqlCommands(sql.insert.appInfo(appPieces.baseApps)), {method: 'parallel'});
+        const insertBaseApps = flow(db.setupSqlCommands(sql.insert.appInfo(appPieces.baseApps)), {method: 'parallel'});
         insertBaseApps(function (err, res) {
             //flatten the nested arrays to get one array of app objs
             const newBaseApps = res.map(function (elem) {
@@ -239,10 +240,10 @@ function insertApps (appPieces, next) {
                 appPieces.appPermissions[i].id = tempIdToNewIdHash[appPieces.appPermissions[i].TEMP_ID];
             }            
             //stage 3: insert countries, display names, permissions, and app auto approvals
-            const insertAppCountries = sql.setupSqlCommands(sql.insert.appCountries(appPieces.appCountries));
-            const insertAppDisplayNames = sql.setupSqlCommands(sql.insert.appDisplayNames(appPieces.appDisplayNames));
-            const insertAppPermissions = sql.setupSqlCommands(sql.insert.appPermissions(appPieces.appPermissions));
-            const insertAppAutoApproval = sql.setupSqlCommands(sql.insert.appAutoApprovals(appPieces.appAutoApprovals));
+            const insertAppCountries = db.setupSqlCommands(sql.insert.appCountries(appPieces.appCountries));
+            const insertAppDisplayNames = db.setupSqlCommands(sql.insert.appDisplayNames(appPieces.appDisplayNames));
+            const insertAppPermissions = db.setupSqlCommands(sql.insert.appPermissions(appPieces.appPermissions));
+            const insertAppAutoApproval = db.setupSqlCommands(sql.insert.appAutoApprovals(appPieces.appAutoApprovals));
             //no insert to categories needed: the info is part of the app info object
             const flowInsertArray = insertAppCountries.concat(insertAppDisplayNames).concat(insertAppPermissions).concat(insertAppAutoApproval);
             //setup all the inserts and return the final flow!
@@ -253,39 +254,6 @@ function insertApps (appPieces, next) {
         });        
     });    
 }
-
-/*
-function insertApps (appObjs, next) {
-    const insertFlows = appObjs.map(function (appObj) {
-        //store vendor first, then app obj, referencing vendor ID in the app info obj matching vendor name + email + max id
-        //then add countries, display names, permissions, category, and auto approval referencing app info matching app uuid + max id
-        const insertVendor = sql.setupSqlInsertsNoError([sql.insert.vendor(appObj.vendor.name, appObj.vendor.email)])[0];
-        const insertAppObj = sql.setupSqlInsertsNoError([sql.insert.appInfo(appObj)])[0];
-
-        const insertAppCountries = sql.setupSqlInsertsNoError(sql.insert.appCountries(appObj));
-        const insertAppDisplayNames = sql.setupSqlInsertsNoError(sql.insert.appDisplayNames(appObj));
-        const insertAppPermissions = sql.setupSqlInsertsNoError(sql.insert.appPermissions(appObj));
-        const insertAppAutoApproval = sql.setupSqlInsertsNoError(sql.insert.appAutoApproval(appObj));
-        //no insert to categories needed: the info is part of the app info object
-        const flowInsertArray = insertAppCountries.concat(insertAppDisplayNames).concat(insertAppPermissions).concat(insertAppAutoApproval);
-        //setup all the inserts and return the final flow!
-        const miscInsertFlow = flow(flowInsertArray, {method: 'parallel'});
-        
-        return flow([insertVendor, insertAppObj, miscInsertFlow, print], {method: 'series'});          
-        function print (cb) {
-            log.info("New/updated app " + appObj.uuid + " added to the database");
-            cb();
-        }  
-    });
-    //execute the array of flows!
-    flow(insertFlows, {method: 'parallel'})(function (err, res) {
-        if (err) {
-            log.error(err);
-        }
-        next();        
-    });          
-}
-*/
 
 module.exports = {
     storeApps: storeApps,

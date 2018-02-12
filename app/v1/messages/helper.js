@@ -1,11 +1,10 @@
 const check = require('check-types');
 const app = require('../app');
-const setupSql = app.locals.sql.setupSqlCommand;
+const setupSql = app.locals.db.setupSqlCommand;
 const model = require('./model.js');
 const parseXml = require('xml2js').parseString;
 const needle = require('needle');
 const githubLanguageSourceUrl = 'https://raw.githubusercontent.com/smartdevicelink/rpc_spec/master/MOBILE_API.xml';
-const setupInsertsSql = app.locals.sql.setupSqlInsertsNoError;
 
 //validation functions
 
@@ -66,10 +65,10 @@ function getMessageGroups (isProduction, cb) {
     //in the language of the user, and the second category is in case an entry for that
     //category in that language doesn't exist, so fall back to another text
     const getMessagesFlow = app.locals.flow([
-        setupSql(app.locals.sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
-        setupSql(app.locals.sql.getMessages.categoryByMaxId(isProduction)),
-        setupSql(app.locals.sql.getMessages.status(isProduction)),
-        setupSql(app.locals.sql.getMessages.group(isProduction))
+        setupSql.bind(null, app.locals.sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
+        setupSql.bind(null, app.locals.sql.getMessages.categoryByMaxId(isProduction)),
+        setupSql.bind(null, app.locals.sql.getMessages.status(isProduction)),
+        setupSql.bind(null, app.locals.sql.getMessages.group(isProduction))
     ], {method: 'parallel'});
 
     const getCategoriesFlow = app.locals.flow([
@@ -84,8 +83,8 @@ function getMessageGroups (isProduction, cb) {
 function getMessageDetailsFlow (id) {
     const getInfoFlow = app.locals.flow([
         makeCategoryTemplateFlow(),
-        setupSql(app.locals.sql.getMessages.byId(id)),
-        setupSql(app.locals.sql.getMessages.groupById(id))
+        setupSql.bind(null, app.locals.sql.getMessages.byId(id)),
+        setupSql.bind(null, app.locals.sql.getMessages.groupById(id))
     ], {method: 'parallel'});
 
     return app.locals.flow([
@@ -96,7 +95,7 @@ function getMessageDetailsFlow (id) {
 
 function makeCategoryTemplateFlow () {
     const getTemplateInfo = app.locals.flow([
-        setupSql(app.locals.sql.getLanguages),
+        setupSql.bind(null, app.locals.sql.getLanguages),
     ], {method: 'parallel'});
 
     return app.locals.flow([
@@ -109,8 +108,8 @@ function makeCategoryTemplateFlow () {
 //doesn't make an object out of the data
 function getMessagesDetailsSqlFlow (ids) {
     return app.locals.flow([
-        setupSql(app.locals.sql.getMessages.groupsByIds(ids)),
-        setupSql(app.locals.sql.getMessages.byIds(ids))
+        setupSql.bind(null, app.locals.sql.getMessages.groupsByIds(ids)),
+        setupSql.bind(null, app.locals.sql.getMessages.byIds(ids))
     ], {method: 'parallel'});
 }
 
@@ -161,7 +160,7 @@ function updateLanguages (next) {
     ];
 
     function insertLanguages (languages, next) {
-        app.locals.flow(setupInsertsSql(app.locals.sql.insert.languages(languages)), {method: 'parallel'})(next);
+        app.locals.flow(app.locals.db.setupSqlCommands(app.locals.sql.insert.languages(languages)), {method: 'parallel'})(next);
     }
 
     app.locals.flow(messageStoreFlow, {method: 'waterfall'})(function (err, res) {

@@ -7,7 +7,6 @@ const log = require(`../../custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
 const sql = require('../../lib/sql'); //module for easily setting up SQL commands
 const flow = require('../../lib/flow'); //module for executing asynchronous functions without nesting
-const shaid = require('../../lib/shaid'); //module for communicating with SHAID
 const parcel = require('./helpers/parcel');
 const Cron = require('cron').CronJob;
 
@@ -17,11 +16,12 @@ app.locals.log = log;
 app.locals.db = db;
 app.locals.sql = sql;
 app.locals.flow = flow;
-app.locals.shaid = shaid;
 
 //export app before requiring dependent modules to avoid circular dependency issues
 module.exports = app;
 
+//module for communicating with SHAID
+app.locals.shaid = require('./shaid'); 
 //load all the routes in the controllers files and other places
 const login = require('./login/controller.js');
 const forgot = require('./forgot/controller.js');
@@ -48,7 +48,7 @@ app.post('/production/policy', policy.postFromCoreProduction);
 app.get('/policy/preview', policy.getPreview);
 app.post('/policy/apps', policy.postAppPolicy);
 //end policy table routes
-app.post('/webhook', shaid.webhook); //webhook route
+app.post('/webhook', app.locals.shaid.webhook); //webhook route
 app.post('/permissions/update', permissions.post);
 app.get('/permissions/unmapped', permissions.get);
 app.get('/groups', groups.get);
@@ -78,7 +78,7 @@ messages.updateLanguages(function () {
 });
 
 //get and store app info from SHAID on startup
-shaid.queryAndStoreApplications({}, function () {
+app.locals.shaid.queryAndStoreApplications({}, function () {
 	log.info("App information updated");
 });
 

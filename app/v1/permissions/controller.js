@@ -1,11 +1,11 @@
 const app = require('../app');
 const utils = require('../policy/utils');
-const setupSql = app.locals.sql.setupSqlCommand;
+const setupSql = app.locals.db.setupSqlCommand;
 
 function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
     const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
-    const findUnmappedPermissions = setupSql(app.locals.sql.unmappedPermissions(isProduction))
+    const findUnmappedPermissions = setupSql.bind(null, app.locals.sql.unmappedPermissions(isProduction))
     findUnmappedPermissions(function (err, permissions) {
         if (err) {
             return res.parcel

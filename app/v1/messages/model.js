@@ -1,6 +1,5 @@
 const app = require('../app');
-const setupSqlCommands = app.locals.sql.setupSqlCommands;
-const setupInsertsSql = app.locals.sql.setupSqlInsertsNoError;
+const setupSqlCommands = app.locals.db.setupSqlCommands;
 
 function combineMessageCategoryInfo (messageInfo, next) {
     const filteredCategories = messageInfo[0];
@@ -129,7 +128,7 @@ function insertMessagesSql (isProduction, data, next) {
         }
 
         //insert message texts
-        const insertTexts = app.locals.flow(setupInsertsSql(app.locals.sql.insert.messageTexts(messageTexts)), {method: 'parallel'});
+        const insertTexts = app.locals.flow(setupSqlCommands(app.locals.sql.insert.messageTexts(messageTexts)), {method: 'parallel'});
         insertTexts(function (err, res) {
             next(); //done
         });

@@ -1,7 +1,6 @@
 const app = require('../app');
 const utils = require('../policy/utils.js');
-const setupSqlCommands = app.locals.sql.setupSqlCommands;
-const setupInsertsSql = app.locals.sql.setupSqlInsertsNoError;
+const setupSqlCommands = app.locals.db.setupSqlCommands;
 
 //the function that makes the API response given that all the information is known
 function makeFunctionGroups (info, next) {
@@ -237,8 +236,8 @@ function insertFuncGroupSql (isProduction, data, next) {
 
         //insert hmi levels and parameters
         const insertExtraInfo = app.locals.flow([
-            app.locals.flow(setupInsertsSql(app.locals.sql.insert.funcHmiLevels(hmiLevels)), {method: 'parallel'}),
-            app.locals.flow(setupInsertsSql(app.locals.sql.insert.funcParameters(parameters)), {method: 'parallel'})
+            app.locals.flow(setupSqlCommands(app.locals.sql.insert.funcHmiLevels(hmiLevels)), {method: 'parallel'}),
+            app.locals.flow(setupSqlCommands(app.locals.sql.insert.funcParameters(parameters)), {method: 'parallel'})
         ], {method: 'parallel'});
         insertExtraInfo(function (err, res) {
             next(); //done

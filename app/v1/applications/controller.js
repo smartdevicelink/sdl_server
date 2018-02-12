@@ -1,5 +1,5 @@
 const app = require('../app');
-const setupSql = app.locals.sql.setupSqlCommand;
+const setupSql = app.locals.db.setupSqlCommand;
 const check = require('check-types');
 const helper = require('./helper.js');
 const model = require('./model.js');
@@ -48,7 +48,7 @@ function actionPost (req, res, next) {
 
 	//get app by id, and modify the existing entry in the database to change the approval status
 	const modifyAppFlow = [
-		setupSql(app.locals.sql.changeAppApprovalStatus(req.body.id, req.body.approval_status))
+		setupSql.bind(null, app.locals.sql.changeAppApprovalStatus(req.body.id, req.body.approval_status))
 	];
 
 	helper.handleResponseStatusFlow(modifyAppFlow, res);
@@ -68,11 +68,11 @@ function autoPost (req, res, next) {
 			is_auto_approved_enabled: req.body.is_auto_approved_enabled,
 			uuid: req.body.uuid
 		};
-		chosenFlow = app.locals.sql.setupSqlInsertsNoError(app.locals.sql.insert.appAutoApproval(appObj));
+		chosenFlow = app.locals.db.setupSqlCommands(app.locals.sql.insert.appAutoApproval(appObj));
 	}
 	else {
 		//remove the uuid from the auto approval table
-		chosenFlow = [setupSql(app.locals.sql.delete.autoApproval(req.body.uuid))];
+		chosenFlow = [setupSql.bind(null, app.locals.sql.delete.autoApproval(req.body.uuid))];
 	}
 
 	helper.handleResponseStatusFlow(chosenFlow, res);

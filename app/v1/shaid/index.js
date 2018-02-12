@@ -1,6 +1,6 @@
 const request = require('request');
 const shaidkit = require('shaidkit');
-const config = require('../../settings.js');
+const config = require('../../../settings.js');
 const utils = require('./utils.js');
 //a constant that informs the policy server the maximum number of apps returned at once from SHAID
 const MAX_APPLICATION_QUERY = 50; 

@@ -42,6 +42,38 @@ module.exports = function (log) {
                 //always return an array 
                 callback(err, (res && res.rows) ? res.rows : []);
             });
+        },
+        //given a SQL command, sets up a function to execute the query and pass back the results
+        setupSqlCommand: function (sqlString, next) {
+            self.sqlCommand(sqlString, function (err, res) {
+                if (err) {
+                    log.error(err);
+                    log.error(sqlString);
+                }
+                next(err, res);
+            });            
+        },
+        setupSqlCommands: function (sqlStringArray, propagateErrors) {
+            if (!Array.isArray(sqlStringArray)) { //if its just a single sql statement, make it into an array
+                sqlStringArray = [sqlStringArray];
+            }
+            return sqlStringArray.map(function (str) {
+                return function (next) {
+                    self.setupSqlCommand.bind(null, str)(function (err, res) {
+                        if (err) {
+                            log.error(err);
+                            log.error(sqlString);
+                        }
+                        if (propagateErrors) {
+                            next(err, res);
+                        }
+                        else {
+                            next(null, res); //do not propagate errors. if an error happens, continue anyway
+                        }
+                        
+                    });
+                }
+            });            
         }
     }
     return self;

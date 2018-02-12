@@ -1,6 +1,6 @@
 const app = require('../app');
 const model = require('./model.js');
-const setupSqlCommand = app.locals.sql.setupSqlCommand;
+const setupSqlCommand = app.locals.db.setupSqlCommand;
 
 //TODO: remove this
 const test = {
@@ -100,8 +100,8 @@ function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
 
 function setupModuleConfig (isProduction) {
     const getModuleConfig = [
-        setupSqlCommand(app.locals.sql.moduleConfig.info),
-        setupSqlCommand(app.locals.sql.moduleConfig.retrySeconds)
+        setupSqlCommand.bind(null, app.locals.sql.moduleConfig.info),
+        setupSqlCommand.bind(null, app.locals.sql.moduleConfig.retrySeconds)
     ];
     const moduleConfigGetFlow = app.locals.flow(getModuleConfig, {method: 'parallel'});
     const makeModuleConfig = [
@@ -114,7 +114,7 @@ function setupModuleConfig (isProduction) {
 
 function setupConsumerFriendlyMessages (isProduction) {
     const makeMessages = [
-        setupSqlCommand(app.locals.sql.getMessages.status(isProduction)),
+        setupSqlCommand.bind(null, app.locals.sql.getMessages.status(isProduction)),
         model.messagesSkeleton
     ];
     return app.locals.flow(makeMessages, {method: 'waterfall'});  
@@ -122,9 +122,9 @@ function setupConsumerFriendlyMessages (isProduction) {
 
 function setupFunctionalGroups (isProduction) {
     const getFunctionGroupInfo = [
-        setupSqlCommand(app.locals.sql.funcGroup.info),
-        setupSqlCommand(app.locals.sql.funcGroup.hmiLevels),
-        setupSqlCommand(app.locals.sql.funcGroup.parameters)
+        setupSqlCommand.bind(null, app.locals.sql.funcGroup.info),
+        setupSqlCommand.bind(null, app.locals.sql.funcGroup.hmiLevels),
+        setupSqlCommand.bind(null, app.locals.sql.funcGroup.parameters)
     ];
     const funcGroupGetFlow = app.locals.flow(getFunctionGroupInfo, {method: 'parallel'});
     const makeFunctionGroupInfo = [
@@ -139,7 +139,7 @@ function setupFunctionalGroups (isProduction) {
 function setupAppPolicies (isProduction, reqAppPolicy) {
     const uuids = Object.keys(reqAppPolicy);
     const getAppPolicy = [
-        setupSqlCommand(app.locals.sql.appInfo.base(isProduction, uuids)),
+        setupSqlCommand.bind(null, app.locals.sql.appInfo.base(isProduction, uuids)),
         mapAppBaseInfo(isProduction)
     ];
     const getAppInfoBaseFlow = app.locals.flow(getAppPolicy, {method: 'waterfall'});
@@ -150,9 +150,9 @@ function mapAppBaseInfo (isProduction) {
     return function (appObjs, next) {
         const makeFlowArray = appObjs.map(function (appObj) {
             const getAppInfo = [
-                setupSqlCommand(app.locals.sql.appInfo.displayNames(appObj.id)),
-                setupSqlCommand(app.locals.sql.appInfo.modules(appObj.id)),
-                setupSqlCommand(app.locals.sql.appInfo.funcGroups(isProduction, appObj)),
+                setupSqlCommand.bind(null, app.locals.sql.appInfo.displayNames(appObj.id)),
+                setupSqlCommand.bind(null, app.locals.sql.appInfo.modules(appObj.id)),
+                setupSqlCommand.bind(null, app.locals.sql.appInfo.funcGroups(isProduction, appObj)),
                 function (next) {
                     next(null, appObj);
                 }

@@ -1,9 +1,7 @@
 const app = require('../app');
-const setupSql = app.locals.sql.setupSqlCommand;
 const check = require('check-types');
 const model = require('./model.js');
 const helper = require('./helper.js');
-
 
 function getInfo (req, res, next) {
     //if environment is not of value "staging", then set the environment to production

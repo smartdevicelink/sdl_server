@@ -1,4 +1,3 @@
-const app = require('../app');
 const utils = require('./utils');
 
 //module config 
