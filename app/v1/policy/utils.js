@@ -1,4 +1,3 @@
-const app = require('../app');
 const check = require('check-types');
 
 //given an existing hash, an array of homogenous objects, a function that transforms those objects into
