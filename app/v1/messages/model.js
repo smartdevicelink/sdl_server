@@ -1,5 +1,6 @@
 const app = require('../app');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
+const sql = require('./sql.js');
 
 function combineMessageCategoryInfo (messageInfo, next) {
     const filteredCategories = messageInfo[0];
@@ -28,7 +29,7 @@ function combineMessageCategoryInfo (messageInfo, next) {
             tempHash[allMessages[i].message_category].language_count = 0;
         }
         tempHash[allMessages[i].message_category].language_count++;
-    }    
+    }
 
     //if there's a deleted category, the tempHash may have those deleted categories included
     //because it's using a different query, and we do not want that info for the groupsHash if that happens
@@ -37,7 +38,7 @@ function combineMessageCategoryInfo (messageInfo, next) {
         const textInfo = tempHash[category];
         if (groupsHash[category]) { //existence check
             groupsHash[category].text = textInfo.tts; //attach the tts to a custom property so the UI can display a message
-            groupsHash[category].language_count = textInfo.language_count;            
+            groupsHash[category].language_count = textInfo.language_count;
         }
     }
 
@@ -75,11 +76,11 @@ function convertMessagesJson (messagesObj) {
                     text_body: text.text_body,
                     label: text.label,
                     message_group_id: text.message_category_id //for future reference
-                });                
+                });
             }
-        }        
+        }
     }
-    
+
     return [messageGroups, messageTexts];
 }
 
@@ -104,7 +105,7 @@ function insertMessagesSql (isProduction, data, next) {
     }
 
     //insert message groups
-    const insertGroups = app.locals.flow(setupSqlCommands(app.locals.sql.insert.messageGroups(messageGroups)), {method: 'parallel'});
+    const insertGroups = app.locals.flow(setupSqlCommands(sql.insert.messageGroups(messageGroups)), {method: 'parallel'});
     insertGroups(function (err, res) {
         //flatten the nested arrays to get one array of groups
         const newGroups = res.map(function (elem) {
@@ -121,14 +122,14 @@ function insertMessagesSql (isProduction, data, next) {
         let oldGroupIdtoIdHash = {}; //old id to category to new id
         for (let i = 0; i < messageGroups.length; i++) {
             oldGroupIdtoIdHash[messageGroups[i].id] = newGroupCategoryToIdHash[messageGroups[i].message_category];
-        }        
+        }
         //add group id to each message
         for (let i = 0; i < messageTexts.length; i++) {
             messageTexts[i].message_group_id = oldGroupIdtoIdHash[messageTexts[i].message_group_id];
         }
 
         //insert message texts
-        const insertTexts = app.locals.flow(setupSqlCommands(app.locals.sql.insert.messageTexts(messageTexts)), {method: 'parallel'});
+        const insertTexts = app.locals.flow(setupSqlCommands(sql.insert.messageTexts(messageTexts)), {method: 'parallel'});
         insertTexts(function (err, res) {
             next(); //done
         });
@@ -179,9 +180,9 @@ function transformMessages (info, next) {
             line2: text.line2,
             tts: text.tts,
             text_body: text.text_body,
-            label: text.label            
+            label: text.label
         }
-    }    
+    }
 
     template = arrayifyTemplate(template);
 
