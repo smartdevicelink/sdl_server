@@ -1,6 +1,7 @@
 const app = require('../app');
 const model = require('./model.js');
 const setupSql = app.locals.db.setupSqlCommand;
+const sql = require('./sql.js');
 
 //validation functions
 
@@ -28,13 +29,13 @@ function validateAutoPost (req, res) {
 //gets back app information depending on the filters passed in
 function createAppInfoFlow (filterTypeFunc, value) {
 	const getAppFlow = app.locals.flow([
-		setupSql.bind(null, app.locals.sql.getApp.base[filterTypeFunc](value)),
-		setupSql.bind(null, app.locals.sql.getApp.countries[filterTypeFunc](value)),
-		setupSql.bind(null, app.locals.sql.getApp.displayNames[filterTypeFunc](value)),
-		setupSql.bind(null, app.locals.sql.getApp.permissions[filterTypeFunc](value)),
-		setupSql.bind(null, app.locals.sql.getApp.vendor[filterTypeFunc](value)),
-		setupSql.bind(null, app.locals.sql.getApp.category[filterTypeFunc](value)),
-		setupSql.bind(null, app.locals.sql.getApp.autoApproval[filterTypeFunc](value))
+		setupSql.bind(null, sql.getApp.base[filterTypeFunc](value)),
+		setupSql.bind(null, sql.getApp.countries[filterTypeFunc](value)),
+		setupSql.bind(null, sql.getApp.displayNames[filterTypeFunc](value)),
+		setupSql.bind(null, sql.getApp.permissions[filterTypeFunc](value)),
+		setupSql.bind(null, sql.getApp.vendor[filterTypeFunc](value)),
+		setupSql.bind(null, sql.getApp.category[filterTypeFunc](value)),
+		setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value))
 	], {method: 'parallel'});
 
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall"});

@@ -5,7 +5,7 @@ let app = express();
 const config = require('../../settings.js'); //configuration module
 const log = require(`../../custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
-const sql = require('../../lib/sql'); //module for easily setting up SQL commands
+//const sql = require('../../lib/sql'); //module for easily setting up SQL commands
 const flow = require('../../lib/flow'); //module for executing asynchronous functions without nesting
 const parcel = require('./helpers/parcel');
 const Cron = require('cron').CronJob;
@@ -14,7 +14,7 @@ const Cron = require('cron').CronJob;
 app.locals.config = config;
 app.locals.log = log;
 app.locals.db = db;
-app.locals.sql = sql;
+//app.locals.sql = sql;
 app.locals.flow = flow;
 
 //export app before requiring dependent modules to avoid circular dependency issues

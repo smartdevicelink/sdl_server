@@ -1,6 +1,7 @@
 const app = require('../app');
 const utils = require('../policy/utils.js');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
+const sql = require('./sql.js');
 
 //the function that makes the API response given that all the information is known
 function makeFunctionGroups (info, next) {
@@ -208,7 +209,7 @@ function insertFuncGroupSql (isProduction, data, next) {
     }
 
     //insert message groups
-    const insertGroups = app.locals.flow(setupSqlCommands(app.locals.sql.insert.funcGroupInfo(groupInfo)), {method: 'parallel'});
+    const insertGroups = app.locals.flow(setupSqlCommands(sql.insertFuncGroupInfo(groupInfo)), {method: 'parallel'});
     insertGroups(function (err, res) {
         //flatten the nested arrays to get one array of groups
         const newGroupInfo = res.map(function (elem) {
@@ -236,8 +237,8 @@ function insertFuncGroupSql (isProduction, data, next) {
 
         //insert hmi levels and parameters
         const insertExtraInfo = app.locals.flow([
-            app.locals.flow(setupSqlCommands(app.locals.sql.insert.funcHmiLevels(hmiLevels)), {method: 'parallel'}),
-            app.locals.flow(setupSqlCommands(app.locals.sql.insert.funcParameters(parameters)), {method: 'parallel'})
+            app.locals.flow(setupSqlCommands(sql.insertHmiLevels(hmiLevels)), {method: 'parallel'}),
+            app.locals.flow(setupSqlCommands(sql.insertParameters(parameters)), {method: 'parallel'})
         ], {method: 'parallel'});
         insertExtraInfo(function (err, res) {
             next(); //done

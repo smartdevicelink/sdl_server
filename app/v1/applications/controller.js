@@ -3,12 +3,11 @@ const setupSql = app.locals.db.setupSqlCommand;
 const check = require('check-types');
 const helper = require('./helper.js');
 const model = require('./model.js');
+const sql = require('./sql.js');
 
 function get (req, res, next) {
 	//prioritize id, uuid, approval status, in that order.
 	//only one parameter can be acted upon in one request
-	const appFilterApproval = app.locals.sql.getAppApprovalStatus;
-	const appFilterId = app.locals.sql.getAppId;
 	let chosenFlow; //to be determined
 
 	if (req.query.id) { //filter by id
@@ -48,7 +47,7 @@ function actionPost (req, res, next) {
 
 	//get app by id, and modify the existing entry in the database to change the approval status
 	const modifyAppFlow = [
-		setupSql.bind(null, app.locals.sql.changeAppApprovalStatus(req.body.id, req.body.approval_status))
+		setupSql.bind(null, sql.changeAppApprovalStatus(req.body.id, req.body.approval_status))
 	];
 
 	helper.handleResponseStatusFlow(modifyAppFlow, res);
@@ -68,11 +67,11 @@ function autoPost (req, res, next) {
 			is_auto_approved_enabled: req.body.is_auto_approved_enabled,
 			uuid: req.body.uuid
 		};
-		chosenFlow = app.locals.db.setupSqlCommands(app.locals.sql.insert.appAutoApproval(appObj));
+		chosenFlow = app.locals.db.setupSqlCommands(sql.insertAppAutoApprovals(appObj));
 	}
 	else {
 		//remove the uuid from the auto approval table
-		chosenFlow = [setupSql.bind(null, app.locals.sql.delete.autoApproval(req.body.uuid))];
+		chosenFlow = [setupSql.bind(null, sql.deleteAutoApproval(req.body.uuid))];
 	}
 
 	helper.handleResponseStatusFlow(chosenFlow, res);

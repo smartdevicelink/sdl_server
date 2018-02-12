@@ -5,6 +5,7 @@ const messages = require('../messages/controller.js');
 const flow = app.locals.flow;
 const setupSql = app.locals.db.setupSqlCommand;
 const utils = require('../policy/utils.js');
+const sql = require('./sql.js');
 
 //validation functions
 
@@ -93,9 +94,9 @@ function validateFuncGroup (req, res) {
 
 function makeTemplateFlowStart () {
     const getTemplateInfo = flow([
-        setupSql.bind(null, app.locals.sql.rpcs),
-        setupSql.bind(null, app.locals.sql.permissionRelationsNoModules),
-        setupSql.bind(null, app.locals.sql.hmiLevels),
+        setupSql.bind(null, sql.rpcs),
+        setupSql.bind(null, sql.permissionRelationsNoModules),
+        setupSql.bind(null, sql.hmiLevels),
     ], {method: 'parallel'});
 
     return [
@@ -120,9 +121,9 @@ function createFuncGroupFlow (filterTypeProp, value, includeRpcs) {
     const makeTemplateFlow = flow(makeTemplateArray, {method: 'waterfall'});
 
     const getFuncGroupFlow = flow([
-        setupSql.bind(null, app.locals.sql.getFuncGroup.base[filterTypeProp](value)),
-        setupSql.bind(null, app.locals.sql.getFuncGroup.hmiLevels[filterTypeProp](value)),
-        setupSql.bind(null, app.locals.sql.getFuncGroup.parameters[filterTypeProp](value)),
+        setupSql.bind(null, sql.getFuncGroup.base[filterTypeProp](value)),
+        setupSql.bind(null, sql.getFuncGroup.hmiLevels[filterTypeProp](value)),
+        setupSql.bind(null, sql.getFuncGroup.parameters[filterTypeProp](value)),
         messages.getMessageGroups.bind(null, false) //get consent prompt values (always returns a value as if in STAGING mode)
     ], {method: 'parallel'});
 
@@ -141,9 +142,9 @@ function createFuncGroupFlow (filterTypeProp, value, includeRpcs) {
 //doesn't make an object out of the data
 function getFunctionGroupDetailsSqlFlow (ids) {
     return app.locals.flow([
-        setupSql.bind(null, app.locals.sql.getFuncGroup.base.ids(ids)),
-        setupSql.bind(null, app.locals.sql.getFuncGroup.hmiLevels.ids(ids)),
-        setupSql.bind(null, app.locals.sql.getFuncGroup.parameters.ids(ids))
+        setupSql.bind(null, sql.getFuncGroup.base.ids(ids)),
+        setupSql.bind(null, sql.getFuncGroup.hmiLevels.ids(ids)),
+        setupSql.bind(null, sql.getFuncGroup.parameters.ids(ids))
     ], {method: 'parallel'});
 }
 

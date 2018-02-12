@@ -1,8 +1,8 @@
 const app = require('../app');
-const sql = app.locals.sql;
 const flow = app.locals.flow;
 const log = app.locals.log;
 const db = app.locals.db;
+const sql = require('./sql.js');
 
 function storeApps (includeApprovalStatus) {
     return function (apps, next) {
@@ -49,8 +49,8 @@ function storePermissions (permissions, next) {
     }
 
     //insert permissions first, then permission relations
-    const insertPermissions = db.setupSqlCommands(sql.insert.permissions(permissionObjs));
-    const insertPermissionRelations = db.setupSqlCommands(sql.insert.permissionRelations(permissionRelationObjs));
+    const insertPermissions = db.setupSqlCommands(sql.insertPermissions(permissionObjs));
+    const insertPermissionRelations = db.setupSqlCommands(sql.insertPermissionRelations(permissionRelationObjs));
     const insertArray = [
         flow(insertPermissions, {method: 'parallel'}),
         flow(insertPermissionRelations, {method: 'parallel'})
@@ -200,7 +200,7 @@ function convertAppObjsJson (appObjs, next) {
 
 function insertApps (appPieces, next) {
     //stage 1: insert vendors
-    const insertVendors = flow(db.setupSqlCommands(sql.insert.vendors(appPieces.vendors)), {method: 'parallel'});
+    const insertVendors = flow(db.setupSqlCommands(sql.insertVendors(appPieces.vendors)), {method: 'parallel'});
     //NOTE: relies on the order of the inserts being the same as the returning values
     insertVendors(function (err, res) {
         //flatten the nested arrays to get one array of vendors
@@ -217,7 +217,7 @@ function insertApps (appPieces, next) {
             appPieces.baseApps[i].vendor_id = tempIdToNewVendorIdHash[appPieces.baseApps[i].TEMP_ID];
         }
         //stage 2: insert app objects
-        const insertBaseApps = flow(db.setupSqlCommands(sql.insert.appInfo(appPieces.baseApps)), {method: 'parallel'});
+        const insertBaseApps = flow(db.setupSqlCommands(sql.insertAppInfo(appPieces.baseApps)), {method: 'parallel'});
         insertBaseApps(function (err, res) {
             //flatten the nested arrays to get one array of app objs
             const newBaseApps = res.map(function (elem) {
@@ -240,10 +240,10 @@ function insertApps (appPieces, next) {
                 appPieces.appPermissions[i].id = tempIdToNewIdHash[appPieces.appPermissions[i].TEMP_ID];
             }            
             //stage 3: insert countries, display names, permissions, and app auto approvals
-            const insertAppCountries = db.setupSqlCommands(sql.insert.appCountries(appPieces.appCountries));
-            const insertAppDisplayNames = db.setupSqlCommands(sql.insert.appDisplayNames(appPieces.appDisplayNames));
-            const insertAppPermissions = db.setupSqlCommands(sql.insert.appPermissions(appPieces.appPermissions));
-            const insertAppAutoApproval = db.setupSqlCommands(sql.insert.appAutoApprovals(appPieces.appAutoApprovals));
+            const insertAppCountries = db.setupSqlCommands(sql.insertAppCountries(appPieces.appCountries));
+            const insertAppDisplayNames = db.setupSqlCommands(sql.insertAppDisplayNames(appPieces.appDisplayNames));
+            const insertAppPermissions = db.setupSqlCommands(sql.insertAppPermissions(appPieces.appPermissions));
+            const insertAppAutoApproval = db.setupSqlCommands(sql.insertAppAutoApprovals(appPieces.appAutoApprovals));
             //no insert to categories needed: the info is part of the app info object
             const flowInsertArray = insertAppCountries.concat(insertAppDisplayNames).concat(insertAppPermissions).concat(insertAppAutoApproval);
             //setup all the inserts and return the final flow!
