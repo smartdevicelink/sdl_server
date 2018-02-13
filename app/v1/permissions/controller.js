@@ -2,11 +2,12 @@ const app = require('../app');
 const utils = require('../policy/utils');
 const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
+const helper = require('./helper.js');
 
 function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
     const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
-    const findUnmappedPermissions = setupSql.bind(null, sql.unmappedPermissions(isProduction))
+    const findUnmappedPermissions = setupSql.bind(null, sql.findUnmappedPermissions(isProduction))
     findUnmappedPermissions(function (err, permissions) {
         if (err) {
             return res.parcel
@@ -58,12 +59,21 @@ function post (req, res, next) {
 }
 
 function updatePermissions (next) {
-    app.locals.shaid.queryAndStorePermissions({include_hidden: true, include_parents: true}, function (err) {
+    const queryObj = {
+        include_hidden: true, 
+        include_parents: true
+    };
+    const permissionFlow = app.locals.flow([
+        app.locals.shaid.getPermissions.bind(null, queryObj), 
+        helper.storePermissions
+    ], {method: "waterfall"});
+    
+    permissionFlow(function (err) {
         app.locals.log.info("Permission information updated");
         if (next) {
             next(err);
         }
-    });
+    });  
 }
 
 module.exports = {

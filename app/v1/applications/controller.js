@@ -1,9 +1,8 @@
 const app = require('../app');
 const setupSql = app.locals.db.setupSqlCommand;
-const check = require('check-types');
 const helper = require('./helper.js');
-const model = require('./model.js');
 const sql = require('./sql.js');
+const flow = app.locals.flow;
 
 function get (req, res, next) {
 	//prioritize id, uuid, approval status, in that order.
@@ -77,8 +76,163 @@ function autoPost (req, res, next) {
 	helper.handleResponseStatusFlow(chosenFlow, res);
 }
 
+function webhook (req, res, next) {
+    helper.validateWebHook(req, res);
+    if (res.parcel.message) {
+        return res.parcel.deliver();
+    }
+
+    if (req.body.entity === "application") {
+        const query = {
+            uuid: req.body.uuid
+        };
+
+        const queryAndStoreFlow = queryAndStoreApplicationsFlow(query);
+
+        queryAndStoreFlow(function (err) {
+            if (err) {
+                req.app.locals.log.error(err);
+            }
+            res.parcel.setStatus(200);         
+            res.parcel.deliver();
+        });
+    }
+}
+
+function queryAndStoreApplicationsFlow (queryObj) {
+    return flow([
+    	app.locals.shaid.getApplications.bind(null, queryObj),
+    	helper.storeApps.bind(null, false)
+    ], {method: 'waterfall'});
+}
+
+//TODO: remove this
+const TEMP_APPS = [{
+    "uuid": "9bb1d9c2-5d4c-457f-9d91-86a2f95132df",
+    "name": "Two App",
+    "display_names": [
+        "App Two",
+        "Application Two"
+    ],
+    "platform": "ANDROID",
+    "platform_app_id": "com.demo.app.two",
+    "status": "PRODUCTION",
+    "can_background_alert": false,
+    "can_steal_focus": true,
+    "tech_email": null,
+    "tech_phone": null,
+    "default_hmi_level": "HMI_NONE",
+    "created_ts": "2017-06-12T13:30:32.912Z",
+    "updated_ts": "2017-08-02T19:28:32.912Z",
+    "countries": [
+        {
+            "id": 1,
+            "iso": "AD",
+            "name": "Andorra"
+        },
+        {
+            "id": 2,
+            "iso": "AE",
+            "name": "United Arab Emirates"
+        }
+    ],
+    "permissions": [
+        {
+            "id": 18,
+            "key": "accPedalPosition",
+            "name": "Accelerator Pedal Position",
+            "hmi_level": "HMI_FULL",
+            "is_parameter": true,
+        },
+        {
+            "id": 20,
+            "key": "driverBraking",
+            "name": "Braking",
+            "hmi_level": "HMI_BACKGROUND",
+            "is_parameter": true
+        },
+        {
+            "id": 240,
+            "key": "CLIMATE",
+            "name": "CLIMATE",
+            "hmi_level": "HMI_BACKGROUND",
+            "is_parameter": true
+        },
+        {
+            "id": 66666,
+            "key": "speed",
+            "name": "Speed",
+            "hmi_level": "HMI_NONE",
+            "is_parameter": true
+        },
+    ],
+    "category": {
+        "id": 1,
+        "name": "DEFAULT",
+        "display_name": "Default"
+    },
+    "vendor": {
+        "id": 1,
+        "name": "Livio Web Team",
+        "email": "admin@example.com"
+    }
+},
+{
+    "uuid": "ab9eec11-5fd1-4255-b4cd-769b529c88c4",
+    "name": "idle_clicker",
+    "display_names": [
+        "Idle Clicker Android",
+        "Idle Clicker"
+    ],
+    "platform": "ANDROID",
+    "platform_app_id": "com.android.idle.clicker",
+    "status": "PRODUCTION",
+    "can_background_alert": true,
+    "can_steal_focus": true,
+    "tech_email": null,
+    "tech_phone": null,
+    "default_hmi_level": "HMI_NONE",
+    "created_ts": "2017-06-12T13:34:33.514Z",
+    "updated_ts": "2017-06-12T14:23:37.817Z",
+    "countries": [
+        {
+            "id": 77,
+            "iso": "GB",
+            "name": "United Kingdom"
+        },
+        {
+            "id": 233,
+            "iso": "US",
+            "name": "United States"
+        }
+    ],
+    "permissions": [
+        {
+            "id": 25,
+            "key": "airbagStatus",
+            "name": "Airbag Status",
+            "hmi_level": "HMI_BACKGROUND",
+            "is_parameter": true
+        }
+    ],
+    "category": {
+        "id": 2,
+        "name": "COMMUNICATION",
+        "display_name": "Communication"
+    },
+    "vendor": {
+        "id": 1,
+        "name": "Livio Web Team",
+        "email": "admin@example.com"
+    }
+}];
+
+helper.storeApps.bind(null, false)(TEMP_APPS, function () {});
+
 module.exports = {
 	get: get,
 	actionPost: actionPost,
-	autoPost: autoPost
+	autoPost: autoPost,
+	webhook: webhook,
+	queryAndStoreApplicationsFlow: queryAndStoreApplicationsFlow
 };

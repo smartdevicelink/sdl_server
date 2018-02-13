@@ -40,13 +40,13 @@ app.route("*").all(parcel.extendExpress);
 app.get('/applications', applications.get);
 app.post('/applications/action', applications.actionPost);
 app.post('/applications/auto', applications.autoPost);
+app.post('/webhook', applications.webhook); //webhook route
 //begin policy table routes
 app.post('/staging/policy', policy.postFromCoreStaging);
 app.post('/production/policy', policy.postFromCoreProduction);
 app.get('/policy/preview', policy.getPreview);
 app.post('/policy/apps', policy.postAppPolicy);
 //end policy table routes
-app.post('/webhook', app.locals.shaid.webhook); //webhook route
 app.post('/permissions/update', permissions.post);
 app.get('/permissions/unmapped', permissions.get);
 app.get('/groups', groups.get);
@@ -76,7 +76,7 @@ messages.updateLanguages(function () {
 });
 
 //get and store app info from SHAID on startup
-app.locals.shaid.queryAndStoreApplications({}, function () {
+applications.queryAndStoreApplicationsFlow({})(function () {
 	log.info("App information updated");
 });
 

@@ -1,32 +1,5 @@
 //a repository of all the SQL statements
 const sql = require('sql-bricks-postgres');
-const config = require('../../../settings.js'); //configuration module
-const log = require(`../../../custom/loggers/${config.loggerModule}/index.js`);
-const db = require(`../../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
-
-const permissions = sql.select('*')
-    .from('permissions')
-    .toString();
-
-const permissionRelationsNoModules = sql.select('child_permission_name', 'parent_permission_name')
-    .from('permission_relations')
-    .innerJoin('permissions', {
-        'permissions.name': 'permission_relations.child_permission_name'
-    })
-    .where(
-        sql.notEq('type', 'MODULE')
-    )
-    .toString();
-
-module.exports = {
-    insert: {
-        permissions: insertPermissions,
-        permissionRelations: insertPermissionRelations
-    },
-    permissions: permissions,
-    permissionRelationsNoModules: permissionRelationsNoModules,
-    unmappedPermissions: findUnmappedPermissions
-}
 
 function insertPermissions (permissionObjs) {
     return permissionObjs.map(function (permission) {
@@ -78,17 +51,6 @@ function insertPermissionRelations (permissionRelationObjs) {
 //these get all permissions not assigned to a functional group. permissions of type MODULE are excluded
 //since they don't belong in functional groups
 function findUnmappedPermissions (isProduction) {
-    /*const mappedPermsProduction = sql.select('*').from('view_mapped_permissions')
-        .where({status: 'PRODUCTION'});
-
-    const mappedPermsGroup = sql.select('max(id) AS id', 'property_name')
-        .from('view_mapped_permissions')
-        .groupBy('property_name');
-
-    const mappedPermsStaging = sql.select('mp.id', 'mp.property_name', 'view_mapped_permissions.name')
-        .from('(' + mappedPermsGroup + ') mp')
-        .innerJoin('view_mapped_permissions', {'view_mapped_permissions.id': 'mp.id'});*/
-
     let chosenPermissionFilter;
 
     if (isProduction) {
@@ -116,4 +78,11 @@ function findUnmappedPermissions (isProduction) {
             )
         )
         .toString();
+}
+
+
+module.exports = {
+    insertPermissions: insertPermissions,
+    insertPermissionRelations: insertPermissionRelations,
+    findUnmappedPermissions: findUnmappedPermissions
 }
