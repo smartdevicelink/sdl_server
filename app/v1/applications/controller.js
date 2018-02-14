@@ -49,7 +49,13 @@ function actionPost (req, res, next) {
 		setupSql.bind(null, sql.changeAppApprovalStatus(req.body.id, req.body.approval_status))
 	];
 
-	helper.handleResponseStatusFlow(modifyAppFlow, res);
+    app.locals.flow(modifyAppFlow, {method: "waterfall", eventLoop: true})(function (err, results) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.parcel.setStatus(500).deliver();
+        }
+        return res.parcel.setStatus(200).deliver();
+    });
 }
 
 function autoPost (req, res, next) {
@@ -62,20 +68,27 @@ function autoPost (req, res, next) {
 
 	if (req.body.is_auto_approved_enabled) {
 		//add the uuid to the auto approval table
-		const appObj = {
+		const objs = [{
 			is_auto_approved_enabled: req.body.is_auto_approved_enabled,
 			uuid: req.body.uuid
-		};
-		chosenFlow = app.locals.db.setupSqlCommands(sql.insertAppAutoApprovals(appObj));
+		}];
+		chosenFlow = app.locals.db.setupSqlCommands(sql.insertAppAutoApprovals(objs));
 	}
 	else {
 		//remove the uuid from the auto approval table
 		chosenFlow = [setupSql.bind(null, sql.deleteAutoApproval(req.body.uuid))];
 	}
 
-	helper.handleResponseStatusFlow(chosenFlow, res);
+    app.locals.flow(chosenFlow, {method: "waterfall", eventLoop: true})(function (err, results) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.parcel.setStatus(500).deliver();
+        }
+        return res.parcel.setStatus(200).deliver();
+    });
 }
 
+//expects a POST from SHAID
 function webhook (req, res, next) {
     helper.validateWebHook(req, res);
     if (res.parcel.message) {
@@ -99,11 +112,12 @@ function webhook (req, res, next) {
     }
 }
 
+//queries SHAID to get applications and stores them into the database
 function queryAndStoreApplicationsFlow (queryObj) {
     return flow([
     	app.locals.shaid.getApplications.bind(null, queryObj),
     	helper.storeApps.bind(null, false)
-    ], {method: 'waterfall'});
+    ], {method: 'waterfall', eventLoop: true});
 }
 
 //TODO: remove this

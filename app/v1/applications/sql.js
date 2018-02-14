@@ -40,26 +40,6 @@ function changeAppApprovalStatus (id, statusName) {
         .toString();
 }
 
-function insertAppAutoApprovals (objs) {
-    return objs.map(function (obj) {
-        return sql.insert('app_auto_approval', {
-            app_uuid: obj.uuid
-        })
-        .where(
-            sql.not(
-                sql.exists(
-                    sql.select('*')
-                        .from('app_auto_approval aaa')
-                        .where({
-                            'aaa.app_uuid': obj.uuid
-                        })
-                )
-            )
-        )
-        .toString();
-    });
-}
-
 function deleteAutoApproval (uuid) {
     return sql.delete()
         .from('app_auto_approval')
@@ -307,27 +287,28 @@ function insertAppPermissions (objs) {
 
 function insertAppAutoApprovals (objs) {
     return objs.map(function (obj) {
-        return sql.insert('app_auto_approval', {
-            app_uuid: obj.uuid
-        })
-        .where(
-            sql.not(
-                sql.exists(
-                    sql.select('*')
-                        .from('app_auto_approval aaa')
-                        .where({
-                            'aaa.app_uuid': obj.uuid
-                        })
+        return sql.insert('app_auto_approval', 'app_uuid')
+            .select //must have an insert/select in order to include the where statement afterwards
+                (
+                `'${obj.uuid}' AS app_uuid`
+                )
+            .where(
+                sql.not(
+                    sql.exists(
+                        sql.select('*')
+                            .from('app_auto_approval aaa')
+                            .where({
+                                'aaa.app_uuid': obj.uuid
+                            })
+                    )
                 )
             )
-        )
-        .toString();
+            .toString();
     });
 }
 
 module.exports = {
     changeAppApprovalStatus: changeAppApprovalStatus,
-    insertAppAutoApprovals: insertAppAutoApprovals,
     deleteAutoApproval: deleteAutoApproval,
     getApp: {
         base: {

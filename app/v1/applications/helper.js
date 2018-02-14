@@ -1,3 +1,4 @@
+const check = require('check-types');
 const app = require('../app');
 const model = require('./model.js');
 const setupSql = app.locals.db.setupSqlCommand;
@@ -11,20 +12,19 @@ const db = app.locals.db;
 function validateActionPost (req, res) {
 	if (!req.body.id || !req.body.approval_status) {
 		res.parcel.setStatus(400).setMessage("Id and approval status required");
-	}else if (req.body.approval_status !== 'PENDING'
+	} else if (req.body.approval_status !== 'PENDING'
 		&& req.body.approval_status !== 'ACCEPTED'
 		&& req.body.approval_status !== 'DENIED') {
 			res.parcel.setStatus(400).setMessage("Invalid approval status value");
 	}
-
 	return;
 }
 
 function validateAutoPost (req, res) {
 	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_auto_approved_enabled)) {
 		res.parcel.setStatus(400).setMessage("Uuid and auto approved required");
-		return;
 	}
+    return;
 }
 
 function validateWebHook (req, res) {
@@ -35,7 +35,6 @@ function validateWebHook (req, res) {
         //request contained an entity the server cannot handle
         res.parcel.setStatus(500).setMessage("Entity property is undefined or not valid");
     }
-
     return;
 }
 
@@ -43,28 +42,17 @@ function validateWebHook (req, res) {
 
 //gets back app information depending on the filters passed in
 function createAppInfoFlow (filterTypeFunc, value) {
-	const getAppFlow = app.locals.flow([
-		setupSql.bind(null, sql.getApp.base[filterTypeFunc](value)),
-		setupSql.bind(null, sql.getApp.countries[filterTypeFunc](value)),
-		setupSql.bind(null, sql.getApp.displayNames[filterTypeFunc](value)),
-		setupSql.bind(null, sql.getApp.permissions[filterTypeFunc](value)),
-		setupSql.bind(null, sql.getApp.vendor[filterTypeFunc](value)),
-		setupSql.bind(null, sql.getApp.category[filterTypeFunc](value)),
-		setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value))
-	], {method: 'parallel'});
+	const getAppFlow = app.locals.flow({
+		appBase: setupSql.bind(null, sql.getApp.base[filterTypeFunc](value)),
+		appCountries: setupSql.bind(null, sql.getApp.countries[filterTypeFunc](value)),
+		appDisplayNames: setupSql.bind(null, sql.getApp.displayNames[filterTypeFunc](value)),
+		appPermissions: setupSql.bind(null, sql.getApp.permissions[filterTypeFunc](value)),
+		appVendors: setupSql.bind(null, sql.getApp.vendor[filterTypeFunc](value)),
+		appCategories: setupSql.bind(null, sql.getApp.category[filterTypeFunc](value)),
+		appAutoApprovals: setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value))
+	}, {method: 'parallel', eventLoop: true});
 
-	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall"});
-}
-
-//executes a flow in waterfall mode, sending statuses back based on the results
-function handleResponseStatusFlow (flow, res) {
-	app.locals.flow(flow, {method: "waterfall"})(function (err, results) {
-		if (err) {
-			app.locals.log.error(err);
-			return res.parcel.setStatus(500).deliver();
-		}
-		return res.parcel.setStatus(200).deliver();
-	});
+	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
 }
 
 //application store functions
@@ -81,7 +69,7 @@ function storeApps (includeApprovalStatus, apps, next) {
         autoApprovalModifier,
         model.convertAppObjsJson,
         model.insertApps
-    ], {method: "waterfall"});
+    ], {method: "waterfall", eventLoop: true});
 
     fullFlow(function (err, res) {
         if (err) {
@@ -154,6 +142,7 @@ function filterApps (includeApprovalStatus) {
     }
 }
 
+//auto changes any app's approval status to ACCEPTED if a record was found for that app's uuid in the auto approval table
 function autoApprovalModifier (appObjs, next) {
     const appObjsMap = appObjs.map(function (appObj) {
         return function (next) {
@@ -174,13 +163,10 @@ function autoApprovalModifier (appObjs, next) {
     });
 }
 
-
-
 module.exports = {
 	validateActionPost: validateActionPost,
 	validateAutoPost: validateAutoPost,
     validateWebHook: validateWebHook,
 	createAppInfoFlow: createAppInfoFlow,
-	handleResponseStatusFlow: handleResponseStatusFlow,
 	storeApps: storeApps
 }
