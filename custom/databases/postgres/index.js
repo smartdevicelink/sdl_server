@@ -4,14 +4,14 @@ const ASYNC = require('async');
 //get configurations from environment variables
 
 // extend the Postgres client to easily fetch a single expected result as an object
-pg.Client.prototype.getOne = pg.Pool.prototype.getOne = function(query, values, callback){
+pg.Client.prototype.getOne = pg.Pool.prototype.getOne = function (query, values, callback) {
     this.query(query, values, function(err, result) {
         callback(err, result && Array.isArray(result.rows) && result.rows.length ? result.rows[0] : null);
     });
 };
 
 // extend the Postgres client to easily fetch multiple expected results as an array
-pg.Client.prototype.getMany = pg.Pool.prototype.getMany = function(query, values, callback){
+pg.Client.prototype.getMany = pg.Pool.prototype.getMany = function (query, values, callback) {
     this.query(query, values, function(err, result){
         callback(err, (result && result.rows) ? result.rows : []);
     });
@@ -112,11 +112,11 @@ module.exports = function (log) {
             var dbClient = null,
                 dbDone = null;
             ASYNC.waterfall([
-                function(callback){
+                function (callback) {
                     // get a new client
                     self.getClient(callback);
                 },
-                function(client, done, callback){
+                function (client, done, callback) {
                     dbClient = client;
                     dbDone = done;
                     // start a transaction
@@ -125,22 +125,22 @@ module.exports = function (log) {
                         callback(err, client, done);
                     });
                 },
-                function(client, done, callback){
+                function (client, done, callback){
                     // run queries in order provided
-                    ASYNC.eachSeries(queries, function(query, callback){
-                        client.query(query, function(err, result){
+                    ASYNC.eachSeries(queries, function (query, callback) {
+                        client.query(query, function (err, result) {
                             if(err) self.rollback(client, done);
                             callback(err);
                         });
-                    }, function(err){
+                    }, function (err) {
                         callback(err, client, done);
                     });
                 },
-                function(client, done, callback){
+                function (client, done, callback) {
                     // end transaction
                     self.commit(client, done, callback);
                 }
-            ], function(err, result){
+            ], function (err, result) {
                 callback(err, result);
             });
         }
