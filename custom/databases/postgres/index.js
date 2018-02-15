@@ -1,6 +1,6 @@
 //PostgreSQL Communication Module
 const pg = require('pg'); //handles connections to the postgres database
-const ASYNC = require('async');
+const async = require('async');
 const sqlBrick = require('sql-bricks-postgres');
 //get configurations from environment variables
 
@@ -122,39 +122,36 @@ module.exports = function (log) {
                 callback(err, result);
             });
         },
-        runQueriesAsTransaction: function (queries, callback){
-            var dbClient = null,
-                dbDone = null;
-            ASYNC.waterfall([
-                function (callback) {
-                    // get a new client
+        runAsTransaction: function(logic, callback){
+            let wf = {};
+            async.waterfall([
+                function(callback){
+                    // fetch a SQL client
                     self.getClient(callback);
                 },
-                function (client, done, callback) {
-                    dbClient = client;
-                    dbDone = done;
-                    // start a transaction
-                    client.query("BEGIN", function(err){
-                        if(err) self.rollback(client, done);
-                        callback(err, client, done);
+                function(client, done, callback){
+                    // start the transaction
+                    wf.client = client;
+                    wf.done = done;
+                    self.begin(client, callback);
+                },
+                function(callback){
+                    // pass the client back to the requester logic
+                    logic(wf.client, function(err, result){
+                        callback(err, result);
                     });
                 },
-                function (client, done, callback){
-                    // run queries in order provided
-                    ASYNC.eachSeries(queries, function (query, callback) {
-                        client.query(query, function (err, result) {
-                            if(err) self.rollback(client, done);
-                            callback(err);
-                        });
-                    }, function (err) {
-                        callback(err, client, done);
+                function(result, callback){
+                    // requester has finished their logic, commit the db changes
+                    self.commit(wf.client, wf.done, function(err){
+                        callback(err, result);
                     });
-                },
-                function (client, done, callback) {
-                    // end transaction
-                    self.commit(client, done, callback);
                 }
-            ], function (err, result) {
+            ], function(err, result){
+                if(err){
+                    self.rollback(wf.client, wf.done);
+                }
+>>>>>>> e713e9c67fc7a22c33b0955c3d5e2c033d72e23f
                 callback(err, result);
             });
         }

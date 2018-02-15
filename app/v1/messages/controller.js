@@ -90,18 +90,6 @@ function promoteIds (req, res, next) {
         }
         res.parcel.deliver();
     });
-    /*
-    const getAndInsertFlow = app.locals.flow([
-        helper.getMessagesDetailsSqlFlow(req.body.id),
-        model.insertMessagesSql.bind(null, true) //force group status to PRODUCTION
-    ], {method: 'waterfall'});
-
-    getAndInsertFlow(function () {
-        res.parcel
-            .setStatus(200)
-            .deliver();
-    });
-    */
 }
 
 function postUpdate (req, res, next) {
