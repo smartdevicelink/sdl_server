@@ -41,16 +41,16 @@ This route updates the policy server's list of languages.
 These are API routes that are accessed by the policy server user interface.
 
 ### `/applications`
-The [Applications](../UI/Applications/index.md) page.
+The [Applications](/guides/user-interface/applications) page.
 ### `/applications/:id`
 The App Details page with information regarding an app specified by the **id**. The Applications page documentation contains more information pertaining to this page.
 ### `/policytable`
-The [View Policy Table](../UI/View%20Policy%20Table/index.md) page.
+The [View Policy Table](/guides/user-interface/view-policy-table) page.
 ### `/functionalgroups`
-The [Functional Groups](../Messages%20and%20Function%20Groups/index.md) page.
+The [Functional Groups](/guides/user-interface/messages-and-function-groups) page.
 ### `/functionalgroups/manage`
 The Functional Group Details page with information regarding a functional group that is specified by an **id**. The Functional Groups page documentation contains more information pertaining to this page.
 ### `/consumermessages`
-The [Consumer Friendly Messages](../Messages%20and%20Function%20Groups/index.md) page.
+The [Consumer Friendly Messages](/guides/user-interface/messages-and-function-groups) page.
 ### `/consumermessages/manage`
 The Consumer Message Details page with information regarding a consumer message that is specified by an **id**. The Consumer Messages page documentation contains more information pertaining to this page.
