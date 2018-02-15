@@ -1,17 +1,29 @@
-
 {
     "Authors": [
         "Scott Smereka",
-        "Jack Byrne"
+        "Nick Reno"
     ],
     "languages": [
         "en"
     ],
     "navigation": [
         {
-            "name": "Getting Started"
+            "name": "Overview"
         }, {
-            "name": "Policy Update Request"
+            "name": "Getting Started",
+            "navigation": [
+                {
+                    "name": "Installation"
+                }, {
+                    "name": "API"
+                }, {
+                    "name": "Lifecycles"
+                }, {
+                    "name": "Custom Modules"
+                }, {
+                    "name": "Migration Scripts"
+                }
+            ]
         }
     ]
 }
