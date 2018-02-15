@@ -1,6 +1,8 @@
 const app = require('../app');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
 const sql = require('./sql.js');
+const sqlBrick = require('sql-bricks-postgres');
+const async = require('async');
 
 function combineMessageCategoryInfo (messageInfo, next) {
     const filteredCategories = messageInfo[0];
@@ -50,6 +52,26 @@ function combineMessageCategoryInfo (messageInfo, next) {
     next(null, categories);
 }
 
+function convertToInsertableGroup(messageGroupObj, statusOverride = null){
+    return {
+        message_category: messageGroupObj.message_category || null,
+        status: statusOverride || messageGroupObj.status || null,
+        is_deleted: messageGroupObj.is_deleted || false
+    };
+}
+
+function convertToInsertableText(messageTextObj, messageGroupIdOverride = null){
+    return {
+        language_id: messageTextObj.language_id || null,
+        tts: messageTextObj.tts || null,
+        line1: messageTextObj.line1 || null,
+        line2: messageTextObj.line2 || null,
+        text_body: messageTextObj.text_body || null,
+        label: messageTextObj.label || null,
+        message_group_id: messageGroupIdOverride || messageTextObj.message_group_id || null
+    };
+}
+
 function convertMessagesJson (messagesObj) {
     //get all the group-related information first
     const messageGroups = messagesObj.messages.map(function (msg) {
@@ -82,6 +104,85 @@ function convertMessagesJson (messagesObj) {
     }
 
     return [messageGroups, messageTexts];
+    /* This is how it should be done:
+    return {
+        "groups": messageGroups,
+        "texts": messageTexts
+    };
+    */
+}
+
+function insertMessagesWithTransaction(isProduction, rawMessageGroups, callback){
+    let wf = {},
+        status = isProduction ? "PRODUCTION" : "STAGING";
+    async.waterfall([
+        function(callback){
+            // fetch a SQL client
+            app.locals.db.getClient(callback);
+        },
+        function(client, done, callback){
+            // start the transaction
+            wf.client = client;
+            wf.done = done;
+            app.locals.db.begin(client, callback);
+        },
+        function(callback){
+            // process message groups synchronously (due to the SQL transaction)
+            async.eachSeries(rawMessageGroups, function(rawMessageGroup, callback){
+                let insertedGroup = null;
+                async.waterfall([
+                    function(callback){
+                        // clean the message group object for insertion and insert it into the db
+                        let messageGroup = convertToInsertableGroup(rawMessageGroup, status);
+                        let insert = sqlBrick.insert('message_group', messageGroup).returning('*');
+                        wf.client.getOne(insert.toString(), callback);
+                    },
+                    function(group, callback){
+                        insertedGroup = group;
+                        // filter out any unselected languages
+                        async.filter(rawMessageGroup.languages, function(obj, callback){
+                            callback(null, (isProduction || obj.selected));
+                        }, callback);
+                    },
+                    function(selectedLanguages, callback){
+                        // generate array of clean message text objects and do bulk insert
+                        let messageGroupTexts = selectedLanguages.map(function(obj){
+                            return convertToInsertableText(obj, insertedGroup.id);
+                        });
+                        if(messageGroupTexts.length < 1){
+                            callback(null, []);
+                            return;
+                        }
+                        let insert = sqlBrick.insert('message_text', messageGroupTexts).returning('*');
+                        wf.client.getMany(insert.toString(), callback);
+                    }
+                ], callback);
+            }, callback);
+        },
+        function(callback){
+            // commit the db changes
+            app.locals.db.commit(wf.client, wf.done, callback);
+        }
+    ], function(err){
+        if(err){
+            app.locals.db.rollback(wf.client, wf.done);
+        }
+        callback(err);
+    });
+}
+
+// take an array of message groups and message languages and merge them
+function mergeLanguagesIntoGroups (messageGroups, messageLanguages, callback){
+    async.each(messageGroups, function(group, callback){
+        async.filter(messageLanguages, function(language, callback){
+            callback(null, language.message_group_id == group.id);
+        }, function(err, languages){
+            group.languages = languages;
+            callback();
+        });
+    }, function(err){
+        callback(err, messageGroups);
+    });
 }
 
 //accepts SQL-like data of message groups and message texts, along with a status to alter the message groups' statuses
@@ -193,5 +294,7 @@ module.exports = {
     combineMessageCategoryInfo: combineMessageCategoryInfo,
     convertMessagesJson: convertMessagesJson,
     insertMessagesSql: insertMessagesSql,
-    transformMessages: transformMessages
+    transformMessages: transformMessages,
+    insertMessagesWithTransaction: insertMessagesWithTransaction,
+    mergeLanguagesIntoGroups: mergeLanguagesIntoGroups
 }

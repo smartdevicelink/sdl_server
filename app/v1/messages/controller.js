@@ -2,6 +2,8 @@ const app = require('../app');
 const check = require('check-types');
 const model = require('./model.js');
 const helper = require('./helper.js');
+const async = require('async');
+const sql = require('./sql.js');
 
 function getInfo (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
@@ -37,13 +39,16 @@ function postStaging (req, res, next) {
     if (res.parcel.message) {
         return res.parcel.deliver();
     }
-    //convert the JSON to sql-like statements
-    const newData = model.convertMessagesJson(req.body);
-    //force group status to STAGING
-    model.insertMessagesSql(false, newData, function () {
-        res.parcel
-            .setStatus(200)
-            .deliver();
+    model.insertMessagesWithTransaction(false, req.body.messages, function(err){
+        if(err){
+            app.locals.log.error(err);
+            res.parcel
+                .setMessage("Interal server error")
+                .setStatus(500);
+        }else{
+            res.parcel.setStatus(200);
+        }
+        res.parcel.deliver();
     });
 }
 
@@ -57,6 +62,35 @@ function promoteIds (req, res, next) {
         req.body.id = [req.body.id];
     }
     //get all the info from the ids and insert them
+    async.waterfall([
+        function(callback){
+            async.parallel({
+                "groups": function(callback){
+                    app.locals.db.getMany(sql.getMessages.groupsByIds(req.body.id), callback);
+                },
+                "languages": function(callback){
+                    app.locals.db.getMany(sql.getMessages.byIds(req.body.id), callback);
+                }
+            }, callback);
+        },
+        function(results, callback){
+            model.mergeLanguagesIntoGroups(results.groups, results.languages, callback);
+        },
+        function(groups, callback){
+            model.insertMessagesWithTransaction(true, groups, callback);
+        }
+    ], function(err, result){
+        if(err){
+            app.locals.log.error(err);
+            res.parcel
+                .setMessage("Interal server error")
+                .setStatus(500);
+        }else{
+            res.parcel.setStatus(200);
+        }
+        res.parcel.deliver();
+    });
+    /*
     const getAndInsertFlow = app.locals.flow([
         helper.getMessagesDetailsSqlFlow(req.body.id),
         model.insertMessagesSql.bind(null, true) //force group status to PRODUCTION
@@ -67,6 +101,7 @@ function promoteIds (req, res, next) {
             .setStatus(200)
             .deliver();
     });
+    */
 }
 
 function postUpdate (req, res, next) {
