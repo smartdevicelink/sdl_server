@@ -115,7 +115,7 @@ function convertAppObjsJson (appObjs, next) {
             appCountries.push({ //link to base apps using unique id
                 TEMP_ID: appObj.TEMP_ID,
                 country_iso: appObj.countries[j].iso
-            });             
+            });
         }
         for (let j = 0; j < appObj.display_names.length; j++) {
             appDisplayNames.push({ //link to base apps using unique id
@@ -144,6 +144,7 @@ function insertApps (appPieces, next) {
     const appDisplayNames = appPieces.appDisplayNames;
     const appPermissions = appPieces.appPermissions;
     const appAutoApprovals = appPieces.appAutoApprovals;
+    
     //stage 1: insert vendors
     const insertVendors = flow(db.setupSqlCommands(sql.insertVendors(vendors)), {method: 'parallel'});
     //NOTE: relies on the order of the inserts being the same as the returning values

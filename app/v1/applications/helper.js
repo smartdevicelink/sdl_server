@@ -65,7 +65,7 @@ function storeApps (includeApprovalStatus, apps, next) {
     //should change to be accepted
     const fullFlow = flow([
         updateCheckFlow, 
-        filterApps(includeApprovalStatus), 
+        filterApps.bind(null, includeApprovalStatus), 
         autoApprovalModifier,
         model.convertAppObjsJson,
         model.insertApps
@@ -125,21 +125,19 @@ function checkNeedsInsertion (appObj, next) {
 
 //any elements that are null are removed
 //furthermore, remove approval status here if necessary
-function filterApps (includeApprovalStatus) {
-    return function (appObjs, next) {
-        let filtered = appObjs.filter(function (appObj) {
-            return appObj !== null;
-        });
-        filtered = filtered.map(function (appObj) {
-            //if includeApprovalStatus is false, ignore the approval_status attribute by removing it
-            //this would allow the database default to be used
-            if (!includeApprovalStatus) {
-                delete appObj.approval_status;
-            }
-            return appObj;
-        });
-        next(null, filtered);
-    }
+function filterApps (includeApprovalStatus, appObjs, next) {
+    let filtered = appObjs.filter(function (appObj) {
+        return appObj !== null;
+    });
+    filtered = filtered.map(function (appObj) {
+        //if includeApprovalStatus is false, ignore the approval_status attribute by removing it
+        //this would allow the database default to be used
+        if (!includeApprovalStatus) {
+            delete appObj.approval_status;
+        }
+        return appObj;
+    });
+    next(null, filtered);
 }
 
 //auto changes any app's approval status to ACCEPTED if a record was found for that app's uuid in the auto approval table
