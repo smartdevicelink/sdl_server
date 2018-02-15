@@ -151,7 +151,6 @@ module.exports = function (log) {
                 if(err){
                     self.rollback(wf.client, wf.done);
                 }
->>>>>>> e713e9c67fc7a22c33b0955c3d5e2c033d72e23f
                 callback(err, result);
             });
         }
