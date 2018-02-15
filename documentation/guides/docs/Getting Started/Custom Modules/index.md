@@ -14,4 +14,4 @@ return {
 }
 ```
 
-`query` is the SQL string to execute, and `callback` is the function to invoke when `sqlCommand` is complete. Check out the default `postgres` module for an example implementation.
+`query` is the SQL string to execute, and `callback` is the function to invoke when `sqlCommand` is complete. The policy server requires this module to function properly so any attempts to replace or modify the module may result in unforseen errors. Check out the default `postgres` module for an example implementation.

@@ -1,7 +1,7 @@
 These are the API routes that the policy server exposes.
 
 ### `GET /applications` & `GET /groups` & `GET /messages`
-Retrieves information regarding applications, functional groups, or consumer friendly messages. An **id** (or additionally **uuid** for applications) can be specified so as to retrieve information for a specific item. Functional groups and consumer messages can be set to return templates containing all necessary information on that item being stored in the database. Applications can be filtered by approval status. If no parameters are specified `/applications` will return the lateset version of each app, `/groups` and `/messages` will return the latest version of all functional groups or consumer messages in either production or staging mode.
+Retrieves information regarding applications, functional groups, or consumer friendly messages. An **id** (or additionally **uuid** for applications) can be specified so as to retrieve information for a specific item. Functional groups and consumer messages can be set to return templates containing all necessary information on that item being stored in the database. Applications can be filtered by approval status. If no parameters are specified `/applications` will return the latest version of each app, `/groups` and `/messages` will return the latest version of all functional groups or consumer messages in either production or staging mode.
 
 ### `POST /applications/action`
 Updates an application's approval status. In the future this route will also notify the app's developer via email of the change in approval status.
