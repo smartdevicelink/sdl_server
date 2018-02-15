@@ -1,6 +1,5 @@
 const app = require('../app');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
-const sql = require('./sql.js');
 const sqlBrick = require('sql-bricks-postgres');
 const async = require('async');
 
@@ -72,101 +71,44 @@ function convertToInsertableText(messageTextObj, messageGroupIdOverride = null){
     };
 }
 
-function convertMessagesJson (messagesObj) {
-    //get all the group-related information first
-    const messageGroups = messagesObj.messages.map(function (msg) {
-        return {
-            id: msg.id, //keep the ID for future use
-            message_category: msg.message_category,
-            status: msg.status,
-            is_deleted: msg.is_deleted
-        };
-    });
-
-    //now get all the message text information, filtering out unselected messages
-    let messageTexts = [];
-    for (let i = 0; i < messagesObj.messages.length; i++) {
-        const langs = messagesObj.messages[i].languages;
-        for (let j = 0; j < langs.length; j++) {
-            const text = langs[j];
-            if (text.selected) {
-                messageTexts.push({
-                    language_id: text.language_id,
-                    tts: text.tts,
-                    line1: text.line1,
-                    line2: text.line2,
-                    text_body: text.text_body,
-                    label: text.label,
-                    message_group_id: text.message_category_id //for future reference
-                });
-            }
-        }
-    }
-
-    return [messageGroups, messageTexts];
-    /* This is how it should be done:
-    return {
-        "groups": messageGroups,
-        "texts": messageTexts
-    };
-    */
-}
-
 function insertMessagesWithTransaction(isProduction, rawMessageGroups, callback){
     let wf = {},
         status = isProduction ? "PRODUCTION" : "STAGING";
-    async.waterfall([
-        function(callback){
-            // fetch a SQL client
-            app.locals.db.getClient(callback);
-        },
-        function(client, done, callback){
-            // start the transaction
-            wf.client = client;
-            wf.done = done;
-            app.locals.db.begin(client, callback);
-        },
-        function(callback){
-            // process message groups synchronously (due to the SQL transaction)
-            async.eachSeries(rawMessageGroups, function(rawMessageGroup, callback){
-                let insertedGroup = null;
-                async.waterfall([
-                    function(callback){
-                        // clean the message group object for insertion and insert it into the db
-                        let messageGroup = convertToInsertableGroup(rawMessageGroup, status);
-                        let insert = sqlBrick.insert('message_group', messageGroup).returning('*');
-                        wf.client.getOne(insert.toString(), callback);
-                    },
-                    function(group, callback){
-                        insertedGroup = group;
-                        // filter out any unselected languages
-                        async.filter(rawMessageGroup.languages, function(obj, callback){
-                            callback(null, (isProduction || obj.selected));
-                        }, callback);
-                    },
-                    function(selectedLanguages, callback){
-                        // generate array of clean message text objects and do bulk insert
-                        let messageGroupTexts = selectedLanguages.map(function(obj){
-                            return convertToInsertableText(obj, insertedGroup.id);
-                        });
-                        if(messageGroupTexts.length < 1){
-                            callback(null, []);
-                            return;
-                        }
-                        let insert = sqlBrick.insert('message_text', messageGroupTexts).returning('*');
-                        wf.client.getMany(insert.toString(), callback);
+
+    app.locals.db.runAsTransaction(function(client, callback){
+        // process message groups synchronously (due to the SQL transaction)
+        async.eachSeries(rawMessageGroups, function(rawMessageGroup, callback){
+            let insertedGroup = null;
+            async.waterfall([
+                function(callback){
+                    // clean the message group object for insertion and insert it into the db
+                    let messageGroup = convertToInsertableGroup(rawMessageGroup, status);
+                    let insert = sqlBrick.insert('message_group', messageGroup).returning('*');
+                    client.getOne(insert.toString(), callback);
+                },
+                function(group, callback){
+                    insertedGroup = group;
+                    // filter out any unselected languages
+                    async.filter(rawMessageGroup.languages, function(obj, callback){
+                        callback(null, (isProduction || obj.selected));
+                    }, callback);
+                },
+                function(selectedLanguages, callback){
+                    // generate array of clean message text objects and do bulk insert
+                    let messageGroupTexts = selectedLanguages.map(function(obj){
+                        return convertToInsertableText(obj, insertedGroup.id);
+                    });
+                    if(messageGroupTexts.length < 1){
+                        callback(null, []);
+                        return;
                     }
-                ], callback);
-            }, callback);
-        },
-        function(callback){
-            // commit the db changes
-            app.locals.db.commit(wf.client, wf.done, callback);
-        }
-    ], function(err){
-        if(err){
-            app.locals.db.rollback(wf.client, wf.done);
-        }
+                    let insert = sqlBrick.insert('message_text', messageGroupTexts).returning('*');
+                    client.getMany(insert.toString(), callback);
+                }
+            ], callback);
+        }, callback);
+    }, function(err,result){
+        // done either successfully or post-rollback
         callback(err);
     });
 }
@@ -182,58 +124,6 @@ function mergeLanguagesIntoGroups (messageGroups, messageLanguages, callback){
         });
     }, function(err){
         callback(err, messageGroups);
-    });
-}
-
-//accepts SQL-like data of message groups and message texts, along with a status to alter the message groups' statuses
-//inserts message group and message text information, automatically linking together texts to their groups
-//executes immediately
-function insertMessagesSql (isProduction, data, next) {
-    const messageGroups = data[0];
-    const messageTexts = data[1];
-
-    let statusName;
-    if (isProduction) {
-        statusName = "PRODUCTION";
-    }
-    else {
-        statusName = "STAGING";
-    }
-
-    for (let i = 0; i < messageGroups.length; i++) {
-        //group status should be changed to whatever the parent function wants
-        messageGroups[i].status = statusName;
-    }
-
-    //insert message groups
-    const insertGroups = app.locals.flow(setupSqlCommands(sql.insert.messageGroups(messageGroups)), {method: 'parallel'});
-    insertGroups(function (err, res) {
-        //flatten the nested arrays to get one array of groups
-        const newGroups = res.map(function (elem) {
-            return elem[0];
-        });
-
-        //create a link between the old message group and the new one using the message category
-        //use the old message group to find the matching message group id of the message text
-        //use the new message group to replace the message text ids with the new message group id
-        let newGroupCategoryToIdHash = {}; //category to new id
-        for (let i = 0; i < newGroups.length; i++) {
-            newGroupCategoryToIdHash[newGroups[i].message_category] = newGroups[i].id;
-        }
-        let oldGroupIdtoIdHash = {}; //old id to category to new id
-        for (let i = 0; i < messageGroups.length; i++) {
-            oldGroupIdtoIdHash[messageGroups[i].id] = newGroupCategoryToIdHash[messageGroups[i].message_category];
-        }
-        //add group id to each message
-        for (let i = 0; i < messageTexts.length; i++) {
-            messageTexts[i].message_group_id = oldGroupIdtoIdHash[messageTexts[i].message_group_id];
-        }
-
-        //insert message texts
-        const insertTexts = app.locals.flow(setupSqlCommands(sql.insert.messageTexts(messageTexts)), {method: 'parallel'});
-        insertTexts(function (err, res) {
-            next(); //done
-        });
     });
 }
 
@@ -292,8 +182,6 @@ function transformMessages (info, next) {
 
 module.exports = {
     combineMessageCategoryInfo: combineMessageCategoryInfo,
-    convertMessagesJson: convertMessagesJson,
-    insertMessagesSql: insertMessagesSql,
     transformMessages: transformMessages,
     insertMessagesWithTransaction: insertMessagesWithTransaction,
     mergeLanguagesIntoGroups: mergeLanguagesIntoGroups

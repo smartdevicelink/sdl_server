@@ -8,8 +8,6 @@ const getLanguages = sql.select('*').from('languages').toString();
 
 module.exports = {
     insert: {
-        messageGroups: insertMessageGroups,
-        messageTexts: insertMessageTexts,
         languages: insertLanguages
     },
     getMessages: {
@@ -198,33 +196,6 @@ function getMessageCategoriesByMaxId (isProduction) {
             'message_text.id': 'mt.id'
         })
         .toString();
-}
-
-function insertMessageGroups (objs) {
-    return objs.map(function (obj) {
-        return sql.insert('message_group', {
-            message_category: obj.message_category,
-            status: obj.status,
-            is_deleted: obj.is_deleted
-        })
-        .returning('*')
-        .toString(); //return the results of the inserts
-    });
-}
-
-function insertMessageTexts (objs) {
-    return objs.map(function (obj) {
-        return sql.insert('message_text', {
-            language_id: obj.language_id,
-            tts: obj.tts,
-            line1: obj.line1,
-            line2: obj.line2,
-            text_body: obj.text_body,
-            label: obj.label,
-            message_group_id: obj.message_group_id
-        })
-        .toString();
-    });
 }
 
 function insertLanguages (languages) {
