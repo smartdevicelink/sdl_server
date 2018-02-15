@@ -1,18 +1,19 @@
 //PostgreSQL Communication Module
 const pg = require('pg'); //handles connections to the postgres database
 const ASYNC = require('async');
+const sqlBrick = require('sql-bricks-postgres');
 //get configurations from environment variables
 
 // extend the Postgres client to easily fetch a single expected result as an object
-pg.Client.prototype.getOne = pg.Pool.prototype.getOne = function (query, values, callback) {
-    this.query(query, values, function(err, result) {
+pg.Client.prototype.getOne = pg.Pool.prototype.getOne = function(query, callback){
+    this.query(query, function(err, result) {
         callback(err, result && Array.isArray(result.rows) && result.rows.length ? result.rows[0] : null);
     });
 };
 
 // extend the Postgres client to easily fetch multiple expected results as an array
-pg.Client.prototype.getMany = pg.Pool.prototype.getMany = function (query, values, callback) {
-    this.query(query, values, function(err, result){
+pg.Client.prototype.getMany = pg.Pool.prototype.getMany = function(query, callback){
+    this.query(query, function(err, result) {
         callback(err, (result && result.rows) ? result.rows : []);
     });
 };
@@ -49,6 +50,12 @@ module.exports = function (log) {
     });
 
     const self = {
+        getOne(query, params, callback){
+            pool.getOne(query, params, callback);
+        },
+        getMany(query, params, callback){
+            pool.getMany(query, params, callback);
+        },
         //exported functions. these are required to implement
         //this function executes the SQL command in <query> and returns a response using the callback function
         //the callback requires an error parameter and a response from the SQL query
@@ -94,6 +101,13 @@ module.exports = function (log) {
             // reserve a client connection ("client") and its associated release callback ("done")
             // callback(err, client, done)
             pool.connect(callback);
+        },
+        begin: function (client, callback){
+            // begin a SQL transaction
+            // callback(err);
+            client.query("BEGIN", function(err){
+                callback(err);
+            });
         },
         rollback: function (client, done){
             // rolls back and releases a client from the pool
