@@ -1,14 +1,15 @@
+
 {
     "Authors": [
-        "Scott Smereka"
+        "Scott Smereka",
+        "Jack Byrne",
+        "Nick Reno"
     ],
     "languages": [
         "en"
     ],
     "navigation": [
         {
-            "name": "Overview"
-        }, {
             "name": "Policy Table",
             "navigation": [
                 {
@@ -32,18 +33,18 @@
         }, {
             "name": "Policy Table Update"
         }, {
-            "name": "Getting Started",
+            "name": "SQL"
+        }, {
+            "name": "User Interface",
             "navigation": [
                 {
-                    "name": "Installation"
+                    "name": "Overview"
                 }, {
-                    "name": "API"
+                    "name": "Applications"
                 }, {
-                    "name": "Lifecycles"
+                    "name": "Messages and Functional Groups"
                 }, {
-                    "name": "Custom Modules"
-                }, {
-                    "name": "Migration Scripts"
+                    "name": "View Policy Table"
                 }
             ]
         }
