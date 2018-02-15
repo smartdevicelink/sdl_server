@@ -2,16 +2,51 @@
 {
     "Authors": [
         "Scott Smereka",
-        "Jack Byrne"
+        "Jack Byrne",
+        "Nick Reno"
     ],
     "languages": [
         "en"
     ],
     "navigation": [
         {
-            "name": "Getting Started"
+            "name": "Policy Table",
+            "navigation": [
+                {
+                    "name": "Overview"
+                }, {
+                    "name": "Application Policies"
+                }, {
+                    "name": "Consumer Friendly Messages"
+                }, {
+                    "name": "Device Data"
+                }, {
+                    "name": "Functional Groupings"
+                }, {
+                    "name": "Module Config"
+                }, {
+                    "name": "Module Meta"
+                }, {
+                    "name": "Usage and Errors"
+                }
+            ]
         }, {
-            "name": "Policy Update Request"
+            "name": "Policy Table Update"
+        }, {
+            "name": "SQL"
+        }, {
+            "name": "User Interface",
+            "navigation": [
+                {
+                    "name": "Overview"
+                }, {
+                    "name": "Applications"
+                }, {
+                    "name": "Messages and Functional Groups"
+                }, {
+                    "name": "View Policy Table"
+                }
+            ]
         }
     ]
 }

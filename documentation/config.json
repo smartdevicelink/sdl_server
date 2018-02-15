@@ -1,6 +1,7 @@
 {
     "Authors": [
-        "Scott Smereka"
+        "Scott Smereka",
+        "Nick Reno"
     ],
     "languages": [
         "en"
@@ -8,29 +9,6 @@
     "navigation": [
         {
             "name": "Overview"
-        }, {
-            "name": "Policy Table",
-            "navigation": [
-                {
-                    "name": "Overview"
-                }, {
-                    "name": "Application Policies"
-                }, {
-                    "name": "Consumer Friendly Messages"
-                }, {
-                    "name": "Device Data"
-                }, {
-                    "name": "Functional Groupings"
-                }, {
-                    "name": "Module Config"
-                }, {
-                    "name": "Module Meta"
-                }, {
-                    "name": "Usage and Errors"
-                }
-            ]
-        }, {
-            "name": "Policy Table Update"
         }, {
             "name": "Getting Started",
             "navigation": [
