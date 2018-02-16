@@ -1,5 +1,5 @@
 # Consumer Messages & Functional Groups
-The pages for displaying lists of consumer messages and functional groups are structured in the same way, using similar Vue.js components. For information on the properties of the consumer messages and functional groups, refer back to the earlier documentation regarding the [policy table](../../Policy%20Table/Overview/index.md).
+The pages for displaying lists of consumer messages and functional groups are structured in the same way, using similar Vue.js components. For information on the properties of the consumer messages and functional groups, refer back to the earlier documentation regarding the [policy table](../../policy-table/overview/).
 
 ## Cards
 Each functional group or consumer message card will have identifying information displayed on a card. This information includes the name, and the number of permissions or languages. If the information in the card has been altered since the time of creation then it will have a "MODIFIED" tag. All cards are listed in alphabetical order by name.
@@ -31,7 +31,7 @@ When creating a new functional group, first consider if there should be a user c
 ![New Functional Group Sequence Diagram](./assets/functional_group_flowchart.jpg)
 
 ## Consumer Messages
-For information on the language object properties, refer back to the documentation on the <a href="../../Policy%20Table/Consumer%20Friendly%20Messages/index.md">consumer messages</a> object.
+For information on the language object properties, refer back to the documentation on the <a href="/docs/policy-table/consumer-friendly-messages/">consumer messages</a> object.
 ![Consumer-Messages](./assets/Consumer-Messages.png)
 
 ## Staging

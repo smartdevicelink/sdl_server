@@ -1,5 +1,0 @@
-Migration scripts are important because they automate inserting and removing data from the database. Therefore, the server should _always_ have data inserted and removed through migration up and down scripts. The `package.json` file has sample scripts which run those migrations, but if those migrations need to be edited, then go to the folder `server/migrations/sqls`. 
-
-These scripts contain set up and tear down SQL statements. It is also the source of the module config object and consumer friendly messages object. The migration up file needs to be modified to edit either of those objects and the server will need to be restarted for those changes to take effect.
-
-The migration script also contains all the table and type definitions at the top of the file. These can be changed like everything else about the policy server, but remember that the policy server depends on the structure of this information being the same; the server will likely crash if changes are made to these table definitions. Changes will need to be made to the internal modules of the policy server, which are located in `server/app`.
