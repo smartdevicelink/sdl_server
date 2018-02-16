@@ -4,6 +4,7 @@ const model = require('./model.js');
 const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 const flow = app.locals.flow;
+const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
 
@@ -57,43 +58,27 @@ function createAppInfoFlow (filterTypeFunc, value) {
 
 //application store functions
 
-function storeApps (includeApprovalStatus, apps, next) {
-    //setup a function for each app to store them all in the database
-    //first check if the apps need to be stored in the database
-    const updateCheckFlow = flow(checkNeedsInsertionArray(apps), {method: "parallel"});
-    //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
-    //should change to be accepted
+function storeApps (includeApprovalStatus, apps, callback) {
     const fullFlow = flow([
-        updateCheckFlow, 
+        //first check if the apps need to be stored in the database
+        flow(flame.map(apps, checkNeedsInsertion), {method: "parallel"}), 
         filterApps.bind(null, includeApprovalStatus), 
-        autoApprovalModifier,
-        model.convertAppObjsJson,
-        model.insertApps
+        //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
+        //should change to be accepted
+        function (appObjs, next) {
+            flame.async.map(appObjs, autoApprovalModifier, next);
+        },
+        function (appObjs, next) {
+            flame.async.map(appObjs, model.storeApp, next);
+        }
     ], {method: "waterfall", eventLoop: true});
 
     fullFlow(function (err, res) {
         if (err) {
             log.error(err);
         }
-        next(null, apps.length); //pass back how many applications there were
+        callback();
     });
-}
-
-//accepts an array of appObjs unlike checkNeedsInsertion
-function checkNeedsInsertionArray (appObjs) {
-    return appObjs.map(function (appObj) {
-        return function (next) {
-            checkNeedsInsertion(appObj, function (insertBool) {
-                if (!insertBool) {
-                    //log.info("App " + appObj.uuid + " already in database.");
-                    next(null, null);
-                }
-                else {
-                    next(null, appObj);
-                }
-            });
-        }
-    });        
 }
 
 //determine whether the object needs to be stored in the database
@@ -110,15 +95,15 @@ function checkNeedsInsertion (appObj, next) {
             const currentDate = new Date(dbTimestamp);
             if (incomingDate > currentDate) {
                 //the app in the policy server's database is outdated! 
-                next(true);
+                next(null, appObj);
             }
             else { //app is already there
-                next(false);
+                next(null, null);
             }
         }
         else {
             //app doesn't exist, or has missing timestamp information! add the app
-            next(true);
+            next(null, appObj);
         }
     });
 }
@@ -141,23 +126,14 @@ function filterApps (includeApprovalStatus, appObjs, next) {
 }
 
 //auto changes any app's approval status to ACCEPTED if a record was found for that app's uuid in the auto approval table
-function autoApprovalModifier (appObjs, next) {
-    const appObjsMap = appObjs.map(function (appObj) {
-        return function (next) {
-            const sqlAutoApprovalCheck = db.setupSqlCommand.bind(null, sql.checkAutoApproval(appObj.uuid));
-            sqlAutoApprovalCheck(function (err, res) {
-                //if res is not an empty array, then a record was found in the app_auto_approval table
-                //change the status of this appObj to ACCEPTED
-                if (res.length > 0) {
-                    appObj.approval_status = 'ACCEPTED';
-                }
-                next(null, appObj);
-            });
+function autoApprovalModifier (appObj, next) {
+    db.sqlCommand(sql.checkAutoApproval(appObj.uuid), function (err, res) {
+        //if res is not an empty array, then a record was found in the app_auto_approval table
+        //change the status of this appObj to ACCEPTED
+        if (res.length > 0) {
+            appObj.approval_status = 'ACCEPTED';
         }
-    }); 
-
-    flow(appObjsMap, {method: 'parallel'})(function (err, res) {
-        next(null, res);
+        next(null, appObj); 
     });
 }
 
