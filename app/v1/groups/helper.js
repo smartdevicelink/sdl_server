@@ -3,6 +3,7 @@ const model = require('./model.js');
 const app = require('../app');
 const messages = require('../messages/controller.js');
 const flow = app.locals.flow;
+const flame = app.locals.flame;
 const setupSql = app.locals.db.setupSqlCommand;
 const utils = require('../policy/utils.js');
 const sql = require('./sql.js');
@@ -48,6 +49,56 @@ function validatePromptExistence (isProduction, req, res, cb) {
     });
 }
 
+function validateFuncGroup (req, res, callback) {
+    //base check
+    if (!check.string(req.body.name) || !check.boolean(req.body.is_default) || !check.array(req.body.rpcs)) {
+        res.parcel
+            .setStatus(400)
+            .setMessage("Required for functional group: name, is_default, rpcs");
+        return callback();
+    }
+    //rpcs check
+    const rpcs = req.body.rpcs;
+    flow(flame.flowMap(rpcs, validateRpc), {method: 'parallel', eventLoop: true})(function (err, res) {
+        callback();
+    });
+    
+    function validateRpc (rpc, next) {
+        console.log(rpc.hmi_levels.length);
+        console.log(rpc.parameters.length);
+        //base check
+        if (!check.string(rpc.name) || !check.array(rpc.hmi_levels)
+            || !check.boolean(rpc.selected) || !check.array(rpc.parameters)) {
+                res.parcel
+                    .setStatus(400)
+                    .setMessage("Required for RPC element: name, hmi_levels, parameters, selected");
+                return next(true); //error out early
+        }
+        //hmi levels check
+        for (let j = 0; j < rpc.hmi_levels.length; j++) {
+            const levels = rpc.hmi_levels[j];
+            if (!check.string(levels.value) || !check.boolean(levels.selected)) {
+                res.parcel
+                    .setStatus(400)
+                    .setMessage("Required for HMI level: value, selected");
+                return next(true); //error out early
+            }
+        }
+        //parameters check
+        for (let j = 0; j < rpc.parameters.length; j++) {
+            const params = rpc.parameters[j];
+            if (!check.string(params.key) || !check.boolean(params.selected)) {
+                res.parcel
+                    .setStatus(400)
+                    .setMessage("Required for parameter: key, selected");
+                return next(true); //error out early
+            }
+        }       
+        next();
+    } 
+}
+
+/*
 function validateFuncGroup (req, res) {
     //base check
     if (!check.string(req.body.name) || !check.boolean(req.body.is_default) || !check.array(req.body.rpcs)) {
@@ -89,7 +140,7 @@ function validateFuncGroup (req, res) {
         }
     }
 }
-
+*/
 //helper functions
 
 function makeTemplateFlowStart () {
