@@ -27,7 +27,7 @@ function makeFunctionGroups (info, next) {
     //get aggregate information such as rpc count and parameter count for each functional group
     let hashRpcs = utils.hashify({}, hmiLevels, transAggregateRpcs, null);
     let hashParameters = utils.hashify({}, parameters, transAggregateParameters, null);
-    
+
     //count up the results.
     for (let id in hashRpcs) {
         hashRpcs[id] = Object.keys(hashRpcs[id]).length;
@@ -62,7 +62,7 @@ function makeFunctionGroups (info, next) {
         //1. the max ID of the message_category that matches the user_consent_prompt from baseInfo[i]
         //2. the status of that ID (STAGING or PRODUCTION)
         //this is so the UI can determine whether there's an updated version of that message text not in PRODUCTION
-        //this only finds the 'en-us' message id 
+        //this only finds the 'en-us' message id
         hashedBaseInfo[baseInfo[i].id].selected_prompt_id = null;
         hashedBaseInfo[baseInfo[i].id].selected_prompt_status = null;
 
@@ -120,7 +120,7 @@ function makeFunctionGroups (info, next) {
     utils.arrayify(hashedBaseInfo, [null, 'rpcs']);
     //top level (empty array) is a special case where we must pass in a callback to make some modifications ourselves
     //this is because arrayify cannot replace properties of a parent object because it cannot get that information
-    utils.arrayify(hashedBaseInfo, [], function (array) { 
+    utils.arrayify(hashedBaseInfo, [], function (array) {
         hashedBaseInfo = array;
     });
 
@@ -187,6 +187,61 @@ function transformFuncGroupsSelected (obj) {
     }
 }
 
+function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups, callback){
+    let wf = {},
+        status = isProduction ? "PRODUCTION" : "STAGING";
+
+    app.locals.db.runAsTransaction(function(client, callback){
+        // process groups synchronously (due to the SQL transaction)
+        async.eachSeries(rawFunctionalGroups, function(rawFunctionalGroup, callback){
+            let insertedGroup = null;
+            async.waterfall([
+                function(callback){
+                    // clean the functional group object for insertion and insert it into the db
+                    let insertableObject = convertToInsertableFunctionalGroup(rawFunctionalGroup, status);
+                    let insert = sqlBrick.insert('function_group_info', insertableObject).returning('*');
+                    client.getOne(insert.toString(), callback);
+                },
+                function(group, callback){
+                    insertedGroup = group;
+                    // filter out any unselected rpc
+                    async.filter(rawFunctionalGroup.rpcs, function(obj, callback){
+                        callback(null, (isProduction || obj.selected));
+                    }, callback);
+                },
+                function(rawSelectedRPCs, callback){
+                    // process each selected RPC
+                    async.eachSeries(rawSelectedRPCs, function(rawSelectedRPC, callback){
+                        async.waterfall([
+                            function(callback){
+                                // clean and insert RPC
+                            },
+                            function(result, callback){
+                                // insert HMI level
+
+                            },
+                            function(result, callback){
+                                // clean and insert bulk permissions
+                            }
+                        ])
+                    }, callback);
+                    // generate array of clean RPC objects and do bulk insert
+                    let insertableRPCs = rawSelectedRPCs.map(function(obj){
+                        return convertToInsertableRPC(obj, insertedGroup.id);
+                    });
+
+                    //
+                    let insert = sqlBrick.insert('message_text', messageGroupTexts).returning('*');
+                    client.getMany(insert.toString(), callback);
+                }
+            ], callback);
+        }, callback);
+    }, function(err,result){
+        // done either successfully or post-rollback
+        callback(err);
+    });
+}
+
 //accepts SQL-like data of function groups, hmi levels, and parameters, along with a status to alter the groups' statuses
 //inserts all this information, automatically linking together hmi levels and parameters to their groups
 //executes immediately
@@ -214,7 +269,7 @@ function insertFuncGroupSql (isProduction, data, next) {
         //flatten the nested arrays to get one array of groups
         const newGroupInfo = res.map(function (elem) {
             return elem[0];
-        });        
+        });
 
         //create a link between the old functional group and the new one using the property name
         //use the old functional group to find the matching functional group id of the hmi levels and parameters
@@ -226,7 +281,7 @@ function insertFuncGroupSql (isProduction, data, next) {
         let oldGroupIdtoIdHash = {}; //old id to property name to new id
         for (let i = 0; i < groupInfo.length; i++) {
             oldGroupIdtoIdHash[groupInfo[i].id] = newGroupPropertyNameToIdHash[groupInfo[i].property_name];
-        }        
+        }
         //add group id to each hmi level and parameter object
         for (let i = 0; i < hmiLevels.length; i++) {
             hmiLevels[i].function_group_id = oldGroupIdtoIdHash[hmiLevels[i].function_group_id];
@@ -242,7 +297,7 @@ function insertFuncGroupSql (isProduction, data, next) {
         ], {method: 'parallel'});
         insertExtraInfo(function (err, res) {
             next(); //done
-        });        
+        });
     });
 }
 
