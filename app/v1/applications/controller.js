@@ -1,5 +1,4 @@
 const app = require('../app');
-const setupSql = app.locals.db.setupSqlCommand;
 const helper = require('./helper.js');
 const sql = require('./sql.js');
 const flow = app.locals.flow;
@@ -44,12 +43,14 @@ function actionPost (req, res, next) {
 		return res.parcel.deliver();
 	}
 
-	//get app by id, and modify the existing entry in the database to change the approval status
-	const modifyAppFlow = [
-		setupSql.bind(null, sql.changeAppApprovalStatus(req.body.id, req.body.approval_status))
-	];
-
-	helper.handleResponseStatusFlow(modifyAppFlow, res);
+    //modify the existing entry in the database to change the approval status
+    app.locals.db.sqlCommand(sql.changeAppApprovalStatus(req.body.id, req.body.approval_status), function (err, results) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.parcel.setStatus(500).deliver();
+        }
+        return res.parcel.setStatus(200).deliver();
+    });
 }
 
 function autoPost (req, res, next) {
@@ -58,24 +59,27 @@ function autoPost (req, res, next) {
 		return res.parcel.deliver();
 	}
 
-	let chosenFlow;
+	let chosenCommand;
 
 	if (req.body.is_auto_approved_enabled) {
 		//add the uuid to the auto approval table
-		const appObj = {
-			is_auto_approved_enabled: req.body.is_auto_approved_enabled,
-			uuid: req.body.uuid
-		};
-		chosenFlow = app.locals.db.setupSqlCommands(sql.insertAppAutoApprovals(appObj));
+        chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppAutoApproval(req.body));
 	}
 	else {
 		//remove the uuid from the auto approval table
-		chosenFlow = [setupSql.bind(null, sql.deleteAutoApproval(req.body.uuid))];
+        chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAutoApproval(req.body.uuid));
 	}
 
-	helper.handleResponseStatusFlow(chosenFlow, res);
+    chosenCommand(function (err, results) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.parcel.setStatus(500).deliver();
+        }
+        return res.parcel.setStatus(200).deliver();
+    });
 }
 
+//expects a POST from SHAID
 function webhook (req, res, next) {
     helper.validateWebHook(req, res);
     if (res.parcel.message) {
@@ -99,11 +103,12 @@ function webhook (req, res, next) {
     }
 }
 
+//queries SHAID to get applications and stores them into the database
 function queryAndStoreApplicationsFlow (queryObj) {
     return flow([
     	app.locals.shaid.getApplications.bind(null, queryObj),
     	helper.storeApps.bind(null, false)
-    ], {method: 'waterfall'});
+    ], {method: 'waterfall', eventLoop: true});
 }
 
 //TODO: remove this

@@ -2,10 +2,10 @@ const express = require('express');
 let app = express();
 
 //custom modules
-const config = require('../../settings.js'); //configuration module
+const config = require('../../settings'); //configuration module
 const log = require(`../../custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
-const flow = require('../../lib/flow'); //module for executing asynchronous functions without nesting
+const flame = require('../../lib/flame-box');
 const parcel = require('./helpers/parcel');
 const Cron = require('cron').CronJob;
 
@@ -13,7 +13,8 @@ const Cron = require('cron').CronJob;
 app.locals.config = config;
 app.locals.log = log;
 app.locals.db = db;
-app.locals.flow = flow;
+app.locals.flow = flame.flow;
+app.locals.flame = flame;
 
 //export app before requiring dependent modules to avoid circular dependency issues
 module.exports = app;

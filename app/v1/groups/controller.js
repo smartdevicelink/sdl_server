@@ -42,26 +42,34 @@ function get (req, res, next) {
 }
 
 function postStaging (req, res, next) {
-    helper.validateFuncGroup(req, res);
-    if (res.parcel.message) {
-        res.parcel.deliver();
-        return;
-    }
-    //check in staging mode
-    helper.validatePromptExistence(false, req, res, function () {
+    helper.validateFuncGroup(req, res, function (isValid) {
         if (res.parcel.message) {
             res.parcel.deliver();
             return;
         }
-        //convert the JSON to sql-like statements
-        const funcGroupSqlObj = model.convertFuncGroupJson(req.body);
-        //force function group status to STAGING
-        model.insertFuncGroupSql(false, funcGroupSqlObj, function () {
-            res.parcel
-                .setStatus(200)
-                .deliver();
-        });
+        //check in staging mode
+        helper.validatePromptExistence(false, req, res, function () {
+            if (res.parcel.message) {
+                res.parcel.deliver();
+                return;
+            }
+            //convert the JSON to sql-like statements
+            const funcGroupSqlObj = model.convertFuncGroupJson(req.body);
+            //force function group status to STAGING
+            model.insertFuncGroupSql(false, funcGroupSqlObj, function () {
+                res.parcel
+                    .setStatus(200)
+                    .deliver();
+            });
+        });        
     });
+
+    function checkParcel () {
+        if (res.parcel.message) {
+            res.parcel.deliver();
+            return;
+        }        
+    }
 }
 
 function promoteIds (req, res, next) {
