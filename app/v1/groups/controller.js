@@ -56,19 +56,32 @@ function postStaging (req, res, next) {
             //convert the JSON to sql-like statements
             const funcGroupSqlObj = model.convertFuncGroupJson(req.body);
             //force function group status to STAGING
+            model.insertMessagesWithTransaction(false, req.body, function(err){
+                if(err){
+                    app.locals.log.error(err);
+                    res.parcel
+                        .setMessage("Interal server error")
+                        .setStatus(500);
+                }else{
+                    res.parcel.setStatus(200);
+                }
+                res.parcel.deliver();
+            });
+            /*
             model.insertFuncGroupSql(false, funcGroupSqlObj, function () {
                 res.parcel
                     .setStatus(200)
                     .deliver();
             });
-        });        
+            */
+        });
     });
 
     function checkParcel () {
         if (res.parcel.message) {
             res.parcel.deliver();
             return;
-        }        
+        }
     }
 }
 

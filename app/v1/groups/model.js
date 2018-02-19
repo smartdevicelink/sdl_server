@@ -187,6 +187,33 @@ function transformFuncGroupsSelected (obj) {
     }
 }
 
+function convertToInsertableFunctionalGroupInfo(functionalGroupObj, statusOverride = null) {
+    return {
+        property_name: functionalGroupObj.name || null,
+        user_consent_prompt: functionalGroupObj.user_consent_prompt || null,
+        status: statusOverride || functionalGroupObj.status || null,
+        is_default: functionalGroupObj.is_default || false,
+        description: functionalGroupObj.description || null,
+        is_deleted: functionalGroupObj.is_deleted || false
+    };
+}
+
+function convertToInsertableHMI(hmiObj, functionalGroupId, permissionName) {
+    return {
+        function_group_id: functionalGroupId || null,
+        permission_name: permissionName,
+        hmi_level: hmiObj.value
+    };
+}
+
+function convertToInsertablePermission(permissionObj, functionalGroupId, rpcName) {
+    return {
+        function_group_id: functionalGroupId || null,
+        parameter: permissionObj.key || null,
+        rpc_name: rpcName || null
+    };
+}
+
 function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups, callback){
     let wf = {},
         status = isProduction ? "PRODUCTION" : "STAGING";
@@ -198,7 +225,7 @@ function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups
             async.waterfall([
                 function(callback){
                     // clean the functional group object for insertion and insert it into the db
-                    let insertableObject = convertToInsertableFunctionalGroup(rawFunctionalGroup, status);
+                    let insertableObject = convertToInsertableFunctionalGroupInfo(rawFunctionalGroup, status);
                     let insert = sqlBrick.insert('function_group_info', insertableObject).returning('*');
                     client.getOne(insert.toString(), callback);
                 },
@@ -214,25 +241,35 @@ function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups
                     async.eachSeries(rawSelectedRPCs, function(rawSelectedRPC, callback){
                         async.waterfall([
                             function(callback){
-                                // clean and insert RPC
+                                // clean and insert RPC HMI Levels
+                                async.eachSeries(rawSelectedRPC.hmi_levels, function(rawHMI, callback){
+                                    // skip unselected HMIs
+                                    if(!(rawHMI.selected || isProduction)){
+                                        callback(null);
+                                        return;
+                                    }
+                                    // clean and insert HMI record
+                                    let insertableHMI = convertToInsertableHMI(rawHMI, insertedGroup.id, rawSelectedRPC.name);
+                                    let insert = sqlBrick.insert('function_group_hmi_levels', insertableHMI).returning('*');
+                                    client.getOne(insert.toString(), callback);
+                                }, callback);
                             },
                             function(result, callback){
-                                // insert HMI level
-
-                            },
-                            function(result, callback){
-                                // clean and insert bulk permissions
+                                // clean and insert permissions/parameters
+                                async.eachSeries(rawSelectedRPC.parameters, function(rawPermission, callback){
+                                    // skip unselected permissions
+                                    if(!(rawPermission.selected || isProduction)){
+                                        callback(null);
+                                        return;
+                                    }
+                                    // clean and insert permission record
+                                    let insertablePermission = convertToInsertablePermission(rawPermission, insertedGroup.id, rawSelectedRPC.name);
+                                    let insert = sqlBrick.insert('function_group_parameters', insertablePermission).returning('*');
+                                    client.getOne(insert.toString(), callback);
+                                }, callback);
                             }
-                        ])
+                        ], callback);
                     }, callback);
-                    // generate array of clean RPC objects and do bulk insert
-                    let insertableRPCs = rawSelectedRPCs.map(function(obj){
-                        return convertToInsertableRPC(obj, insertedGroup.id);
-                    });
-
-                    //
-                    let insert = sqlBrick.insert('message_text', messageGroupTexts).returning('*');
-                    client.getMany(insert.toString(), callback);
                 }
             ], callback);
         }, callback);
