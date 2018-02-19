@@ -59,7 +59,7 @@ function validateFuncGroup (req, res, callback) {
     }
     //rpcs check
     const rpcs = req.body.rpcs;
-    flow(flame.flowMap(rpcs, validateRpc), {method: 'parallel', eventLoop: true})(function (err, res) {
+    flow(flame.map(rpcs, validateRpc), {method: 'parallel', eventLoop: true})(function (err, res) {
         callback();
     });
     
