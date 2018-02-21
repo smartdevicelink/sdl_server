@@ -56,7 +56,7 @@ function postStaging (req, res, next) {
             //convert the JSON to sql-like statements
             const funcGroupSqlObj = model.convertFuncGroupJson(req.body);
             //force function group status to STAGING
-            model.insertMessagesWithTransaction(false, req.body, function(err){
+            model.insertFunctionalGroupsWithTransaction(false, [req.body], function(err){
                 if(err){
                     app.locals.log.error(err);
                     res.parcel
@@ -97,9 +97,19 @@ function promoteIds (req, res, next) {
     //TODO: check prompt existence in production mode
     //get function group information first so prompt existence checks can be attempted
 
+    const getFuncGroupsFlow = flow(req.body.id.map(function (id) {
+        return helper.createFuncGroupFlow('idFilter', id, true);
+    }), {method: 'parallel', eventLoop: true});
+
     const getAndInsertFlow = app.locals.flow([
-        helper.getFunctionGroupDetailsSqlFlow(req.body.id),
-        model.insertFuncGroupSql.bind(null, true) //force group status to PRODUCTION
+        getFuncGroupsFlow,
+        function (funcGroups, next) {
+            //format the functional groups so it's a single array
+            next(null, funcGroups.map(function (funcGroup) {
+                return funcGroup[0];
+            }));
+        },
+        model.insertFunctionalGroupsWithTransaction.bind(null, true)
     ], {method: 'waterfall'});
 
     getAndInsertFlow(function () {

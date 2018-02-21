@@ -2,6 +2,8 @@ const app = require('../app');
 const utils = require('../policy/utils.js');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
 const sql = require('./sql.js');
+const sqlBrick = require('sql-bricks-postgres');
+const async = require('async');
 
 //the function that makes the API response given that all the information is known
 function makeFunctionGroups (info, next) {
@@ -224,12 +226,14 @@ function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups
             let insertedGroup = null;
             async.waterfall([
                 function(callback){
+                    app.locals.log.info("inserting function_group_info");
                     // clean the functional group object for insertion and insert it into the db
                     let insertableObject = convertToInsertableFunctionalGroupInfo(rawFunctionalGroup, status);
                     let insert = sqlBrick.insert('function_group_info', insertableObject).returning('*');
                     client.getOne(insert.toString(), callback);
                 },
                 function(group, callback){
+                    app.locals.log.info("filtering RPCs");
                     insertedGroup = group;
                     // filter out any unselected rpc
                     async.filter(rawFunctionalGroup.rpcs, function(obj, callback){
@@ -237,6 +241,7 @@ function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups
                     }, callback);
                 },
                 function(rawSelectedRPCs, callback){
+                    app.locals.log.info("processing each RPC");
                     // process each selected RPC
                     async.eachSeries(rawSelectedRPCs, function(rawSelectedRPC, callback){
                         async.waterfall([
@@ -244,7 +249,7 @@ function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups
                                 // clean and insert RPC HMI Levels
                                 async.eachSeries(rawSelectedRPC.hmi_levels, function(rawHMI, callback){
                                     // skip unselected HMIs
-                                    if(!(rawHMI.selected || isProduction)){
+                                    if(!(rawHMI.selected)){
                                         callback(null);
                                         return;
                                     }
@@ -254,11 +259,11 @@ function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups
                                     client.getOne(insert.toString(), callback);
                                 }, callback);
                             },
-                            function(result, callback){
+                            function(callback){
                                 // clean and insert permissions/parameters
                                 async.eachSeries(rawSelectedRPC.parameters, function(rawPermission, callback){
                                     // skip unselected permissions
-                                    if(!(rawPermission.selected || isProduction)){
+                                    if(!(rawPermission.selected)){
                                         callback(null);
                                         return;
                                     }
@@ -278,6 +283,7 @@ function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups
         callback(err);
     });
 }
+
 
 //accepts SQL-like data of function groups, hmi levels, and parameters, along with a status to alter the groups' statuses
 //inserts all this information, automatically linking together hmi levels and parameters to their groups
@@ -341,5 +347,6 @@ function insertFuncGroupSql (isProduction, data, next) {
 module.exports = {
     makeFunctionGroups: makeFunctionGroups,
     convertFuncGroupJson: convertFuncGroupJson,
-    insertFuncGroupSql: insertFuncGroupSql
+    insertFuncGroupSql: insertFuncGroupSql,
+    insertFunctionalGroupsWithTransaction: insertFunctionalGroupsWithTransaction
 }
