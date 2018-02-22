@@ -31,62 +31,65 @@ const permissions = require('./permissions/controller.js');
 const groups = require('./groups/controller.js');
 const messages = require('./messages/controller.js');
 
-// extend response builder to all routes
-app.route("*").all(parcel.extendExpress);
+function exposeRoutes () {
+	// extend response builder to all routes
+	app.route("*").all(parcel.extendExpress);
 
-//route definitions
-//app.post('/login', login.post);
-//app.post('/forgot', forgot.post);
-//app.post('/register', register.post);
-app.get('/applications', applications.get);
-app.post('/applications/action', applications.actionPost);
-app.post('/applications/auto', applications.autoPost);
-app.post('/webhook', applications.webhook); //webhook route
-//begin policy table routes
-app.post('/staging/policy', policy.postFromCoreStaging);
-app.post('/production/policy', policy.postFromCoreProduction);
-app.get('/policy/preview', policy.getPreview);
-app.post('/policy/apps', policy.postAppPolicy);
-//end policy table routes
-app.post('/permissions/update', permissions.post);
-app.get('/permissions/unmapped', permissions.get);
-app.get('/groups', groups.get);
-app.post('/groups', groups.postAddGroup);
-app.post('/groups/promote', groups.postPromote);
-app.get('/messages', messages.getInfo);
-app.post('/messages', messages.postAddMessage);
-app.post('/messages/promote', messages.postPromoteMessages);
-app.post('/messages/update', messages.updateLanguages);
+	//route definitions
+	//app.post('/login', login.post);
+	//app.post('/forgot', forgot.post);
+	//app.post('/register', register.post);
+	app.get('/applications', applications.get);
+	app.post('/applications/action', applications.actionPost);
+	app.post('/applications/auto', applications.autoPost);
+	app.post('/webhook', applications.webhook); //webhook route
+	//begin policy table routes
+	app.post('/staging/policy', policy.postFromCoreStaging);
+	app.post('/production/policy', policy.postFromCoreProduction);
+	app.get('/policy/preview', policy.getPreview);
+	app.post('/policy/apps', policy.postAppPolicy);
+	//end policy table routes
+	app.post('/permissions/update', permissions.post);
+	app.get('/permissions/unmapped', permissions.get);
+	app.get('/groups', groups.get);
+	app.post('/groups', groups.postAddGroup);
+	app.post('/groups/promote', groups.postPromote);
+	app.get('/messages', messages.getInfo);
+	app.post('/messages', messages.postAddMessage);
+	app.post('/messages/promote', messages.postPromoteMessages);
+	app.post('/messages/update', messages.updateLanguages);	
+}
 
-/*
-NEW APIS
-set a flag in the API call whether or not to return the RPC array. if not, just return the counts.
-return the counts if true, too, just with all the RPC stuff (permission_count)
-
-have another check that checks whether the user consent prompt exists in the consumer friendly messages
-this includes when promoting a functional group record to production status
-
-*/
-
-//TODO: do not allow routes to be exposed until these async functions are completed
-
-//get and store permission info from SHAID on startup
-permissions.update(function () {
-	//generate functional group templates for fast responding to the UI for function group info
-	//requires that permission information has updated
-	groups.generateFunctionGroupTemplates(function () {
-		log.info("Functional groups generated");
-	});
-});
-
-//get and store language code info from the GitHub SDL RPC specification on startup
-messages.updateLanguages(function () {
-	log.info("Language list updated");
-});
-
-//get and store app info from SHAID on startup
-applications.queryAndStoreApplicationsFlow({})(function () {
-	log.info("App information updated");
+//do not allow routes to be exposed until these async functions are completed
+flame.async.parallel([
+	function (next) {
+		//get and store permission info from SHAID on startup
+		permissions.update(function () {
+			//generate functional group templates for fast responding to the UI for function group info
+			//requires that permission information has updated
+			groups.generateFunctionGroupTemplates(function () {
+				log.info("Functional groups generated");
+				next();
+			});
+		});
+	},
+	function (next) {
+		//get and store language code info from the GitHub SDL RPC specification on startup
+		messages.updateLanguages(function () {
+			log.info("Language list updated");
+			next();
+		});
+	},
+	function (next) {
+		//get and store app info from SHAID on startup
+		applications.queryAndStoreApplicationsFlow({})(function () {
+			log.info("App information updated");
+			next();
+		});
+	},
+], function () {
+	log.info("Start up complete. Exposing routes.");
+	exposeRoutes();
 });
 
 //cron job for running updates. runs once a day at midnight

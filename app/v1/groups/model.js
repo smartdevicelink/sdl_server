@@ -4,6 +4,8 @@ const flow = app.locals.flow;
 const utils = require('../policy/utils.js');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
 const sql = require('./sql.js');
+const sqlBrick = require('sql-bricks-postgres');
+const async = require('async');
 
 let cachedTemplate;
 let cachedRpcHash;
@@ -255,127 +257,102 @@ function populateRpcHash (rpcHash, hmiLevels, parameters) {
     return rpcHash;
 }
 
-
-
-
-function convertFuncGroupJson (obj) {
-    //break the JSON down into smaller objects for SQL insertion
-    //transform the object so that entries with selected = false are removed
-    transformFuncGroupsSelected(obj);
-
-    //function_group_id is dynamically created from this point of view
-    //use the property name instead to help find the id later
-    const hmiLevels = utils.flattenRecurse(obj['rpcs'], {property_name: obj.name}, function (template, element) {
-        template['permission_name'] = element['name'];
-        return utils.flattenRecurse(element['hmi_levels'], template, function (template2, element2) {
-            template2['hmi_level'] = element2['value'];
-            return template2;
-        });
-    });
-
-    const parameters = utils.flattenRecurse(obj['rpcs'], {property_name: obj.name}, function (template, element) {
-        template['rpc_name'] = element['name'];
-        return utils.flattenRecurse(element['parameters'], template, function (template2, element2) {
-            template2['parameter'] = element2['key'];
-            return template2;
-        });
-    });
-
-    const baseInfo = {
-        'property_name': obj.name,
-        'user_consent_prompt': obj.user_consent_prompt,
-        'description': obj.description,
-        'is_default': obj.is_default,
-        'is_deleted': obj.is_deleted
+function convertToInsertableFunctionalGroupInfo (functionalGroupObj, statusOverride = null) {
+    return {
+        property_name: functionalGroupObj.name || null,
+        user_consent_prompt: functionalGroupObj.user_consent_prompt || null,
+        status: statusOverride || functionalGroupObj.status || null,
+        is_default: functionalGroupObj.is_default || false,
+        description: functionalGroupObj.description || null,
+        is_deleted: functionalGroupObj.is_deleted || false
     };
-
-    //make base info an array of one object
-    return [[baseInfo], hmiLevels, parameters];
 }
 
-//given a func group object sent through the UI, remove all elements with selected = false
-function transformFuncGroupsSelected (obj) {
-    //rpc filter
-    obj.rpcs = obj.rpcs.filter(function (e) {
-        return e.selected;
-    });
-    for (let i = 0; i < obj.rpcs.length; i++) {
-        const rpc = obj.rpcs[i];
-        //hmi level filter
-        rpc.hmi_levels = rpc.hmi_levels.filter(function (e) {
-            return e.selected;
-        });
-        //parameter filter
-        rpc.parameters = rpc.parameters.filter(function (e) {
-            return e.selected;
-        });
-    }
+function convertToInsertableHMI (hmiObj, functionalGroupId, permissionName) {
+    return {
+        function_group_id: functionalGroupId || null,
+        permission_name: permissionName,
+        hmi_level: hmiObj.value
+    };
 }
 
-//accepts SQL-like data of function groups, hmi levels, and parameters, along with a status to alter the groups' statuses
-//inserts all this information, automatically linking together hmi levels and parameters to their groups
-//executes immediately
-function insertFuncGroupSql (isProduction, data, next) {
-    const groupInfo = data[0];
-    const hmiLevels = data[1];
-    const parameters = data[2];
+function convertToInsertablePermission (permissionObj, functionalGroupId, rpcName) {
+    return {
+        function_group_id: functionalGroupId || null,
+        parameter: permissionObj.key || null,
+        rpc_name: rpcName || null
+    };
+}
 
-    let statusName;
-    if (isProduction) {
-        statusName = "PRODUCTION";
-    }
-    else {
-        statusName = "STAGING";
-    }
+function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups, callback){
+    let wf = {},
+        status = isProduction ? "PRODUCTION" : "STAGING";
 
-    for (let i = 0; i < groupInfo.length; i++) {
-        //group status should be changed to whatever the parent function wants
-        groupInfo[i].status = statusName;
-    }
-
-    //insert message groups
-    const insertGroups = app.locals.flow(setupSqlCommands(sql.insertFuncGroupInfo(groupInfo)), {method: 'parallel'});
-    insertGroups(function (err, res) {
-        //flatten the nested arrays to get one array of groups
-        const newGroupInfo = res.map(function (elem) {
-            return elem[0];
-        });        
-
-        //create a link between the old functional group and the new one using the property name
-        //use the old functional group to find the matching functional group id of the hmi levels and parameters
-        //use the new functional group to replace the hmi levels and parameters ids with the new functional group id
-        let newGroupPropertyNameToIdHash = {}; //property name to new id
-        for (let i = 0; i < newGroupInfo.length; i++) {
-            newGroupPropertyNameToIdHash[newGroupInfo[i].property_name] = newGroupInfo[i].id;
-        }
-        let oldGroupIdtoIdHash = {}; //old id to property name to new id
-        for (let i = 0; i < groupInfo.length; i++) {
-            oldGroupIdtoIdHash[groupInfo[i].id] = newGroupPropertyNameToIdHash[groupInfo[i].property_name];
-        }        
-        //add group id to each hmi level and parameter object
-        for (let i = 0; i < hmiLevels.length; i++) {
-            hmiLevels[i].function_group_id = oldGroupIdtoIdHash[hmiLevels[i].function_group_id];
-        }
-        for (let i = 0; i < parameters.length; i++) {
-            parameters[i].function_group_id = oldGroupIdtoIdHash[parameters[i].function_group_id];
-        }
-
-        //insert hmi levels and parameters
-        const insertExtraInfo = app.locals.flow([
-            app.locals.flow(setupSqlCommands(sql.insertHmiLevels(hmiLevels)), {method: 'parallel'}),
-            app.locals.flow(setupSqlCommands(sql.insertParameters(parameters)), {method: 'parallel'})
-        ], {method: 'parallel'});
-        insertExtraInfo(function (err, res) {
-            next(); //done
-        });        
+    app.locals.db.runAsTransaction(function (client, callback) {
+        // process groups synchronously (due to the SQL transaction)
+        async.eachSeries(rawFunctionalGroups, function (rawFunctionalGroup, callback) {
+            let insertedGroup = null;
+            async.waterfall([
+                function (callback) {
+                    // clean the functional group object for insertion and insert it into the db
+                    let insertableObject = convertToInsertableFunctionalGroupInfo(rawFunctionalGroup, status);
+                    let insert = sqlBrick.insert('function_group_info', insertableObject).returning('*');
+                    client.getOne(insert.toString(), callback);
+                },
+                function (group, callback) {
+                    insertedGroup = group;
+                    // filter out any unselected rpc
+                    async.filter(rawFunctionalGroup.rpcs, function (obj, callback) {
+                        callback(null, (isProduction || obj.selected));
+                    }, callback);
+                },
+                function (rawSelectedRPCs, callback) {
+                    // process each selected RPC
+                    async.eachSeries(rawSelectedRPCs, function (rawSelectedRPC, callback) {
+                        async.waterfall([
+                            function (callback) {
+                                // clean and insert RPC HMI Levels
+                                async.eachSeries(rawSelectedRPC.hmi_levels, function (rawHMI, callback) {
+                                    // skip unselected HMIs
+                                    if(!(rawHMI.selected)){
+                                        callback(null);
+                                        return;
+                                    }
+                                    // clean and insert HMI record
+                                    let insertableHMI = convertToInsertableHMI(rawHMI, insertedGroup.id, rawSelectedRPC.name);
+                                    let insert = sqlBrick.insert('function_group_hmi_levels', insertableHMI).returning('*');
+                                    client.getOne(insert.toString(), callback);
+                                }, callback);
+                            },
+                            function (callback) {
+                                // clean and insert permissions/parameters
+                                async.eachSeries(rawSelectedRPC.parameters, function (rawPermission, callback) {
+                                    // skip unselected permissions
+                                    if(!(rawPermission.selected)){
+                                        callback(null);
+                                        return;
+                                    }
+                                    // clean and insert permission record
+                                    let insertablePermission = convertToInsertablePermission(rawPermission, insertedGroup.id, rawSelectedRPC.name);
+                                    let insert = sqlBrick.insert('function_group_parameters', insertablePermission).returning('*');
+                                    client.getOne(insert.toString(), callback);
+                                }, callback);
+                            }
+                        ], callback);
+                    }, callback);
+                }
+            ], callback);
+        }, callback);
+    }, function (err,result) {
+        // done either successfully or post-rollback
+        callback(err);
     });
 }
 
 module.exports = {
     makeFunctionGroups: makeFunctionGroups,
-    convertFuncGroupJson: convertFuncGroupJson,
-    insertFuncGroupSql: insertFuncGroupSql,
     generateTemplate: generateTemplate,
     getFunctionGroupTemplate: getFunctionGroupTemplate,
-    getRpcHashTemplate: getRpcHashTemplate
+    getRpcHashTemplate: getRpcHashTemplate,
+    insertFunctionalGroupsWithTransaction: insertFunctionalGroupsWithTransaction
 }

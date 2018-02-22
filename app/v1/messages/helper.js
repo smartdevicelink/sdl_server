@@ -164,6 +164,9 @@ function updateLanguages (next) {
     }
 
     app.locals.flow(messageStoreFlow, {method: 'waterfall', eventLoop: true})(function (err, res) {
+        if (err) {
+            app.locals.log.error(err);
+        }
         if (next) {
            next(); //done
         }

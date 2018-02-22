@@ -54,17 +54,20 @@ function postStaging (req, res, next) {
                 res.parcel.deliver();
                 return;
             }
-            //convert the JSON to sql-like statements
-            const funcGroupSqlObj = model.convertFuncGroupJson(req.body);
-            //TODO: use below
-            //model.insertFunctionalGroupsWithTransaction(false, req.body, function () {});
             //force function group status to STAGING
-            model.insertFuncGroupSql(false, funcGroupSqlObj, function () {
-                res.parcel
-                    .setStatus(200)
-                    .deliver();
+            model.insertFunctionalGroupsWithTransaction(false, [req.body], function (err) {
+                if (err) {
+                    app.locals.log.error(err);
+                    res.parcel
+                        .setMessage("Interal server error")
+                        .setStatus(500);
+                }
+                else {
+                    res.parcel.setStatus(200);
+                }
+                res.parcel.deliver();
             });
-        });        
+        });
     });
 }
 
@@ -91,8 +94,8 @@ function promoteIds (req, res, next) {
             next(null, funcGroups.map(function (funcGroup) {
                 return funcGroup[0];
             }));
-        }, //TODO: uncomment the following line
-        //model.insertFunctionalGroupsWithTransaction.bind(null, true)
+        },
+        model.insertFunctionalGroupsWithTransaction.bind(null, true)
     ], {method: 'waterfall'});
 
     getAndInsertFlow(function () {
