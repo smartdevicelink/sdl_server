@@ -90,7 +90,7 @@ devMiddleware.waitUntilValid(() => {
   const main = require('../index.js'); //entry point to start the API server
   main(app); //pass in the express app for use instead
   if (autoOpenBrowser && process.env.NODE_ENV !== 'testing') {
-    opn(uri)
+    //opn(uri)
   }
 })
 
