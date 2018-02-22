@@ -337,7 +337,6 @@ div.horizontal-divider .text {
 	-webkit-transition: -webkit-transform 0.5s ease, opacity 0.5s ease;
 	-ms-transition: -ms-transform 0.5s ease, opacity 0.5s ease;
 	transition: transform 0.5s ease, opacity 0.5s ease;
-    display: grid;
 	position: relative;
 	width: calc(33.33333% - 1em);
     min-width: 340px;
@@ -391,6 +390,7 @@ div.horizontal-divider .text {
 
 .tiles a.tile-plus {
     border: 3px solid #4A5E71;
+    display: grid;
 }
 .tiles a.tile-plus:hover {
     background-color: #78C970;
