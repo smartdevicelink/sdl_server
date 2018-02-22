@@ -3,57 +3,6 @@ const model = require('./model.js');
 const setupSqlCommand = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 
-//TODO: remove this
-const test = {
-    "default": {
-        "keep_context": false,
-        "steal_focus": false,
-        "priority": "NONE",
-        "default_hmi": "NONE",
-        "groups": ["Base-4", "RemoteControl"],
-        "moduleType": [
-            "RADIO",
-            "CLIMATE"
-        ]
-    },
-    "9bb1d9c2-5d4c-457f-9d91-86a2f95132df": null,
-    "ab9eec11-5fd1-4255-b4cd-769b529c88c4": null,
-    "device": {
-        "keep_context": false,
-        "steal_focus": false,
-        "priority": "NONE",
-        "default_hmi": "NONE",
-        "groups": ["DataConsent-2"]
-    },
-    "pre_DataConsent": {
-        "keep_context": false,
-        "steal_focus": false,
-        "priority": "NONE",
-        "default_hmi": "NONE",
-        "groups": ["BaseBeforeDataConsent"]
-    }
-}
-
-//TODO: remove this
-const makePolicyTable = [
-    setupModuleConfig(false),
-    setupConsumerFriendlyMessages(false),
-    setupFunctionalGroups(false),
-    setupAppPolicies(false, test)
-];
-
-const policyTableMakeFlow = app.locals.flow(makePolicyTable, {method: 'parallel'});
-
-policyTableMakeFlow(function (err, res) {
-    if (err) {
-        app.locals.log.error(err);
-    }
-    /*console.log(res[0]);
-    console.log(res[1]);
-    console.log(res[2]);
-    console.log(res[3]);*/
-});
-
 //validation functions
 
 function validateCorePost (req, res) {
@@ -95,7 +44,7 @@ function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
     if (appPolicyObj) { //existence of appPolicyObj implies to return the app policy object
         makePolicyTable.push(setupAppPolicies(isProduction, appPolicyObj));
     }
-    const policyTableMakeFlow = app.locals.flow(makePolicyTable, {method: 'parallel'});
+    const policyTableMakeFlow = app.locals.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
     policyTableMakeFlow(cb);
 }
 

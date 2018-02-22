@@ -3,6 +3,7 @@ const shaidkit = require('shaidkit');
 const config = require('../../../settings.js');
 const app = require('../app');
 const flow = app.locals.flow;
+const flame = app.locals.flame;
 
 //a constant that informs the policy server the maximum number of apps returned at once from SHAID
 const MAX_APPLICATION_QUERY = 50; 
@@ -65,17 +66,19 @@ const self = module.exports = {
             }); 
         }
     },
-    getPermissions: function (queryObj, next) {
+    getPermissions: function (queryObj, callback) {
         shaid.read(shaid.entity.permission, queryObj, function (err, res) {
             //parse through the first array of objects and extract just the permissions
             let permissions = [];
-            for (let i = 0; i < res.data.permission_categories.length; i++) {
-                const permissionBlock = res.data.permission_categories[i];
+
+            flame.async.map(res.data.permission_categories, function (permissionBlock, next) {
                 for (let j = 0; j < permissionBlock.permissions.length; j++) {
                     permissions.push(permissionBlock.permissions[j]);
-                }
-            }
-            next(err, permissions);
+                }      
+                next();
+            }, function () {
+                callback(null, permissions);
+            });
         });
     }
 };

@@ -63,7 +63,7 @@ function promoteIds (req, res, next) {
     }
     //get all the info from the ids and insert them
     async.waterfall([
-        function(callback){
+        function (callback) {
             async.parallel({
                 "groups": function(callback){
                     app.locals.db.getMany(sql.getMessages.groupsByIds(req.body.id), callback);
@@ -73,19 +73,20 @@ function promoteIds (req, res, next) {
                 }
             }, callback);
         },
-        function(results, callback){
+        function (results, callback) {
             model.mergeLanguagesIntoGroups(results.groups, results.languages, callback);
         },
-        function(groups, callback){
+        function (groups, callback) {
             model.insertMessagesWithTransaction(true, groups, callback);
         }
-    ], function(err, result){
-        if(err){
+    ], function (err, result) {
+        if (err) {
             app.locals.log.error(err);
             res.parcel
                 .setMessage("Interal server error")
                 .setStatus(500);
-        }else{
+        }
+        else {
             res.parcel.setStatus(200);
         }
         res.parcel.deliver();

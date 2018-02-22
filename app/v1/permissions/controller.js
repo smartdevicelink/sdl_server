@@ -1,5 +1,4 @@
 const app = require('../app');
-const utils = require('../policy/utils');
 const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 const helper = require('./helper.js');

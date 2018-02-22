@@ -59,22 +59,23 @@ function validatePost (req, res) {
 //helper functions
 
 function getMessageGroups (isProduction, cb) {
+    //TODO: make the language choice configurable
     const LANG_FILTER = 'en-us';
     //need two pieces of info: all categories of a certain language (just en-us)
     //and the max id of every category. The first piece is so the message text preview is
     //in the language of the user, and the second category is in case an entry for that
     //category in that language doesn't exist, so fall back to another text
-    const getMessagesFlow = app.locals.flow([
-        setupSql.bind(null, sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
-        setupSql.bind(null, sql.getMessages.categoryByMaxId(isProduction)),
-        setupSql.bind(null, sql.getMessages.status(isProduction)),
-        setupSql.bind(null, sql.getMessages.group(isProduction))
-    ], {method: 'parallel'});
+    const getMessagesFlow = app.locals.flow({
+        categoryByLanguage: setupSql.bind(null, sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
+        categoryByMaxId: setupSql.bind(null, sql.getMessages.categoryByMaxId(isProduction)),
+        messageStatuses: setupSql.bind(null, sql.getMessages.status(isProduction)),
+        messageGroups: setupSql.bind(null, sql.getMessages.group(isProduction))
+    }, {method: 'parallel'});
 
     const getCategoriesFlow = app.locals.flow([
         getMessagesFlow,
         model.combineMessageCategoryInfo
-    ], {method: 'waterfall'});
+    ], {method: 'waterfall', eventLoop: true});
 
     getCategoriesFlow(cb);
 }
@@ -101,7 +102,7 @@ function makeCategoryTemplateFlow () {
     return app.locals.flow([
         getTemplateInfo,
         generateCategoryTemplate
-    ], {method: 'waterfall'});
+    ], {method: 'waterfall', eventLoop: true});
 }
 
 //for an array of ids. filters out PRODUCTION records. meant solely for the promotion route
@@ -125,7 +126,6 @@ function getBaseTemplate () {
     };
 }
 
-//pass an empty array in info[0] to not create the languages array in the template
 function generateCategoryTemplate (info, next) {
     const languages = info[0];
 
@@ -163,7 +163,7 @@ function updateLanguages (next) {
         app.locals.flow(app.locals.db.setupSqlCommands(sql.insert.languages(languages)), {method: 'parallel'})(next);
     }
 
-    app.locals.flow(messageStoreFlow, {method: 'waterfall'})(function (err, res) {
+    app.locals.flow(messageStoreFlow, {method: 'waterfall', eventLoop: true})(function (err, res) {
         if (next) {
            next(); //done
         }
