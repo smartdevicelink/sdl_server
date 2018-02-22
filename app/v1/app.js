@@ -68,8 +68,16 @@ this includes when promoting a functional group record to production status
 
 */
 
+//TODO: do not allow routes to be exposed until these async functions are completed
+
 //get and store permission info from SHAID on startup
-permissions.update(function () {});
+permissions.update(function () {
+	//generate functional group templates for fast responding to the UI for function group info
+	//requires that permission information has updated
+	groups.generateFunctionGroupTemplates(function () {
+		log.info("Functional groups generated");
+	});
+});
 
 //get and store language code info from the GitHub SDL RPC specification on startup
 messages.updateLanguages(function () {

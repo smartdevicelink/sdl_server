@@ -1,137 +1,262 @@
 const app = require('../app');
+const flame = app.locals.flame;
+const flow = app.locals.flow;
 const utils = require('../policy/utils.js');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
 const sql = require('./sql.js');
 
-//the function that makes the API response given that all the information is known
-function makeFunctionGroups (info, next) {
-    const baseInfo = info[0][0];
-    const hmiLevels = info[0][1];
-    const parameters = info[0][2];
-    const consentPrompts = info[0][3];
-    let template = info[1];
+let cachedTemplate;
+let cachedRpcHash;
 
-    function transAggregateRpcs (element) {
-        return [
-            element['function_group_id'],
-            element['permission_name']
-        ];
-    }
-    function transAggregateParameters (element) {
-        return [
-            element['function_group_id'],
-            element['parameter']
-        ];
-    }
+function getFunctionGroupTemplate () {
+    //the cached object is expected to be mutated, so return a full copy!
+    return JSON.parse(JSON.stringify(cachedTemplate));
+}
 
-    //get aggregate information such as rpc count and parameter count for each functional group
-    let hashRpcs = utils.hashify({}, hmiLevels, transAggregateRpcs, null);
-    let hashParameters = utils.hashify({}, parameters, transAggregateParameters, null);
+function getRpcHashTemplate () {
+    //the cached object is expected to be mutated, so return a full copy!
+    return JSON.parse(JSON.stringify(cachedRpcHash));
+}
+
+//generates a single-element functional group info template object
+function generateTemplate (info, next) {
+    //get what the full response would look like in hash form
+    generateRpcObjectHash(info.rpcs, info.permissionRelations, info.hmiValues);
+
+    //convert the hash into an array
+    rpcHashToArray(getRpcHashTemplate(), function (err, rpcs) {
+        cachedTemplate = baseTemplate();
+        cachedTemplate.rpcs = rpcs;
+        next();
+    });
+}
+
+//only needs to be generated once, because the RPC list and permission relations cannot be changed after server start up
+//used as a step in generating a functional group response
+//an exception is made for this being synchronous due to the conditions in which this runs
+function generateRpcObjectHash (rpcs, permissionRelations, hmiValues) {
+    cachedRpcHash = {}; //build the cache
+
+    const hmiValuesHash = {};
+    for (let i = 0; i < hmiValues.length; i++) {
+        const value = hmiValues[i].id;
+        hmiValuesHash[value] = {
+            name: value,
+            value: value,
+            selected: false
+        };
+    }
     
-    //count up the results.
-    for (let id in hashRpcs) {
-        hashRpcs[id] = Object.keys(hashRpcs[id]).length;
-    }
-    for (let id in hashParameters) {
-        hashParameters[id] = Object.keys(hashParameters[id]).length;
-    }
-
-    //for every base info, clone a template for it and populate it
-    let hashedBaseInfo = {};
-    for (let i = 0; i < baseInfo.length; i++) {
-        hashedBaseInfo[baseInfo[i].id] = JSON.parse(JSON.stringify(template));
-        //set properties and things here
-        hashedBaseInfo[baseInfo[i].id].id = baseInfo[i].id;
-        hashedBaseInfo[baseInfo[i].id].name = baseInfo[i].property_name;
-        hashedBaseInfo[baseInfo[i].id].status = baseInfo[i].status;
-        hashedBaseInfo[baseInfo[i].id].description = baseInfo[i].description;
-        hashedBaseInfo[baseInfo[i].id].user_consent_prompt = baseInfo[i].user_consent_prompt;
-        hashedBaseInfo[baseInfo[i].id].is_default = baseInfo[i].is_default;
-        hashedBaseInfo[baseInfo[i].id].is_deleted = baseInfo[i].is_deleted;
-        hashedBaseInfo[baseInfo[i].id].selected_rpc_count = hashRpcs[baseInfo[i].id];
-        hashedBaseInfo[baseInfo[i].id].selected_parameter_count = hashParameters[baseInfo[i].id];
-        //if the hash lookup is undefined, use 0
-        if (hashedBaseInfo[baseInfo[i].id].selected_rpc_count === undefined) {
-            hashedBaseInfo[baseInfo[i].id].selected_rpc_count = 0;
-        }
-        if (hashedBaseInfo[baseInfo[i].id].selected_parameter_count === undefined) {
-            hashedBaseInfo[baseInfo[i].id].selected_parameter_count = 0;
-        }
-
-        //get back two things from consent prompts:
-        //1. the max ID of the message_category that matches the user_consent_prompt from baseInfo[i]
-        //2. the status of that ID (STAGING or PRODUCTION)
-        //this is so the UI can determine whether there's an updated version of that message text not in PRODUCTION
-        //this only finds the 'en-us' message id 
-        hashedBaseInfo[baseInfo[i].id].selected_prompt_id = null;
-        hashedBaseInfo[baseInfo[i].id].selected_prompt_status = null;
-
-        const selectedEnglishPrompt = consentPrompts.find(function (prompt) {
-            return prompt.message_category === baseInfo[i].user_consent_prompt;
-        });
-        if (selectedEnglishPrompt) {
-            hashedBaseInfo[baseInfo[i].id].selected_prompt_id = selectedEnglishPrompt.id;
-            hashedBaseInfo[baseInfo[i].id].selected_prompt_status = selectedEnglishPrompt.status;
-        }
+    for (let i = 0; i < rpcs.length; i++) {
+        const rpcName = rpcs[i].name;
+        cachedRpcHash[rpcName] = {};
+        cachedRpcHash[rpcName].name = rpcName;
+        cachedRpcHash[rpcName].hmi_levels = hmiValuesHash;
+        cachedRpcHash[rpcName].selected = false;
+        cachedRpcHash[rpcName].parameters = {};
     }
 
-    function transFuncGroupInfoRpc (element) {
-        return [
-            element['function_group_id'],
-            'rpcs',
-            element['permission_name'],
-            'selected'
-        ];
+    for (let i = 0; i < permissionRelations.length; i++) {
+        const rpcName = permissionRelations[i].parent_permission_name;
+        const parameterName = permissionRelations[i].child_permission_name;
+        cachedRpcHash[rpcName].parameters[parameterName] = {
+            name: parameterName,
+            key: parameterName,
+            selected: false
+        };
     }
+}
 
-    function transFuncGroupInfoHmiLevels (element) {
-        return [
-            element['function_group_id'],
-            'rpcs',
-            element['permission_name'],
-            'hmi_levels',
-            element['hmi_level'],
-            'selected'
-        ];
-    }
-
-    function transFuncGroupInfoParameters (element) {
-        return [
-            element['function_group_id'],
-            'rpcs',
-            element['rpc_name'],
-            'parameters',
-            element['parameter'],
-            'selected'
-        ];
-    }
-
-    //if the template didn't specify rpcs, do not include selected rpc/parameter info in the response
-    if (template.rpcs !== undefined) {
-        utils.hashify(hashedBaseInfo, hmiLevels, transFuncGroupInfoRpc, true);
-        utils.hashify(hashedBaseInfo, hmiLevels, transFuncGroupInfoHmiLevels, true);
-        utils.hashify(hashedBaseInfo, parameters, transFuncGroupInfoParameters, true);
-    }
-
-    //"unhashify" parts of the object
-    //do it to hmi_levels, parameters, rpcs, and the top level. order matters
-    utils.arrayify(hashedBaseInfo, [null, 'rpcs', null, 'hmi_levels']);
-    utils.arrayify(hashedBaseInfo, [null, 'rpcs', null, 'parameters']);
-    utils.arrayify(hashedBaseInfo, [null, 'rpcs']);
-    //top level (empty array) is a special case where we must pass in a callback to make some modifications ourselves
-    //this is because arrayify cannot replace properties of a parent object because it cannot get that information
-    utils.arrayify(hashedBaseInfo, [], function (array) { 
-        hashedBaseInfo = array;
+//convert the rpc hash into an array suitable for responding to the UI
+function rpcHashToArray (rpcHash, next) {
+    //asynchronously iterate over the hash
+    flame.async.map(rpcHash, handleRpc, function (err, rpcs) {
+        //sort the rpcs by name
+        flame.async.sortBy(rpcs, function (rpc, callback) {
+            callback(null, rpc.name);
+        }, next);
     });
 
-    //done!
-    //order functional groups since that got messed up here
-    next(null, hashedBaseInfo.sort(function (a, b) {
-        if (a.name < b.name) return -1;
-        if (a.name > b.name) return 1;
-        return 0;
-    }));
+    function handleRpc (rpc, callback) {
+        //make the hmi levels an array
+        const hmiLevelArray = [];
+        for (let hmiLevel in rpc.hmi_levels) {
+            hmiLevelArray.push(rpc.hmi_levels[hmiLevel]);
+        }
+        rpc.hmi_levels = hmiLevelArray;
+        //sort the parameters by name, making it an array in the process
+        flame.async.sortBy(rpc.parameters, function (parameter, callback) {
+            callback(null, parameter.name);
+        }, function (err, sortedParameters) {
+            rpc.parameters = sortedParameters;
+            callback(null, rpc);     
+        });
+    }
 }
+
+function baseTemplate (objOverride) {
+    const obj = {
+        id: 0,
+        name: "",
+        description: "",
+        status: "",
+        selected_prompt_id: null,
+        selected_prompt_status: null,
+        selected_rpc_count: 0,
+        selected_parameter_count: 0,
+        is_default: false,
+        is_deleted: false,
+        user_consent_prompt: null,
+        rpcs: []
+    };
+
+    if (objOverride) {
+        //add overrides to the default
+        obj.id = objOverride.id;
+        obj.name = objOverride.property_name;
+        obj.status = objOverride.status;
+        obj.description = objOverride.description;
+        obj.user_consent_prompt = objOverride.user_consent_prompt;
+        obj.is_default = objOverride.is_default;
+        obj.is_deleted = objOverride.is_deleted;
+    }
+
+    return obj;
+}
+
+//creates functional groups in a format the UI can understand
+function makeFunctionGroups (includeRpcs, info, next) {
+    const baseInfo = info.base;
+    const hmiLevels = info.hmiLevels;
+    const parameters = info.parameters;
+    const consentPrompts = info.messageGroups;
+
+    //hashes to get hmiLevels and parameters by function group id
+    const groupedData = {};
+    //hashes to get the rpc count and parameter count of each functional group
+    const groupedRpcCount = {};
+    const groupedParameterCount = {};
+
+    //set up the top level objects for these hashes
+    for (let i = 0; i < baseInfo.length; i++) {
+        groupedData[baseInfo[i].id] = {};
+        groupedData[baseInfo[i].id].hmiLevels = [];
+        groupedData[baseInfo[i].id].parameters = [];
+        groupedRpcCount[baseInfo[i].id] = {};
+        groupedParameterCount[baseInfo[i].id] = {};
+    }
+
+    //begin asynchronous logic below
+
+    //populate the hashes above, using the functional group id as a key
+    const groupUpData = flow([
+        flame.async.map.bind(null, hmiLevels, function (hmiLevel, next) {
+            const funcId = hmiLevel.function_group_id;
+            groupedData[funcId].hmiLevels.push(hmiLevel);
+            groupedRpcCount[funcId][hmiLevel.permission_name] = true;
+            next();
+        }),
+        flame.async.map.bind(null, parameters, function (parameter, next) {
+            const funcId = parameter.function_group_id;
+            groupedData[funcId].parameters.push(parameter); 
+            groupedParameterCount[funcId][parameter.parameter] = true;
+            next();
+        }),
+        function (next) {
+            //count up the rpc results
+            for (let id in groupedRpcCount) {
+                groupedRpcCount[id] = Object.keys(groupedRpcCount[id]).length;
+            }
+            //count up the parameter results
+            for (let id in groupedParameterCount) {
+                groupedParameterCount[id] = Object.keys(groupedParameterCount[id]).length;
+            }
+            next();
+        }
+    ], {method: 'series', eventLoop: true});
+        
+    //functional group top level object creation
+    const createFunctionalGroupBaseFlow = flow(flame.map(baseInfo, function (baseElement, next) {
+        const funcGroup = baseTemplate(baseElement); //add defaults
+        if (groupedRpcCount[baseElement.id] !== undefined) {
+            funcGroup.selected_rpc_count = groupedRpcCount[baseElement.id];
+        }
+        if (groupedParameterCount[baseElement.id] !== undefined) {
+            funcGroup.selected_parameter_count = groupedParameterCount[baseElement.id];
+        }
+        //get back two things from consent prompts:
+        //1. the max ID of the message_category that matches the user_consent_prompt from funcGroup
+        //2. the status of that ID (STAGING or PRODUCTION)
+        //this is so the UI can determine whether there's an updated version of that message text not in PRODUCTION
+        //this only finds the 'en-us' message id for now
+        const selectedEnglishPrompt = consentPrompts.find(function (prompt) {
+            return prompt.message_category === funcGroup.user_consent_prompt;
+        });
+        if (selectedEnglishPrompt) {
+            funcGroup.selected_prompt_id = selectedEnglishPrompt.id;
+            funcGroup.selected_prompt_status = selectedEnglishPrompt.status;
+        }
+        next(null, funcGroup);     
+    }), {method: 'parallel', eventLoop: true});
+    
+    //rpc array creation
+    function rpcInsertion (functionalGroups, next) {
+        //if the template didn't specify rpcs, do not include selected rpc/parameter info in the response
+        if (includeRpcs) {
+            //create RPC arrays for each functional group id and attach it to the functional group
+            flame.async.map(functionalGroups, function (group, callback) {
+                const funcGroupData = groupedData[group.id];
+                const rpcHash = populateRpcHash(getRpcHashTemplate(), funcGroupData.hmiLevels, funcGroupData.parameters);
+                rpcHashToArray(rpcHash, function (err, rpcs) {
+                    group.rpcs = rpcs; //attach the rpc array
+                    callback(null, group); 
+                });
+            }, next);
+        }
+        else {
+            next(null, functionalGroups); //skip rpc insertion
+        }
+    }
+
+    //order the functional groups by name
+    function asyncSortFunctionalGroups (functionalGroups, next) {
+        flame.async.sortBy(functionalGroups, function (funcGroup, callback) {
+            callback(null, funcGroup.name);
+        }, next);
+    }
+
+    //combine all the steps above
+    const constructFunctionalGroupFlow = flow([
+        groupUpData,
+        createFunctionalGroupBaseFlow,
+        rpcInsertion,
+        asyncSortFunctionalGroups
+    ], {method: 'waterfall', eventLoop: true});
+
+    constructFunctionalGroupFlow(next); //run it
+}
+
+//uses an rpc hash and converts the selected values to true based on hmi level and parameter data that exists
+function populateRpcHash (rpcHash, hmiLevels, parameters) {
+    //iterate through hmi levels and parameters (if they exist) and make the selections true 
+    for (let i = 0; i < hmiLevels.length; i++) {
+        const rpcName = hmiLevels[i].permission_name;
+        const level = hmiLevels[i].hmi_level;
+        //set the selected rpcs to true, including at the RPC level
+        rpcHash[rpcName].selected = true;
+        rpcHash[rpcName].hmi_levels[level].selected = true;
+    }
+    for (let i = 0; i < parameters.length; i++) {
+        const rpcName = parameters[i].rpc_name;
+        const parameter = parameters[i].parameter;
+        //set the selected rpcs to true
+        rpcHash[rpcName].parameters[parameter].selected = true;
+    }
+    return rpcHash;
+}
+
+
+
 
 function convertFuncGroupJson (obj) {
     //break the JSON down into smaller objects for SQL insertion
@@ -249,5 +374,8 @@ function insertFuncGroupSql (isProduction, data, next) {
 module.exports = {
     makeFunctionGroups: makeFunctionGroups,
     convertFuncGroupJson: convertFuncGroupJson,
-    insertFuncGroupSql: insertFuncGroupSql
+    insertFuncGroupSql: insertFuncGroupSql,
+    generateTemplate: generateTemplate,
+    getFunctionGroupTemplate: getFunctionGroupTemplate,
+    getRpcHashTemplate: getRpcHashTemplate
 }

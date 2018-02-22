@@ -5,7 +5,6 @@ const sql = require('./sql.js');
 const model = require('./model.js');
 const parseXml = require('xml2js').parseString;
 const needle = require('needle');
-const githubLanguageSourceUrl = 'https://raw.githubusercontent.com/smartdevicelink/rpc_spec/master/MOBILE_API.xml';
 
 //validation functions
 
@@ -172,7 +171,8 @@ function updateLanguages (next) {
 }
 
 function getRpcSpec (next) {
-    needle.get(githubLanguageSourceUrl, function (err, res) {
+    //use the url from the settings.js file
+    needle.get(app.locals.config.githubLanguageSourceUrl, function (err, res) {
         next(err, res.body);
     });
 }

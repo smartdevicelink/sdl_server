@@ -1,4 +1,3 @@
-//this file is a beautiful mess
 const app = require('../app');
 const flow = app.locals.flow;
 const helper = require('./helper.js');
@@ -12,10 +11,12 @@ function get (req, res, next) {
 
     let chosenFlow; //to be determined
 
-    if (returnTemplate) { //template mode. return just the shell of a functional group
-        chosenFlow = helper.makeTemplateFlowStart();
-        chosenFlow.push(helper.arrayifyOneFuncGroup);
-        chosenFlow = flow(chosenFlow, {method: 'waterfall'});
+    if (returnTemplate) { //template mode. return just the shell of a functional group, rpcs included
+        chosenFlow = flow([
+            function (next) {
+                next(null, [model.getFunctionGroupTemplate()]); //must be in an array
+            }
+        ], {method: 'waterfall'});
     }
     else if (req.query.id) { //filter by id
         chosenFlow = helper.createFuncGroupFlow('idFilter', req.query.id, true);
@@ -55,6 +56,8 @@ function postStaging (req, res, next) {
             }
             //convert the JSON to sql-like statements
             const funcGroupSqlObj = model.convertFuncGroupJson(req.body);
+            //TODO: use below
+            //model.insertFunctionalGroupsWithTransaction(false, req.body, function () {});
             //force function group status to STAGING
             model.insertFuncGroupSql(false, funcGroupSqlObj, function () {
                 res.parcel
@@ -63,13 +66,6 @@ function postStaging (req, res, next) {
             });
         });        
     });
-
-    function checkParcel () {
-        if (res.parcel.message) {
-            res.parcel.deliver();
-            return;
-        }        
-    }
 }
 
 function promoteIds (req, res, next) {
@@ -84,9 +80,19 @@ function promoteIds (req, res, next) {
     //TODO: check prompt existence in production mode
     //get function group information first so prompt existence checks can be attempted
 
+    const getFuncGroupsFlow = flow(req.body.id.map(function (id) {
+        return helper.createFuncGroupFlow('idFilter', id, true);
+    }), {method: 'parallel', eventLoop: true});
+
     const getAndInsertFlow = app.locals.flow([
-        helper.getFunctionGroupDetailsSqlFlow(req.body.id),
-        model.insertFuncGroupSql.bind(null, true) //force group status to PRODUCTION
+        getFuncGroupsFlow,
+        function (funcGroups, next) {
+            //format the functional groups so it's a single array
+            next(null, funcGroups.map(function (funcGroup) {
+                return funcGroup[0];
+            }));
+        }, //TODO: uncomment the following line
+        //model.insertFunctionalGroupsWithTransaction.bind(null, true)
     ], {method: 'waterfall'});
 
     getAndInsertFlow(function () {
@@ -94,10 +100,12 @@ function promoteIds (req, res, next) {
             .setStatus(200)
             .deliver(); //done
     });
+
 }
 
 module.exports = {
     get: get,
     postAddGroup: postStaging,
-    postPromote: promoteIds
+    postPromote: promoteIds,
+    generateFunctionGroupTemplates: helper.generateFunctionGroupTemplates
 };
