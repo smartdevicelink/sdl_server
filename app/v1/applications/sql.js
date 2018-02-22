@@ -182,7 +182,7 @@ function getAppCategory (id) {
             'app_info.category_id': 'categories.id'
         })
         .where({
-            'categories.id': id
+            'app_info.id': id
         })
         .toString();
 }

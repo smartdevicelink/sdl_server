@@ -11,6 +11,7 @@ const log = require(`./custom/loggers/${config.loggerModule}/index.js`); //logge
 const versions = ["1"];
 const htmlLocation = __dirname + '/dist/index.html';
 
+//TODO: callback once the routes are opened
 if (process.env.OVERRIDE_ENTRY_POINT) {
 	//do not run the API server, which will allow a parent module to control execution and pass in their own express app
 }

@@ -60,7 +60,7 @@
                                     <td>{{ app.updated_ts }}</td>
                                     <td>{{ app.uuid }}</td>
                                     <td>{{ app.platform }}</td>
-                                    <td>{{ app.category.name }}</td>
+                                    <td>{{ app.category.display_name }}</td>
                                     <td>{{ app.approval_status }}</td>
                                 </tr>
                             </tbody>
