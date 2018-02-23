@@ -6,6 +6,9 @@ const sqlBrick = require('sql-bricks-postgres');
 
 // extend the Postgres client to easily fetch a single expected result as an object
 pg.Client.prototype.getOne = pg.Pool.prototype.getOne = function(query, callback){
+    if (typeof query !== "string") {
+        query = query.toString();
+    }
     this.query(query, function(err, result) {
         callback(err, result && Array.isArray(result.rows) && result.rows.length ? result.rows[0] : null);
     });
@@ -13,6 +16,9 @@ pg.Client.prototype.getOne = pg.Pool.prototype.getOne = function(query, callback
 
 // extend the Postgres client to easily fetch multiple expected results as an array
 pg.Client.prototype.getMany = pg.Pool.prototype.getMany = function(query, callback){
+    if (typeof query !== "string") {
+        query = query.toString();
+    }
     this.query(query, function(err, result) {
         callback(err, (result && result.rows) ? result.rows : []);
     });
@@ -60,6 +66,9 @@ module.exports = function (log) {
         //this function executes the SQL command in <query> and returns a response using the callback function
         //the callback requires an error parameter and a response from the SQL query
         sqlCommand: function (query, callback) {
+            if (typeof query !== "string") {
+                query = query.toString();
+            }
             pool.query(query, function (err, res) {
                 if (err) {
                     log.error(err);

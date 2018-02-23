@@ -87,8 +87,7 @@ function getFuncGroupStatus (isProduction, hideDeleted = false) {
             );
         }
 
-        funcGroupsStaging = funcGroupsStaging.orderBy('LOWER(view_function_group_info.property_name)')
-        .toString();
+        funcGroupsStaging = funcGroupsStaging.orderBy('LOWER(view_function_group_info.property_name)');
 
     if (isProduction) {
         //filter out so only production entries exist
