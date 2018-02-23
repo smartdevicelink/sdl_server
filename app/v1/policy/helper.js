@@ -2,6 +2,7 @@ const app = require('../app');
 const model = require('./model.js');
 const setupSqlCommand = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
+const funcGroupSql = require('../groups/sql.js');
 
 //validation functions
 
@@ -72,15 +73,14 @@ function setupConsumerFriendlyMessages (isProduction) {
 
 function setupFunctionalGroups (isProduction) {
     const getFunctionGroupInfo = [
-        setupSqlCommand.bind(null, sql.funcGroupInfo),
-        setupSqlCommand.bind(null, sql.funcGroupHmiLevels),
-        setupSqlCommand.bind(null, sql.funcGroupParameters)
+        setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)),
+        setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.hmiLevels.statusFilter(isProduction, true)),
+        setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.parameters.statusFilter(isProduction, true))
     ];
     const funcGroupGetFlow = app.locals.flow(getFunctionGroupInfo, {method: 'parallel'});
     const makeFunctionGroupInfo = [
         funcGroupGetFlow,
         model.functionGroupSkeleton,
-        model.transformFuncGroupInfo(isProduction),
         model.constructFunctionGroupObj
     ];
     return app.locals.flow(makeFunctionGroupInfo, {method: 'waterfall'});

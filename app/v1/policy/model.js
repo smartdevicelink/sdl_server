@@ -175,14 +175,7 @@ function functionGroupSkeleton (groupDataArray, next) {
 
     let finalHash = utils.hashify({}, hmiLevels, transHmiLevels, null);
     finalHash = utils.hashify(finalHash, parameters, transParameters, null);
-    next(null, info, finalHash);
-}
-
-function transformFuncGroupInfo (isProduction) {
-    return function (funcGroupInfo, funcGroupHash, next) {
-        //pass along the filtered function_group_info results and the transformed func group object
-        next(null, utils.filterArrayByStatus(funcGroupInfo, ['property_name'], isProduction), hashToRpcObject(funcGroupHash));
-    }
+    next(null, info, hashToRpcObject(finalHash));
 }
 
 //transform the hash into valid functional group rpc objects under the keys
@@ -320,7 +313,6 @@ module.exports = {
     constructModuleConfigObj: constructModuleConfigObj,
     messagesSkeleton: messagesSkeleton,
     functionGroupSkeleton: functionGroupSkeleton,
-    transformFuncGroupInfo: transformFuncGroupInfo,
     constructFunctionGroupObj: constructFunctionGroupObj,
     constructAppPolicy: constructAppPolicy,
     aggregateResults: aggregateResults
