@@ -1,4 +1,6 @@
 const utils = require('./utils');
+const app = require('../app');
+const flame = app.locals.flame;
 
 //module config 
 
@@ -83,33 +85,46 @@ function constructModuleConfigObj (moduleConfigs, moduleConfigSkeleton, next) {
 //consumer messages
 
 function messagesSkeleton (results, next) {
-    let finalHash = hashifyMessages(results);
-    const finalObj = {
-        "version": "000.000.001", //TODO: what to do with the versioning?
-        "messages": hashToMessagesObject(finalHash)
-    }
-    next(null, finalObj);
+    hashifyMessages(results, function (err, finalHash) {
+        const finalObj = {
+            "version": "000.000.001", //TODO: what to do with the versioning?
+            "messages": hashToMessagesObject(finalHash)
+        }
+        next(null, finalObj);
+    });
 }
 
-function hashifyMessages (finalMessages) {
-    //transform the arrays into hashes, slowly constructing the full object from the pruned finalMessages
-    function transGeneric (property) {
-        return function (element) {
-            return [
-                element['message_category'],
-                'languages',
-                element['language_id'],
-                property,
-                element[property]
-            ];
-        }
-    }
-    let finalHash = utils.hashify({}, finalMessages, transGeneric('tts'), null);
-    finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line1'), null);
-    finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line2'), null);
-    finalHash = utils.hashify(finalHash, finalMessages, transGeneric('text_body'), null);
-    finalHash = utils.hashify(finalHash, finalMessages, transGeneric('label'), null);    
-    return finalHash;
+function hashifyMessages (messageInfo, callback) {
+    const allMessages = messageInfo.messageStatuses; //for finding how many languages exist per category
+    const groups = messageInfo.messageGroups;   
+
+    //hash groups by message_category
+    flame.async.groupBy(groups, function (group, callback) {
+        callback(null, group.message_category);
+    }, function (err, hashedGroups) {
+        flame.async.filter(allMessages, function (message, callback) {
+            callback(null, hashedGroups[message.message_category]);
+        }, function (err, finalMessages) {
+            //transform the arrays into hashes, slowly constructing the full object from the pruned finalMessages
+            function transGeneric (property) {
+                return function (element) {
+                    return [
+                        element['message_category'],
+                        'languages',
+                        element['language_id'],
+                        property,
+                        element[property]
+                    ];
+                }
+            }
+            let finalHash = utils.hashify({}, finalMessages, transGeneric('tts'), null);
+            finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line1'), null);
+            finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line2'), null);
+            finalHash = utils.hashify(finalHash, finalMessages, transGeneric('text_body'), null);
+            finalHash = utils.hashify(finalHash, finalMessages, transGeneric('label'), null);    
+            callback(null, finalHash);
+        });
+    });
 }
 
 //transform the hash into a valid consumer friendly message object under the keys

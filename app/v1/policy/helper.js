@@ -3,6 +3,7 @@ const model = require('./model.js');
 const setupSqlCommand = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 const funcGroupSql = require('../groups/sql.js');
+const messagesSql = require('../messages/sql.js');
 
 //validation functions
 
@@ -64,10 +65,16 @@ function setupModuleConfig (isProduction) {
 }
 
 function setupConsumerFriendlyMessages (isProduction) {
+    const getMessages = app.locals.flow({
+        messageStatuses: setupSqlCommand.bind(null, messagesSql.getMessages.status(isProduction)),
+        messageGroups: setupSqlCommand.bind(null, messagesSql.getMessages.group(isProduction, false, true))
+    }, {method: 'parallel'});
+
     const makeMessages = [
-        setupSqlCommand.bind(null, sql.getMessagesStatus(isProduction)),
+        getMessages,
         model.messagesSkeleton
     ];
+
     return app.locals.flow(makeMessages, {method: 'waterfall'});
 }
 

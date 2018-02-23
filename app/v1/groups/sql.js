@@ -64,11 +64,13 @@ function getFuncGroupStatus (isProduction, hideDeleted = false) {
     const funcGroupsGroup = sql.select('max(id) AS id', 'property_name')
         .from('view_function_group_info')
         .groupBy('property_name');
+        
     let funcGroupsStaging = sql.select('view_function_group_info.*')
         .from('(' + funcGroupsGroup + ') vfgi')
         .innerJoin('view_function_group_info', {
             'view_function_group_info.id': 'vfgi.id'
         });
+
         if (hideDeleted) {
             funcGroupsStaging.where(
                 {
