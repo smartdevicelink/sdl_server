@@ -3,11 +3,7 @@ Download the project to your current directory.
 git clone https://github.com/smartdevicelink/sdl_server.git
 cd sdl_server
 ```
-The most up-to-date branch is v2. Switch to it.
-```
-git checkout v2
-```
-Install dependencies.
+The recommended branch to use is master, which should be used by default. Install dependencies.
 ```
 npm install
 ```

@@ -7,7 +7,7 @@ Each functional group or consumer message card will have identifying information
 ![Functional-Groups-List.png](./assets/Functional-Groups-List.png)
 
 ### Editing
-It should be noted that the cards under "Production" cannot be edited. If you wish to edit an existing functional group that has been set to "Production" then you must create an entirely new functional group and copy the information over. Remember to hit the save button at the bottom of the page to keep any changes.
+It should be noted that the cards under "Production" cannot be edited. If you wish to edit an existing functional group that has been set to "Production" then you must edit the staging version of that group. Remember to hit the save button at the bottom of the page to keep any changes.
 ![Consumer-Messages-Save-Button](./assets/Consumer-Messages-Save-Button.png) 
 
 ## Functional Groups
