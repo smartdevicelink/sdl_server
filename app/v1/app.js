@@ -66,7 +66,9 @@ function updatePermissionsAndGenerateTemplates (next) {
 		//requires that permission information has updated
 		groups.generateFunctionGroupTemplates(function () {
 			log.info("Functional groups generated");
-			next();
+			if (next) {
+				next();
+			}
 		});
 	});
 }
@@ -95,5 +97,5 @@ flame.async.parallel([
 });
 
 //cron job for running updates. runs once a day at midnight
-new Cron('00 00 00 * * *', permissions.update, null, true);
+new Cron('00 00 00 * * *', updatePermissionsAndGenerateTemplates, null, true);
 new Cron('00 00 00 * * *', messages.updateLanguages, null, true);
