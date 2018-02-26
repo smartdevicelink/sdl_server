@@ -41,16 +41,16 @@ This route updates the policy server's list of languages.
 These are API routes that are accessed by the policy server user interface.
 
 ### `/applications`
-The [Applications](/docs/user-interface/applications) page.
+The [Applications](/docs/sdl-server/master/user-interface/applications) page.
 ### `/applications/:id`
 The App Details page with information regarding an app specified by the **id**. The Applications page documentation contains more information pertaining to this page.
 ### `/policytable`
-The [View Policy Table](/docs/user-interface/view-policy-table) page.
+The [View Policy Table](/docs/sdl-server/master/user-interface/view-policy-table) page.
 ### `/functionalgroups`
-The [Functional Groups](/docs/user-interface/messages-and-function-groups) page.
+The [Functional Groups](/docs/sdl-server/master/user-interface/messages-and-function-groups) page.
 ### `/functionalgroups/manage`
 The Functional Group Details page with information regarding a functional group that is specified by an **id**. The Functional Groups page documentation contains more information pertaining to this page.
 ### `/consumermessages`
-The [Consumer Friendly Messages](/docs/user-interface/messages-and-function-groups) page.
+The [Consumer Friendly Messages](/docs/sdl-server/master/user-interface/messages-and-function-groups) page.
 ### `/consumermessages/manage`
 The Consumer Message Details page with information regarding a consumer message that is specified by an **id**. The Consumer Messages page documentation contains more information pertaining to this page.
