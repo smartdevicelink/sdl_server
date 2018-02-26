@@ -47,10 +47,10 @@ The App Details page with information regarding an app specified by the **id**. 
 ### `/policytable`
 The [View Policy Table](/docs/sdl-server/master/user-interface/view-policy-table) page.
 ### `/functionalgroups`
-The [Functional Groups](/docs/sdl-server/master/user-interface/messages-and-function-groups) page.
+The [Functional Groups](/docs/sdl-server/master/user-interface/messages-and-functional-groups) page.
 ### `/functionalgroups/manage`
 The Functional Group Details page with information regarding a functional group that is specified by an **id**. The Functional Groups page documentation contains more information pertaining to this page.
 ### `/consumermessages`
-The [Consumer Friendly Messages](/docs/sdl-server/master/user-interface/messages-and-function-groups) page.
+The [Consumer Friendly Messages](/docs/sdl-server/master/user-interface/messages-and-functional-groups) page.
 ### `/consumermessages/manage`
 The Consumer Message Details page with information regarding a consumer message that is specified by an **id**. The Consumer Messages page documentation contains more information pertaining to this page.
