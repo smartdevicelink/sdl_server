@@ -20,28 +20,10 @@ Change the contents of that array to include this instead:
 `
 
 # Getting Started
-A quick guide to setup the SDL server can be found at <a href="https://smartdevicelink.com/en/docs/sdl-server/master/getting-started/installation/" target="_blank">SmartDeviceLink.com</a>
+A quick guide to setup the SDL server can be found at <a href="https://smartdevicelink.com/en/guides/sdl-server/getting-started/installation/" target="_blank">SmartDeviceLink.com</a>
 
 ## Documentation
-All documentation can be found at <a href="https://smartdevicelink.com/docs/sdl-server/master/overview/" target="_blank">SmartDeviceLink.com</a>.
-
-## Build Setup
-
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+All documentation can be found at <a href="https://smartdevicelink.com/en/guides/sdl-server/overview/" target="_blank">SmartDeviceLink.com</a>.
 
 ## Contribute
 If you have a suggestion or bug please submit an <a href="https://github.com/smartdevicelink/sdl_server/issues/new" target="_blank">issue</a>.  You can submit code using a pull request, but please follow the <a href="https://github.com/smartdevicelink/sdl_server/blob/master/CONTRIBUTING.md" target="_blank">contributing guidelines</a>.
