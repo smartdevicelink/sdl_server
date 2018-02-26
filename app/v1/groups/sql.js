@@ -51,7 +51,7 @@ function getFuncGroupParametersId (id) {
         .toString();
 }
 
-function getFuncGroupStatus (isProduction) {
+function getFuncGroupStatus (isProduction, hideDeleted = false) {
     const funcGroupsProduction = sql.select('*')
         .from('view_function_group_info')
         .where({
@@ -64,19 +64,30 @@ function getFuncGroupStatus (isProduction) {
     const funcGroupsGroup = sql.select('max(id) AS id', 'property_name')
         .from('view_function_group_info')
         .groupBy('property_name');
-    const funcGroupsStaging = sql.select('view_function_group_info.*')
+        
+    let funcGroupsStaging = sql.select('view_function_group_info.*')
         .from('(' + funcGroupsGroup + ') vfgi')
         .innerJoin('view_function_group_info', {
             'view_function_group_info.id': 'vfgi.id'
-        })
-        .where(
-            sql.or({
-                'is_deleted': false,
-                'status': 'STAGING'
-            })
-        )
-        .orderBy('LOWER(view_function_group_info.property_name)')
-        .toString();
+        });
+
+        if (hideDeleted) {
+            funcGroupsStaging.where(
+                {
+                    'is_deleted': false
+                }
+            );
+        }
+        else {
+            funcGroupsStaging.where(
+                sql.or({
+                    'is_deleted': false,
+                    'status': 'STAGING'
+                })
+            );
+        }
+
+        funcGroupsStaging = funcGroupsStaging.orderBy('LOWER(view_function_group_info.property_name)');
 
     if (isProduction) {
         //filter out so only production entries exist
@@ -88,18 +99,18 @@ function getFuncGroupStatus (isProduction) {
     }
 }
 
-function getFuncGroupHmiLevelsStatus (isProduction) {
+function getFuncGroupHmiLevelsStatus (isProduction, hideDeleted = false) {
     return sql.select('function_group_id', 'permission_name', 'hmi_level')
-        .from('(' + getFuncGroupStatus(isProduction) + ') fgi')
+        .from('(' + getFuncGroupStatus(isProduction, hideDeleted) + ') fgi')
         .innerJoin('function_group_hmi_levels', {
             'fgi.id': 'function_group_hmi_levels.function_group_id'
         })
         .toString();
 }
 
-function getFuncGroupParametersStatus (isProduction) {
+function getFuncGroupParametersStatus (isProduction, hideDeleted = false) {
     return sql.select('function_group_id', 'rpc_name', 'parameter')
-        .from('(' + getFuncGroupStatus(isProduction) + ') fgi')
+        .from('(' + getFuncGroupStatus(isProduction, hideDeleted) + ') fgi')
         .innerJoin('function_group_parameters', {
             'fgi.id': 'function_group_parameters.function_group_id'
         })

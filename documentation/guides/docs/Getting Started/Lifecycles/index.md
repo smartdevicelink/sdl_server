@@ -1,13 +1,10 @@
-It will be helpful to understand what the policy server is doing behind the scenes before modifying the source code. This section will describe what tasks the policy server does under certain conditions.
-
 ## On Startup
-Upon startup, the policy server will undergo an update cycle. An update cycle synchronizes information between data sources like SHAID and the policy server. Language code information is retrieved from the SDL [RPC spec](https://raw.githubusercontent.com/smartdevicelink/rpc_spec/master/MOBILE_API.xml).
+When the policy server starts up, it will try to update its current information by using external sources such as SHAID. It will do the following:
 
-Finally, the function invoked by shaid.queryAndStoreApplications is called which will update application information by querying SHAID for all applications. A Cron job is set up so as to update the application information and the lists of languages and permissions daily at midnight.
+* Update the permission list and permission relationships. These permissions include RPCs, vehicle parameters and module types.
+* Generate a functional group template for use in future queries. After the permission information is updated, some templates will be generated that are used for quickly responding to the UI's requests for functional group data. 
+* Update language information. Language code information is retrieved from the SDL [RPC spec](https://raw.githubusercontent.com/smartdevicelink/rpc_spec/master/MOBILE_API.xml), specified in `settings.js`. This is used for the consumer friendly messages object.
+* Query and store SHAID applications. The policy server will grab new or updated application information from SHAID and store it in the policy server's database. 
+* After all tasks above have been completed, expose the UI and API routes for the policy server. It is important that the policy server receives all the information above before allowing requests from core to happen.
+* Set up cron jobs for updating permission information, for generating templates and for updating the languages. The policy server does not need a cron job for getting new application information from SHAID because of webhooks.
 
-## On Policy Table Update
-If the `/staging/policy` or the `/production/policy` endpoint gets hit then the requester wants a policy table update. First, basic validation happens to make sure the format of the request is correct. Then, the policy table is constructed according to the specified environment and sent back as a response.
-
-The consumer friendly messages, the module config, and the functional groups are already built, so there's no extra computation needed there. The app policies object needs extra logic because that object is where applications are given or denied permissions. 
-
-For now, all applications are given permissions by default only if their uuid is found in the policy server database. The approved uuids are then looked up in the database and the full application is reconstructed. Next, the app policies object is constructed using the information from the applications. When finished, the policy server sends the full policy table as a response.

@@ -41,15 +41,8 @@ function getMessagesStatus (isProduction) {
 }
 
 //retrieve message group information such as categories
-function getMessageGroups (isProduction, category) {
-    let viewName;
-
-    if (isProduction) {
-        viewName = 'view_message_group_production';
-    }
-    else {
-        viewName = 'view_message_group_staging';
-    }
+function getMessageGroups (isProduction, category, hideDeleted = false) {
+    let viewName = isProduction ? 'view_message_group_production' : 'view_message_group_staging';
 
     let sqlString = sql.select('message_group.*')
         .from(viewName)
@@ -58,20 +51,30 @@ function getMessageGroups (isProduction, category) {
         });
 
     if (category) {
-        sqlString = sqlString.where({
+        sqlString.where({
             'message_group.message_category': category
         });
     }
 
-    sqlString = sqlString
-        .where(
-            sql.or({
-                'is_deleted': false,
-                'status': 'STAGING'
-            })
-        )
-        .orderBy('LOWER(message_group.message_category)');
+    if (hideDeleted) {
+        sqlString
+            .where(
+                {
+                    'is_deleted': false
+                }
+            )
+    }
+    else {
+        sqlString
+            .where(
+                sql.or({
+                    'is_deleted': false,
+                    'status': 'STAGING'
+                })
+            )
+    }
 
+    sqlString.orderBy('LOWER(message_group.message_category)');
     return sqlString.toString();
 }
 

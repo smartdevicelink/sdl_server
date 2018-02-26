@@ -1,4 +1,5 @@
 const sql = require('sql-bricks-postgres');
+const funcGroupSql = require('../groups/sql.js');
 
 const moduleConfigInfo = sql.select('*')
     .from('view_module_config')
@@ -95,7 +96,7 @@ function getAppModules (appId) {
 function getAppFunctionalGroups (isProduction, appObj) {
     let sqlOr = [
         {
-            'fgi.is_default': true
+            'view_function_group_info.is_default': true
         },
         sql.exists(
             sql.select()
@@ -108,7 +109,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
                 })
                 .where({
                     'ap.app_id': appObj.id,
-                    'fgp.function_group_id': sql('fgi.id')
+                    'fgp.function_group_id': sql('view_function_group_info.id')
                 })
                 .where(
                     sql.exists(
@@ -116,7 +117,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
                         .from('function_group_hmi_levels fghl')
                         .where({
                             'fghl.permission_name': sql('ap.permission_name'),
-                            'fghl.function_group_id': sql('fgi.id'),
+                            'fghl.function_group_id': sql('view_function_group_info.id'),
                             'fghl.hmi_level': sql('hlc.hmi_level_enum')
                         })
                     )
@@ -133,7 +134,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
                 })
                 .where({
                     'ap.app_id': appObj.id,
-                    'fgp.function_group_id': sql('fgi.id')
+                    'fgp.function_group_id': sql('view_function_group_info.id')
                 })
                 .where(
                     sql.exists(
@@ -164,7 +165,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
                 })
                 .where({
                     'ap.app_id': appObj.id,
-                    'fghl.function_group_id': sql('fgi.id'),
+                    'fghl.function_group_id': sql('view_function_group_info.id'),
                     'p.type': 'MODULE',
                     'fghl.hmi_level': sql('hlc.hmi_level_enum')
                 })
@@ -177,7 +178,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
                 sql.select()
                     .from('function_group_hmi_levels fghl')
                     .where({
-                        'fghl.function_group_id': sql('fgi.id'),
+                        'fghl.function_group_id': sql('view_function_group_info.id'),
                         'fghl.permission_name': 'Alert',
                         'fghl.hmi_level': 'BACKGROUND'
                     })
@@ -185,22 +186,12 @@ function getAppFunctionalGroups (isProduction, appObj) {
         );
     }
 
-    let statement = sql.select('fgi.property_name')
-        .from('function_group_info fgi')
+    let statement = funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)
         .where(
             sql.or(sqlOr)
         );
 
-    if (isProduction) {
-        statement.groupBy('fgi.property_name', 'fgi.status')
-            .having({
-                'fgi.status': 'PRODUCTION'
-            });
-    }
-    else {
-        statement.groupBy('fgi.property_name');
-    }
-    return statement.toString();
+    return statement;
 }
 
 

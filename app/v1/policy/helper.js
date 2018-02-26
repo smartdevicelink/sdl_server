@@ -2,6 +2,8 @@ const app = require('../app');
 const model = require('./model.js');
 const setupSqlCommand = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
+const funcGroupSql = require('../groups/sql.js');
+const messagesSql = require('../messages/sql.js');
 
 //validation functions
 
@@ -63,24 +65,29 @@ function setupModuleConfig (isProduction) {
 }
 
 function setupConsumerFriendlyMessages (isProduction) {
+    const getMessages = app.locals.flow({
+        messageStatuses: setupSqlCommand.bind(null, messagesSql.getMessages.status(isProduction)),
+        messageGroups: setupSqlCommand.bind(null, messagesSql.getMessages.group(isProduction, false, true))
+    }, {method: 'parallel'});
+
     const makeMessages = [
-        setupSqlCommand.bind(null, sql.getMessagesStatus(isProduction)),
+        getMessages,
         model.messagesSkeleton
     ];
+
     return app.locals.flow(makeMessages, {method: 'waterfall'});
 }
 
 function setupFunctionalGroups (isProduction) {
     const getFunctionGroupInfo = [
-        setupSqlCommand.bind(null, sql.funcGroupInfo),
-        setupSqlCommand.bind(null, sql.funcGroupHmiLevels),
-        setupSqlCommand.bind(null, sql.funcGroupParameters)
+        setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)),
+        setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.hmiLevels.statusFilter(isProduction, true)),
+        setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.parameters.statusFilter(isProduction, true))
     ];
     const funcGroupGetFlow = app.locals.flow(getFunctionGroupInfo, {method: 'parallel'});
     const makeFunctionGroupInfo = [
         funcGroupGetFlow,
         model.functionGroupSkeleton,
-        model.transformFuncGroupInfo(isProduction),
         model.constructFunctionGroupObj
     ];
     return app.locals.flow(makeFunctionGroupInfo, {method: 'waterfall'});

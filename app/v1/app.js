@@ -60,19 +60,23 @@ function exposeRoutes () {
 	app.post('/messages/update', messages.updateLanguages);	
 }
 
+function updatePermissionsAndGenerateTemplates (next) {
+	permissions.update(function () {
+		//generate functional group templates for fast responding to the UI for function group info
+		//requires that permission information has updated
+		groups.generateFunctionGroupTemplates(function () {
+			log.info("Functional groups generated");
+			if (next) {
+				next();
+			}
+		});
+	});
+}
+
 //do not allow routes to be exposed until these async functions are completed
 flame.async.parallel([
-	function (next) {
-		//get and store permission info from SHAID on startup
-		permissions.update(function () {
-			//generate functional group templates for fast responding to the UI for function group info
-			//requires that permission information has updated
-			groups.generateFunctionGroupTemplates(function () {
-				log.info("Functional groups generated");
-				next();
-			});
-		});
-	},
+	//get and store permission info from SHAID on startup
+	updatePermissionsAndGenerateTemplates,
 	function (next) {
 		//get and store language code info from the GitHub SDL RPC specification on startup
 		messages.updateLanguages(function () {
@@ -93,5 +97,5 @@ flame.async.parallel([
 });
 
 //cron job for running updates. runs once a day at midnight
-new Cron('00 00 00 * * *', permissions.update, null, true);
+new Cron('00 00 00 * * *', updatePermissionsAndGenerateTemplates, null, true);
 new Cron('00 00 00 * * *', messages.updateLanguages, null, true);
