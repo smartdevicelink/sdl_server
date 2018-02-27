@@ -11,10 +11,10 @@
                     <div class="login">
                         <form v-on:submit.prevent="loginClick">
                             <div class="form-group">
-                                <input v-model="email" type="email" class="" id="email" placeholder="Email" required>
+                                <input v-model="email_input" type="email" class="" id="email" placeholder="Email" required>
                             </div>
                             <div class="form-group">
-                                <input v-model="password" type="password" class="" id="password" placeholder="Password" required>
+                                <input v-model="password_input" type="password" class="" id="password" placeholder="Password" required>
                             </div>
                             <b-btn type="submit" class="btn btn-card btn-style-green">Sign In</b-btn>
                         </form>
@@ -33,14 +33,15 @@ export default {
     props: ["email", "password"],
     data: function(){
         return {
-            "email": null,
-            "password": null
+            "email_input": this.email,
+            "password_input": this.password
         };
     },
     methods: {
         "loginClick": function(){
             // TODO: check the user's auth information and log them in
-            console.log("Validate login: " + this.email + " using " + this.password);
+            console.log("Validate login: " + this.email_input + " using " + this.password_input);
+            this.$session.start();
             this.$router.push("applications");
         }
     }

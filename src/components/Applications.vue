@@ -95,69 +95,32 @@
     export default {
         data () {
             return {
-                "apps_pending": [
-                    {
-                        "id": 1,
-                        "name": "Livio Music",
-                        "category": "Entertainment",
-                        "platform": "iOS",
-                        "icon_url": null,
-                        "status": "pending"
-                    },
-                    {
-                        "id": 2,
-                        "name": "Livio Music",
-                        "category": "Entertainment",
-                        "platform": "Android",
-                        "icon_url": null,
-                        "status": "pending"
-                    },
-                    {
-                        "id": 3,
-                        "name": "Livio T-1",
-                        "category": "Entertainment",
-                        "platform": "Skynet",
-                        "icon_url": null,
-                        "status": "pending"
-                    }
-                ],
-                "apps_approved": [
-                    {
-                        "id": 4,
-                        "name": "Spotify for Android",
-                        "category": "Entertainment",
-                        "platform": "Android",
-                        "icon_url": null,
-                        "status": "approved"
-                    },
-                    {
-                        "id": 5,
-                        "name": "Pandora for iOS",
-                        "category": "Entertainment",
-                        "platform": "iOS",
-                        "icon_url": null,
-                        "status": "approved"
-                    }
-                ],
-                "apps_denied": [
-                    {
-                        "id": 6,
-                        "name": "Glympse",
-                        "category": "Navigation",
-                        "platform": "Android",
-                        "icon_url": null,
-                        "status": "denied"
-                    },
-                    {
-                        "id": 7,
-                        "name": "Google Maps",
-                        "category": "Navigation",
-                        "platform": "Android",
-                        "icon_url": null,
-                        "status": "denied"
-                    }
-                ]
+                "apps_pending": [],
+                "apps_approved": [],
+                "apps_denied": []
             }
+        },
+        methods: {
+            "getApplications": function(status = "PENDING", storage_attribute ="apps_pending") {
+                this.$http.get("applications", {
+                    "params": {
+                        "approval_status": status
+                    }
+                }).then(response => {
+                    // success
+                    response.json().then(parsed => {
+                        this[storage_attribute] = parsed.data.applications;
+                    });
+                }, response => {
+                    // error
+                    console.log("Error receiving " + status + " applications. Status code: " + response.status);
+                });
+            }
+        },
+        created: function(){
+            this.getApplications("PENDING", "apps_pending");
+            this.getApplications("ACCEPTED", "apps_approved");
+            this.getApplications("DENIED", "apps_denied");
         }
     }
 </script>

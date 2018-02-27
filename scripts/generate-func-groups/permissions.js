@@ -101,14 +101,14 @@ let permissionRelations = [];
 //Any permission that depends on another permission existing is defined here
 //For example, vehicle data permissions necessitate having permissions to GetVehicleData, etc.
 const allVehicleRpcs = ["OnVehicleData", "GetVehicleData", "SubscribeVehicleData", "UnsubscribeVehicleData"];
-const getVehicleRpcs = ["GetVehicleData"];
+const vinVehicleRpcs = ["OnVehicleData", "GetVehicleData"];
 const allRemoteControlRpcs = ["ButtonPress", "GetInteriorVehicleData", "SetInteriorVehicleData", "OnInteriorVehicleData", "SystemRequest"];
 
 for (let i = 0; i < permissions.length; i++) {
     const permission = permissions[i];
     if (permission.type === "PARAMETER") { //all vehicle parameters (at least for now...)
         if (permission.name === "vin") {
-            addPermissionRelations(permissionRelations, permission.name, getVehicleRpcs);
+            addPermissionRelations(permissionRelations, permission.name, vinVehicleRpcs);
         }
         else {
             addPermissionRelations(permissionRelations, permission.name, allVehicleRpcs);

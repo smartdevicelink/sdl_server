@@ -20,13 +20,13 @@
                                 </small>
                             </div>
                             <div class="form-group">
-                                <input v-model="newPassword1" type="password" class="" id="setPassword" placeholder="Create New Password" aria-describedby="passwordHelpBlock" pattern=".{6,}" required>
+                                <input v-model="new_password_1" type="password" class="" id="setPassword" placeholder="Create New Password" aria-describedby="passwordHelpBlock" pattern=".{6,}" required>
                                 <small id="passwordHelpBlock" class="form-text text-muted">
                                     Must be at least 6 characters
                                 </small>
                             </div>
                             <div class="form-group">
-                                <input v-model="newPassword2" type="password" class="" id="retypePassword" placeholder="Re-type Password" pattern=".{6,}" required>
+                                <input v-model="new_password_2" type="password" class="" id="retypePassword" placeholder="Re-type Password" pattern=".{6,}" required>
                             </div>
                             <button type="submit" class="btn btn-card btn-style-green">Register</button>
                         </form>
@@ -44,13 +44,13 @@ export default {
         return {
             "email": null,
             "password": null,
-            "newPassword1": null,
-            "newPassword2": null
+            "new_password_1": null,
+            "new_password_2": null
         };
     },
     methods: {
         "registerClick": function(){
-            // TODO: check the user's auth information and log them in
+            // TODO: check the user's auth information and register them
             if(!this.newPassword2 || !this.newPassword1 || this.newPassword1 != this.newPassword2){
                 // new password must match
                 return alert("Your new password and re-typed password must match");
