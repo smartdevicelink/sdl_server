@@ -9,6 +9,7 @@ import FunctionalGroups from '@/components/FunctionalGroups'
 import FunctionalGroupDetails from '@/components/FunctionalGroupDetails'
 import ConsumerMessages from '@/components/ConsumerMessages'
 import ConsumerMessageDetails from '@/components/ConsumerMessageDetails'
+import ModuleConfig from '@/components/ModuleConfig'
 import PolicyTable from '@/components/PolicyTable'
 import User from '@/components/User'
 import Invite from '@/components/Invite'
@@ -129,6 +130,15 @@ const router = new Router({
                 "id": route.query.id || null,
                 "environment": route.query.environment || "PRODUCTION"
             })
+        },
+        {
+            path: '/moduleconfig/',
+            name: 'ModuleConfig',
+            component: ModuleConfig,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Module Config'
+            }
         },/*
         {
             path: '/user/',
