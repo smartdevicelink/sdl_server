@@ -122,6 +122,18 @@
                             </div>
                         </div>
                     </div>
+                    <!-- save button -->
+                    <div>
+                        <vue-ladda
+                            type="submit"
+                            class="btn btn-card btn-style-green"
+                            data-style="zoom-in"
+                            v-if="!fieldsDisabled"
+                            v-on:click="saveModuleConfig()"
+                            v-bind:loading="save_button_loading">
+                            Save module config
+                        </vue-ladda>
+                    </div>
                 </div>
 
                 <!-- PROMOTE GROUP MODAL -->
@@ -158,33 +170,9 @@
                         "value": "PRODUCTION"
                     }
                 ],
+                "save_button_loading": false,
                 "promote_button_loading": false,
-                "module_config": {
-                    "status": "PRODUCTION",
-                    "exchange_after_x_ignition_cycles": 100,
-                    "exchange_after_x_kilometers": 1800,
-                    "exchange_after_x_days": 30,
-                    "timeout_after_x_seconds": 60,
-                    "seconds_between_retries": [1,
-                    5,
-                    25,
-                    125,
-                    625],
-                    "endpoints": {
-                        "0x07": "http://localhost:3000/api/1/policies/proprietary",
-                        "0x04": "http://localhost:3000/api/1/softwareUpdate",
-                        "queryAppsUrl": "http://sdl.shaid.server",
-                        "lock_screen_icon_url": "http://i.imgur.com/QwZ9uKG.png"
-                    },
-                    "notifications_per_minute_by_priority": {
-                        "EMERGENCY": 60,
-                        "NAVIGATION": 15,
-                        "VOICECOM": 20,
-                        "COMMUNICATION": 6,
-                        "NORMAL": 4,
-                        "NONE": 0
-                    }
-                }
+                "module_config": null
             }
         },
         computed: {
@@ -197,17 +185,33 @@
         },
         methods: {
             "environmentClick": function () {
-                /*this.httpRequest("get", "groups?id=1", null, function (err, res) {
-                    console.log(err);
-                    console.log(res);
-                });*/
+                this.httpRequest("get", "module?environment=" + this.environment, null, (err, res) => {
+                    if (err) {
+                        console.log("Error fetching module config data: " + res.body.error);
+                    }
+                    else {
+                        res.json().then(parsed => {
+                            if (parsed.data.module_configs && parsed.data.module_configs.length) {
+                                this.module_config = parsed.data.module_configs[0]; //only one entry
+                            }
+                            else {
+                                console.log("No module config data returned");
+                            }
+                        });
+                    }
+                });
+            },
+            "saveModuleConfig": function () {
+                this.handleModalClick("save_button_loading", null, "saveConfig");
+            },
+            "saveConfig": function (cb) {
+                this.httpRequest("post", "module", this.module_config, cb);
             },
             "promoteConfigClick": function () {
                 this.handleModalClick("promote_button_loading", "promoteModal", "promoteConfig");
             },
-            "promoteConfig": function (next) {
-                console.log("clicky");
-                next();
+            "promoteConfig": function (cb) {
+                this.httpRequest("post", "module/promote", this.module_config, cb);
             },
             "addRetryUpdateElement": function () {
                 this.module_config.seconds_between_retries.push(0);
