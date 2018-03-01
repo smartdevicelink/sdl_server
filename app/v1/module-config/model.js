@@ -2,7 +2,7 @@
 const app = require('../app');
 const flame = app.locals.flame;
 const flow = app.locals.flow;
-const setupSqlCommands = app.locals.db.setupSqlCommands;
+const db = app.locals.db;
 const sql = require('./sql.js');
 
 //keeping this synchronous due to how small the data is. pass this to the event loop
@@ -36,6 +36,7 @@ function baseTemplate (objOverride) {
     const obj = {
         id: 0,
         status: "PRODUCTION",
+        preloaded_pt: true,
         exchange_after_x_ignition_cycles: 0,
         exchange_after_x_kilometers: 0,
         exchange_after_x_days: 0,
@@ -61,6 +62,7 @@ function baseTemplate (objOverride) {
         //add overrides to the default
         obj.id = objOverride.id;
         obj.status = objOverride.status;
+        obj.preloaded_pt = objOverride.preloaded_pt;
         obj.exchange_after_x_ignition_cycles = objOverride.exchange_after_x_ignition_cycles;
         obj.exchange_after_x_kilometers = objOverride.exchange_after_x_kilometers;
         obj.exchange_after_x_days = objOverride.exchange_after_x_days;
@@ -81,6 +83,34 @@ function baseTemplate (objOverride) {
     return obj;
 }
 
+//store the information using a SQL transaction
+function insertModuleConfig (isProduction, moduleConfig, next) {
+    //change status
+    if (isProduction) {
+        moduleConfig.status = "PRODUCTION";
+    }
+    else {
+        moduleConfig.status = "STAGING";
+    }
+    // process message groups synchronously (due to the SQL transaction)
+    db.runAsTransaction(function (client, callback) {
+        flame.async.waterfall([
+            //stage 1: insert module config 
+            client.getOne.bind(client, sql.insertModuleConfig(moduleConfig)),
+            //stage 2: insert module config retry seconds
+            function (newModConf, next) {
+                if (moduleConfig.seconds_between_retries.length > 0) {
+                    client.getOne(sql.insertRetrySeconds(moduleConfig.seconds_between_retries, newModConf.id), next);
+                }
+                else {
+                    next();
+                }
+            },
+        ], callback);
+    }, next);
+}
+
 module.exports = {
-    transformModuleConfig: transformModuleConfig
+    transformModuleConfig: transformModuleConfig,
+    insertModuleConfig: insertModuleConfig
 }
