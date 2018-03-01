@@ -819,7 +819,6 @@ input:checked + .slider:before {
 }
 .functional-content input {
     background-color: #FFFFFF;
-    border: none;
     height: 50px;
     padding: 20px;
 }
@@ -832,7 +831,6 @@ input:checked + .slider:before {
 }
 .functional-content textarea {
     background-color: #FFFFFF;
-    border: none;
     padding: 20px;
 }
 .functional-content .form-control:focus {

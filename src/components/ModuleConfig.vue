@@ -16,7 +16,7 @@
                     name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
+                    <b-btn v-if="environment == 'STAGING' && canPromote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
                 <h4>Module Config</h4>
@@ -165,7 +165,7 @@
             }
         },
         computed: {
-            can_promote: function() {
+            canPromote: function() {
                 return this.module_config && this.module_config.status === "STAGING";
             },
             fieldsDisabled: function () {
