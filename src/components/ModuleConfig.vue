@@ -22,106 +22,95 @@
                 <h4>Module Config</h4>
 
                 <!-- module config data -->
-                <div class="functional-content">
-                    <div class="form-row" v-if="module_config">
-                        <div class="white-box rpc-container">
-                            <!-- exchange in ignition cycles -->
-                            <h5> Policy Table Update in Ignition Cycles</h5>
-                            <!-- TODO: lots of repetition here. move out into their own components -->
-                            <div class="form-group row">
-                                <label class="col-sm-9 col-form-label" style="text-transform:none">exchange_after_x_ignition_cycles</label>
-                                <div class="col-sm-3">
-                                    <input v-model="module_config.exchange_after_x_ignition_cycles" :disabled="fieldsDisabled" class="form-control">
+                <div class="functional-content" v-if="module_config">
+
+                            <div class="form-row">
+                                <h4>Refresh the Policy Table after every:</h4>
+
+                                <div class="form-group row">
+                                    <div class="col-sm-2">
+                                        <input v-model="module_config.exchange_after_x_ignition_cycles" :disabled="fieldsDisabled" class="form-control">
+                                    </div>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Ignition Cycles</label>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-sm-2">
+                                        <input v-model="module_config.exchange_after_x_kilometers" :disabled="fieldsDisabled" class="form-control">
+                                    </div>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Kilometers Traveled</label>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-sm-2">
+                                        <input v-model="module_config.exchange_after_x_days" :disabled="fieldsDisabled" class="form-control">
+                                    </div>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Days</label>
                                 </div>
                             </div>
-                            <br>
-                            <!-- exchange in kilometers -->
-                            <h5> Policy Table Update in Kilometers</h5>
-                            <div class="form-group row">
-                                <label class="col-sm-9 col-form-label" style="text-transform:none">exchange_after_x_kilometers</label>
-                                <div class="col-sm-3">
-                                    <input v-model="module_config.exchange_after_x_kilometers" :disabled="fieldsDisabled" class="form-control">
+
+                            <div class="form-row">
+                                <h4 for="name">Policy Table Refresh Timeout</h4>
+                                <div class="form-group row">
+                                    <div class="col-sm-2">
+                                        <input v-model="module_config.timeout_after_x_seconds" :disabled="fieldsDisabled" class="form-control">
+                                    </div>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Seconds</label>
                                 </div>
                             </div>
-                            <br>
-                            <!-- exchange in days -->
-                            <h5> Policy Table Update in Days</h5>
-                            <div class="form-group row">
-                                <label class="col-sm-9 col-form-label" style="text-transform:none">exchange_after_x_days</label>
-                                <div class="col-sm-3">
-                                    <input v-model="module_config.exchange_after_x_days" :disabled="fieldsDisabled" class="form-control">
-                                </div>
-                            </div>
-                            <br>
-                            <!-- timeout in seconds-->
-                            <h5> Policy Table Update Timeout in Seconds</h5>
-                            <div class="form-group row">
-                                <label class="col-sm-9 col-form-label" style="text-transform:none">timeout_after_x_seconds</label>
-                                <div class="col-sm-3">
-                                    <input v-model="module_config.timeout_after_x_seconds" :disabled="fieldsDisabled" class="form-control">
-                                </div>
-                            </div>
-                            <br>
+
                             <!-- retry in seconds -->
-                            <h5> Retry Policy Table Update in Seconds </h5>
-                            <div class="form-group row">
-                                <label class="col-sm-9 col-form-label" style="text-transform:none">seconds_between_retries</label>
+                            <div class="form-row" style="max-width: 450px;">
+                                <h4>When a Policy Table Refresh Fails:</h4>
+                                    <!-- retry in seconds element -->
+                                    <div class="white-box rpc-container" v-for="(value, key) in module_config.seconds_between_retries">
+                                        <div class="row">
+                                            <label class="col col-form-label color-primary" style="text-transform:none">Retry after</label>
+                                            <div class="col">
+                                                <input v-model="module_config.seconds_between_retries[key]" :disabled="fieldsDisabled" class="form-control">
+                                            </div>
+                                            <label class="col col-form-label color-primary" style="text-transform:none">{{ module_config.seconds_between_retries[key] == 1 ? "second" : "seconds" }}</label>
+                                            <div class="col" style="display:flex;justify-content:center;align-items:center;">
+                                                <i
+                                                    v-on:click="removeRetryUpdateElement(key)"
+                                                    v-if="!fieldsDisabled"
+                                                    class="pointer fa fa-times hover-color-red"
+                                                    style=""
+                                                    aria-hidden="true">
+                                                </i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="!fieldsDisabled" v-on:click="addRetryUpdateElement()" id="add" class="another-rpc pointer">
+                                        <i class="fa fa-plus middle-middle"></i>
+                                    </div>
                             </div>
-                            <!-- retry in seconds element -->
-                            <div class="form-group row" v-for="(value, key) in module_config.seconds_between_retries">
-                                <label class="col-sm-8 col-form-label" style="text-transform:none">Element {{ key }}</label>
-                                <div class="col-sm-3">
-                                    <input v-model="module_config.seconds_between_retries[key]" :disabled="fieldsDisabled" class="form-control">
-                                </div>
-                                <i
-                                    v-on:click="removeRetryUpdateElement(key)"
-                                    v-if="!fieldsDisabled"
-                                    class="col-sm-1 pointer fa fa-times hover-color-red"
-                                    style="display:flex;justify-content:center;align-items:center;"
-                                    aria-hidden="true">
-                                </i>
+
+                            <div class="form-row">
+                                <h4 for="name">Software Update URL (0x04)</h4>
+                                <input v-model="module_config.endpoints['0x04']" :disabled="fieldsDisabled" class="form-control">
                             </div>
-                            <div v-if="!fieldsDisabled" v-on:click="addRetryUpdateElement()" id="add" class="another-rpc pointer">
-                                <i class="fa fa-plus middle-middle"></i>
+
+                            <div class="form-row">
+                                <h4 for="name">iOS App Querying URL</h4>
+                                <input v-model="module_config.endpoints['queryAppsUrl']" :disabled="fieldsDisabled" class="form-control">
                             </div>
-                            <br>
-                            <!-- software update url -->
-                            <h5> URL for Software Updates </h5>
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label" style="text-transform:none">0x04</label>
-                                <div class="col-sm-9">
-                                    <input v-model="module_config.endpoints['0x04']" :disabled="fieldsDisabled" class="form-control">
-                                </div>
+
+                            <div class="form-row">
+                                <h4 for="name">Lock Screen Icon URL</h4>
+                                <input v-model="module_config.endpoints['lock_screen_icon_url']" :disabled="fieldsDisabled" class="form-control">
                             </div>
-                            <br>
-                            <!-- query apps url -->
-                            <h5> URL for App Querying on iOS Devices  </h5>
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label" style="text-transform:none">queryAppsUrl</label>
-                                <div class="col-sm-9">
-                                    <input v-model="module_config.endpoints['queryAppsUrl']" :disabled="fieldsDisabled" class="form-control">
-                                </div>
-                            </div>
-                            <br>
-                            <!-- lock screen url -->
-                            <h5> URL for Lock Screen Icon  </h5>
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label" style="text-transform:none">lock_screen_icon_url</label>
-                                <div class="col-sm-9">
-                                    <input v-model="module_config.endpoints['lock_screen_icon_url']" :disabled="fieldsDisabled" class="form-control">
-                                </div>
-                            </div>
-                            <br>
+
                             <!-- notifications -->
-                            <h5> Notifications per Minute by Priority  </h5>
-                            <div class="form-group row" v-for="(value, key) in module_config.notifications_per_minute_by_priority">
-                                <label class="col-sm-9 col-form-label" style="text-transform:none">{{ key }}</label>
-                                <div class="col-sm-3">
-                                    <input v-model="module_config.notifications_per_minute_by_priority[key]" :disabled="fieldsDisabled" class="form-control">
+                            <div class="form-row">
+                                <h4>Notification Rate Limits by Priority Level</h4>
+                                <div class="form-group row" v-for="(value, key) in module_config.notifications_per_minute_by_priority">
+                                    <div class="col-sm-2">
+                                        <input v-model="module_config.notifications_per_minute_by_priority[key]" :disabled="fieldsDisabled" class="form-control">
+                                    </div>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ key }} notifications per minute</label>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+
                     <!-- save button -->
                     <div>
                         <vue-ladda
@@ -214,7 +203,8 @@
                 this.httpRequest("post", "module/promote", this.module_config, cb);
             },
             "addRetryUpdateElement": function () {
-                this.module_config.seconds_between_retries.push(0);
+                var newVal = this.module_config.seconds_between_retries.length ? this.module_config.seconds_between_retries[this.module_config.seconds_between_retries.length - 1]*5 : 1;
+                this.module_config.seconds_between_retries.push(newVal);
             },
             "removeRetryUpdateElement": function (key) {
                 this.module_config.seconds_between_retries.splice(key, 1);
