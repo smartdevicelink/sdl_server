@@ -9,6 +9,9 @@ const sql = require('./sql.js');
 //validation functions
 
 function validatePost (req, res) {
+    if (!check.boolean(req.body.preloaded_pt)) {
+        return setError("preloaded_pt required");
+    }
     if (!check.number(req.body.exchange_after_x_ignition_cycles)) {
         return setError("exchange_after_x_ignition_cycles required");
     }
@@ -63,7 +66,7 @@ function validatePost (req, res) {
     return;
 
     function setError (msg) {
-        res.parcel.setStatus(400).setMessage(msg)
+        res.parcel.setStatus(400).setMessage(msg);
     }
 }
 
@@ -80,7 +83,6 @@ function getModuleConfigFlow (property, value) {
         model.transformModuleConfig
     ], {method: 'waterfall', eventLoop: true});
 }
-
 
 module.exports = {
     validatePost: validatePost,

@@ -1,6 +1,7 @@
 //Copyright (c) 2018, Livio, Inc.
 const app = require('../app');
 const helper = require('./helper.js');
+const model = require('./model.js');
 const flow = app.locals.flow;
 
 function get (req, res, next) {
@@ -34,16 +35,13 @@ function get (req, res, next) {
 }
 
 function post (isProduction, req, res, next) {
-	console.log(JSON.stringify(req.body, null, 4));
-	
 	helper.validatePost(req, res);
 	if (res.parcel.message) {
+		console.log(res.parcel.message);
 		return res.parcel.deliver();
 	}
 
-	res.sendStatus(200);
-/*
-    model.insertModuleConfig(isProduction, [req.body], function (err) {
+    model.insertModuleConfig(isProduction, req.body, function (err) {
         if (err) {
             app.locals.log.error(err);
             res.parcel
@@ -55,7 +53,7 @@ function post (isProduction, req, res, next) {
         }
         res.parcel.deliver();
     });
-*/
+
 }
 
 module.exports = {
