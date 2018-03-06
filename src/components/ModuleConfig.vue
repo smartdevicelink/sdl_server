@@ -29,22 +29,22 @@
 
                                 <div class="form-group row">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.exchange_after_x_ignition_cycles" :disabled="fieldsDisabled" class="form-control">
+                                        <input v-model="module_config.exchange_after_x_ignition_cycles" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
                                     </div>
-                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Ignition Cycles</label>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Ignition {{ Math.abs(module_config.exchange_after_x_ignition_cycles) == 1 ? "Cycle" : "Cycles" }}</label>
                                 </div>
 
                                 <div class="form-group row">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.exchange_after_x_kilometers" :disabled="fieldsDisabled" class="form-control">
+                                        <input v-model="module_config.exchange_after_x_kilometers" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
                                     </div>
-                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Kilometers Traveled</label>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ Math.abs(module_config.exchange_after_x_kilometers) == 1 ? "Kilometer" : "Kilometers" }} Traveled</label>
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.exchange_after_x_days" :disabled="fieldsDisabled" class="form-control">
+                                        <input v-model="module_config.exchange_after_x_days" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
                                     </div>
-                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Days</label>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ Math.abs(module_config.exchange_after_x_days) == 1 ? "Day" : "Days" }}</label>
                                 </div>
                             </div>
 
@@ -52,9 +52,9 @@
                                 <h4 for="name">Policy Table Refresh Timeout</h4>
                                 <div class="form-group row">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.timeout_after_x_seconds" :disabled="fieldsDisabled" class="form-control">
+                                        <input v-model="module_config.timeout_after_x_seconds" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
                                     </div>
-                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Seconds</label>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ Math.abs(module_config.timeout_after_x_seconds) == 1 ? "Second" : "Seconds" }}</label>
                                 </div>
                             </div>
 
@@ -66,9 +66,9 @@
                                         <div class="row">
                                             <label class="col col-form-label color-primary" style="text-transform:none">Retry after</label>
                                             <div class="col">
-                                                <input v-model="module_config.seconds_between_retries[key]" :disabled="fieldsDisabled" class="form-control">
+                                                <input v-model="module_config.seconds_between_retries[key]" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
                                             </div>
-                                            <label class="col col-form-label color-primary" style="text-transform:none">{{ module_config.seconds_between_retries[key] == 1 ? "second" : "seconds" }}</label>
+                                            <label class="col col-form-label color-primary" style="text-transform:none">{{ Math.abs(module_config.seconds_between_retries[key]) == 1 ? "second" : "seconds" }}</label>
                                             <div class="col" style="display:flex;justify-content:center;align-items:center;">
                                                 <i
                                                     v-on:click="removeRetryUpdateElement(key)"
@@ -96,8 +96,17 @@
                             </div>
 
                             <div class="form-row">
-                                <h4 for="name">Lock Screen Icon URL</h4>
-                                <input v-model="module_config.endpoints['lock_screen_icon_url']" :disabled="fieldsDisabled" class="form-control">
+                                <h4>Lock Screen Icon URL</h4>
+                                <div class="form-group row">
+                                    <div class="col-sm-10">
+                                        <input v-model="module_config.endpoints['lock_screen_icon_url']" :disabled="fieldsDisabled" class="form-control"></input>
+                                    </div>
+                                    <div class="col-sm">
+                                        <img v-if="module_config.endpoints['lock_screen_icon_url']" v-bind:src="module_config.endpoints['lock_screen_icon_url']" class="pull-right" style="max-width:50px;max-height:50px;"/>
+                                    </div>
+                                </div>
+
+
                             </div>
 
                             <!-- notifications -->
@@ -105,9 +114,9 @@
                                 <h4>Notification Rate Limits by Priority Level</h4>
                                 <div class="form-group row" v-for="(value, key) in module_config.notifications_per_minute_by_priority">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.notifications_per_minute_by_priority[key]" :disabled="fieldsDisabled" class="form-control">
+                                        <input v-model="module_config.notifications_per_minute_by_priority[key]" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
                                     </div>
-                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ key }} notifications per minute</label>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ key }} {{ Math.abs(module_config.notifications_per_minute_by_priority[key]) == 1 ? "notification" : "notifications" }} per minute</label>
                                 </div>
                             </div>
 

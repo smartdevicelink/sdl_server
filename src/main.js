@@ -41,6 +41,13 @@ Vue.component("hmi-selector", HmiSelector);
 Vue.component("message-item", MessageItem);
 Vue.component("card-item", CardItem);
 
+Vue.directive('integeronly', (el, binding) => {
+	let value = (el.value || "").toString();
+	value = value.replace(/[^0-9]/g,'');
+	value = parseInt(value) || 0;
+	el.value = binding.value = value;
+ });
+
 Vue.http.options.root = '/api/v1';
 
 export const eventBus = new Vue();
