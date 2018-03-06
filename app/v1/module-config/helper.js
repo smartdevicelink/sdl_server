@@ -9,9 +9,15 @@ const sql = require('./sql.js');
 //validation functions
 
 function validatePost (req, res) {
+    //coerce to a number first. NOTE: empty string is coerced to 0 
+    req.body.exchange_after_x_ignition_cycles -= 0;
+    req.body.exchange_after_x_kilometers -= 0;
+    req.body.exchange_after_x_days -= 0;
+    req.body.timeout_after_x_seconds -= 0;  
+
     if (!check.boolean(req.body.preloaded_pt)) {
         return setError("preloaded_pt required");
-    }
+    } 
     if (!check.number(req.body.exchange_after_x_ignition_cycles)) {
         return setError("exchange_after_x_ignition_cycles required");
     }
@@ -26,6 +32,12 @@ function validatePost (req, res) {
     }
     if (!check.array(req.body.seconds_between_retries)) {
         return setError("seconds_between_retries required");
+    }
+    for (let i = 0; i < req.body.seconds_between_retries.length; i++) {
+        req.body.seconds_between_retries[i] -= 0;
+        if (!check.number(req.body.seconds_between_retries[i])) {
+            return setError(req.body.seconds_between_retries[i] + " is not a number");
+        }
     }
     if (!req.body.endpoints) {
         return setError("endpoints object required");
@@ -45,6 +57,12 @@ function validatePost (req, res) {
     if (!req.body.notifications_per_minute_by_priority) {
         return setError("notifications_per_minute_by_priority object required");
     }
+    req.body.notifications_per_minute_by_priority.EMERGENCY -= 0;
+    req.body.notifications_per_minute_by_priority.NAVIGATION -= 0;
+    req.body.notifications_per_minute_by_priority.VOICECOM -= 0;
+    req.body.notifications_per_minute_by_priority.COMMUNICATION -= 0;
+    req.body.notifications_per_minute_by_priority.NORMAL -= 0;
+    req.body.notifications_per_minute_by_priority.NONE -= 0;
     if (!check.number(req.body.notifications_per_minute_by_priority.EMERGENCY)) {
         return setError("EMERGENCY notification count required");
     }
