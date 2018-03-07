@@ -1,6 +1,6 @@
 {
     "name": "sdl_policy_server",
-    "version": "1.0.0",
+    "version": "2.2.0",
     "lockfileVersion": 1,
     "requires": true,
     "dependencies": {
@@ -2102,9 +2102,9 @@
             "dev": true
         },
         "db-migrate": {
-            "version": "0.10.0-beta.24",
-            "resolved": "https://registry.npmjs.org/db-migrate/-/db-migrate-0.10.0-beta.24.tgz",
-            "integrity": "sha512-OJEacRVr2SCTOEfBfIehlTVTRCu6eelohWXWkbEU8WlGTLikG7u94PzGBv0AV14ZePz2FrDNP8qsXQYWqdQIeQ==",
+            "version": "0.10.5",
+            "resolved": "https://registry.npmjs.org/db-migrate/-/db-migrate-0.10.5.tgz",
+            "integrity": "sha512-jddRpFIxe+24U9frQBz51wtjFyVu2LnJ4QPcNRiiR4Hvuu8BKwdN2Ez42M6hLGbl7v1rXL2u+bUcNTvPyL/OwQ==",
             "requires": {
                 "balanced-match": "0.4.2",
                 "bluebird": "3.5.1",
@@ -2114,7 +2114,6 @@
                 "final-fs": "1.6.1",
                 "inflection": "1.12.0",
                 "mkdirp": "0.5.1",
-                "moment": "2.18.1",
                 "optimist": "0.6.1",
                 "parse-database-url": "0.3.0",
                 "pkginfo": "0.4.1",
@@ -4888,18 +4887,10 @@
                 "minimist": "0.0.8"
             }
         },
-        "moment": {
-            "version": "2.18.1",
-            "resolved": "https://registry.npmjs.org/moment/-/moment-2.18.1.tgz",
-            "integrity": "sha1-w2GT3Tzhwu7SrbfIAtu8d6gbHA8="
-        },
         "moment-timezone": {
             "version": "0.5.14",
             "resolved": "https://registry.npmjs.org/moment-timezone/-/moment-timezone-0.5.14.tgz",
-            "integrity": "sha1-TrOP+VOLgBCLpGekWPPtQmjM/LE=",
-            "requires": {
-                "moment": "2.18.1"
-            }
+            "integrity": "sha1-TrOP+VOLgBCLpGekWPPtQmjM/LE="
         },
         "mongodb-uri": {
             "version": "0.9.7",
