@@ -28,37 +28,53 @@ export default {
                 "applications": 0,
                 "functional_groups": 0,
                 "consumer_messages": 0
-            }
+            },
+            "intervals": [
+                setInterval(this.setPendingAppCount, 60000),
+                setInterval(this.setUnmappedFunctionalCount, 60000)
+            ]
         };
     },
-    created: function(){
-        // get number of pending applications
-        this.$http.get("applications", {
-            "params": {
-                "approval_status": "PENDING"
-            }
-        }).then(response => {
-            // success
-            response.json().then(parsed => {
-                this.badge_counts.applications = parsed.data.applications.length;
-            });
-        }, response => {
-            // error
-            console.log("Error receiving PENDING applications. Status code: " + response.status);
-        });
-
-        // get number of unmapped RPCs and parameters in PRODUCTION
-        this.$http.get("permissions/unmapped?environment=PRODUCTION", {})
-            .then(response => {
+    methods: {
+        "setPendingAppCount": function() {
+            // get number of pending applications
+            this.$http.get("applications", {
+                "params": {
+                    "approval_status": "PENDING"
+                }
+            }).then(response => {
                 // success
                 response.json().then(parsed => {
-                    this.badge_counts.functional_groups = (parsed.data.unmapped_rpc_count + parsed.data.unmapped_parameter_count);
+                    this.badge_counts.applications = parsed.data.applications.length;
                 });
             }, response => {
                 // error
-                console.log("Error fetching functional group data: " + response.body.error);
+                console.log("Error receiving PENDING applications. Status code: " + response.status);
             });
-
+        },
+        "setUnmappedFunctionalCount": function() {
+            // get number of unmapped RPCs and parameters in PRODUCTION
+            this.$http.get("permissions/unmapped?environment=PRODUCTION", {})
+                .then(response => {
+                    // success
+                    response.json().then(parsed => {
+                        this.badge_counts.functional_groups = (parsed.data.unmapped_rpc_count + parsed.data.unmapped_parameter_count);
+                    });
+                }, response => {
+                    // error
+                    console.log("Error fetching functional group data: " + response.body.error);
+                });
+        }
+    },
+    created: function(){
+        this.setPendingAppCount();
+        this.setUnmappedFunctionalCount();
+    },
+    beforeDestroy () {
+        // ensure closing of all modals
+        for(var i = 0; i < this.intervals.length; i++){
+            clearInterval(this.intervals[i]);
+        }
     }
 }
 </script>
