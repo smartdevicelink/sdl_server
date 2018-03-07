@@ -29,20 +29,32 @@
 
                                 <div class="form-group row">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.exchange_after_x_ignition_cycles" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
+                                        <pattern-input class="form-control text-truncate"
+                                           :regExp="integerInput.regExp"
+                                           :replacement="integerInput.replacement"
+                                           :disabled="fieldsDisabled"
+                                           v-model.number="module_config.exchange_after_x_ignition_cycles"></pattern-input>
                                     </div>
                                     <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">Ignition {{ Math.abs(module_config.exchange_after_x_ignition_cycles) == 1 ? "Cycle" : "Cycles" }}</label>
                                 </div>
 
                                 <div class="form-group row">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.exchange_after_x_kilometers" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
+                                        <pattern-input class="form-control text-truncate"
+                                           :regExp="integerInput.regExp"
+                                           :replacement="integerInput.replacement"
+                                           :disabled="fieldsDisabled"
+                                           v-model.number="module_config.exchange_after_x_kilometers"></pattern-input>
                                     </div>
                                     <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ Math.abs(module_config.exchange_after_x_kilometers) == 1 ? "Kilometer" : "Kilometers" }} Traveled</label>
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.exchange_after_x_days" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
+                                        <pattern-input class="form-control text-truncate"
+                                           :regExp="integerInput.regExp"
+                                           :replacement="integerInput.replacement"
+                                           :disabled="fieldsDisabled"
+                                           v-model.number="module_config.exchange_after_x_days"></pattern-input>
                                     </div>
                                     <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ Math.abs(module_config.exchange_after_x_days) == 1 ? "Day" : "Days" }}</label>
                                 </div>
@@ -52,7 +64,11 @@
                                 <h4 for="name">Policy Table Refresh Timeout</h4>
                                 <div class="form-group row">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.timeout_after_x_seconds" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
+                                        <pattern-input class="form-control text-truncate"
+                                           :regExp="integerInput.regExp"
+                                           :replacement="integerInput.replacement"
+                                           :disabled="fieldsDisabled"
+                                           v-model.number="module_config.timeout_after_x_seconds"></pattern-input>
                                     </div>
                                     <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ Math.abs(module_config.timeout_after_x_seconds) == 1 ? "Second" : "Seconds" }}</label>
                                 </div>
@@ -66,7 +82,11 @@
                                         <div class="row">
                                             <label class="col col-form-label color-primary" style="text-transform:none">Retry after</label>
                                             <div class="col">
-                                                <input v-model="module_config.seconds_between_retries[key]" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
+                                                <pattern-input class="form-control text-truncate"
+                                                   :regExp="integerInput.regExp"
+                                                   :replacement="integerInput.replacement"
+                                                   :disabled="fieldsDisabled"
+                                                   v-model.number="module_config.seconds_between_retries[key]"></pattern-input>
                                             </div>
                                             <label class="col col-form-label color-primary" style="text-transform:none">{{ Math.abs(module_config.seconds_between_retries[key]) == 1 ? "second" : "seconds" }}</label>
                                             <div class="col" style="display:flex;justify-content:center;align-items:center;">
@@ -114,7 +134,11 @@
                                 <h4>Notification Rate Limits by Priority Level</h4>
                                 <div class="form-group row" v-for="(value, key) in module_config.notifications_per_minute_by_priority">
                                     <div class="col-sm-2">
-                                        <input v-model="module_config.notifications_per_minute_by_priority[key]" v-integeronly :disabled="fieldsDisabled" class="form-control text-truncate">
+                                        <pattern-input class="form-control text-truncate"
+                                           :regExp="integerInput.regExp"
+                                           :replacement="integerInput.replacement"
+                                           :disabled="fieldsDisabled"
+                                           v-model.number="module_config.notifications_per_minute_by_priority[key]"></pattern-input>
                                     </div>
                                     <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ key }} {{ Math.abs(module_config.notifications_per_minute_by_priority[key]) == 1 ? "notification" : "notifications" }} per minute</label>
                                 </div>
@@ -168,6 +192,10 @@
                         "value": "PRODUCTION"
                     }
                 ],
+                "integerInput": {
+                    "regExp": /^[0\D]*|\D*/g, // Match any character that doesn't belong to the positive integer
+                    "replacement": ""
+                },
                 "save_button_loading": false,
                 "promote_button_loading": false,
                 "module_config": null

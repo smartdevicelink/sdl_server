@@ -16,6 +16,7 @@ import RpcChecklist from './components/common/RpcChecklist'
 import HmiSelector from './components/common/HmiSelector'
 import MessageItem from './components/common/MessageItem'
 import CardItem from './components/common/CardItem'
+import PatternInput from './components/common/PatternInput'
 
 Vue.use(BootstrapVue);
 Vue.use(VueSession);
@@ -40,13 +41,7 @@ Vue.component("rpc-checklist", RpcChecklist);
 Vue.component("hmi-selector", HmiSelector);
 Vue.component("message-item", MessageItem);
 Vue.component("card-item", CardItem);
-
-Vue.directive('integeronly', (el, binding) => {
-	let value = (el.value || "").toString();
-	value = value.replace(/[^0-9]/g,'');
-	value = parseInt(value) || 0;
-	el.value = binding.value = value;
- });
+Vue.component("pattern-input", PatternInput);
 
 Vue.http.options.root = '/api/v1';
 
