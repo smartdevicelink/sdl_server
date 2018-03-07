@@ -193,7 +193,7 @@
                     }
                 ],
                 "integerInput": {
-                    "regExp": /^[0\D]*|\D*/g, // Match any character that doesn't belong to the positive integer
+                    "regExp": /^[\D]*|\D*/g, // Match any character that doesn't belong to the positive integer
                     "replacement": ""
                 },
                 "save_button_loading": false,
