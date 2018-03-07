@@ -1,7 +1,6 @@
 const app = require('../app');
 const flame = app.locals.flame;
 const flow = app.locals.flow;
-const utils = require('../policy/utils.js');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
 const sql = require('./sql.js');
 const sqlBrick = require('sql-bricks-postgres');
@@ -354,5 +353,6 @@ module.exports = {
     generateTemplate: generateTemplate,
     getFunctionGroupTemplate: getFunctionGroupTemplate,
     getRpcHashTemplate: getRpcHashTemplate,
-    insertFunctionalGroupsWithTransaction: insertFunctionalGroupsWithTransaction
+    insertFunctionalGroupsWithTransaction: insertFunctionalGroupsWithTransaction,
+    rpcHashToArray: rpcHashToArray
 }

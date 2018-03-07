@@ -6,8 +6,8 @@ const flow = app.locals.flow;
 
 function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
-    const isProduction = !req.query.environment || !req.query.environment.toLowerCase() === 'staging';
-    
+    const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
+
     let chosenFlow;
 
     if (req.query.id) { //get module config of a specific id
@@ -37,7 +37,7 @@ function get (req, res, next) {
 function post (isProduction, req, res, next) {
 	helper.validatePost(req, res);
 	if (res.parcel.message) {
-		console.log(res.parcel.message);
+		app.locals.log.error(res.parcel.message);
 		return res.parcel.deliver();
 	}
 

@@ -44,6 +44,8 @@
                 }, {
                     "name": "Messages and Functional Groups"
                 }, {
+                    "name": "Module Config"
+                }, {
                     "name": "View Policy Table"
                 }
             ]

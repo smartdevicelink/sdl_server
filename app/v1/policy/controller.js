@@ -1,3 +1,4 @@
+//Copyright (c) 2018, Livio, Inc.
 const app = require('../app');
 const helper = require('./helper.js');
 
@@ -7,72 +8,46 @@ function postFromCore (isProduction) {
 		if (res.errorMsg) {
 			return res.status(400).send({ error: res.errorMsg });
 		}
-        helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, true, function (err, pieces) {
-            if (err) {
-                app.locals.log.error(err);
-                return res.sendStatus(500);
-            }
-            const policyTable = {
-                data: [
-                    {  
-                        policy_table: {
-                            module_config: pieces[0],
-                            functional_groupings: pieces[1],
-                            consumer_friendly_messages: pieces[2],
-                            app_policies: pieces[3]
-                        }
-                    }
-                ]
-            }
-            res.status(200).send(policyTable); 
-        });
+        helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, true, handlePolicyTableFlow.bind(null, res));
 	}
 }
 
 function getPreview (req, res, next) {
-    const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
-    helper.generatePolicyTable(isProduction, null, true, function (err, pieces) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.sendStatus(500);
-        }
-        const policyTable = {
-            data: [
-                {  
-                    policy_table: {
-                        module_config: pieces[0],
-                        functional_groupings: pieces[1],
-                        consumer_friendly_messages: pieces[2]
-                    }
-                }
-            ]
-        }
-        res.status(200).send(policyTable); 
-    });
+    const isProduction = !req.query.environment || !req.query.environment.toLowerCase() === 'staging';
+    helper.generatePolicyTable(isProduction, null, true, handlePolicyTableFlow.bind(null, res));
 }
 
 function postAppPolicy (req, res, next) {
-    const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
+    const isProduction = !req.query.environment || !req.query.environment.toLowerCase() === 'staging';
     helper.validateAppPolicyOnlyPost(req, res);
     if (res.errorMsg) {
         return res.status(400).send({ error: res.errorMsg });
     }
-    helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, false, function (err, pieces) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.sendStatus(500);
+    helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, false, handlePolicyTableFlow.bind(null, res));
+}
+
+function handlePolicyTableFlow (res, err, pieces) {
+    if (err) {
+        app.locals.log.error(err);
+        return res.parcel.setStatus(500).deliver();
+    }
+    res.parcel
+        .setStatus(200)
+        .setData(createPolicyTableResponse(pieces));
+    return res.parcel.deliver();
+}
+
+function createPolicyTableResponse (pieces) {
+    return [
+        {  
+            policy_table: {
+                module_config: pieces.moduleConfig,
+                functional_groupings: pieces.functionalGroups,
+                consumer_friendly_messages: pieces.consumerFriendlyMessages,
+                app_policies: pieces.appPolicies
+            }
         }
-        const policyTable = {
-            data: [
-                {  
-                    policy_table: {
-                        app_policies: pieces[0]
-                    }
-                }
-            ]
-        }
-        res.status(200).send(policyTable); 
-    });
+    ]        
 }
 
 module.exports = {

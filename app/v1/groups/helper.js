@@ -5,7 +5,6 @@ const messages = require('../messages/controller.js');
 const flow = app.locals.flow;
 const flame = app.locals.flame;
 const setupSql = app.locals.db.setupSqlCommand;
-const utils = require('../policy/utils.js');
 const sql = require('./sql.js');
 
 //validation functions
