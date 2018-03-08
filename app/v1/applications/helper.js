@@ -78,8 +78,10 @@ function storeApps (includeApprovalStatus, apps, callback) {
         fullFlow(function (err, res) {
             if (err) {
                 log.error(err);
-                let appID = res[res.length - 1]; // res returns an array with the app ID in the position that it was in in the shaid app query
-                if(appID && queue[queue.length - 1] !== appID){
+                // res returns an array with the app ID in the position that it was in in the shaid app query
+                // if the third app were to fail, then res would look like [ , , appID]
+                let appID = res[res.length - 1];
+                if(appID && queue[queue.length - 1] !== appID){ // ensures that the appID is not null and not already in the queue
                     queue.push(appID);
                 } 
                 if(res.length !== theseApps.length){
@@ -154,6 +156,7 @@ function autoApprovalModifier (appObj, next) {
     });
 }
 
+// checks a retry queue of app IDs to requery their information from SHAID and attempt insertion into the database
 function attemptRetry(milliseconds, retryQueue){
     if(milliseconds > 14400000){ // do not take longer than 4 hours
         milliseconds = 14400000;
@@ -163,7 +166,7 @@ function attemptRetry(milliseconds, retryQueue){
         flame.async.map(retryQueue, function(appID, callback){
             flame.async.waterfall([
                 app.locals.shaid.getApplications.bind(null, {
-                    uuid: appID,//"400701f6-91f8-4988-bb2e-b5c46e66e300",//appID
+                    uuid: appID,
                 }),
                 function(apps, callback){
                     const fullFlow = flow([
@@ -182,6 +185,7 @@ function attemptRetry(milliseconds, retryQueue){
                     fullFlow(function (err, res) {
                         if (err) {
                             log.error(err);
+                            // increase wait time for retry by a factor of 5
                             attemptRetry(milliseconds * 5, res, callback);
                         } else {
                             log.info("App with previously malformed data successfully stored");
