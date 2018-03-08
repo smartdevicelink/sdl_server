@@ -333,10 +333,10 @@ div.horizontal-divider .text {
 }
 
 .tiles > a {
-    -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
-	-webkit-transition: -webkit-transform 0.5s ease, opacity 0.5s ease;
-	-ms-transition: -ms-transform 0.5s ease, opacity 0.5s ease;
-	transition: transform 0.5s ease, opacity 0.5s ease;
+    -moz-transition: -moz-transform 0.4s ease, opacity 0.4s ease;
+	-webkit-transition: -webkit-transform 0.4s ease, opacity 0.4s ease;
+	-ms-transition: -ms-transform 0.4s ease, opacity 0.4s ease;
+	transition: transform 0.4s ease, opacity 0.4s ease;
 	position: relative;
 	width: calc(33.33333% - 1em);
     min-width: 340px;
@@ -354,6 +354,7 @@ div.horizontal-divider .text {
     color: #FFFFFF;
     background-color: #4A5E71;
     text-decoration: none;
+    opacity: 1;
 }
 .display-hover {
     display: none;
