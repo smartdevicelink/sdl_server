@@ -3,7 +3,7 @@ const sql = require('sql-bricks-postgres');
 const config = require('../../../settings.js'); //configuration module
 const log = require(`../../../custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`../../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
-
+const groupsSql = require('../groups/sql.js');
 const getLanguages = sql.select('*').from('languages').toString();
 
 module.exports = {
@@ -21,9 +21,9 @@ module.exports = {
         byIds: getMessagesByIdsStagingFilter,
         groupsByIds: getMessageGroupsByIdsStagingFilter
     },
-    getLanguages: getLanguages
+    getLanguages: getLanguages,
+    getAttachedFunctionalGroupsById: getAttachedFunctionalGroupsById
 }
-
 
 //returns a combination of message group and message text entries in a flat structure.
 //this is useful for generating the policy table, but not for returning info for the UI
@@ -221,4 +221,18 @@ function insertLanguages (languages) {
             )
             .toString();
     });
+}
+
+function getAttachedFunctionalGroupsById (id) {
+    //always get staging records, and don't hide deleted groups
+    const findMessageCategory = sql.select('message_category')
+        .from('message_group')
+        .where({id: id});
+
+    let statement = groupsSql.getFuncGroup.base.statusFilter(false, false);
+
+    statement.where({
+        user_consent_prompt: findMessageCategory
+    });
+    return statement;
 }
