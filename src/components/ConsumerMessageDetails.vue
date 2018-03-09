@@ -75,11 +75,11 @@
 
             <!-- DELETE GROUP MODAL -->
             <b-modal ref="deleteModal" title="Delete Consumer Message" hide-footer id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-                <small class="form-text text-muted">
+                <small class="form-text">
                     <p>Are you sure you want to delete this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately removed from the staging policy table, and will be removed from the production policy table upon the next promotion to production.</p>
-                    <p v-if="message.functional_group_names && message.functional_group_names.length">
+                    <p v-if="message.functional_group_names && message.functional_group_names.length" class="alert alert-danger">
                         This Consumer Message Group is attached to the following staging Functional Groups. Deleting it will also remove the Consumer Message from these Functional Groups.
-                        <ul>
+                        <ul style="margin-top:1em;">
                             <li
                                 v-for="(item, index) in message.functional_group_names"
                                 v-bind:item="item"

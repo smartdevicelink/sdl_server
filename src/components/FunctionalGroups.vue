@@ -107,8 +107,20 @@
 
             <!-- PROMOTE GROUP MODAL -->
             <b-modal ref="promoteModal" title="Promote Functional Groups to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-                <small class="form-text text-muted">
-                    This will promote all modified Functional Groups to production, immediately updating the production policy table. Are you sure you want to do this?
+                <small class="form-text">
+                    <p>This will promote all modified Functional Groups to production, immediately updating the production policy table. Are you sure you want to do this?</p>
+                    <p v-if="staging_consent_prompts_in_use.length" class="alert alert-danger">
+                        One or more Functional Groups are using the following Consumer Messages which have changes that have not yet been promoted to production. You may want to consider promoting your Consumer Messages to production before promoting your Functional Groups.
+                        <ul style="margin-top:1em;">
+                            <li
+                                v-for="(item, index) in staging_consent_prompts_in_use"
+                                v-bind:item="item"
+                                v-bind:index="index"
+                                v-bind:key="item">
+                                {{ item }}
+                            </li>
+                        </ul>
+                    </p>
                 </small>
                 <vue-ladda
                     type="button"
@@ -175,6 +187,15 @@
                 }
                 return output;
             },
+            staging_consent_prompts_in_use: function () {
+                let cfm = [];
+                this.functional_groups.forEach(function(fg){
+                    if(fg.selected_prompt_status == "STAGING" && fg.user_consent_prompt && cfm.indexOf(fg.user_consent_prompt) < 0){
+                        cfm.push(fg.user_consent_prompt);
+                    }
+                });
+                return cfm;
+            }
         },
         methods: {
             "environmentClick": function () {
