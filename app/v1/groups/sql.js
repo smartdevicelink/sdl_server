@@ -58,8 +58,7 @@ function getFuncGroupStatus (isProduction, hideDeleted = false) {
             status: 'PRODUCTION',
             'is_deleted': false
         })
-        .orderBy('LOWER(view_function_group_info.property_name)')
-        .toString();
+        .orderBy('LOWER(view_function_group_info.property_name)');
 
     const funcGroupsGroup = sql.select('max(id) AS id', 'property_name')
         .from('view_function_group_info')
