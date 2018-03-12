@@ -59,25 +59,44 @@ function createAppInfoFlow (filterTypeFunc, value) {
 //application store functions
 
 function storeApps (includeApprovalStatus, apps, callback) {
-    const fullFlow = flow([
-        //first check if the apps need to be stored in the database
-        flow(flame.map(apps, checkNeedsInsertion), {method: "parallel"}), 
-        filterApps.bind(null, includeApprovalStatus), 
-        //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
-        //should change to be accepted
-        function (appObjs, next) {
-            flame.async.map(appObjs, autoApprovalModifier, next);
-        },
-        function (appObjs, next) {
-            flame.async.map(appObjs, model.storeApp, next);
-        }
-    ], {method: "waterfall", eventLoop: true});
+    let queue = [];
+    function recStore(includeApprovalStatus, theseApps, cb){
+        const fullFlow = flow([
+            //first check if the apps need to be stored in the database
+            flow(flame.map(theseApps, checkNeedsInsertion), {method: "parallel"}), 
+            filterApps.bind(null, includeApprovalStatus), 
+            //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
+            //should change to be accepted
+            function (appObjs, next) {
+                flame.async.map(appObjs, autoApprovalModifier, next);
+            },
+            function (appObjs, next) {
+                flame.async.map(appObjs, model.storeApp, next);
+            }
+        ], {method: "waterfall", eventLoop: true});
 
-    fullFlow(function (err, res) {
-        if (err) {
-            log.error(err);
-        }
+        fullFlow(function (err, res) {
+            if (err) {
+                log.error(err);
+                // res returns an array with the app ID in the position that it was in in the shaid app query
+                // if the third app were to fail, then res would look like [ , , appID]
+                let appID = res[res.length - 1];
+                if(appID && queue[queue.length - 1] !== appID){ // ensures that the appID is not null and not already in the queue
+                    queue.push(appID);
+                } 
+                if(res.length !== theseApps.length){
+                    let appsLeftover = theseApps.slice(res.length);
+                    return recStore(includeApprovalStatus, appsLeftover, cb);
+                }
+            } 
+            cb();
+        });
+    }
+    recStore(includeApprovalStatus, apps, function(){
         callback();
+        if(queue.length > 0){
+            attemptRetry(300000, queue);
+        }
     });
 }
 
@@ -135,6 +154,50 @@ function autoApprovalModifier (appObj, next) {
         }
         next(null, appObj); 
     });
+}
+
+// checks a retry queue of app IDs to requery their information from SHAID and attempt insertion into the database
+function attemptRetry(milliseconds, retryQueue){
+    if(milliseconds > 14400000){ // do not take longer than 4 hours
+        milliseconds = 14400000;
+    }
+    log.error("Received app with incorrectly formatted info, will attempt to requery SHAID in " + (milliseconds / 60000) + " minutes");
+    setTimeout(function(){
+        flame.async.map(retryQueue, function(appID, callback){
+            flame.async.waterfall([
+                app.locals.shaid.getApplications.bind(null, {
+                    uuid: appID,
+                }),
+                function(apps, callback){
+                    const fullFlow = flow([
+                        //first check if the apps need to be stored in the database
+                        flow(flame.map(apps, checkNeedsInsertion), {method: "parallel"}), 
+                        filterApps.bind(null, false), 
+                        //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
+                        //should change to be accepted
+                        function (appObjs, callback) {
+                            flame.async.map(appObjs, autoApprovalModifier, callback);
+                        },
+                        function (appObjs, callback) {
+                            flame.async.map(appObjs, model.storeApp, callback);
+                        }
+                    ], {method: "waterfall", eventLoop: true});
+                    fullFlow(function (err, res) {
+                        if (err) {
+                            log.error(err);
+                            // increase wait time for retry by a factor of 5
+                            attemptRetry(milliseconds * 5, res, callback);
+                        } else {
+                            log.info("App with previously malformed data successfully stored");
+                            callback();
+                        }
+                    })
+                }
+            ], callback);
+        }, function(){
+            log.info("Apps in retry queue successfully added to the database");
+        });
+    }, milliseconds);
 }
 
 module.exports = {

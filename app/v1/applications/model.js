@@ -110,7 +110,14 @@ function storeApp (appObj, next) {
                 //execute all the sql statements. client.getOne needs client as context or the query will fail
                 flame.async.series(flame.map(allInserts, client.getOne, client), next);
             },
-        ], callback);
+        ], function(err, res){
+            if(err){
+                callback(err, appObj.uuid);
+            }
+            else {
+                callback(err, res);
+            }
+        });
     }, next);
 }
 
