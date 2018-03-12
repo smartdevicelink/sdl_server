@@ -92,10 +92,11 @@ function transformMessages (info, cb) {
 
 //functional groups
 
-function transformFunctionalGroups (info, next) {
+function transformFunctionalGroups (isProduction, info, next) {
     const baseInfo = info.base;
     const hmiLevels = info.hmiLevels;
     const parameters = info.parameters;
+    const consentPrompts = info.messageGroups;
 
     //hashes to get hmiLevels and parameters by function group id
     const groupedData = {};
@@ -104,8 +105,16 @@ function transformFunctionalGroups (info, next) {
     //set up the top level objects for these hashes
     for (let i = 0; i < baseInfo.length; i++) {
         groupedData[baseInfo[i].id] = {};
-        if (baseInfo[i].user_consent_prompt !== null) {
-            groupedData[baseInfo[i].id].user_consent_prompt = baseInfo[i].user_consent_prompt;
+        
+        const selectedPrompt = consentPrompts.find(function (prompt) {
+            return prompt.message_category === baseInfo[i].user_consent_prompt;
+        });
+        //the prompt must exist at least in staging and must be in production mode if isProduction is true
+        if (selectedPrompt && (!isProduction || selectedPrompt.status === "PRODUCTION")) {
+            groupedData[baseInfo[i].id].user_consent_prompt = selectedPrompt.message_category;
+        }
+        else {
+            groupedData[baseInfo[i].id].user_consent_prompt = null;
         }
         groupedData[baseInfo[i].id].rpcs = null;
         hashIdToPropertyName[baseInfo[i].id] = baseInfo[i].property_name;
