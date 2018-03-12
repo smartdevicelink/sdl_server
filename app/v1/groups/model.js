@@ -197,6 +197,9 @@ function makeFunctionGroups (includeRpcs, info, next) {
             funcGroup.selected_prompt_id = selectedEnglishPrompt.id;
             funcGroup.selected_prompt_status = selectedEnglishPrompt.status;
         }
+        else {
+            funcGroup.user_consent_prompt = null;
+        }
         next(null, funcGroup);     
     }), {method: 'parallel', eventLoop: true});
     

@@ -13,12 +13,12 @@ function postFromCore (isProduction) {
 }
 
 function getPreview (req, res, next) {
-    const isProduction = !req.query.environment || !req.query.environment.toLowerCase() === 'staging';
+    const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
     helper.generatePolicyTable(isProduction, null, true, handlePolicyTableFlow.bind(null, res));
 }
 
 function postAppPolicy (req, res, next) {
-    const isProduction = !req.query.environment || !req.query.environment.toLowerCase() === 'staging';
+    const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
     helper.validateAppPolicyOnlyPost(req, res);
     if (res.errorMsg) {
         return res.status(400).send({ error: res.errorMsg });

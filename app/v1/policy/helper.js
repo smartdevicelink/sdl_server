@@ -7,6 +7,7 @@ const sql = require('./sql.js');
 const funcGroupSql = require('../groups/sql.js');
 const messagesSql = require('../messages/sql.js');
 const moduleConfigSql = require('../module-config/sql.js');
+const messages = require('../messages/helper.js');
 
 //validation functions
 
@@ -83,12 +84,13 @@ function setupFunctionalGroups (isProduction) {
     const getFunctionGroupInfo = {
         base: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)),
         hmiLevels: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.hmiLevels.statusFilter(isProduction, true)),
-        parameters: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.parameters.statusFilter(isProduction, true))
+        parameters: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.parameters.statusFilter(isProduction, true)),
+        messageGroups: messages.getMessageGroups.bind(null, false), //get consent prompt values (always returns a value as if in STAGING mode)
     };
     const funcGroupGetFlow = flame.flow(getFunctionGroupInfo, {method: 'parallel'});
     const makeFunctionGroupInfo = [
         funcGroupGetFlow,
-        model.transformFunctionalGroups
+        model.transformFunctionalGroups.bind(null, isProduction)
     ];
     return flame.flow(makeFunctionGroupInfo, {method: 'waterfall'});
 }
