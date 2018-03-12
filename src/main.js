@@ -16,6 +16,7 @@ import RpcChecklist from './components/common/RpcChecklist'
 import HmiSelector from './components/common/HmiSelector'
 import MessageItem from './components/common/MessageItem'
 import CardItem from './components/common/CardItem'
+import PatternInput from './components/common/PatternInput'
 
 Vue.use(BootstrapVue);
 Vue.use(VueSession);
@@ -40,10 +41,43 @@ Vue.component("rpc-checklist", RpcChecklist);
 Vue.component("hmi-selector", HmiSelector);
 Vue.component("message-item", MessageItem);
 Vue.component("card-item", CardItem);
+Vue.component("pattern-input", PatternInput);
 
 Vue.http.options.root = '/api/v1';
 
 export const eventBus = new Vue();
+
+//reusable methods
+Vue.mixin({
+	methods: {
+		"httpRequest": function (action, route, body, cb) {
+	        if (action === "delete" || action === "get") {
+	            if (body !== null) {
+	                body = {body: body};
+	            }
+	        }
+	        this.$http[action](route, body)
+	            .then(response => {
+	                cb(null, response);
+	            }, response => {
+	                cb(response, null);
+	            });
+	    },
+	    "handleModalClick": function (loadingProp, modalName, methodName) {
+            //show a loading icon for the modal, and call the methodName passed in
+            //when finished, turn off the loading icon, hide the modal, and reload the info
+            this[loadingProp] = true;
+            this[methodName](() => {
+                this[loadingProp] = false;
+                if (modalName) {
+                    this.$refs[modalName].hide();
+                }
+                this.environmentClick();
+            });
+        },
+	}
+})
+
 
 /* eslint-disable no-new */
 new Vue({

@@ -1,7 +1,6 @@
 const app = require('../app');
 const flame = app.locals.flame;
 const flow = app.locals.flow;
-const utils = require('../policy/utils.js');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
 const sql = require('./sql.js');
 const sqlBrick = require('sql-bricks-postgres');
@@ -198,6 +197,9 @@ function makeFunctionGroups (includeRpcs, info, next) {
             funcGroup.selected_prompt_id = selectedEnglishPrompt.id;
             funcGroup.selected_prompt_status = selectedEnglishPrompt.status;
         }
+        else {
+            funcGroup.user_consent_prompt = null;
+        }
         next(null, funcGroup);     
     }), {method: 'parallel', eventLoop: true});
     
@@ -354,5 +356,6 @@ module.exports = {
     generateTemplate: generateTemplate,
     getFunctionGroupTemplate: getFunctionGroupTemplate,
     getRpcHashTemplate: getRpcHashTemplate,
-    insertFunctionalGroupsWithTransaction: insertFunctionalGroupsWithTransaction
+    insertFunctionalGroupsWithTransaction: insertFunctionalGroupsWithTransaction,
+    rpcHashToArray: rpcHashToArray
 }

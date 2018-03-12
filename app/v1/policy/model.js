@@ -1,279 +1,222 @@
-const utils = require('./utils');
 const app = require('../app');
 const flame = app.locals.flame;
 
 //module config 
 
-function moduleConfigSkeleton (isProduction) {
-    return function (results, next) {
-        const moduleConfigs = results[0];
-        const moduleConfigRetries = results[1];
-        //inject an arbitrary constant in the results to use as a unique property for
-        //the filterArrayByStatus algorithm
-        for (let i = 0; i < moduleConfigs.length; i++) {
-            moduleConfigs[i].CONSTANT = "CONSTANT";
-        }
-        //transform moduleConfigRetries into hashes with lookups by id
-        function transRetries (element) {
-            return [
-                element['id'],
-                'seconds',
-                element['seconds']
-            ];
-        }        
-        let finalHash = utils.hashify({}, moduleConfigRetries, transRetries, null);
-        next(null, utils.filterArrayByStatus(moduleConfigs, ['CONSTANT'], isProduction), hashToModuleConfigObj(finalHash));
-    }
-}
-
-//transform the hash into valid module config objects under the keys
-//modifies the original object
-function hashToModuleConfigObj (hash) {
-    for (id in hash) {
-        let seconds = [];
-        for (value in hash[id].seconds) {
-            seconds.push(value - 0); //coerce to numbers
-        }
-        hash[id].seconds = seconds.sort(function (a, b) {
-            return a - b;
-        });
-    }
-    return hash;
-}
-
-function constructModuleConfigObj (moduleConfigs, moduleConfigSkeleton, next) {
-    let moduleConfig = {};
-    //combine the two data into a full module config object
-    //remove the IDs, using moduleConfigs as the final array of IDs to use
-    //NOTE: there should only ever be one module config passed in, and we only need one module config object
-    for (let i = 0; i < moduleConfigs.length; i++) {
-        const modConfig = moduleConfigs[i];
-        moduleConfig = {
-            "preloaded_pt": modConfig.preloaded_pt,
-            "exchange_after_x_ignition_cycles": modConfig.exchange_after_x_ignition_cycles,
-            "exchange_after_x_kilometers": modConfig.exchange_after_x_kilometers,
-            "exchange_after_x_days": modConfig.exchange_after_x_days,
-            "timeout_after_x_seconds": modConfig.timeout_after_x_seconds,
-            "seconds_between_retries": moduleConfigSkeleton[modConfig.id].seconds,
-            "endpoints": {
-                "0x07": {
-                    default: [modConfig.endpoint_0x07]
-                },
-                "0x04": {
-                    default: [modConfig.endpoint_0x04]
-                },
-                "queryAppsUrl": {
-                    default: [modConfig.query_apps_url]
-                },
-                "lock_screen_icon_url": {
-                    default: [modConfig.lock_screen_default_url]
-                }
+//keeping this synchronous due to how small the data is. pass this to the event loop
+function transformModuleConfig (info, next) {
+    //expecting only one module config
+    const base = info.base[0];
+    const retrySeconds = info.retrySeconds.map(function (secondObj) {
+        return secondObj.seconds;
+    });
+        
+    next(null, {
+        "preloaded_pt": base.preloaded_pt,
+        "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
+        "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
+        "exchange_after_x_days": base.exchange_after_x_days,
+        "timeout_after_x_seconds": base.timeout_after_x_seconds,
+        "seconds_between_retries": retrySeconds,
+        "endpoints": {
+            "0x07": {
+                default: [base.endpoint_0x07]
             },
-            "notifications_per_minute_by_priority": {
-                "EMERGENCY": modConfig.emergency_notifications,
-                "NAVIGATION": modConfig.navigation_notifications,
-                "VOICECOM": modConfig.voicecom_notifications,
-                "COMMUNICATION": modConfig.communication_notifications,
-                "NORMAL": modConfig.normal_notifications,
-                "NONE": modConfig.none_notifications
+            "0x04": {
+                default: [base.endpoint_0x04]
+            },
+            "queryAppsUrl": {
+                default: [base.query_apps_url]
+            },
+            "lock_screen_icon_url": {
+                default: [base.lock_screen_default_url]
             }
+        },
+        "notifications_per_minute_by_priority": {
+            "EMERGENCY": base.emergency_notifications,
+            "NAVIGATION": base.navigation_notifications,
+            "VOICECOM": base.voicecom_notifications,
+            "COMMUNICATION": base.communication_notifications,
+            "NORMAL": base.normal_notifications,
+            "NONE": base.none_notifications
         }
-    }
-    next(null, moduleConfig);
+    });
 }
 
 //consumer messages
 
-function messagesSkeleton (results, next) {
-    hashifyMessages(results, function (err, finalHash) {
-        const finalObj = {
-            "version": "000.000.001", //TODO: what to do with the versioning?
-            "messages": hashToMessagesObject(finalHash)
-        }
-        next(null, finalObj);
-    });
-}
+function transformMessages (info, cb) {
+    const allMessages = info.messageStatuses;
+    const groups = info.messageGroups;
 
-function hashifyMessages (messageInfo, callback) {
-    const allMessages = messageInfo.messageStatuses; //for finding how many languages exist per category
-    const groups = messageInfo.messageGroups;   
-
-    //hash groups by message_category
-    flame.async.groupBy(groups, function (group, callback) {
-        callback(null, group.message_category);
-    }, function (err, hashedGroups) {
-        flame.async.filter(allMessages, function (message, callback) {
-            callback(null, hashedGroups[message.message_category]);
-        }, function (err, finalMessages) {
-            //transform the arrays into hashes, slowly constructing the full object from the pruned finalMessages
-            function transGeneric (property) {
-                return function (element) {
-                    return [
-                        element['message_category'],
-                        'languages',
-                        element['language_id'],
-                        property,
-                        element[property]
-                    ];
+    const transformFlow = flame.flow([
+        //hash the message groups by message_category
+        flame.async.groupBy.bind(null, groups, function (group, callback) {
+            callback(null, group.message_category);
+        }),
+        //filter out messages that don't exist in the hashed message groups
+        function (hashedGroups, next) {
+            flame.async.filter(allMessages, function (message, callback) {
+                callback(null, hashedGroups[message.message_category]);
+            }, next);
+        },
+        //finish constructing the consumer messages object
+        function (finalMessages, next) {
+            let messageObj = {};
+            flame.async.map(finalMessages, function (msg, next) {
+                if (!messageObj[msg.message_category]) {
+                    messageObj[msg.message_category] = {};
+                    messageObj[msg.message_category].languages = {};
                 }
-            }
-            let finalHash = utils.hashify({}, finalMessages, transGeneric('tts'), null);
-            finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line1'), null);
-            finalHash = utils.hashify(finalHash, finalMessages, transGeneric('line2'), null);
-            finalHash = utils.hashify(finalHash, finalMessages, transGeneric('text_body'), null);
-            finalHash = utils.hashify(finalHash, finalMessages, transGeneric('label'), null);    
-            callback(null, finalHash);
-        });
-    });
-}
-
-//transform the hash into a valid consumer friendly message object under the keys
-//modifies the original object
-function hashToMessagesObject (hash) {
-    for (let category in hash) {
-        const languages = hash[category].languages;
-        //store values as just strings and not as objects
-        for (let language in languages) {
-            let langText = languages[language];
-            const tts = Object.keys(langText.tts)[0];
-            const line1 = Object.keys(langText.line1)[0];
-            const line2 = Object.keys(langText.line2)[0];
-            const textBody = Object.keys(langText.text_body)[0];
-            const label = Object.keys(langText.label)[0];
-            //clear langText and replace it
-            langText = {};
-            if (tts !== "null") {
-                langText.tts = tts;
-            }
-            if (line1 !== "null") {
-                langText.line1 = line1;
-            }
-            if (line2 !== "null") {
-                langText.line2 = line2;
-            }
-            if (textBody !== "null") {
-                langText.textBody = textBody;
-            }
-            if (label !== "null") {
-                langText.label = label;
-            }
-            languages[language] = langText;
+                if (!messageObj[msg.message_category].languages[msg.language_id]) {
+                    messageObj[msg.message_category].languages[msg.language_id] = {};
+                }
+                const langObj = messageObj[msg.message_category].languages[msg.language_id];
+                langObj.tts = msg.tts ? msg.tts : undefined;
+                langObj.line1 = msg.line1 ? msg.line1 : undefined;
+                langObj.line2 = msg.line2 ? msg.line2 : undefined;
+                langObj.textBody = msg.textBody ? msg.textBody : undefined;
+                langObj.label = msg.label ? msg.label : undefined;
+                next();            
+            }, function () {
+                next(null, {
+                    "version": "000.000.001", //TODO: what to do with the versioning?
+                    "messages": messageObj
+                });
+            });
         }
-    }
-    return hash;
+    ], {method: 'waterfall'});
+
+    transformFlow(cb);
 }
 
 //functional groups
 
-function functionGroupSkeleton (groupDataArray, next) {
-    const info = groupDataArray[0];
-    const hmiLevels = groupDataArray[1];
-    const parameters = groupDataArray[2];
+function transformFunctionalGroups (isProduction, info, next) {
+    const baseInfo = info.base;
+    const hmiLevels = info.hmiLevels;
+    const parameters = info.parameters;
+    const consentPrompts = info.messageGroups;
 
-    //transform the arrays into hashes with lookups by id for fast referencing
-    function transHmiLevels (element) {
-        return [
-            element['function_group_id'],
-            element['permission_name'],
-            'hmi_levels',
-            element['hmi_level']
-        ];
-    }
-    function transParameters (element) {
-        return [
-            element['function_group_id'],
-            element['rpc_name'],
-            'parameters',
-            element['parameter']
-        ];
-    }
+    //hashes to get hmiLevels and parameters by function group id
+    const groupedData = {};
+    const hashIdToPropertyName = {};
 
-    let finalHash = utils.hashify({}, hmiLevels, transHmiLevels, null);
-    finalHash = utils.hashify(finalHash, parameters, transParameters, null);
-    next(null, info, hashToRpcObject(finalHash));
-}
-
-//transform the hash into valid functional group rpc objects under the keys
-//modifies the original object
-function hashToRpcObject (hash) {
-    for (let id in hash) {
-        const funcGroup = hash[id];
-        for (let rpc in funcGroup) {
-            //hmi_levels and parameters property needs to be an array
-            const data = funcGroup[rpc];
-            let hmiLevels = [];
-            let parameters = [];
-            //manually insert hmi levels. preserve order of BACKGROUND, FULL, LIMITED, NONE
-            if (data.hmi_levels.BACKGROUND === null) {
-                hmiLevels.push("BACKGROUND");
-            }
-            if (data.hmi_levels.FULL === null) {
-                hmiLevels.push("FULL");
-            }
-            if (data.hmi_levels.LIMITED === null) {
-                hmiLevels.push("LIMITED");
-            }
-            if (data.hmi_levels.NONE === null) {
-                hmiLevels.push("NONE");
-            }
-            for (let parameter in data.parameters) {
-                parameters.push(parameter);
-            }
-            //erase and replace
-            delete data.hmi_levels;
-            delete data.parameters;
-            if (hmiLevels.length > 0) {
-                data.hmi_levels = hmiLevels;
-            }
-            if (parameters.length > 0) {
-                //sort the parameters array
-                data.parameters = parameters.sort();
-            }
-        }
-    }
-    return hash;
-}
-
-function constructFunctionGroupObj (funcGroupInfo, funcGroupSkeleton, next) {
-    //remove the IDs and replace them with the property names of the function group for the reverse hash
-    let propHash = {};
-    for (let i = 0; i < funcGroupInfo.length; i++) {
-        propHash[funcGroupInfo[i].id] = funcGroupInfo[i].property_name;
-    }
-
-    //combine the two data into the full functional group objects
-    //remove the IDs, using funcGroupInfo as the final array of IDs to use
-    let functionalGroupings = {};
-    for (let i = 0; i < funcGroupInfo.length; i++) {
-        const funcInfo = funcGroupInfo[i];
-        functionalGroupings[funcInfo.property_name] = {};
-        if (funcInfo.user_consent_prompt !== 'null') {
-            functionalGroupings[funcInfo.property_name].user_consent_prompt = funcInfo.user_consent_prompt;
-        }
-        if (funcGroupSkeleton[funcInfo.id]) {
-            functionalGroupings[funcInfo.property_name].rpcs = funcGroupSkeleton[funcInfo.id];
+    //set up the top level objects for these hashes
+    for (let i = 0; i < baseInfo.length; i++) {
+        groupedData[baseInfo[i].id] = {};
+        
+        const selectedPrompt = consentPrompts.find(function (prompt) {
+            return prompt.message_category === baseInfo[i].user_consent_prompt;
+        });
+        //the prompt must exist at least in staging and must be in production mode if isProduction is true
+        if (selectedPrompt && (!isProduction || selectedPrompt.status === "PRODUCTION")) {
+            groupedData[baseInfo[i].id].user_consent_prompt = selectedPrompt.message_category;
         }
         else {
-            functionalGroupings[funcInfo.property_name].rpcs = null;
+            groupedData[baseInfo[i].id].user_consent_prompt = null;
         }
+        groupedData[baseInfo[i].id].rpcs = null;
+        hashIdToPropertyName[baseInfo[i].id] = baseInfo[i].property_name;
     }
 
-    next(null, functionalGroupings);
+    //begin asynchronous logic below
+    
+    //populate the hash above, using the functional group id as a key
+    //include the hmi levels and parameter data
+    const groupUpData = flame.flow([
+        flame.async.map.bind(null, hmiLevels, function (hmiLevel, next) {
+            const funcId = hmiLevel.function_group_id;
+            if (!groupedData[funcId].rpcs) {
+                groupedData[funcId].rpcs = {};         
+            }
+            if (!groupedData[funcId].rpcs[hmiLevel.permission_name]) {
+                groupedData[funcId].rpcs[hmiLevel.permission_name] = {};
+                groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels = {};
+                groupedData[funcId].rpcs[hmiLevel.permission_name].parameters = {};
+            }
+            groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels[hmiLevel.hmi_level] = true;
+            next();
+        }),
+        flame.async.map.bind(null, parameters, function (parameter, next) {
+            const funcId = parameter.function_group_id;
+            groupedData[funcId].rpcs[parameter.rpc_name].parameters[parameter.parameter] = true;
+            next();
+        }),
+    ], {method: 'series', eventLoop: true});
+
+    //transform groupedData into valid functional group rpc objects under the keys
+    //modifies the original object
+    function hashToRpcObject (_, next) {
+        //asynchronously iterate over groupedData
+        flame.async.map(groupedData, function (group, callback) {
+            for (let rpc in group.rpcs) {
+                //hmi_levels and parameters property needs to be an array
+                const data = group.rpcs[rpc];
+                let hmiLevels = [];
+                let parameters = [];
+                //manually insert hmi levels. preserve order of BACKGROUND, FULL, LIMITED, NONE
+                if (data.hmi_levels.BACKGROUND) {
+                    hmiLevels.push("BACKGROUND");
+                }
+                if (data.hmi_levels.FULL) {
+                    hmiLevels.push("FULL");
+                }
+                if (data.hmi_levels.LIMITED) {
+                    hmiLevels.push("LIMITED");
+                }
+                if (data.hmi_levels.NONE) {
+                    hmiLevels.push("NONE");
+                }
+                for (let parameter in data.parameters) {
+                    parameters.push(parameter);
+                }
+                //erase and replace
+                delete data.hmi_levels;
+                delete data.parameters;
+                if (hmiLevels.length > 0) {
+                    data.hmi_levels = hmiLevels;
+                }
+                if (parameters.length > 0) {
+                    //sort the parameters array
+                    data.parameters = parameters.sort();
+                }
+            }    
+            callback();    
+        }, next);
+    }
+
+    function constructFullObject (_, next) {
+        let functionalGroupings = {};
+        for (let id in groupedData) {
+            const propertyName = hashIdToPropertyName[id];
+            functionalGroupings[propertyName] = groupedData[id];
+        }
+        next(null, functionalGroupings);
+    }
+
+    //combine all the steps above
+    const constructFunctionalGroupFlow = flame.flow([
+        groupUpData,
+        hashToRpcObject,
+        constructFullObject
+    ], {method: 'waterfall', eventLoop: true});
+
+    constructFunctionalGroupFlow(next); //run it
 }
 
 //application policies
 
-function constructAppPolicy (res, next) {
-    const displayNames = res[0].map(function (elem) {
+function constructAppPolicy (appObj, res, next) {
+    const displayNames = res.displayNames.map(function (elem) {
         return elem.display_text;
     });
-    const moduleNames = res[1].map(function (elem) {
+    const moduleNames = res.moduleNames.map(function (elem) {
         return elem.permission_name;
     });
-    const funcGroupNames = res[2].map(function (elem) {
+    const funcGroupNames = res.funcGroupNames.map(function (elem) {
         return elem.property_name;
     });
-    const appObj = res[3];
     
     const appPolicyObj = {};
     appPolicyObj[appObj.app_uuid] = {
@@ -324,11 +267,9 @@ resAppPolicy.pre_DataConsent = {
 */
 
 module.exports = {
-    moduleConfigSkeleton: moduleConfigSkeleton,
-    constructModuleConfigObj: constructModuleConfigObj,
-    messagesSkeleton: messagesSkeleton,
-    functionGroupSkeleton: functionGroupSkeleton,
-    constructFunctionGroupObj: constructFunctionGroupObj,
+    transformModuleConfig: transformModuleConfig,
+    transformMessages: transformMessages,
+    transformFunctionalGroups: transformFunctionalGroups,
     constructAppPolicy: constructAppPolicy,
     aggregateResults: aggregateResults
 }

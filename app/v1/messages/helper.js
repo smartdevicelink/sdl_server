@@ -85,7 +85,8 @@ function getMessageDetailsFlow (id) {
     const getInfoFlow = app.locals.flow([
         makeCategoryTemplateFlow(),
         setupSql.bind(null, sql.getMessages.byId(id)),
-        setupSql.bind(null, sql.getMessages.groupById(id))
+        setupSql.bind(null, sql.getMessages.groupById(id)),
+        setupSql.bind(null, sql.getAttachedFunctionalGroupsById(id))
     ], {method: 'parallel'});
 
     return app.locals.flow([

@@ -109,18 +109,6 @@
             "promoteMessages": function () {
                 this.handleModalClick("promote_button_loading", "promoteModal", "promoteAllMessages");
             },
-            "handleModalClick": function (loadingProp, modalName, methodName) {
-                //show a loading icon for the modal, and call the methodName passed in
-                //when finished, turn off the loading icon, hide the modal, and reload the info
-                this[loadingProp] = true;
-                this[methodName](() => {
-                    this[loadingProp] = false;
-                    if (modalName) {
-                        this.$refs[modalName].hide();
-                    }
-                    this.environmentClick();
-                });
-            },
             "promoteAllMessages": function (cb) {
                 // build an array of STAGING message IDs
                 var staging_ids = [];
@@ -159,20 +147,6 @@
                 this.getConsumerMessageInfo(messages => {
                     this.consumer_messages = messages;
                 });
-            },
-            "httpRequest": function (action, route, body, cb) {
-                if (action === "delete" || action === "get") {
-                    if (body !== null) {
-                        body = {body: body};
-                    }
-                }
-                this.$http[action](route, body)
-                    .then(response => {
-                        cb(null, response);
-                    }, response => {
-                        console.error(response.body.error);
-                        cb(response, null);
-                    });
             }
         },
         mounted: function(){

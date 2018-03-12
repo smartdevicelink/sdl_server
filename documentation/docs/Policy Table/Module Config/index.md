@@ -41,13 +41,20 @@ All requests made directly by core or by proxy can be configured using the follo
 | Property | Type | Description |
 | -------- | ---- | ----------- |
 | timeout_after_x_seconds | Number | Elapsed seconds until a policy update request will timeout. |
-| endpoints | Object | Contains a list of [service types](#Service-Types) that may contain a default or app-specific array of server endpoints. |
+| endpoints | Object | Contains a list of [endpoints](#Endpoints) that may contain a default or app-specific array of server endpoints. |
 | seconds_between_retries | Array | A list of seconds to wait before each retry. |
 
 <a name="Service-Types"></a>
 
-### Service Types
-// TODO: Define these.
+### Endpoints
+This section is a list of urls that is used throughout SDL
+
+| Property | Type | Description |
+| -------- | ---- | ----------- |
+| 0X07 | Array | A list of urls that can be used for policy table exchanges. |
+| 0X04 | Array | A list of urls that can be used to retrieve software updates. |
+| queryAppsUrl | Array | A list of urls that can be used to receive valid apps for querying on iOS devices. |
+| lock_screen_icon_url | Array | A list of urls that host an image which can be displayed by the application on the driver's device during lockout. |
 
 ## Vehicle Information
 Vehicle identification information is stored in the module configuration portion of the policy table.
