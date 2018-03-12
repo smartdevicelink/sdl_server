@@ -34,21 +34,6 @@
             "name": "Policy Table Update"
         }, {
             "name": "SQL"
-        }, {
-            "name": "User Interface",
-            "navigation": [
-                {
-                    "name": "Overview"
-                }, {
-                    "name": "Applications"
-                }, {
-                    "name": "Messages and Functional Groups"
-                }, {
-                    "name": "Module Config"
-                }, {
-                    "name": "View Policy Table"
-                }
-            ]
         }
     ]
 }

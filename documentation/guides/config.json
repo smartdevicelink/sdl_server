@@ -10,18 +10,31 @@
         {
             "name": "Overview"
         }, {
-            "name": "Getting Started",
+            "name": "Setup",
             "navigation": [
                 {
                     "name": "Installation"
-                }, {
-                    "name": "API"
                 }, {
                     "name": "Lifecycles"
                 }, {
                     "name": "Custom Modules"
                 }, {
                     "name": "Migration Scripts"
+                }
+            ]
+        }, {
+            "name": "User Interface",
+            "navigation": [
+                {
+                    "name": "Overview"
+                }, {
+                    "name": "Applications"
+                }, {
+                    "name": "Messages and Functional Groups"
+                }, {
+                    "name": "Module Config"
+                }, {
+                    "name": "View Policy Table"
                 }
             ]
         }
