@@ -193,7 +193,7 @@ function makeFunctionGroups (includeRpcs, info, next) {
         const selectedEnglishPrompt = consentPrompts.find(function (prompt) {
             return prompt.message_category === funcGroup.user_consent_prompt;
         });
-        if (selectedEnglishPrompt) {
+        if (selectedEnglishPrompt && !selectedEnglishPrompt.is_deleted) {
             funcGroup.selected_prompt_id = selectedEnglishPrompt.id;
             funcGroup.selected_prompt_status = selectedEnglishPrompt.status;
         }

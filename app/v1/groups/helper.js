@@ -35,7 +35,7 @@ function validatePromptExistence (isProduction, req, res, cb) {
         return cb(); //stop here
     }
 
-    messages.getMessageGroups(false, function (err, categories) {
+    messages.getMessageGroups(false, true, function (err, categories) {
         const category = categories.find(function (category) {
             return category.message_category === consentPrompt;
         });
@@ -114,12 +114,12 @@ function generateFunctionGroupTemplates (callback) {
 }
 
 //helper function that allows retrieving functional group info easily
-function createFuncGroupFlow (filterTypeProp, value, includeRpcs) {
+function createFuncGroupFlow (filterTypeProp, value, includeRpcs, isProduction) {
     const getAllInfoFlow = flow({
         base: setupSql.bind(null, sql.getFuncGroup.base[filterTypeProp](value)),
         hmiLevels: setupSql.bind(null, sql.getFuncGroup.hmiLevels[filterTypeProp](value)),
         parameters: setupSql.bind(null, sql.getFuncGroup.parameters[filterTypeProp](value)),
-        messageGroups: messages.getMessageGroups.bind(null, false), //get consent prompt values (always returns a value as if in STAGING mode)
+        messageGroups: messages.getMessageGroups.bind(null, isProduction, false), //get consent prompt values
     }, {method: 'parallel'});
 
     return flow([

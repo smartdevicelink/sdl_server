@@ -85,7 +85,7 @@ function setupFunctionalGroups (isProduction) {
         base: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)),
         hmiLevels: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.hmiLevels.statusFilter(isProduction, true)),
         parameters: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.parameters.statusFilter(isProduction, true)),
-        messageGroups: messages.getMessageGroups.bind(null, false), //get consent prompt values (always returns a value as if in STAGING mode)
+        messageGroups: messages.getMessageGroups.bind(null, isProduction, true), //get consent prompt values (always returns a value as if in STAGING mode)
     };
     const funcGroupGetFlow = flame.flow(getFunctionGroupInfo, {method: 'parallel'});
     const makeFunctionGroupInfo = [
