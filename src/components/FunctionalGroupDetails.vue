@@ -244,7 +244,7 @@ import { eventBus } from '../main.js';
                 });
             },
             "getConsentPrompts": function () {
-                this.httpRequest("get", "messages?environment="+this.environment.toLowerCase(), null, (err, response) => {
+                this.httpRequest("get", "messages?environment="+this.environment.toLowerCase()+"&hide_deleted=true", null, (err, response) => {
                     if (response) {
                         //returns all en-us results under the environment specified
                         response.json().then(parsed => {
@@ -275,6 +275,8 @@ import { eventBus } from '../main.js';
                 }else{
                     queryInfo += "?id=" + this.id;
                 }
+                queryInfo += "&environment=" + this.environment.toLowerCase();
+
                 this.httpRequest("get", queryInfo, null, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
