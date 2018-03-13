@@ -39,6 +39,7 @@ The policy server comes with migration scripts that can be run using npm scripts
 * `start-pg-production`: Runs the migration up script which initializes data in the database, sets the environment to `production` and starts the policy server
 * `db-migrate-reset-pg-staging`: Runs the migration down script which drops all the data and tables in the staging database
 * `dev` or `start`: Starts the server with hot reloading so any changes made to the UI are instantly updated in the browser
+* `build`: Generates a new staging/production build using webpack. This command should only be run if you made front-end modifications to the UI.
 
 Run the following command to finalize set up and start the server in staging mode.
 
