@@ -89,6 +89,10 @@ form input:valid {
     /*color: #78C970 !important;*/
 }
 
+pre {
+    color: inherit;
+}
+
 .custom-control-input:checked ~ .custom-control-indicator {
     color: #FFFFFF;
     background-color: #78C970;

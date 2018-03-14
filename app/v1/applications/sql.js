@@ -29,10 +29,12 @@ function getAppInfoFilter (filterObj) {
     return statement.toString();
 }
 
-function changeAppApprovalStatus (id, statusName) {
+function changeAppApprovalStatus (id, statusName, reason) {
+    console.log(reason);
     return sql.update('app_info')
         .set({
-            approval_status: statusName
+            approval_status: statusName,
+            denial_message: reason
         })
         .where({
             id: id
