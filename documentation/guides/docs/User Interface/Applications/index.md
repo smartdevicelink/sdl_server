@@ -32,7 +32,7 @@ This page displays a list of applications pulled from the SHAID server. When ini
 
 
 ### Policy Table Preview
-An example of how the app and its required permissions will appear in the policy table.
+This is an example of how the app and its required permissions will appear in the policy table. Denied applications will not appear in either the staging or the production policy table and as such they will not have a policy table preview.
 ```
   {
     nicknames: [
@@ -53,5 +53,5 @@ An example of how the app and its required permissions will appear in the policy
   }
 ```
 ## Approved, Denied, & Pending
-Select approve in the top right corner if you would like to give this app the permissions it needs, otherwise select deny. If you choose to deny an applicaiton, you will be asked to provide your reasoning for doing so. Denying an application will notify the developer and any feedback will be sent to the developer via email. You can also choose to send the notification without feedback. Each time that an app is updated in the developer portal, the policy server will need approval once again. If this is an app which is from a trusted developer and is frequently updated for which you would always approve, you can choose under "General App Info" to "Automatically approve updates." This setting can be changed later if the need arises.
+Select approve in the top right corner if you would like to give this app the permissions it needs, otherwise select deny. Only approved applications will be given access to the RPCs and permissions that they require. Pending and denied applications will not be given that access. If you choose to deny an applicaiton, you will be asked to provide your reasoning for doing so. Denying an application will notify the developer and any feedback will be sent to the developer via email. You can also choose to send the notification without feedback. Each time that an app is updated in the developer portal, the policy server will need approval once again. If this is an app which is from a trusted developer and is frequently updated for which you would always approve, you can choose under "General App Info" to "Automatically approve updates." This setting can be changed later if the need arises.
 ![App-Details](./assets/App-Details.png)
