@@ -8,7 +8,7 @@
             <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
                 <template v-if="apps_pending.length > 0">
                     <div class="app-table">
-                        <h4>Pending Applications<a class="fa fa-question-circle" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/applications/"></a></h4>
+                        <h4>Pending Applications<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/applications/"></a></h4>
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
@@ -35,7 +35,7 @@
                 </template>
 
                 <div class="app-table">
-                    <h4 class="color-green">Approved Applications<a class="fa fa-question-circle" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/applications/"></a></h4>
+                    <h4 class="color-green">Approved Applications<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/applications/"></a></h4>
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -61,7 +61,7 @@
                 </div>
 
                 <div class="app-table">
-                    <h4 class="color-red">Denied Applications<a class="fa fa-question-circle" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/applications/"></a></h4>
+                    <h4 class="color-red">Denied Applications<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/applications/"></a></h4>
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>

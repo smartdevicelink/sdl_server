@@ -40,7 +40,7 @@
                 </div>
 
                 <div class="app-table">
-                    <h4>General App Info<a class="fa fa-question-circle" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/applications/"></a></h4>
+                    <h4>General App Info<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/applications/"></a></h4>
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>

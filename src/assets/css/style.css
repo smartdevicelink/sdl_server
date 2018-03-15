@@ -650,11 +650,10 @@ input:checked + .slider:before {
 .hover-color-red:hover, .hover-color-red:hover > * {
     color: #FF5E71 !important;
 }
-a.fa.fa-question-circle {
-    color: #4A5E71;
+.doc-link {
     margin-left: 0.5em;
 }
-a.fa.fa-question-circle:hover {
+.doc-link:hover {
     text-decoration: none;
 }
 
