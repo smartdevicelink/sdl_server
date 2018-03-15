@@ -333,7 +333,7 @@ div.horizontal-divider .text {
 	-ms-flex-wrap: wrap;
 	flex-wrap: wrap;
 	position: relative;
-	margin: -1em 0 0 -1em;
+	margin: 0em 0 0 -1em;
 }
 
 .tiles > a {
