@@ -24,7 +24,7 @@
                         {{ perm.name }} ({{ perm.type }})
                     </div>
                 </div>
-                <h4>Functional Groups</h4>
+                <h4>Functional Groups<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/messages-and-functional-groups/"></a></h4>
                 <section class="tiles">
                     <card-item
                         v-for="(item, index) in functional_groups"

@@ -15,7 +15,7 @@
                 </div>
 
                 <div class="functional-content">
-                    <h4>Consumer Message {{ message.is_deleted ? "(deleted)" : "" }}</h4>
+                    <h4>Consumer Message {{ message.is_deleted ? "(deleted)" : "" }} <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/messages-and-functional-groups/"></a></h4>
 
                     <!-- Name -->
                     <div class="form-row">

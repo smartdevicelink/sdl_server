@@ -654,6 +654,12 @@ input:checked + .slider:before {
 .hover-color-red:hover, .hover-color-red:hover > * {
     color: #FF5E71 !important;
 }
+.doc-link {
+    margin-left: 0.5em;
+}
+.doc-link:hover {
+    text-decoration: none;
+}
 
 
 .upgrade-alert {
