@@ -13,6 +13,7 @@
                     v-model="environment"
                     :options="environmentOptions"
                     name="chooseEnvironment" />
+                <a class="fa fa-question-circle" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/view-policy-table/"></a>
                 <div v-if="policytable !== null">
                     <!--<pre class="prettyprint linenums hidenums">{{ policytable }}</pre>-->
                     <vue-json-pretty :data="policytable"></vue-json-pretty>

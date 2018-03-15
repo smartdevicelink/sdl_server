@@ -13,12 +13,12 @@
                     v-model="environment"
                     :options="environmentOptions"
                     name="chooseEnvironment" />
-
+        
                 <div class="pull-right">
                     <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
-                <h4>Consumer Friendly Messages</h4>
+                <h4>Consumer Friendly Messages<a class="fa fa-question-circle" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/messages-and-functional-groups/"></a></h4>
                 <section class="tiles">
                     <card-item
                         v-for="(item, index) in consumer_messages"
