@@ -28,8 +28,8 @@ function start (overrideApp) {
 	else {
 		app = express();
 	}
-	app.use(bodyParser.json()); //allow json parsing
-	app.use(bodyParser.urlencoded({extended: true})); //for parsing application/x-www-form-urlencoded
+	app.use(bodyParser.json({limit: "1mb"})); //allow json parsing
+	app.use(bodyParser.urlencoded({extended: true, limit: "1mb"})); //for parsing application/x-www-form-urlencoded
 
 	//load all routes located in the app directory using a v<version number> naming convention
 	for (let i in versions){
@@ -66,7 +66,7 @@ function start (overrideApp) {
 	//start the server
 	app.listen(config.policyServerPort, function () {
 	    log.info(`Policy server started on port ${config.policyServerPort}!`);
-	});	
+	});
 }
 
 module.exports = function (app) {

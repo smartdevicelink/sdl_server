@@ -30,6 +30,7 @@ const policy = require('./policy/controller.js');
 const permissions = require('./permissions/controller.js');
 const groups = require('./groups/controller.js');
 const messages = require('./messages/controller.js');
+const moduleConfig = require('./module-config/controller.js');
 
 function exposeRoutes () {
 	// extend response builder to all routes
@@ -58,6 +59,9 @@ function exposeRoutes () {
 	app.post('/messages', messages.postAddMessage);
 	app.post('/messages/promote', messages.postPromoteMessages);
 	app.post('/messages/update', messages.updateLanguages);	
+	app.get('/module', moduleConfig.get);
+	app.post('/module', moduleConfig.post);
+	app.post('/module/promote', moduleConfig.promote);
 }
 
 function updatePermissionsAndGenerateTemplates (next) {

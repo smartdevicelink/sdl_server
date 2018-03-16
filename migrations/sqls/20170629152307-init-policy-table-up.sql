@@ -185,7 +185,7 @@ WITH ( OIDS = FALSE );
 
 
 INSERT INTO module_config ("preloaded_pt", "exchange_after_x_ignition_cycles", "exchange_after_x_kilometers", "exchange_after_x_days", "timeout_after_x_seconds", "endpoint_0x07", "endpoint_0x04", "query_apps_url", "lock_screen_default_url", "emergency_notifications", "navigation_notifications", "voicecom_notifications", "communication_notifications", "normal_notifications", "none_notifications") VALUES
-(true, 100, 1800, 30, 60, 'http://policies.telematics.ford.com/api/policies', 'http://ivsu.software.ford.com/api/getsoftwareupdates', 'http://sdl.shaid.server', 'http://i.imgur.com/QwZ9uKG.png', 60, 15, 20, 6, 4, 0);
+(true, 100, 1800, 30, 60, 'http://policies.telematics.ford.com/api/policies', 'http://ivsu.software.ford.com/api/getsoftwareupdates', 'http://sdl.shaid.server', 'https://i.imgur.com/TgkvOIZ.png', 60, 15, 20, 6, 4, 0);
 
 
 INSERT INTO "module_config_retry_seconds" ("id", "seconds")

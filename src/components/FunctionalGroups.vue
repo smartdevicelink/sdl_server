@@ -24,7 +24,7 @@
                         {{ perm.name }} ({{ perm.type }})
                     </div>
                 </div>
-                <h4>Functional Groups</h4>
+                <h4>Functional Groups<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/messages-and-functional-groups/"></a></h4>
                 <section class="tiles">
                     <card-item
                         v-for="(item, index) in functional_groups"
@@ -107,8 +107,20 @@
 
             <!-- PROMOTE GROUP MODAL -->
             <b-modal ref="promoteModal" title="Promote Functional Groups to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-                <small class="form-text text-muted">
-                    This will promote all modified Functional Groups to production, immediately updating the production policy table. Are you sure you want to do this?
+                <small class="form-text">
+                    <p>This will promote all modified Functional Groups to production, immediately updating the production policy table. Are you sure you want to do this?</p>
+                    <p v-if="staging_consent_prompts_in_use.length" class="alert alert-danger">
+                        One or more Functional Groups are using the following Consumer Messages which have changes that have not yet been promoted to production. You may want to consider promoting your Consumer Messages to production before promoting your Functional Groups.
+                        <ul style="margin-top:1em;">
+                            <li
+                                v-for="(item, index) in staging_consent_prompts_in_use"
+                                v-bind:item="item"
+                                v-bind:index="index"
+                                v-bind:key="item">
+                                {{ item }}
+                            </li>
+                        </ul>
+                    </p>
                 </small>
                 <vue-ladda
                     type="button"
@@ -175,6 +187,15 @@
                 }
                 return output;
             },
+            staging_consent_prompts_in_use: function () {
+                let cfm = [];
+                this.functional_groups.forEach(function(fg){
+                    if(fg.selected_prompt_status == "STAGING" && fg.user_consent_prompt && cfm.indexOf(fg.user_consent_prompt) < 0){
+                        cfm.push(fg.user_consent_prompt);
+                    }
+                });
+                return cfm;
+            }
         },
         methods: {
             "environmentClick": function () {
@@ -183,18 +204,6 @@
                 this.getFunctionalGroupData();
                 //get unmapped permissions
                 this.getUnmappedPermissions();
-            },
-            "handleModalClick": function (loadingProp, modalName, methodName) {
-                //show a loading icon for the modal, and call the methodName passed in
-                //when finished, turn off the loading icon, hide the modal, and reload the info
-                this[loadingProp] = true;
-                this[methodName](() => {
-                    this[loadingProp] = false;
-                    if (modalName) {
-                        this.$refs[modalName].hide();
-                    }
-                    this.environmentClick();
-                });
             },
             "getFunctionalGroupData": function () {
                 this.$http.get("groups?environment=" + this.environment, {})
@@ -263,20 +272,6 @@
             },
             "saveFunctionalGroupInfo": function (functionalGroup, cb) {
                 this.httpRequest("post", "groups", functionalGroup, cb);
-            },
-            "httpRequest": function (action, route, body, cb) {
-                if (action === "delete" || action === "get") {
-                    if (body !== null) {
-                        body = {body: body};
-                    }
-                }
-                this.$http[action](route, body)
-                    .then(response => {
-                        cb(null, response);
-                    }, response => {
-                        console.error(response.body.error);
-                        cb(response, null);
-                    });
             }
         },
         mounted: function(){

@@ -149,6 +149,10 @@ function transformMessages (info, next) {
     let template = info[0][0]; //comes back as an array of messages
     const texts = info[1];
     const group = info[2][0];
+    const attachedFuncGroups = info[3].map(function (elem) {
+        return elem.property_name
+    });
+
     template = hashifyTemplate(template);
 
     //fill out the base object first
@@ -158,6 +162,7 @@ function transformMessages (info, next) {
     template.created_ts = group.created_ts;
     template.updated_ts = group.updated_ts;
     template.is_deleted = group.is_deleted;
+    template.functional_group_names = attachedFuncGroups;
 
     //fill out the languages hash
     for (let i = 0; i < texts.length; i++) {

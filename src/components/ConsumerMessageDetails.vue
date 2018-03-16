@@ -15,7 +15,7 @@
                 </div>
 
                 <div class="functional-content">
-                    <h4>Consumer Message {{ message.is_deleted ? "(deleted)" : "" }}</h4>
+                    <h4>Consumer Message {{ message.is_deleted ? "(deleted)" : "" }} <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/messages-and-functional-groups/"></a></h4>
 
                     <!-- Name -->
                     <div class="form-row">
@@ -75,8 +75,21 @@
 
             <!-- DELETE GROUP MODAL -->
             <b-modal ref="deleteModal" title="Delete Consumer Message" hide-footer id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-                <small class="form-text text-muted">
-                    Are you sure you want to delete this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately removed from the staging policy table, and will be removed from the production policy table upon the next promotion to production.
+                <small class="form-text">
+                    <p>Are you sure you want to delete this Consumer Message group and its associated languages? By doing so, the Consumer Message will be immediately removed from the staging policy table, and will be removed from the production policy table upon the next promotion to production.</p>
+                    <p v-if="message.functional_group_names && message.functional_group_names.length" class="alert alert-danger">
+                        This Consumer Message Group is attached to the following staging Functional Groups. Deleting it will also remove the Consumer Message from these Functional Groups.
+                        <ul style="margin-top:1em;">
+                            <li
+                                v-for="(item, index) in message.functional_group_names"
+                                v-bind:item="item"
+                                v-bind:index="index"
+                                v-bind:key="item">
+                                {{ item }}
+                            </li>
+                        </ul>
+                    </p>
+
                 </small>
                 <b-btn
                     v-on:click="deleteGroup()"

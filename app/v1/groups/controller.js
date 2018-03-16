@@ -19,10 +19,10 @@ function get (req, res, next) {
         ], {method: 'waterfall'});
     }
     else if (req.query.id) { //filter by id
-        chosenFlow = helper.createFuncGroupFlow('idFilter', req.query.id, true);
+        chosenFlow = helper.createFuncGroupFlow('idFilter', req.query.id, true, isProduction);
     }
     else { //get all apps at the high level, filtering in PRODUCTION or STAGING mode
-        chosenFlow = helper.createFuncGroupFlow('statusFilter', isProduction, false);
+        chosenFlow = helper.createFuncGroupFlow('statusFilter', isProduction, false, isProduction);
     }
 
     chosenFlow(function (err, groups) {

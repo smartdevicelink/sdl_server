@@ -9,6 +9,10 @@ function getInfo (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
     const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
     const returnTemplate = !!req.query.template; //coerce to boolean
+    //if hide_deleted is true, then always hide deleted consumer messages regardless of environment
+    //this is only for getting functional group details
+    const alwaysHideDeleted = req.query.hide_deleted && req.query.hide_deleted == 'true' ? true: false;
+    
     if (returnTemplate) { //template mode. return just the shell of a message
         chosenFlow = helper.makeCategoryTemplateFlow();
     }
@@ -16,7 +20,7 @@ function getInfo (req, res, next) {
         chosenFlow = helper.getMessageDetailsFlow(req.query.id);
     }
     else { //get all message info at the highest level, filtering in PRODUCTION or STAGING mode
-        chosenFlow = helper.getMessageGroups.bind(null, isProduction);
+        chosenFlow = helper.getMessageGroups.bind(null, isProduction, alwaysHideDeleted);
     }
 
     chosenFlow(function (err, messages) {

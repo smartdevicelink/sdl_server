@@ -58,7 +58,7 @@ function validatePost (req, res) {
 
 //helper functions
 
-function getMessageGroups (isProduction, cb) {
+function getMessageGroups (isProduction, alwaysHideDeleted, cb) {
     //TODO: make the language choice configurable
     const LANG_FILTER = 'en-us';
     //need two pieces of info: all categories of a certain language (just en-us)
@@ -69,7 +69,7 @@ function getMessageGroups (isProduction, cb) {
         categoryByLanguage: setupSql.bind(null, sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
         categoryByMaxId: setupSql.bind(null, sql.getMessages.categoryByMaxId(isProduction)),
         messageStatuses: setupSql.bind(null, sql.getMessages.status(isProduction)),
-        messageGroups: setupSql.bind(null, sql.getMessages.group(isProduction))
+        messageGroups: setupSql.bind(null, sql.getMessages.group(isProduction, null, alwaysHideDeleted))
     }, {method: 'parallel'});
 
     const getCategoriesFlow = app.locals.flow([
@@ -85,7 +85,8 @@ function getMessageDetailsFlow (id) {
     const getInfoFlow = app.locals.flow([
         makeCategoryTemplateFlow(),
         setupSql.bind(null, sql.getMessages.byId(id)),
-        setupSql.bind(null, sql.getMessages.groupById(id))
+        setupSql.bind(null, sql.getMessages.groupById(id)),
+        setupSql.bind(null, sql.getAttachedFunctionalGroupsById(id))
     ], {method: 'parallel'});
 
     return app.locals.flow([

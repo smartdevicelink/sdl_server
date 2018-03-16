@@ -1,9 +1,13 @@
+//Copyright (c) 2018, Livio, Inc.
 const app = require('../app');
+const flame = app.locals.flame;
 const model = require('./model.js');
 const setupSqlCommand = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 const funcGroupSql = require('../groups/sql.js');
 const messagesSql = require('../messages/sql.js');
+const moduleConfigSql = require('../module-config/sql.js');
+const messages = require('../messages/helper.js');
 
 //validation functions
 
@@ -33,104 +37,95 @@ function validateAppPolicyOnlyPost (req, res) {
     }
 }
 
-
 //helper functions
 
 function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
-    let makePolicyTable = [];
+    let makePolicyTable = {};
     if (returnPreview) {
-        makePolicyTable.push(setupModuleConfig(isProduction));
-        makePolicyTable.push(setupFunctionalGroups(isProduction));
-        makePolicyTable.push(setupConsumerFriendlyMessages(isProduction));
+        makePolicyTable.moduleConfig = setupModuleConfig(isProduction);
+        makePolicyTable.functionalGroups = setupFunctionalGroups(isProduction);
+        makePolicyTable.consumerFriendlyMessages = setupConsumerFriendlyMessages(isProduction);
     }
     if (appPolicyObj) { //existence of appPolicyObj implies to return the app policy object
-        makePolicyTable.push(setupAppPolicies(isProduction, appPolicyObj));
+        makePolicyTable.appPolicies = setupAppPolicies(isProduction, appPolicyObj);
     }
-    const policyTableMakeFlow = app.locals.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
+    const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
     policyTableMakeFlow(cb);
 }
 
 function setupModuleConfig (isProduction) {
-    const getModuleConfig = [
-        setupSqlCommand.bind(null, sql.moduleConfigInfo),
-        setupSqlCommand.bind(null, sql.moduleConfigRetrySeconds)
-    ];
-    const moduleConfigGetFlow = app.locals.flow(getModuleConfig, {method: 'parallel'});
+    const getModuleConfig = {
+        base: setupSqlCommand.bind(null, moduleConfigSql.moduleConfig.status(isProduction)),
+        retrySeconds: setupSqlCommand.bind(null, moduleConfigSql.retrySeconds.status(isProduction))
+    };
+    const moduleConfigGetFlow = flame.flow(getModuleConfig, {method: 'parallel'});
     const makeModuleConfig = [
         moduleConfigGetFlow,
-        model.moduleConfigSkeleton(isProduction),
-        model.constructModuleConfigObj
-    ];
-    return app.locals.flow(makeModuleConfig, {method: 'waterfall'});    
+        model.transformModuleConfig
+    ];    
+    return flame.flow(makeModuleConfig, {method: 'waterfall'}); 
 }
 
 function setupConsumerFriendlyMessages (isProduction) {
-    const getMessages = app.locals.flow({
+    const getMessages = flame.flow({
         messageStatuses: setupSqlCommand.bind(null, messagesSql.getMessages.status(isProduction)),
         messageGroups: setupSqlCommand.bind(null, messagesSql.getMessages.group(isProduction, false, true))
     }, {method: 'parallel'});
 
     const makeMessages = [
         getMessages,
-        model.messagesSkeleton
+        model.transformMessages
     ];
 
-    return app.locals.flow(makeMessages, {method: 'waterfall'});
+    return flame.flow(makeMessages, {method: 'waterfall'});
 }
 
 function setupFunctionalGroups (isProduction) {
-    const getFunctionGroupInfo = [
-        setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)),
-        setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.hmiLevels.statusFilter(isProduction, true)),
-        setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.parameters.statusFilter(isProduction, true))
-    ];
-    const funcGroupGetFlow = app.locals.flow(getFunctionGroupInfo, {method: 'parallel'});
+    const getFunctionGroupInfo = {
+        base: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)),
+        hmiLevels: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.hmiLevels.statusFilter(isProduction, true)),
+        parameters: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.parameters.statusFilter(isProduction, true)),
+        messageGroups: messages.getMessageGroups.bind(null, isProduction, true), //get consent prompt values (always returns a value as if in STAGING mode)
+    };
+    const funcGroupGetFlow = flame.flow(getFunctionGroupInfo, {method: 'parallel'});
     const makeFunctionGroupInfo = [
         funcGroupGetFlow,
-        model.functionGroupSkeleton,
-        model.constructFunctionGroupObj
+        model.transformFunctionalGroups.bind(null, isProduction)
     ];
-    return app.locals.flow(makeFunctionGroupInfo, {method: 'waterfall'});
+    return flame.flow(makeFunctionGroupInfo, {method: 'waterfall'});
 }
 
 function setupAppPolicies (isProduction, reqAppPolicy) {
     const uuids = Object.keys(reqAppPolicy);
     const getAppPolicy = [
         setupSqlCommand.bind(null, sql.getBaseAppInfo(isProduction, uuids)),
-        mapAppBaseInfo(isProduction)
+        mapAppBaseInfo.bind(null, isProduction)
     ];
-    const getAppInfoBaseFlow = app.locals.flow(getAppPolicy, {method: 'waterfall'});
-    return getAppInfoBaseFlow;
+    return flame.flow(getAppPolicy, {method: 'waterfall'});
 }
 
-function mapAppBaseInfo (isProduction) {
-    return function (appObjs, next) {
-        const makeFlowArray = appObjs.map(function (appObj) {
-            const getAppInfo = [
-                setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
-                setupSqlCommand.bind(null, sql.getAppModules(appObj.id)),
-                setupSqlCommand.bind(null, sql.getAppFunctionalGroups(isProduction, appObj)),
-                function (next) {
-                    next(null, appObj);
-                }
-            ];
-            const getFlow = app.locals.flow(getAppInfo, {method: 'parallel'});
-            const makeFlow = app.locals.flow([getFlow, model.constructAppPolicy], {method: 'waterfall'});
-            return makeFlow;
-        });
+function mapAppBaseInfo (isProduction, appObjs, callback) {
+    const makeAppPolicyFlow = flame.flow(flame.map(appObjs, function (appObj, next) {
+        const getInfoFlow = flame.flow({
+            displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
+            moduleNames: setupSqlCommand.bind(null, sql.getAppModules(appObj.id)),
+            funcGroupNames: setupSqlCommand.bind(null, sql.getAppFunctionalGroups(isProduction, appObj)),
+        }, {method: 'parallel'});
 
-        const parallelMakeFlow = app.locals.flow(makeFlowArray, {method: 'parallel'});
-        const finalFlow = app.locals.flow([parallelMakeFlow, model.aggregateResults], {method: 'waterfall'});
-        finalFlow(function (err, res) {
-            next(err, res);
-        });
-    }
+        flame.flow([
+            getInfoFlow, 
+            model.constructAppPolicy.bind(null, appObj)
+        ], {method: 'waterfall'})(next); //run it       
+    }), {method: 'parallel'});
+
+    flame.flow([
+        makeAppPolicyFlow, 
+        model.aggregateResults
+    ], {method: 'waterfall'})(callback);
 }
 
 module.exports = {
     validateCorePost: validateCorePost,
     validateAppPolicyOnlyPost: validateAppPolicyOnlyPost,
-    generatePolicyTable: generatePolicyTable,
-    validateCorePost: validateCorePost,
-    validateCorePost: validateCorePost,
+    generatePolicyTable: generatePolicyTable
 }

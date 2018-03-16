@@ -13,12 +13,12 @@
                     v-model="environment"
                     :options="environmentOptions"
                     name="chooseEnvironment" />
-
+        
                 <div class="pull-right">
                     <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
-                <h4>Consumer Friendly Messages</h4>
+                <h4>Consumer Friendly Messages<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/messages-and-functional-groups/"></a></h4>
                 <section class="tiles">
                     <card-item
                         v-for="(item, index) in consumer_messages"
@@ -109,18 +109,6 @@
             "promoteMessages": function () {
                 this.handleModalClick("promote_button_loading", "promoteModal", "promoteAllMessages");
             },
-            "handleModalClick": function (loadingProp, modalName, methodName) {
-                //show a loading icon for the modal, and call the methodName passed in
-                //when finished, turn off the loading icon, hide the modal, and reload the info
-                this[loadingProp] = true;
-                this[methodName](() => {
-                    this[loadingProp] = false;
-                    if (modalName) {
-                        this.$refs[modalName].hide();
-                    }
-                    this.environmentClick();
-                });
-            },
             "promoteAllMessages": function (cb) {
                 // build an array of STAGING message IDs
                 var staging_ids = [];
@@ -159,20 +147,6 @@
                 this.getConsumerMessageInfo(messages => {
                     this.consumer_messages = messages;
                 });
-            },
-            "httpRequest": function (action, route, body, cb) {
-                if (action === "delete" || action === "get") {
-                    if (body !== null) {
-                        body = {body: body};
-                    }
-                }
-                this.$http[action](route, body)
-                    .then(response => {
-                        cb(null, response);
-                    }, response => {
-                        console.error(response.body.error);
-                        cb(response, null);
-                    });
             }
         },
         mounted: function(){

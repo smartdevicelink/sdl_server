@@ -40,7 +40,7 @@
                 </div>
 
                 <div class="app-table">
-                    <h4>General App Info</h4>
+                    <h4>General App Info<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/applications/"></a></h4>
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -75,7 +75,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="text-wrap">{{ app.denial_message }}</td>
+                                    <td class="text-wrap">
+                                        <pre>{{ app.denial_message || "No notes provided." }}</pre>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -169,7 +171,7 @@
                 <b-modal ref="appActionModal" title="Deny Application" hide-footer id="appActionModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                     <form>
                         <div class="form-group">
-                            <textarea v-bind="app.denial_message" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
+                            <textarea v-model="app.denial_message" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
                         </div>
                         <vue-ladda
                             type="button"
@@ -258,6 +260,7 @@ export default {
             if(with_feedback){
                 this.send_button_loading = true;
                 console.log("sending denial with feedback");
+                console.log(this.app.denial_message);
             }else{
                 this.no_feedback_button_loading = true;
                 console.log("sending denial without feedback");
@@ -266,7 +269,7 @@ export default {
             this.$http.post("applications/action", {
                 "id": this.$route.params.id,
                 "approval_status": "DENIED",
-                "message": with_feedback ? this.app.denial_message : null
+                "denial_message": with_feedback ? this.app.denial_message : null
             }).then(response => {
                 // success
                 console.log("done");

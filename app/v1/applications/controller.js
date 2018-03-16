@@ -44,7 +44,7 @@ function actionPost (req, res, next) {
 	}
 
     //modify the existing entry in the database to change the approval status
-    app.locals.db.sqlCommand(sql.changeAppApprovalStatus(req.body.id, req.body.approval_status), function (err, results) {
+    app.locals.db.sqlCommand(sql.changeAppApprovalStatus(req.body.id, req.body.approval_status, (req.body.denial_message || null)), function (err, results) {
         if (err) {
             app.locals.log.error(err);
             return res.parcel.setStatus(500).deliver();
@@ -97,7 +97,7 @@ function webhook (req, res, next) {
             if (err) {
                 req.app.locals.log.error(err);
             }
-            res.parcel.setStatus(200);         
+            res.parcel.setStatus(200);
             res.parcel.deliver();
         });
     }
