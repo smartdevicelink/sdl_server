@@ -75,7 +75,7 @@ function transformMessages (info, cb) {
                 langObj.tts = msg.tts ? msg.tts : undefined;
                 langObj.line1 = msg.line1 ? msg.line1 : undefined;
                 langObj.line2 = msg.line2 ? msg.line2 : undefined;
-                langObj.textBody = msg.textBody ? msg.textBody : undefined;
+                langObj.textBody = msg.text_body ? msg.text_body : undefined;
                 langObj.label = msg.label ? msg.label : undefined;
                 next();            
             }, function () {
@@ -110,7 +110,9 @@ function transformFunctionalGroups (isProduction, info, next) {
             return prompt.message_category === baseInfo[i].user_consent_prompt;
         });
         //the prompt must exist at least in staging and must be in production mode if isProduction is true
-        if (selectedPrompt && (!isProduction || selectedPrompt.status === "PRODUCTION")) {
+        if (selectedPrompt 
+            && (!isProduction || selectedPrompt.status === "PRODUCTION") 
+            && !selectedPrompt.is_deleted) {
             groupedData[baseInfo[i].id].user_consent_prompt = selectedPrompt.message_category;
         }
         else {

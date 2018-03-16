@@ -178,6 +178,7 @@
 </template>
 
 <script>
+    import * as $ from 'jquery'
     export default {
         data () {
             return {
@@ -210,6 +211,11 @@
             }
         },
         methods: {
+            "toTop": function(){
+                $('body,html').animate({
+                    scrollTop: 0
+                }, 500);
+            },
             "environmentClick": function () {
                 this.httpRequest("get", "module?environment=" + this.environment, null, (err, res) => {
                     if (err) {
@@ -231,7 +237,10 @@
                 this.handleModalClick("save_button_loading", null, "saveConfig");
             },
             "saveConfig": function (cb) {
-                this.httpRequest("post", "module", this.module_config, cb);
+                this.httpRequest("post", "module", this.module_config, (err) => {
+                    this.toTop();
+                    cb();
+                });
             },
             "promoteConfigClick": function () {
                 this.handleModalClick("promote_button_loading", "promoteModal", "promoteConfig");

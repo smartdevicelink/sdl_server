@@ -63,18 +63,18 @@ Vue.mixin({
 	                cb(response, null);
 	            });
 	    },
-	    "handleModalClick": function (loadingProp, modalName, methodName) {
-            //show a loading icon for the modal, and call the methodName passed in
-            //when finished, turn off the loading icon, hide the modal, and reload the info
-            this[loadingProp] = true;
-            this[methodName](() => {
-                this[loadingProp] = false;
-                if (modalName) {
-                    this.$refs[modalName].hide();
-                }
-                this.environmentClick();
-            });
-        },
+		"handleModalClick": function (loadingProp, modalName, methodName) {
+			//show a loading icon for the modal, and call the methodName passed in
+			//when finished, turn off the loading icon, hide the modal, and reload the info
+			this[loadingProp] = true;
+			this[methodName](() => {
+				this[loadingProp] = false;
+				if (modalName) {
+					this.$refs[modalName].hide();
+				}
+				this.environmentClick();
+			});
+		}
 	}
 })
 
