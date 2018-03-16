@@ -1,6 +1,6 @@
 {
   "name": "sdl_policy_server",
-  "version": "2.2.4",
+  "version": "2.3.0",
   "license": "BSD-3-Clause",
   "description": "Integrates with SHAID to allow managing app permissions through policy tables",
   "author": "Livio",
