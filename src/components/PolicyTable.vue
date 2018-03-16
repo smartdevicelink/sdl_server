@@ -14,7 +14,7 @@
                     :options="environmentOptions"
                     name="chooseEnvironment" />
 
-                <h4>Policy Table Preview<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/docs/sdl-server/master/user-interface/view-policy-table/"></a></h4>
+                <h4>Policy Table Preview<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/view-policy-table/"></a></h4>
                 <div v-if="policytable !== null">
                     <!--<pre class="prettyprint linenums hidenums">{{ policytable }}</pre>-->
                     <vue-json-pretty :data="policytable"></vue-json-pretty>
