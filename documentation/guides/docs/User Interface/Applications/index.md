@@ -12,7 +12,7 @@ This page displays a list of applications pulled from the SHAID server. When ini
 ### App Display Names
 | Property | Definition |
 |----------|---------|
-| Name   | Alternate strings to identify the application. The app's name must match one of these in order for it to connect to core. |
+| Name   | Alternate strings to identify the application. The app's name must match one of these in order for it to connect to Core. |
 
 ### Requested Permissions
 | Property | Definition |
@@ -53,5 +53,5 @@ This is an example of how the app and its required permissions will appear in th
   }
 ```
 ## Approved, Denied, & Pending
-Pending applications are automatically granted all requested permissions in your staging policy table so you can perform any required internal testing. Select approve in the top right corner if you would like to give this app the permissions it needs in your production policy table, otherwise select deny. Only approved applications will be given access to the RPCs and permissions that they require on your production environment. If you choose to deny an applicaiton, you will be asked to (optionally) provide your reasoning for doing so. Each time that an app is updated on the SDL Developer Portal at smartdevicelink.com, the app's changes will appear in your policy server pending re-approval. If an app is from a trusted developer and you would like to always approve future revisions of it, you can choose to "Automatically approve updates" under "General App Info" of the app's review page. This setting can be changed later if the need arises.
+Pending applications are automatically granted all requested permissions in your staging policy table so you can perform any required internal testing. Select approve in the top right corner if you would like to give this app the permissions it needs in your production policy table, otherwise select deny. Only approved applications will be given access to the RPCs and permissions that they require on your production environment. If you choose to deny an application, you will be asked to (optionally) provide your reasoning for doing so. Each time that an app is updated on the SDL Developer Portal at smartdevicelink.com, the app's changes will appear in your Policy Server pending re-approval. If an app is from a trusted developer and you would like to always approve future revisions of it, you can choose to "Automatically approve updates" under "General App Info" of the app's review page. This setting can be changed later if the need arises.
 ![App-Details](./assets/App-Details.png)
