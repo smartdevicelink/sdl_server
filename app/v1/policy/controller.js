@@ -1,10 +1,15 @@
 //Copyright (c) 2018, Livio, Inc.
 const app = require('../app');
 const helper = require('./helper.js');
-const encryption = require('../../../custom/encrypt');
+const encryption = require('../../../customizable/encryption');
 
 function postFromCore (isProduction) {
 	return function (req, res, next) {
+		// attempt decryption of the policy table if it's defined
+		if(req.body.policy_table){
+			req.body.policy_table = encryption.decryptPolicyTable(req.body.policy_table);
+		}
+
         helper.validateCorePost(req, res);
 		if (res.errorMsg) {
 			return res.status(400).send({ error: res.errorMsg });
@@ -50,7 +55,7 @@ function createPolicyTableResponse (pieces, encrypt = false) {
         }
     ];
 
-	return encrypt ? encryption.policyTable() : policy_table;
+	return (encrypt ? encryption.encryptPolicyTable(policy_table) : policy_table);
 }
 
 module.exports = {
