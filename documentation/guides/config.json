@@ -1,7 +1,8 @@
 {
     "Authors": [
         "Scott Smereka",
-        "Nick Reno"
+        "Nick Reno",
+        "Nick Schwab"
     ],
     "languages": [
         "en"
@@ -14,6 +15,8 @@
             "navigation": [
                 {
                     "name": "Installation"
+                }, {
+                    "name": "Security"
                 }, {
                     "name": "Lifecycles"
                 }, {

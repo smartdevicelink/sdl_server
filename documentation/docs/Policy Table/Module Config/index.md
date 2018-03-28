@@ -72,7 +72,7 @@ An example of how the Module Config portion of a policy table might look.
     "module_config": {
         "endpoints": {
             "0x07": {
-            "default": [ "http://policies.telematics.ford.com/api/policies" ],
+            "default": [ "http://localhost:3000/api/1/policies/proprietary" ],
           }
         },
         "exchange_after_x_ignition_cycles": 100,
