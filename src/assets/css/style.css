@@ -991,16 +991,19 @@ input:checked + .slider:before {
 .back-to-top {
     cursor: pointer;
     position: fixed;
-    bottom: 70px;
+    bottom: 20px;
     right: 20px;
-    display:none;
-    border: none;
+    z-index: 11000;
+    border: solid 4px;
+    border-color: #fff;
     background-color: #78C970;
-    color: #FFFFFF;
+    color: #FFFFFF !important;
 }
 .back-to-top:hover {
     background-color: #384F61;
     color: #FFFFFF !important;
+    border: solid 4px;
+    border-color: #fff;
 }
 
 

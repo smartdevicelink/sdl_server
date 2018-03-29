@@ -91,9 +91,9 @@ An example of how the Application Policy portion of a policy table might look.
             "memory_kb": 5,
             "watchdog_timer_ms": 55
         },
-        "663645645": "null",
-        "773692255": "default",
-        "584421907": {
+        "[App ID 1]": "null",
+        "[App ID 2]": "default",
+        "[App ID 3]": {
             "nicknames": [ "Awesome Music App" ],
             "keep_context": true,
             "steal_focus": true,

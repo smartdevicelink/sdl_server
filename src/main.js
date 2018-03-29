@@ -7,6 +7,7 @@ import BootstrapVue from 'bootstrap-vue'
 import VueLadda from 'vue-ladda'
 import VueSession from 'vue-session'
 import VueResource from 'vue-resource'
+import VueScrollTo from 'vue-scrollto'
 import SideNav from './components/common/SideNav.vue'
 import UserNav from './components/common/UserNav.vue'
 import AppRow from './components/common/AppRow.vue'
@@ -21,6 +22,7 @@ import PatternInput from './components/common/PatternInput'
 Vue.use(BootstrapVue);
 Vue.use(VueSession);
 Vue.use(VueResource);
+Vue.use(VueScrollTo);
 
 Vue.config.productionTip = false
 

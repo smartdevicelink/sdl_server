@@ -16,9 +16,8 @@
 
                 <h4>Policy Table Preview<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/view-policy-table/"></a></h4>
                 <div v-if="policytable !== null">
-                    <!--<pre class="prettyprint linenums hidenums">{{ policytable }}</pre>-->
                     <vue-json-pretty :data="policytable"></vue-json-pretty>
-                    <a id="back-to-top" v-on:click.prevent="toTop" class="btn btn-primary btn-lg back-to-top" role="button"><i class="fa fa-fw fa-chevron-up"></i></a>
+                    <a id="back-to-top" v-scroll-to="'body'" v-on:click.prevent class="btn btn-primary btn-lg back-to-top" role="button"><i class="fa fa-fw fa-chevron-up"></i></a>
                 </div>
             </main>
         </div>
@@ -27,7 +26,6 @@
 
 
 <script>
-import * as $ from 'jquery'
 import VueJsonPretty from 'vue-json-pretty'
 
 export default {
@@ -51,14 +49,6 @@ export default {
         };
     },
     methods: {
-        "toTop": function(){
-            $('body,html').animate({
-                scrollTop: 0
-            }, 500);
-            $('.prettyprint').animate({
-                scrollLeft: 0
-            }, 500);
-        },
         "environmentClick": function(){
             const self = this;
             console.log("Selected environment: " + this.environment);
@@ -81,15 +71,6 @@ export default {
         },
     },
     created: function(){
-        $(document).ready(function(){
-            $(window).scroll(function () {
-                if ($(this).scrollTop() > 50) {
-                    $('#back-to-top').show();
-                } else {
-                    $('#back-to-top').hide();
-                }
-            });
-        });
     },
     mounted: function(){
         this.environmentClick();
