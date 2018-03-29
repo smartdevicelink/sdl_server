@@ -28,7 +28,7 @@ User consent(s) for a device are stored in a property named **device** in the **
 | input | String | Accepted values are "GUI" or "VUI" |
 | time_stamp | String | A timestamp in <a href="http://en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO 8601</a> format. |
 
-_// TODO: Input and timestamp need a better description and clarification._
+
 
 ### Application
 User consent(s) can also be saved per application on a device under a property named after its Application ID.  The value of this property is an object with the same [user consent record properties](#User-Consent-Record-Properties) as device above.

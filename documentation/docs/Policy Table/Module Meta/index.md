@@ -6,7 +6,7 @@ The current language and regional settings can be configured using the following
 | Property | Type | Description |
 | -------- | ---- | ----------- |
 | language | String | Current system language.  <a href="http://en.wikipedia.org/wiki/ISO_639-1" target="_blank">ISO 639-1</a> combined with <a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2" target="_blank">ISO 3166 alpha-2</a> country code. |
-| wers_country_code | String | //TODO: What is this. |
+| wers_country_code | String | Country code from the Ford system WERS (i.e.WAEGB). |
 
 
 ## Module Version

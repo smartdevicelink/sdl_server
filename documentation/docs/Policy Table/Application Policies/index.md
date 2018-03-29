@@ -15,9 +15,9 @@ Settings for a specific application are stored in the **app_policies** object as
 | groups | Array of Strings | A list of functional groupings the application has access to. |
 | preconsented_groups | Array of Strings | List of [functional groupings](../functional-groupings) that do not require a user consent because the consent has already been given in another place. (e.g. an application EULA) |
 | AppHMIType | Array of Strings | List of [HMI Types](#Application-HMI-Types) used to group the application into different containers in an HMI system. |
-| memory_kb | String | //TODO: Define this |
-| watchdog_timer_ms | String | //TODO: Define this |
-| certificate | String | //TODO: Define this |
+| memory_kb | String | The defined max value for the amount of space the application is allocated in the system’s file system for app icons, and other graphics |
+| watchdog_timer_ms | String | Governs the HeartBeat timeout.  If set to 0, watchdog_timer_ms should be disabled. |
+| certificate | String | The certificate that would be delivered to SDL core through a policy table |
 | nicknames | Array of Strings | A list of names the application goes by. |
 
 ### Application HMI Types
@@ -27,16 +27,16 @@ An application can be categorized by an HMI type allowing the SDL system underst
 
 | Application HMI Type | Description |
 | -------------------- | ----------- |
-| BACKGROUND_PROCESS | //TODO: Add description |
-| COMMUNICATION | //TODO: Add description |
-| DEFAULT | //TODO: Add description |
-| INFORMATION | //TODO: Add description |
-| MEDIA | //TODO: Add description |
-| MESSAGING | //TODO: Add description |
-| NAVIGATION | //TODO: Add description |
-| SOCIAL | //TODO: Add description |
-| SYSTEM | //TODO: Add description |
-| TESTING | //TODO: Add description |
+| BACKGROUND_PROCESS | An application that truly does not have any user interaction. Used for an application that does not require displaying information |
+| COMMUNICATION | The application for communication.  Communication applications are defined with this type|
+| DEFAULT | The application of default type. Default applications are defined with this type|
+| INFORMATION | The application of information type such as name, ID, and other application information.  This type is currently not actively being used.|
+| MEDIA | The media application |
+| MESSAGING | Messaging applications are defined with this type.  This type is currently not actively being used.|
+| NAVIGATION | The application of navigation type.  Navigation and Mobile Navigation applications are defined with this type.|
+| SOCIAL | Social applications are defined by this type.  This type is currently not actively being used|
+| SYSTEM | The application of system type.  System applications are defined with this type|
+| TESTING | The application of testing type.  Testing applications are defined with this type |
 
 <a name="Application-HMI-Levels"></a>
 
@@ -55,7 +55,7 @@ An HMI Level describes the state of an application.  Resources are granted to an
 A default application configuration can be stored in the **app_policies** object as a property named **default**.  This property's value is an object containing any valid [application property](#Application-Property) excluding **certificate** and **nicknames**.
 
 ## Device
-// TODO:  What is this used for?
+The name of the device where the identified application is running on.
 
 ## Example
 An example of how the Application Policy portion of a policy table might look.
