@@ -37,7 +37,7 @@ User consent(s) can also be saved per application on a device under a property n
 An example of how the Device Data portion of a policy table might look.
 
     "device_data": {
-        "UEI17A73JH32L41K32JH4L1K234H3K4HUU40DAS7F970": {
+        "[ID VALUE HERE]": {
             "hardware": "iPhone 4S",
             "max_number_rfcom_ports": 25,
             "firmware_rev": null,
@@ -52,7 +52,7 @@ An example of how the Device Data portion of a policy table might look.
                     "input": "VUI",
                     "time_stamp": "4/24/2012 12:30:00 PM"
                 },
-                "584421907": {
+                "[APP ID HERE]": {
                     "consent_groups": {
                         "Location-1": true,
                         "DrivingData-1": false

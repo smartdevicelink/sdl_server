@@ -38,7 +38,7 @@ An example of how the Usage and Error portion of a policy table might look.
     "usage_and_error_counts": {
         "count_of_iap_buffer_full": 1,
         "app_level": {
-            "584421907": {
+            "[App ID Here]": {
               "app_registration_language_gui": "en-us",
               "app_registration_language_vui": "en-us",
               "count_of_rejected_rpcs_calls": 9,

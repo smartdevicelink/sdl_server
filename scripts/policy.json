@@ -83,12 +83,6 @@
                         "FULL",
                         "LIMITED"]
                     },
-                    "EncodedSyncPData": {
-                        "hmi_levels": ["BACKGROUND",
-                        "FULL",
-                        "LIMITED",
-                        "NONE"]
-                    },
                     "EndAudioPassThru": {
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
@@ -141,12 +135,6 @@
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
                         "LIMITED"]
-                    },
-                    "OnEncodedSyncPData": {
-                        "hmi_levels": ["BACKGROUND",
-                        "FULL",
-                        "LIMITED",
-                        "NONE"]
                     },
                     "OnHashChange": {
                         "hmi_levels": ["BACKGROUND",
@@ -623,12 +611,6 @@
                         "FULL",
                         "LIMITED"]
                     },
-                    "EncodedSyncPData": {
-                        "hmi_levels": ["BACKGROUND",
-                        "FULL",
-                        "LIMITED",
-                        "NONE"]
-                    },
                     "EndAudioPassThru": {
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
@@ -673,12 +655,6 @@
                         "FULL",
                         "LIMITED"]
                     },
-                    "OnEncodedSyncPData": {
-                        "hmi_levels": ["BACKGROUND",
-                        "FULL",
-                        "LIMITED",
-                        "NONE"]
-                    },
                     "OnHMIStatus": {
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
@@ -692,12 +668,6 @@
                         "NONE"]
                     },
                     "OnPermissionsChange": {
-                        "hmi_levels": ["BACKGROUND",
-                        "FULL",
-                        "LIMITED",
-                        "NONE"]
-                    },
-                    "OnSyncPData": {
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
                         "LIMITED",
@@ -773,12 +743,6 @@
                         "FULL",
                         "LIMITED"]
                     },
-                    "SyncPData": {
-                        "hmi_levels": ["BACKGROUND",
-                        "FULL",
-                        "LIMITED",
-                        "NONE"]
-                    },
                     "UnregisterAppInterface": {
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
@@ -833,12 +797,6 @@
                         "LIMITED",
                         "NONE"]
                     },
-                    "EncodedSyncPData": {
-                        "hmi_levels": ["BACKGROUND",
-                        "FULL",
-                        "LIMITED",
-                        "NONE"]
-                    },
                     "ListFiles": {
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
@@ -846,12 +804,6 @@
                         "NONE"]
                     },
                     "OnAppInterfaceUnregistered": {
-                        "hmi_levels": ["BACKGROUND",
-                        "FULL",
-                        "LIMITED",
-                        "NONE"]
-                    },
-                    "OnEncodedSyncPData": {
                         "hmi_levels": ["BACKGROUND",
                         "FULL",
                         "LIMITED",
@@ -1429,25 +1381,25 @@
                 "DataConsent": {
                     "languages": {
                         "en-gb": {
-                            "textBody": "Would you like to enable Mobile Apps on SDL? To use Mobile Apps with SDL, SDL will communicate with Ford at least once per month using your mobile device’s data plan. Standard rates may apply. SDL will send your VIN and SDL module number to Ford U.S. \r\n\r\nUpdates are about the size of an email, and the occurrence of updates depends on your vehicle usage and when a new app is found on your device. To turn on or off, visit the SDL Settings menu. See your Owner Guide for more information."
+                            "textBody": "Would you like to enable Mobile Apps on SDL? To use Mobile Apps with SDL, SDL will communicate with a server at least once per month using your mobile device’s data plan. Standard rates may apply. SDL will send your VIN and SDL module number to a server. \r\n\r\nUpdates are about the size of an email, and the occurrence of updates depends on your vehicle usage and when a new app is found on your device. To turn on or off, visit the SDL Settings menu. See your Owner Guide for more information."
                         },
                         "en-us": {
                             "line1": "Enable Mobile Apps",
                             "line2": "on SDL? (Uses Data)",
-                            "textBody": "Would you like to enable Mobile Apps on SDL?\r\n\r\nTo use Mobile Apps with SDL, SDL will communicate with Ford at least once per month using your mobile device’s data plan. Standard rates may apply. SDL will send your VIN and SDL module number to Ford U.S.\r\n\r\nUpdates are about the size of an email, and the occurrence of updates depends on your vehicle usage and when a new app is found on your device. To turn on or off, visit the SDL Settings menu. See your Owner Guide for more information."
+                            "textBody": "Would you like to enable Mobile Apps on SDL?\r\n\r\nTo use Mobile Apps with SDL, SDL will communicate with a server at least once per month using your mobile device’s data plan. Standard rates may apply. SDL will send your VIN and SDL module number to a server.\r\n\r\nUpdates are about the size of an email, and the occurrence of updates depends on your vehicle usage and when a new app is found on your device. To turn on or off, visit the SDL Settings menu. See your Owner Guide for more information."
                         },
                         "es-mx": {
-                            "textBody": "Para usar aplicaciones móviles con SDL, este debe comunicarse con Ford al menos una vez al mes a través del plan de datos de su dispositivo móvil. Pueden aplicar tarifas normales. SDL enviará su VIN y el número de módulo de SDL a Ford de Estados Unidos de América. \n\nLas actualizaciones tienen el tamaño aproximado de un mensaje de correo electrónico, y la frecuencia de las actualizaciones depende del uso de su vehículo y de si se encuentran nuevas aplicaciones en su dispositivo. Para obtener más información, consulte la Guía del propietario. \n\nPresione Sí para permitir y No para denegar."
+                            "textBody": "Para usar aplicaciones móviles con SDL, este debe comunicarse con un servidor al menos una vez al mes a través del plan de datos de su dispositivo móvil. Pueden aplicar tarifas normales. SDL enviará su VIN y el número de módulo de SDL a un servidor de Estados Unidos de América. \n\nLas actualizaciones tienen el tamaño aproximado de un mensaje de correo electrónico, y la frecuencia de las actualizaciones depende del uso de su vehículo y de si se encuentran nuevas aplicaciones en su dispositivo. Para obtener más información, consulte la Guía del propietario. \n\nPresione Sí para permitir y No para denegar."
                         },
                         "fr-ca": {
-                            "textBody": "Pour utiliser AppLink, SDL devra communiquer avec Ford au moins une fois par mois en utilisant le forfait de données de votre appareil mobile. Les tarifs réguliers peuvent s’appliquer. SDL enverra votre NIV et le numéro de votre module SDL à Ford États-Unis. Les mises à jour ont la taille d’un courriel et la fréquence des mises à jour dépend de l’utilisation de votre véhicule et si une nouvelle application se trouve sur votre appareil. Consultez le Guide de l’utilisateur pour obtenir d’autres renseignements.\r\n\r\nVeuillez appuyer sur Oui pour autoriser ou sur Non pour refuser."
+                            "textBody": "Pour utiliser AppLink, SDL devra communiquer avec un servidor au moins une fois par mois en utilisant le forfait de données de votre appareil mobile. Les tarifs réguliers peuvent s’appliquer. SDL enverra votre NIV et le numéro de votre module SDL à un servidor. Les mises à jour ont la taille d’un courriel et la fréquence des mises à jour dépend de l’utilisation de votre véhicule et si une nouvelle application se trouve sur votre appareil. Consultez le Guide de l’utilisateur pour obtenir d’autres renseignements.\r\n\r\nVeuillez appuyer sur Oui pour autoriser ou sur Non pour refuser."
                         }
                     }
                 },
                 "DataConsentHelp": {
                     "languages": {
                         "en-us": {
-                            "textBody": "By enabling mobile apps, you consent to allowing SDL to communicate with Ford at least once per month using your mobile device’s data plan. Disabling will stop all data usage, but you will not be able to use mobile apps on SDL. See your Owner Guide for more information."
+                            "textBody": "By enabling mobile apps, you consent to allowing SDL to communicate with a server at least once per month using your mobile device’s data plan. Disabling will stop all data usage, but you will not be able to use mobile apps on SDL. See your Owner Guide for more information."
                         },
                         "es-mx": {
                             "textBody": "Las actualizaciones tienen el tamaño aproximado de un mensaje de correo electrónico, y la frecuencia de las actualizaciones depende del uso de su vehículo y de si se encuentran nuevas aplicaciones en su dispositivo. Para obtener más información, consulte la Guía del propietario."
@@ -1481,7 +1433,7 @@
                             "line2": "and Mobile Apps?"
                         },
                         "en-us": {
-                            "tts": "Disabling automatic updates will also disable sync mobile apps. You will not be able to use any mobile apps with SDL. Please press yes to confirm or no to cancel.",
+                            "tts": "Disabling automatic updates will also disable SDL mobile apps. You will not be able to use any mobile apps with SDL. Please press yes to confirm or no to cancel.",
                             "line1": "Disable Auto-Updates",
                             "line2": "and Mobile Apps?",
                             "textBody": "If you disable, you will not be able to use any mobile apps with SDL and your vehicle will stop receiving mobile app permission updates via your device`s data plan. Please press yes to disable mobile apps or no to cancel."
@@ -1540,7 +1492,7 @@
                             "line2": "e aplicações móveis?"
                         },
                         "ru-ru": {
-                            "tts": "При отключении автоматических обновлений также будут отключены мобильные приложения sync. Вы не сможете использовать какие-либо мобильные приложения с SDL. Нажмите \"\"Да\"\" для подтверждения или \"\"Нет\"\" для отмены.",
+                            "tts": "При отключении автоматических обновлений также будут отключены мобильные приложения SDL. Вы не сможете использовать какие-либо мобильные приложения с SDL. Нажмите \"\"Да\"\" для подтверждения или \"\"Нет\"\" для отмены.",
                             "line1": "Откл. автообновления",
                             "line2": "и мобил. прилож.?"
                         },
@@ -1550,7 +1502,7 @@
                             "line2": "och mobilappar?"
                         },
                         "tr-tr": {
-                            "tts": "Otomatik güncellemeleri devre dışı bırakırsanız sync mobil uygulamalar da devre dışı kalır. SDL ile mobil uygulama kullanmanız mümkün olmaz. Lütfen onaylamak için Evet'e veya iptal etmek için Hayır'a basın.",
+                            "tts": "Otomatik güncellemeleri devre dışı bırakırsanız SDL mobil uygulamalar da devre dışı kalır. SDL ile mobil uygulama kullanmanız mümkün olmaz. Lütfen onaylamak için Evet'e veya iptal etmek için Hayır'a basın.",
                             "line1": "Oto. güncelleme ve",
                             "line2": "mobil uygul. kapat?"
                         },
@@ -1560,7 +1512,7 @@
                             "line2": "移动应用程序？"
                         },
                         "zh-tw": {
-                            "tts": "停用自動更新也將停用 sync 行動應用程式。您將無法透過 SDL 使用任何行動應用程式。確認請按「是」，取消請按「否」。",
+                            "tts": "停用自動更新也將停用 SDL 行動應用程式。您將無法透過 SDL 使用任何行動應用程式。確認請按「是」，取消請按「否」。",
                             "line1": "停用自動更新",
                             "line2": "和行動應用程式？"
                         }
