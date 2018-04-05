@@ -14,13 +14,13 @@ function postFromCore (isProduction) {
 		if (res.errorMsg) {
 			return res.status(400).send({ error: res.errorMsg });
 		}
-        helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, true, handlePolicyTableFlow.bind(null, res, true));
+        helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, true, handlePolicyTableFlow.bind(null, res, true, true));
 	}
 }
 
 function getPreview (req, res, next) {
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
-    helper.generatePolicyTable(isProduction, null, true, handlePolicyTableFlow.bind(null, res, false));
+    helper.generatePolicyTable(isProduction, null, true, handlePolicyTableFlow.bind(null, res, false, false));
 }
 
 function postAppPolicy (req, res, next) {
@@ -29,22 +29,31 @@ function postAppPolicy (req, res, next) {
     if (res.errorMsg) {
         return res.status(400).send({ error: res.errorMsg });
     }
-    helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, false, handlePolicyTableFlow.bind(null, res, false));
+    helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, false, handlePolicyTableFlow.bind(null, res, false, false));
 }
 
-function handlePolicyTableFlow (res, encrypt = false, err, pieces) {
+function handlePolicyTableFlow (res, encrypt = false, removeMetaData, err, pieces) {
     if (err) {
         app.locals.log.error(err);
         return res.parcel.setStatus(500).deliver();
     }
-    res.parcel
-        .setStatus(200)
-        .setData(createPolicyTableResponse(pieces, encrypt));
-    return res.parcel.deliver();
+    if (removeMetaData) {
+        //sdl_core will fail to parse the table if any additional metadata is attached to the response
+        const policyTable = {
+            data: createPolicyTableResponse(pieces, encrypt)
+        }
+        res.status(200).send(policyTable); 
+    }
+    else {
+        res.parcel
+            .setStatus(200)
+            .setData(createPolicyTableResponse(pieces, encrypt));
+        return res.parcel.deliver();        
+    }
 }
 
 function createPolicyTableResponse (pieces, encrypt = false) {
-	var policy_table = [
+	const policy_table = [
         {
             policy_table: {
                 module_config: pieces.moduleConfig,
