@@ -1,5 +1,5 @@
 # User Interface
-A majority of the modifications made to the policy table are done through SQL database queries. To make this easier, the Policy Server has a user interface that can be found by navigating to <a href="http://localhost:3000/">http://localhost:3000/</a> in a browser of your choice. There are four main pages to the Policy Server.
+A majority of the modifications made to the Policy Table are done through SQL database queries. To make this easier, the Policy Server has a user interface that can be found by navigating to <a href="http://localhost:3000/">http://localhost:3000/</a> in a browser of your choice. There are four main pages to the Policy Server.
 
 [Applications](../applications/)
 

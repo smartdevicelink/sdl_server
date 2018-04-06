@@ -1,5 +1,5 @@
 # Functional Groupings
-Before an application can use each feature offered by SDL it must first be granted permission to do so in the policy table.  Each feature may require several RPCs with specific HMI level permission, as well allowed parameters and other information.  In order to avoid duplicating this data for each application, SDL instead uses functional groupings.  A functional grouping is simply a group of RPC messages and parameters with specific HMI permissions and allowed parameters.  So for example, if an application named Torque wanted access to vehicle data you would simply add the **VehicleData** functional group to Torque's allowed policies.
+Before an application can use each feature offered by SDL it must first be granted permission to do so in the Policy Table. Each feature may require several RPCs with specific HMI level permission, as well as allowed parameters and other information.  In order to avoid duplicating this data for each application, SDL instead uses functional groupings.  A functional grouping is simply a group of RPC messages and parameters with specific HMI permissions and allowed parameters.  So for example, if an application named Torque wanted access to vehicle data you would simply add the **VehicleData** functional group to Torque's allowed policies.
 
 ## Functional Group
 Each functional group is given a unique name (e.g. BasicVehicleData) that is used to reference that group from anywhere within the Policy Table.  Each functional group may contain the following properties.
@@ -18,7 +18,7 @@ Each RPC in the **rpcs** property has a unique name that represents an existing 
 | parameters | Array | A list of allowed parameters that the application can use with the RPC command. |
 
 ## Example
-An example of how the Functional Groupings portion of a policy table might look.
+An example of how the Functional Groupings portion of a Policy Table might look.
 
     "functional_groupings": {
         "Base-1": {

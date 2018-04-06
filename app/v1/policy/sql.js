@@ -49,6 +49,13 @@ function getAppModules (appId) {
         .toString();
 }
 
+function getDefaultFunctionalGroups (isProduction) {
+    let statement = funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)
+        .where({'view_function_group_info.is_default': true});
+
+    return statement;    
+}
+
 function getAppFunctionalGroups (isProduction, appObj) {
     let sqlOr = [
         {
@@ -155,6 +162,7 @@ module.exports = {
     getBaseAppInfo: getBaseAppInfo,
     getAppDisplayNames: getAppDisplayNames,
     getAppModules: getAppModules,
-    getAppFunctionalGroups: getAppFunctionalGroups
+    getAppFunctionalGroups: getAppFunctionalGroups,
+    getDefaultFunctionalGroups: getDefaultFunctionalGroups
 }
 

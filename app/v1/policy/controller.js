@@ -44,7 +44,7 @@ function handlePolicyTableFlow (res, encrypt = false, err, pieces) {
 }
 
 function createPolicyTableResponse (pieces, encrypt = false) {
-	var policy_table = [
+	const policy_table = [
         {
             policy_table: {
                 module_config: pieces.moduleConfig,
