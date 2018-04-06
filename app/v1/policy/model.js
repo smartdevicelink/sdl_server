@@ -250,19 +250,21 @@ function aggregateResults (res, next) {
         "default_hmi": "NONE",
         "groups": defaultFuncGroups    
     };
+    //DataConsent-2 functional group removed
     appPolicy.device = {
         "keep_context": false,
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": ["DataConsent-2"]              
+        "groups": []              
     };
+    //BaseBeforeDataConsent functional group removed
     appPolicy.pre_DataConsent = {
         "keep_context": false,
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": ["BaseBeforeDataConsent"]              
+        "groups": []              
     };
     next(null, appPolicy);
 }
