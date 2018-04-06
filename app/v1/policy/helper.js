@@ -118,8 +118,13 @@ function mapAppBaseInfo (isProduction, appObjs, callback) {
         ], {method: 'waterfall'})(next); //run it       
     }), {method: 'parallel'});
 
+    const getAllDataFlow = flame.flow({
+        policyObjs: makeAppPolicyFlow,
+        defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction))
+    }, {method: 'parallel'});
+
     flame.flow([
-        makeAppPolicyFlow, 
+        getAllDataFlow, 
         model.aggregateResults
     ], {method: 'waterfall'})(callback);
 }
