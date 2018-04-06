@@ -1,5 +1,5 @@
 # Module Config
-The module configuration property contains information used to configure SDL core for use on the current vehicle.
+The module configuration property contains information used to configure SDL Core for use on the current vehicle.
 
 ## Notifications
 There is a limit for the number of notifications that can be displayed per priority level.  The limit is instead based on notifications per minute.  You can configure these in the **notifications_per_minute_by_priority** property.  The following are the available priority levels.
@@ -10,54 +10,52 @@ There is a limit for the number of notifications that can be displayed per prior
 | COMMUNICATION      | Number | Number of communication notifications that can be displayed per minute. |
 | NAVIGATION         | Number | Number of navigation notifications that can be displayed per minute. |
 | NONE               | Number | Number of notifications without a priority that can be displayed per minute. |
-| NORMAL             | Number | Number of notifications with a normal prioritythat can be displayed per minute. |
+| NORMAL             | Number | Number of notifications with a normal priority that can be displayed per minute. |
 | voiceCommunication | Number | Number of voice communication notifications that can be displayed per minute. |
 
 <a name="Policy-Table-Update-Configurations"></a>
 
 ## Policy Table Update Configurations
-Periodically changes will be made to a policy table, either by the server or core.  This means core should check for and perform a [policy table updates](/docs/sdl-server/policy-table-update), which synchronizes the local and server policy tables.  You can configure when core will check using the following configurations.
+Periodically changes will be made to a Policy Table, either by the Policy Server or SDL Core. This means SDL Core should check for and perform a [Policy Table update](/docs/sdl-server/policy-table-update), which synchronizes the local and Policy Server Policy Tables. You can configure when SDL Core will check using the following configurations.
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| exchange_after_x_ignition_cycles | Number | Update policies after a number of ignitions. |
-| exchange_after_x_kilometers | Number | Update policies after a number of kilometers traveled. |
-| exchange_after_x_days | Number | Update policies after a number of days.  |
+| exchange_after_x_ignition_cycles | Number | Update Policy Table after a number of ignitions. |
+| exchange_after_x_kilometers | Number | Update Policy Table after a number of kilometers traveled. |
+| exchange_after_x_days | Number | Update Policy Table after a number of days.  |
 
 
 ## Preloaded Policy Tables
-SDL core can use a predefined policy table located locally on the vehicle's head unit.  This is present to initially configure core as well as to enable the storage of vehicle data before a policy update has occurred.
-
-// TODO:  Is this correct?
+SDL Core can use a predefined Policy Table located locally on the vehicle's head unit.  This is present to initially configure SDL Core as well as to enable the storage of vehicle data before a Policy Table update has occurred.
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| preloaded_pt | Boolean | When true, core will use the local copy of the policy table. |
+| preloaded_pt | Boolean | When true, SDL Core will use the local copy of the Policy Table. |
 
 
 ## Server Requests
-All requests made directly by core or by proxy can be configured using the following attributes.
+All requests made directly by SDL Core or by proxy can be configured using the following attributes.
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| timeout_after_x_seconds | Number | Elapsed seconds until a policy update request will timeout. |
-| endpoints | Object | Contains a list of [endpoints](#Endpoints) that may contain a default or app-specific array of server endpoints. |
+| timeout_after_x_seconds | Number | Elapsed seconds until a Policy Table update request will timeout. |
+| endpoints | Object | Contains a list of endpoints (see below) that may contain a default or app-specific array of server endpoints. |
 | seconds_between_retries | Array | A list of seconds to wait before each retry. |
 
 <a name="Service-Types"></a>
 
 ### Endpoints
-This section is a list of urls that is used throughout SDL
+This section is a list of URLs that are used throughout the SDL lifecycle, such as Policy Table updates, module software updates, and lock screen imagery.
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| 0X07 | Array | A list of urls that can be used for policy table exchanges. |
-| 0X04 | Array | A list of urls that can be used to retrieve software updates. |
-| queryAppsUrl | Array | A list of urls that can be used to receive valid apps for querying on iOS devices. |
-| lock_screen_icon_url | Array | A list of urls that host an image which can be displayed by the application on the driver's device during lockout. |
+| 0X07 | Array | A list of URLs that can be used for Policy Table updates. |
+| 0X04 | Array | A list of URLs that can be used to retrieve module software updates. |
+| queryAppsUrl | Array | A list of URLs that can be used to receive valid apps for querying on iOS devices. |
+| lock_screen_icon_url | Array | A list of URLs to image files which can be displayed by the application on the driver's device during lockout. |
 
 ## Vehicle Information
-Vehicle identification information is stored in the module configuration portion of the policy table.
+Vehicle identification information is stored in the module configuration portion of the Policy Table.
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
@@ -67,7 +65,7 @@ Vehicle identification information is stored in the module configuration portion
 
 
 ## Example
-An example of how the Module Config portion of a policy table might look.
+An example of how the Module Config portion of a Policy Table might look.
 
     "module_config": {
         "endpoints": {

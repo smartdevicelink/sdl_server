@@ -10,14 +10,14 @@ Updates an application's approval status. In the future this route will also not
 If an application has been set to automatically approve all future updates then this route will validate the app uuid and update the approval status. In the future this route will also notify the app's developer via email of the change in approval status.
 
 ### `POST /staging/policy` & `POST /production/policy`
-These are the routes sdl_core's default policy table should use when requesting a policy table update with either `/staging` or `/production` specified.
-Given a "shortened" policy table, the Policy Server will use that information to automatically construct a full policy table response and return it to the requester.
+These are the routes sdl_core's default Policy Table should use when requesting a Policy Table update with either `/staging` or `/production` specified.
+Given a "shortened" Policy Table, the Policy Server will use that information to automatically construct a full Policy Table response and return it to the requester.
 
 ### `GET /policy/preview`
-This is the route hit by the Policy Server UI requesting a preview of the policy table. A variable **environment** indicates whether it is to be staging or production.
+This is the route hit by the Policy Server UI requesting a preview of the Policy Table. A variable **environment** indicates whether it is to be staging or production.
 
 ### `POST /policy/apps`
-The Policy Server UI makes a request to this route which returns an example policy table segment for a particular app.
+The Policy Server UI makes a request to this route which returns an example Policy Table segment for a particular app.
 
 ### `POST /webhook`
 This is the route that should be specified on a company's page on the SDL Developer Portal (in the box titled Webhook URL under Company Info) to be hit by the SHAID server when an app has been updated.
