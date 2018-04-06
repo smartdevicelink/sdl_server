@@ -1,5 +1,5 @@
 # Usage and Errors
-Some usage and error statistics are collected to help developers debug problems and improve SDL.  The information does not contain user information and is very small as to use as little mobile data as possible.  This data is sent to the SDL server when performing a [policy table update](../../policy-table-update).
+Errors and usage statistics that occur while an application is in use or are related to an application are record. The information does not contain user information and is very small as to use as little mobile data as possible. This data is sent to the Policy Server when performing a [Policy Table update](../../policy-table-update).
 
 
 ## Application Errors
@@ -11,16 +11,16 @@ Errors and usage statistic that occur while an application is in use or are rela
 | app_registration_language_vui | String | Language used to register the application using VUI. |
 | count_of_rejected_rpcs_calls | Number |  Count of RPC calls that were rejected because access was not allowed due to a policy. |
 | count_of_rejections_duplicate_name | Number | Number of times an application registration uses a name which is already registered in the current ignition cycle. |
-| count_of_rejections_nickname_mismatch | Number | Number of times an app is not allowed to register because it's registration does not match one of the app-specific policy nicknames. |
+| count_of_rejections_nickname_mismatch | Number | Number of times an app is not allowed to register because its registration does not match one of the app-specific policy nicknames. |
 | count_of_removals_for_bad_behavior | Number | The module has criteria for identifying unacceptably bad application behavior. This tracks the number of times that distinction leads the module to unregister an application. |
 | count_of_rfcom_limit_reached | Number | Number of times the maximum number of rfcom channels are used on a device by the application. |
-| count_of_rpcs_sent_in_hmi_none | Number | Number of times an application tried to use an RPC (not unregisterAppInterface) in the HMI NONE state. Counts the number of conflicts with the built-in/hardcoded restriction for HMI_STATE=NONE. |
+| count_of_rpcs_sent_in_hmi_none | Number | Number of times an application tried to use an RPC (not unregisterAppInterface) in the HMI_NONE state. Counts the number of conflicts with the built-in/hardcoded restriction for HMI_STATE=NONE. |
 | count_of_run_attempts_while_revoked | Number | Incremented when the user selects a revoked application from the HMI menu.  |
-| count_of_user_selections | Number | Number of times a user selected to run the app.  Increment one when app starts via Mobile Apps Menu or VR. Increment one the first time the app leaves it's default_hmi for HMI_FULL, as in the resuming app scenario. Do not increment anytime an app comes into HMI_FULL. Do not increment when cycling sources. For all 3 scenarios, both successful and unsuccessful app starts shall be counted.  |
-| minutes_in_hmi_background | Number | Number of minutes the application is in the HMI background state. |
-| minutes_in_hmi_full | Number | Number of minutes the application is in the HMI full state. |
-| minutes_in_hmi_limited | Number | Number of minutes the application is in the HMI limited state. |
-| minutes_in_hmi_none | Number | Number of minutes the application is in the HMI none state. |
+| count_of_user_selections | Number | Number of times a user selected to run the app.  Increment one when app starts via Mobile Apps Menu or VR. Increment one the first time the app leaves its default_hmi for HMI_FULL, as in the resuming app scenario. Do not increment anytime an app comes into HMI_FULL. Do not increment when cycling sources. For all 3 scenarios, both successful and unsuccessful app starts shall be counted.  |
+| minutes_in_hmi_background | Number | Number of minutes the application is in the HMI_BACKGROUND state. |
+| minutes_in_hmi_full | Number | Number of minutes the application is in the HMI_FULL state. |
+| minutes_in_hmi_limited | Number | Number of minutes the application is in the HMI_LIMITED state. |
+| minutes_in_hmi_none | Number | Number of minutes the application is in the HMI_NONE state. |
 
 
 
@@ -33,7 +33,7 @@ Some basic usage and error counts are stored in the following properties.
 
 
 ## Example
-An example of how the Usage and Error portion of a policy table might look.
+An example of how the Usage and Error portion of a Policy Table might look.
 
     "usage_and_error_counts": {
         "count_of_iap_buffer_full": 1,

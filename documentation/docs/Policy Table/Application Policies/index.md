@@ -1,5 +1,5 @@
 # Application Policies
-An application's permissions and settings are stored in the **app_policies** property in a policy table.  The application policies are used to grant applications access to a specific set of features, such as vehicle data and/or running in the background.  Any other application related data, such as user-consents, can also be stored in application policies as well.
+An application's permissions and settings are stored in the **app_policies** property in a Policy Table.  The application policies are used to grant applications access to a specific set of features, such as vehicle data and/or running in the background.  Any other application related data, such as user-consents, can also be stored in application policies as well.
 
 ## Application ID
 Settings for a specific application are stored in the **app_policies** object as a property named after the application's unique ID (e.g. "663645645" or any string of at most 100 characters).  The value of this property can be either an object containing properties listed below or a reference to another sibling property (e.g. "default" or "device").  In addition, a special value of "null" can be used to indicate that the application has been revoked.
@@ -11,42 +11,41 @@ Settings for a specific application are stored in the **app_policies** object as
 | keep_context | Boolean | When true, allows the application to display messages even if another app enters the foreground (HMI level FULL). |
 | steal_focus | Boolean | When true, allows the application to steal the foreground from another application at will. |
 | priority | String | Priority level assigned to the application. |
-| default_hmi | String | [HMI level](#Application-HMI-Levels) given to the application following a successful registration with SDL core. |
+| default_hmi | String | [HMI level](#Application-HMI-Levels) given to the application following a successful registration with SDL Core. |
 | groups | Array of Strings | A list of functional groupings the application has access to. |
 | preconsented_groups | Array of Strings | List of [functional groupings](../functional-groupings) that do not require a user consent because the consent has already been given in another place. (e.g. an application EULA) |
 | AppHMIType | Array of Strings | List of [HMI Types](#Application-HMI-Types) used to group the application into different containers in an HMI system. |
-| memory_kb | String | //TODO: Define this |
-| watchdog_timer_ms | String | //TODO: Define this |
-| certificate | String | //TODO: Define this |
-| nicknames | Array of Strings | A list of names the application goes by. |
+| heart_beat_timeout_ms | String | A streaming/projection app will be automatically disconnected if no app communication occurs over this period of time (in milliseconds). |
+| certificate | String | The app's encryption certificate for video streaming/projection (if applicable) |
+| nicknames | Array of Strings | A list of names the application goes by. Some OEMs may require the app's name to match a value in this array in order to run. |
 
 ### Application HMI Types
-An application can be categorized by an HMI type allowing the SDL system understand how to appropriately handle the application.  There are several HMI types listed below.
+An application can be categorized by an HMI type allowing the SDL-enabled head unit to understand how to appropriately handle the application.  There are several HMI types listed below.
 
 <a name="Application-HMI-Types"></a>
 
 | Application HMI Type | Description |
 | -------------------- | ----------- |
-| BACKGROUND_PROCESS | //TODO: Add description |
-| COMMUNICATION | //TODO: Add description |
-| DEFAULT | //TODO: Add description |
-| INFORMATION | //TODO: Add description |
-| MEDIA | //TODO: Add description |
-| MESSAGING | //TODO: Add description |
-| NAVIGATION | //TODO: Add description |
-| SOCIAL | //TODO: Add description |
-| SYSTEM | //TODO: Add description |
-| TESTING | //TODO: Add description |
+| BACKGROUND_PROCESS |  |
+| COMMUNICATION |  |
+| DEFAULT |  |
+| INFORMATION |  |
+| MEDIA |  |
+| MESSAGING |  |
+| NAVIGATION |  |
+| SOCIAL |  |
+| SYSTEM |  |
+| TESTING |  |
 
 <a name="Application-HMI-Levels"></a>
 
 ### Application HMI Levels
-An HMI Level describes the state of an application.  Resources are granted to an application based on its current state.  While some resources are granted automatically to an application in a specific HMI Level, many can be controlled by the policy table.
+An HMI Level describes the state of an application.  Resources are granted to an application based on its current state.  While some resources are granted automatically to an application in a specific HMI Level, many can be controlled by the Policy Table.
 
 | Level | Value | Short Description |
 |-------|-------|-------------------|
 | Full | 0 | An application is typically in ```Full``` when it is displayed in the HMI.  In ```Full``` an application has access to the HMI supported resources, e.g. UI, VR, TTS, audio system, and etc. |
-| Limited | 1 | An application is typically placed in ```Limited``` when a message or menu is displayed ```Limited``` to restrict it's permissions. |
+| Limited | 1 | An application is typically placed in ```Limited``` when a message or menu is displayed ```Limited``` to restrict its permissions. |
 | Background | 2 | An application is typically in ```Background``` when it is not being displayed by the HMI.  When in ```Background``` an application can send RPCs according to the Policy Table rules. |
 | None | 3 | When placed in ```None``` an application has no access to HMI supported resources. |
 
@@ -55,10 +54,10 @@ An HMI Level describes the state of an application.  Resources are granted to an
 A default application configuration can be stored in the **app_policies** object as a property named **default**.  This property's value is an object containing any valid [application property](#Application-Property) excluding **certificate** and **nicknames**.
 
 ## Device
-// TODO:  What is this used for?
+Permissions granted to the user's device post-DataConsent.
 
 ## Example
-An example of how the Application Policy portion of a policy table might look.
+An example of how the Application Policy portion of a Policy Table might look.
 
     "app_policies": {
         "default": {

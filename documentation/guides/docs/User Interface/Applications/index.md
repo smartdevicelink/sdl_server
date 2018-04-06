@@ -1,5 +1,5 @@
 # Applications
-This page displays a list of applications pulled from the SHAID server. When initially added, apps will be pending approval. Reviewing each app will give the user a detailed page on the important information associated with the app such as the requested permissions, developer contact information, and preview of what its segment in the policy table would look like.
+This page displays a list of applications pulled from the SHAID server. When initially added, apps will be pending approval. Reviewing each app will give the user a detailed page on the important information associated with the app such as the requested permissions, developer contact information, and preview of what its segment in the Policy Table would look like.
 ![Applications-List](./assets/Applications-List.png)
 ### General App Info
 | Property | Definition |
@@ -32,7 +32,7 @@ This page displays a list of applications pulled from the SHAID server. When ini
 
 
 ### Policy Table Preview
-This is an example of how the app and its required permissions will appear in the policy table. Denied applications will not appear in either the staging or the production policy table and as such they will not have a policy table preview.
+This is an example of how the app and its required permissions will appear in the Policy Table. Denied applications will not appear in either the staging or the production Policy Table and as such they will not have a Policy Table preview.
 ```
   {
     nicknames: [
@@ -53,5 +53,5 @@ This is an example of how the app and its required permissions will appear in th
   }
 ```
 ## Approved, Denied, & Pending
-Pending applications are automatically granted all requested permissions in your staging policy table so you can perform any required internal testing. Select approve in the top right corner if you would like to give this app the permissions it needs in your production policy table, otherwise select deny. Only approved applications will be given access to the RPCs and permissions that they require on your production environment. If you choose to deny an application, you will be asked to (optionally) provide your reasoning for doing so. Each time that an app is updated on the SDL Developer Portal at smartdevicelink.com, the app's changes will appear in your Policy Server pending re-approval. If an app is from a trusted developer and you would like to always approve future revisions of it, you can choose to "Automatically approve updates" under "General App Info" of the app's review page. This setting can be changed later if the need arises.
+Pending applications are automatically granted all requested permissions in your staging Policy Table so you can perform any required internal testing. Select approve in the top right corner if you would like to give this app the permissions it needs in your production Policy Table, otherwise select deny. Only approved applications will be given access to the RPCs and permissions that they require on your production environment. If you choose to deny an application, you will be asked to (optionally) provide your reasoning for doing so. Each time that an app is updated on the SDL Developer Portal at smartdevicelink.com, the app's changes will appear in your Policy Server pending re-approval. If an app is from a trusted developer and you would like to always approve future revisions of it, you can choose to "Automatically approve updates" under "General App Info" of the app's review page. This setting can be changed later if the need arises.
 ![App-Details](./assets/App-Details.png)
