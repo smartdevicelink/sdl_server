@@ -115,9 +115,6 @@ function transformFunctionalGroups (isProduction, info, next) {
             && !selectedPrompt.is_deleted) {
             groupedData[baseInfo[i].id].user_consent_prompt = selectedPrompt.message_category;
         }
-        else {
-            groupedData[baseInfo[i].id].user_consent_prompt = null;
-        }
         groupedData[baseInfo[i].id].rpcs = null;
         hashIdToPropertyName[baseInfo[i].id] = baseInfo[i].property_name;
     }
@@ -235,38 +232,40 @@ function constructAppPolicy (appObj, res, next) {
 }
 
 function aggregateResults (res, next) {
+    const policyObjs = res.policyObjs;
+    const defaultFuncGroups = res.defaultFuncGroups.map(function (obj) {
+        return obj.property_name;
+    });
+
     const appPolicy = {};
-    for (let i = 0; i < res.length; i++) {
-        const key = Object.keys(res[i])[0];
-        appPolicy[key] = res[i][key];
+    for (let i = 0; i < policyObjs.length; i++) {
+        const key = Object.keys(policyObjs[i])[0];
+        appPolicy[key] = policyObjs[i][key];
     }
+    //setup defaults after the app ids are populated 
+    appPolicy.default = {
+        "keep_context": false,
+        "steal_focus": false,
+        "priority": "NONE",
+        "default_hmi": "NONE",
+        "groups": defaultFuncGroups    
+    };
+    appPolicy.device = {
+        "keep_context": false,
+        "steal_focus": false,
+        "priority": "NONE",
+        "default_hmi": "NONE",
+        "groups": ["DataConsent-2"]              
+    };
+    appPolicy.pre_DataConsent = {
+        "keep_context": false,
+        "steal_focus": false,
+        "priority": "NONE",
+        "default_hmi": "NONE",
+        "groups": ["BaseBeforeDataConsent"]              
+    };
     next(null, appPolicy);
 }
-
-/*
-//setup defaults
-resAppPolicy.default = {
-    "keep_context": false,
-    "steal_focus": false,
-    "priority": "NONE",
-    "default_hmi": "NONE",
-    "groups": ["Base-4"]               
-};
-resAppPolicy.device = {
-    "keep_context": false,
-    "steal_focus": false,
-    "priority": "NONE",
-    "default_hmi": "NONE",
-    "groups": ["DataConsent-2"]              
-};
-resAppPolicy.pre_DataConsent = {
-    "keep_context": false,
-    "steal_focus": false,
-    "priority": "NONE",
-    "default_hmi": "NONE",
-    "groups": ["BaseBeforeDataConsent"]              
-};
-*/
 
 module.exports = {
     transformModuleConfig: transformModuleConfig,
