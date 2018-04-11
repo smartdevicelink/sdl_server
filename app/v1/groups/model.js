@@ -47,7 +47,7 @@ function generateRpcObjectHash (rpcs, permissionRelations, hmiValues) {
             selected: false
         };
     }
-    
+
     for (let i = 0; i < rpcs.length; i++) {
         const rpcName = rpcs[i].name;
         cachedRpcHash[rpcName] = {};
@@ -90,7 +90,7 @@ function rpcHashToArray (rpcHash, next) {
             callback(null, parameter.name);
         }, function (err, sortedParameters) {
             rpc.parameters = sortedParameters;
-            callback(null, rpc);     
+            callback(null, rpc);
         });
     }
 }
@@ -106,6 +106,8 @@ function baseTemplate (objOverride) {
         selected_rpc_count: 0,
         selected_parameter_count: 0,
         is_default: false,
+        is_pre_data_consent: false,
+        is_device: false,
         is_deleted: false,
         user_consent_prompt: null,
         rpcs: []
@@ -119,6 +121,8 @@ function baseTemplate (objOverride) {
         obj.description = objOverride.description;
         obj.user_consent_prompt = objOverride.user_consent_prompt;
         obj.is_default = objOverride.is_default;
+        obj.is_pre_data_consent = objOverride.is_pre_data_consent;
+        obj.is_device = objOverride.is_device;
         obj.is_deleted = objOverride.is_deleted;
     }
 
@@ -159,7 +163,7 @@ function makeFunctionGroups (includeRpcs, info, next) {
         }),
         flame.async.map.bind(null, parameters, function (parameter, next) {
             const funcId = parameter.function_group_id;
-            groupedData[funcId].parameters.push(parameter); 
+            groupedData[funcId].parameters.push(parameter);
             groupedParameterCount[funcId][parameter.parameter] = true;
             next();
         }),
@@ -175,7 +179,7 @@ function makeFunctionGroups (includeRpcs, info, next) {
             next();
         }
     ], {method: 'series', eventLoop: true});
-        
+
     //functional group top level object creation
     const createFunctionalGroupBaseFlow = flow(flame.map(baseInfo, function (baseElement, next) {
         const funcGroup = baseTemplate(baseElement); //add defaults
@@ -200,9 +204,9 @@ function makeFunctionGroups (includeRpcs, info, next) {
         else {
             funcGroup.user_consent_prompt = null;
         }
-        next(null, funcGroup);     
+        next(null, funcGroup);
     }), {method: 'parallel', eventLoop: true});
-    
+
     //rpc array creation
     function rpcInsertion (functionalGroups, next) {
         //if the template didn't specify rpcs, do not include selected rpc/parameter info in the response
@@ -213,7 +217,7 @@ function makeFunctionGroups (includeRpcs, info, next) {
                 const rpcHash = populateRpcHash(getRpcHashTemplate(), funcGroupData.hmiLevels, funcGroupData.parameters);
                 rpcHashToArray(rpcHash, function (err, rpcs) {
                     group.rpcs = rpcs; //attach the rpc array
-                    callback(null, group); 
+                    callback(null, group);
                 });
             }, next);
         }
@@ -242,7 +246,7 @@ function makeFunctionGroups (includeRpcs, info, next) {
 
 //uses an rpc hash and converts the selected values to true based on hmi level and parameter data that exists
 function populateRpcHash (rpcHash, hmiLevels, parameters) {
-    //iterate through hmi levels and parameters (if they exist) and make the selections true 
+    //iterate through hmi levels and parameters (if they exist) and make the selections true
     for (let i = 0; i < hmiLevels.length; i++) {
         const rpcName = hmiLevels[i].permission_name;
         const level = hmiLevels[i].hmi_level;
@@ -265,6 +269,8 @@ function convertToInsertableFunctionalGroupInfo (functionalGroupObj, statusOverr
         user_consent_prompt: functionalGroupObj.user_consent_prompt || null,
         status: statusOverride || functionalGroupObj.status || null,
         is_default: functionalGroupObj.is_default || false,
+        is_pre_data_consent: functionalGroupObj.is_pre_data_consent || false,
+        is_device: functionalGroupObj.is_device || false,
         description: functionalGroupObj.description || null,
         is_deleted: functionalGroupObj.is_deleted || false
     };

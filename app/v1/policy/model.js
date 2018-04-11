@@ -1,7 +1,7 @@
 const app = require('../app');
 const flame = app.locals.flame;
 
-//module config 
+//module config
 
 //keeping this synchronous due to how small the data is. pass this to the event loop
 function transformModuleConfig (info, next) {
@@ -10,7 +10,7 @@ function transformModuleConfig (info, next) {
     const retrySeconds = info.retrySeconds.map(function (secondObj) {
         return secondObj.seconds;
     });
-        
+
     next(null, {
         "preloaded_pt": base.preloaded_pt,
         "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
@@ -77,7 +77,7 @@ function transformMessages (info, cb) {
                 langObj.line2 = msg.line2 ? msg.line2 : undefined;
                 langObj.textBody = msg.text_body ? msg.text_body : undefined;
                 langObj.label = msg.label ? msg.label : undefined;
-                next();            
+                next();
             }, function () {
                 next(null, {
                     "version": "000.000.001", //TODO: what to do with the versioning?
@@ -105,13 +105,13 @@ function transformFunctionalGroups (isProduction, info, next) {
     //set up the top level objects for these hashes
     for (let i = 0; i < baseInfo.length; i++) {
         groupedData[baseInfo[i].id] = {};
-        
+
         const selectedPrompt = consentPrompts.find(function (prompt) {
             return prompt.message_category === baseInfo[i].user_consent_prompt;
         });
         //the prompt must exist at least in staging and must be in production mode if isProduction is true
-        if (selectedPrompt 
-            && (!isProduction || selectedPrompt.status === "PRODUCTION") 
+        if (selectedPrompt
+            && (!isProduction || selectedPrompt.status === "PRODUCTION")
             && !selectedPrompt.is_deleted) {
             groupedData[baseInfo[i].id].user_consent_prompt = selectedPrompt.message_category;
         }
@@ -120,14 +120,14 @@ function transformFunctionalGroups (isProduction, info, next) {
     }
 
     //begin asynchronous logic below
-    
+
     //populate the hash above, using the functional group id as a key
     //include the hmi levels and parameter data
     const groupUpData = flame.flow([
         flame.async.map.bind(null, hmiLevels, function (hmiLevel, next) {
             const funcId = hmiLevel.function_group_id;
             if (!groupedData[funcId].rpcs) {
-                groupedData[funcId].rpcs = {};         
+                groupedData[funcId].rpcs = {};
             }
             if (!groupedData[funcId].rpcs[hmiLevel.permission_name]) {
                 groupedData[funcId].rpcs[hmiLevel.permission_name] = {};
@@ -180,8 +180,8 @@ function transformFunctionalGroups (isProduction, info, next) {
                     //sort the parameters array
                     data.parameters = parameters.sort();
                 }
-            }    
-            callback();    
+            }
+            callback();
         }, next);
     }
 
@@ -216,7 +216,7 @@ function constructAppPolicy (appObj, res, next) {
     const funcGroupNames = res.funcGroupNames.map(function (elem) {
         return elem.property_name;
     });
-    
+
     const appPolicyObj = {};
     appPolicyObj[appObj.app_uuid] = {
         nicknames: displayNames,
@@ -236,19 +236,25 @@ function aggregateResults (res, next) {
     const defaultFuncGroups = res.defaultFuncGroups.map(function (obj) {
         return obj.property_name;
     });
+    const preDataConsentFuncGroups = res.preDataConsentFuncGroups.map(function (obj) {
+        return obj.property_name;
+    });
+    const deviceFuncGroups = res.deviceFuncGroups.map(function (obj) {
+        return obj.property_name;
+    });
 
     const appPolicy = {};
     for (let i = 0; i < policyObjs.length; i++) {
         const key = Object.keys(policyObjs[i])[0];
         appPolicy[key] = policyObjs[i][key];
     }
-    //setup defaults after the app ids are populated 
+    //setup defaults after the app ids are populated
     appPolicy.default = {
         "keep_context": false,
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": defaultFuncGroups    
+        "groups": defaultFuncGroups
     };
     //DataConsent-2 functional group removed
     appPolicy.device = {
@@ -256,7 +262,7 @@ function aggregateResults (res, next) {
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": []              
+        "groups": deviceFuncGroups
     };
     //BaseBeforeDataConsent functional group removed
     appPolicy.pre_DataConsent = {
@@ -264,7 +270,7 @@ function aggregateResults (res, next) {
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": []              
+        "groups": preDataConsentFuncGroups
     };
     next(null, appPolicy);
 }

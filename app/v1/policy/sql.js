@@ -53,14 +53,25 @@ function getDefaultFunctionalGroups (isProduction) {
     let statement = funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)
         .where({'view_function_group_info.is_default': true});
 
-    return statement;    
+    return statement;
+}
+
+function getPreDataConsentFunctionalGroups (isProduction) {
+    let statement = funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)
+        .where({'view_function_group_info.is_pre_data_consent': true});
+
+    return statement;
+}
+
+function getDeviceFunctionalGroups (isProduction) {
+    let statement = funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)
+        .where({'view_function_group_info.is_device': true});
+
+    return statement;
 }
 
 function getAppFunctionalGroups (isProduction, appObj) {
     let sqlOr = [
-        {
-            'view_function_group_info.is_default': true
-        },
         sql.exists(
             sql.select()
                 .from('app_permissions ap')
@@ -163,6 +174,8 @@ module.exports = {
     getAppDisplayNames: getAppDisplayNames,
     getAppModules: getAppModules,
     getAppFunctionalGroups: getAppFunctionalGroups,
-    getDefaultFunctionalGroups: getDefaultFunctionalGroups
+    getDefaultFunctionalGroups: getDefaultFunctionalGroups,
+    getPreDataConsentFunctionalGroups: getPreDataConsentFunctionalGroups,
+    getDeviceFunctionalGroups: getDeviceFunctionalGroups
 }
 

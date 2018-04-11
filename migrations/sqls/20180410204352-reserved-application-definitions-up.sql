@@ -1,0 +1,3 @@
+ALTER TABLE function_group_info
+ADD COLUMN IF NOT EXISTS "is_pre_data_consent" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN IF NOT EXISTS "is_device" BOOLEAN NOT NULL DEFAULT false;

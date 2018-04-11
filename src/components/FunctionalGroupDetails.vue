@@ -45,12 +45,26 @@
 
                     <!-- Is default checkbox -->
                     <div class="form-row">
-                        <h4 for="is-default">Make Default Functional Group</h4>
+                        <h4 for="is-default">Special Grants</h4>
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_default"
                             v-bind:disabled="fieldsDisabled">
-                            Always allow applications access to this functional group
+                            Grant this functional group to all applications by default
+                        </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_pre_data_consent"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to all applications prior to the user accepting SDL data consent
+                        </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_device"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to all applications after the user has accepted SDL data consent
                         </b-form-checkbox>
                     </div>
 
@@ -184,6 +198,8 @@ import { eventBus } from '../main.js';
                     "user_consent_prompt": null,
                     "selected_prompt_id": "null",
                     "is_default": false,
+                    "is_pre_data_consent": false,
+                    "is_device": false,
                     "rpcs": [
                     ]
                 },
