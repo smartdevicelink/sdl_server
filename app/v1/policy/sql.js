@@ -72,6 +72,9 @@ function getDeviceFunctionalGroups (isProduction) {
 
 function getAppFunctionalGroups (isProduction, appObj) {
     let sqlOr = [
+        {
+            'view_function_group_info.is_default': true
+        },
         sql.exists(
             sql.select()
                 .from('app_permissions ap')
