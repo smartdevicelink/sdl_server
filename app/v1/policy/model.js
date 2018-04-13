@@ -247,7 +247,13 @@ function aggregateResults (res, next) {
 
     // set all requested apps to default permissions
     for (let i = 0; i < res.requestedUuids.length; i++) {
-        appPolicy[res.requestedUuids[i]] = "default";
+        appPolicy[res.requestedUuids[i]] = {
+            "keep_context": false,
+            "steal_focus": false,
+            "priority": "NONE",
+            "default_hmi": "NONE",
+            "groups": defaultFuncGroups
+        };
     }
 
     // overwrite available apps with their granted permissions
