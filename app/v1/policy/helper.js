@@ -107,11 +107,11 @@ function setupAppPolicies (isProduction, reqAppPolicy) {
             callback(null, []);
         });
     }
-    getAppPolicy.push(mapAppBaseInfo.bind(null, isProduction));
+    getAppPolicy.push(mapAppBaseInfo.bind(null, isProduction, uuids));
     return flame.flow(getAppPolicy, {method: 'waterfall'});
 }
 
-function mapAppBaseInfo (isProduction, appObjs, callback) {
+function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
     const makeAppPolicyFlow = flame.flow(flame.map(appObjs, function (appObj, next) {
         const getInfoFlow = flame.flow({
             displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
@@ -127,6 +127,9 @@ function mapAppBaseInfo (isProduction, appObjs, callback) {
 
     const getAllDataFlow = flame.flow({
         policyObjs: makeAppPolicyFlow,
+        requestedUuids: function(callback){
+            callback(null, requestedUuids);
+        },
         defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
         preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
         deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction))

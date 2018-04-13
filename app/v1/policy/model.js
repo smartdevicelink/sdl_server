@@ -244,10 +244,18 @@ function aggregateResults (res, next) {
     });
 
     const appPolicy = {};
+
+    // set all requested apps to default permissions
+    for (let i = 0; i < res.requestedUuids.length; i++) {
+        appPolicy[res.requestedUuids[i]] = "default";
+    }
+
+    // overwrite available apps with their granted permissions
     for (let i = 0; i < policyObjs.length; i++) {
         const key = Object.keys(policyObjs[i])[0];
         appPolicy[key] = policyObjs[i][key];
     }
+
     //setup defaults after the app ids are populated
     appPolicy.default = {
         "keep_context": false,
