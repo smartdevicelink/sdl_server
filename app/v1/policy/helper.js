@@ -61,7 +61,7 @@ function setupModuleConfig (isProduction) {
     const moduleConfigGetFlow = flame.flow(getModuleConfig, {method: 'parallel'});
     const makeModuleConfig = [
         moduleConfigGetFlow,
-        model.transformModuleConfig
+        model.transformModuleConfig.bind(null, isProduction)
     ];
     return flame.flow(makeModuleConfig, {method: 'waterfall'});
 }

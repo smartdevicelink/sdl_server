@@ -35,7 +35,6 @@ function insertModuleConfig (moduleConfig) {
         exchange_after_x_kilometers: moduleConfig.exchange_after_x_kilometers,
         exchange_after_x_days: moduleConfig.exchange_after_x_days,
         timeout_after_x_seconds: moduleConfig.timeout_after_x_seconds,
-        endpoint_0x07: moduleConfig.endpoints["0x07"],
         endpoint_0x04: moduleConfig.endpoints["0x04"],
         query_apps_url: moduleConfig.endpoints.queryAppsUrl,
         lock_screen_default_url: moduleConfig.endpoints.lock_screen_icon_url,

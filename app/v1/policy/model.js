@@ -1,10 +1,11 @@
 const app = require('../app');
 const flame = app.locals.flame;
+const settings = require('../../../settings.js');
 
 //module config
 
 //keeping this synchronous due to how small the data is. pass this to the event loop
-function transformModuleConfig (info, next) {
+function transformModuleConfig (isProduction, info, next) {
     //expecting only one module config
     const base = info.base[0];
     const retrySeconds = info.retrySeconds.map(function (secondObj) {
@@ -20,7 +21,7 @@ function transformModuleConfig (info, next) {
         "seconds_between_retries": retrySeconds,
         "endpoints": {
             "0x07": {
-                default: [base.endpoint_0x07]
+                default: ["http://" + settings.policyServerHost + ":" + settings.policyServerPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]
             },
             "0x04": {
                 default: [base.endpoint_0x04]
