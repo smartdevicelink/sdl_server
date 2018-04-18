@@ -7,6 +7,7 @@ const EventEmitter = require('events');
 const config = require('./settings.js'); //configuration module
 const packageJson = require('./package.json'); //configuration module
 const log = require(`./custom/loggers/${config.loggerModule}/index.js`); //logger module
+const cache = require('./custom/cache');
 
 const versions = ["1"];
 const htmlLocation = __dirname + '/dist/index.html';
@@ -63,6 +64,10 @@ function start (overrideApp) {
 	    res.sendFile(htmlLocation);
 	});
 
+	// Invalidate previous data in the cache on startup
+	cache.deleteCacheData(true, cache.policyTableKey); // Cached production policy table
+	cache.deleteCacheData(false, cache.policyTableKey); // Cached staging policy table
+
 	//start the server
 	app.listen(config.policyServerPort, function () {
 	    log.info(`Policy server started on port ${config.policyServerPort}!`);
@@ -72,5 +77,3 @@ function start (overrideApp) {
 module.exports = function (app) {
 	start(app);
 }
-
-

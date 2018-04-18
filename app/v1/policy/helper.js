@@ -8,6 +8,8 @@ const funcGroupSql = require('../groups/sql.js');
 const messagesSql = require('../messages/sql.js');
 const moduleConfigSql = require('../module-config/sql.js');
 const messages = require('../messages/helper.js');
+const cache = require('../../../custom/cache');
+const log = require('../../../custom/loggers/winston');
 
 //validation functions
 
@@ -41,16 +43,30 @@ function validateAppPolicyOnlyPost (req, res) {
 
 function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
     let makePolicyTable = {};
-    if (returnPreview) {
-        makePolicyTable.moduleConfig = setupModuleConfig(isProduction);
-        makePolicyTable.functionalGroups = setupFunctionalGroups(isProduction);
-        makePolicyTable.consumerFriendlyMessages = setupConsumerFriendlyMessages(isProduction);
-    }
     if (appPolicyObj) { //existence of appPolicyObj implies to return the app policy object
         makePolicyTable.appPolicies = setupAppPolicies(isProduction, appPolicyObj);
     }
-    const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
-    policyTableMakeFlow(cb);
+
+    cache.getCacheData(isProduction, cache.policyTableKey, function (err, cacheData) {
+        if (cacheData) {
+            const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
+            policyTableMakeFlow(function (err, data) {
+                cacheData.appPolicies = data.appPolicies;
+                cb(err, cacheData);
+            });
+        } else {
+            if (returnPreview) {
+                makePolicyTable.moduleConfig = setupModuleConfig(isProduction);
+                makePolicyTable.functionalGroups = setupFunctionalGroups(isProduction);
+                makePolicyTable.consumerFriendlyMessages = setupConsumerFriendlyMessages(isProduction);
+            }
+            const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
+            policyTableMakeFlow(function (err, data) {
+                cache.setCacheData(isProduction, cache.policyTableKey, data);
+                cb(err, data);
+            });
+        }
+    });
 }
 
 function setupModuleConfig (isProduction) {

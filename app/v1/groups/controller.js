@@ -3,6 +3,7 @@ const flow = app.locals.flow;
 const helper = require('./helper.js');
 const model = require('./model.js');
 const check = require('check-types');
+const cache = require('../../../custom/cache');
 
 function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
@@ -63,6 +64,7 @@ function postStaging (req, res, next) {
                         .setStatus(500);
                 }
                 else {
+                    cache.deleteCacheData(false, cache.policyTableKey);
                     res.parcel.setStatus(200);
                 }
                 res.parcel.deliver();
@@ -99,6 +101,7 @@ function promoteIds (req, res, next) {
     ], {method: 'waterfall'});
 
     getAndInsertFlow(function () {
+        cache.deleteCacheData(true, cache.policyTableKey);
         res.parcel
             .setStatus(200)
             .deliver(); //done

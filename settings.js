@@ -5,6 +5,12 @@ module.exports = {
     //name of the folder in the `loggers` folder that is used as the module of interfacing
     //with a loggin module. The entry point must be named index.js and implement the required functions
     loggerModule: "winston",
+    //name of the folder in the `cache` folder that is used as the module for interfacing
+    //with a cache module. The entry point must be named index.js and implement the required functions
+    cacheModule: "redis",
+    cacheModulePort: process.env.CACHE_PORT,
+    cacheModuleHost: process.env.CACHE_HOST,
+    cacheModulePassword: process.env.CACHE_PASSWORD,
     //the fully qualified hostname of this Policy Server (e.g. "policyserver.vehicleoem.com")
     policyServerHost: process.env.POLICY_SERVER_HOST || "localhost",
     //the port this server will be running in

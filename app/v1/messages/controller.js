@@ -4,6 +4,7 @@ const model = require('./model.js');
 const helper = require('./helper.js');
 const async = require('async');
 const sql = require('./sql.js');
+const cache = require('../../../custom/cache');
 
 function getInfo (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
@@ -12,7 +13,7 @@ function getInfo (req, res, next) {
     //if hide_deleted is true, then always hide deleted consumer messages regardless of environment
     //this is only for getting functional group details
     const alwaysHideDeleted = req.query.hide_deleted && req.query.hide_deleted == 'true' ? true: false;
-    
+
     if (returnTemplate) { //template mode. return just the shell of a message
         chosenFlow = helper.makeCategoryTemplateFlow();
     }
@@ -50,6 +51,7 @@ function postStaging (req, res, next) {
                 .setMessage("Interal server error")
                 .setStatus(500);
         }else{
+            cache.deleteCacheData(false, cache.policyTableKey);
             res.parcel.setStatus(200);
         }
         res.parcel.deliver();
@@ -91,6 +93,7 @@ function promoteIds (req, res, next) {
                 .setStatus(500);
         }
         else {
+            cache.deleteCacheData(true, cache.policyTableKey);
             res.parcel.setStatus(200);
         }
         res.parcel.deliver();
@@ -104,6 +107,8 @@ function postUpdate (req, res, next) {
                 .setStatus(500)
                 .deliver();
         }
+        cache.deleteCacheData(true, cache.policyTableKey);
+        cache.deleteCacheData(false, cache.policyTableKey);
         res.parcel
             .setStatus(200)
             .deliver();
