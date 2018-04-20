@@ -72,7 +72,7 @@ module.exports = function (log) {
             pool.query(query, function (err, res) {
                 if (err) {
                     log.error(err);
-                    log.error(sqlString);
+                    log.error(query);
                 }
                 //always return an array
                 callback(err, (res && res.rows) ? res.rows : []);

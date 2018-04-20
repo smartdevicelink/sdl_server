@@ -20,7 +20,7 @@ function postFromCore (isProduction) {
 
 function getPreview (req, res, next) {
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
-    helper.generatePolicyTable(isProduction, null, true, handlePolicyTableFlow.bind(null, res, false));
+    helper.generatePolicyTable(isProduction, {}, true, handlePolicyTableFlow.bind(null, res, false));
 }
 
 function postAppPolicy (req, res, next) {

@@ -1,3 +1,5 @@
+const settings = require('../../../settings.js');
+
 function post (req, res, next) {
 	validatePost(req, res);
 	if (res.parcel.message) {
@@ -24,6 +26,15 @@ function validatePost (req, res) {
 	return;
 }
 
+function validateBasicAuth (req, res) {
+	if(req.body.password == settings.basicAuthPassword){
+		res.parcel.setStatus(200);
+	}else{
+		res.parcel.setStatus(401);
+	}
+	res.parcel.deliver();
+}
+
 module.exports = {
-	post: post
+	validateBasicAuth: validateBasicAuth
 };

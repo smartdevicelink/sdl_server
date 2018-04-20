@@ -61,9 +61,9 @@ function setupModuleConfig (isProduction) {
     const moduleConfigGetFlow = flame.flow(getModuleConfig, {method: 'parallel'});
     const makeModuleConfig = [
         moduleConfigGetFlow,
-        model.transformModuleConfig
-    ];    
-    return flame.flow(makeModuleConfig, {method: 'waterfall'}); 
+        model.transformModuleConfig.bind(null, isProduction)
+    ];
+    return flame.flow(makeModuleConfig, {method: 'waterfall'});
 }
 
 function setupConsumerFriendlyMessages (isProduction) {
@@ -97,14 +97,21 @@ function setupFunctionalGroups (isProduction) {
 
 function setupAppPolicies (isProduction, reqAppPolicy) {
     const uuids = Object.keys(reqAppPolicy);
-    const getAppPolicy = [
-        setupSqlCommand.bind(null, sql.getBaseAppInfo(isProduction, uuids)),
-        mapAppBaseInfo.bind(null, isProduction)
-    ];
+    let getAppPolicy = [];
+    if(uuids.length){
+        console.log("app IDs present");
+        getAppPolicy.push(setupSqlCommand.bind(null, sql.getBaseAppInfo(isProduction, uuids)));
+    }else{
+        console.log("app IDs not present");
+        getAppPolicy.push(function(callback){
+            callback(null, []);
+        });
+    }
+    getAppPolicy.push(mapAppBaseInfo.bind(null, isProduction, uuids));
     return flame.flow(getAppPolicy, {method: 'waterfall'});
 }
 
-function mapAppBaseInfo (isProduction, appObjs, callback) {
+function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
     const makeAppPolicyFlow = flame.flow(flame.map(appObjs, function (appObj, next) {
         const getInfoFlow = flame.flow({
             displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
@@ -113,18 +120,23 @@ function mapAppBaseInfo (isProduction, appObjs, callback) {
         }, {method: 'parallel'});
 
         flame.flow([
-            getInfoFlow, 
+            getInfoFlow,
             model.constructAppPolicy.bind(null, appObj)
-        ], {method: 'waterfall'})(next); //run it       
+        ], {method: 'waterfall'})(next); //run it
     }), {method: 'parallel'});
 
     const getAllDataFlow = flame.flow({
         policyObjs: makeAppPolicyFlow,
-        defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction))
+        requestedUuids: function(callback){
+            callback(null, requestedUuids);
+        },
+        defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
+        preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
+        deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction))
     }, {method: 'parallel'});
 
     flame.flow([
-        getAllDataFlow, 
+        getAllDataFlow,
         model.aggregateResults
     ], {method: 'waterfall'})(callback);
 }

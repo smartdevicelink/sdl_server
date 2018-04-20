@@ -64,6 +64,8 @@ CREATE TABLE function_group_info (
     "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     "updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     "is_default" BOOLEAN NOT NULL DEFAULT false,
+    "is_pre_data_consent" BOOLEAN NOT NULL DEFAULT false,
+    "is_device" BOOLEAN NOT NULL DEFAULT false,
     PRIMARY KEY (id)
 )
 WITH ( OIDS = FALSE );

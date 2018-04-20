@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Login from '@/components/Login'
+import LoginBasic from '@/components/LoginBasic'
 import Register from '@/components/Register'
 import Forgot from '@/components/Forgot'
 import Applications from '@/components/Applications'
@@ -15,6 +16,8 @@ import User from '@/components/User'
 import Invite from '@/components/Invite'
 import NotFound from '@/components/NotFound'
 
+import Settings from '../../settings.js'
+
 Vue.use(Router)
 
 const router = new Router({
@@ -22,8 +25,24 @@ const router = new Router({
     routes: [
         {
             path: '/',
-            redirect: '/applications'
-            //redirect: '/login'
+            redirect: '/applications',
+            meta: {
+                auth: true,
+                title: 'Policy Server - Applications'
+            }
+        },
+        {
+            path: '/login/basic',
+            name: 'Login',
+            component: LoginBasic,
+            meta: {
+                auth: false,
+                title: 'Policy Server - Login'
+            },
+            props: (route) => ({
+                "password": route.query.password,
+                "redirect": route.query.redirect
+            })
         },/*
         {
             path: '/login',
@@ -35,7 +54,8 @@ const router = new Router({
             },
             props: (route) => ({
                 "email": route.query.email,
-                "password": route.query.password
+                "password": route.query.password,
+                "redirect": route.query.redirect
             })
         },
         {
@@ -175,14 +195,18 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
     document.title = to.meta.title || "Policy Server";
-    if(false && to.matched.some(record => record.meta.auth) && !router.app.$session.exists()){
-        // must log in
-        next({
-            "path": "/login",
-            "query": {
-                "redirect": to.fullPath
-            }
-        });
+    if(to.matched.some(record => record.meta.auth) && !router.app.$session.exists()){
+        if(Settings.authType == "basic" && Settings.basicAuthPassword){
+            // must log in
+            next({
+                "path": "/login/basic",
+                "query": {
+                    "redirect": to.fullPath
+                }
+            });
+        }else{
+            next();
+        }
     }else{
         next();
     }

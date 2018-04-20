@@ -45,12 +45,26 @@
 
                     <!-- Is default checkbox -->
                     <div class="form-row">
-                        <h4 for="is-default">Make Default Functional Group</h4>
+                        <h4 for="is-default">Special Grants</h4>
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_default"
                             v-bind:disabled="fieldsDisabled">
-                            Always allow applications access to this functional group
+                            Grant this functional group to all applications by default
+                        </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_pre_data_consent"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to all applications prior to the user accepting SDL data consent
+                        </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_device"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to all applications after the user has accepted SDL data consent
                         </b-form-checkbox>
                     </div>
 
@@ -184,6 +198,8 @@ import { eventBus } from '../main.js';
                     "user_consent_prompt": null,
                     "selected_prompt_id": "null",
                     "is_default": false,
+                    "is_pre_data_consent": false,
+                    "is_device": false,
                     "rpcs": [
                     ]
                 },
@@ -244,7 +260,7 @@ import { eventBus } from '../main.js';
                 });
             },
             "getConsentPrompts": function () {
-                this.httpRequest("get", "messages?environment="+this.environment.toLowerCase()+"&hide_deleted=true", null, (err, response) => {
+                this.httpRequest("get", "messages?environment="+this.environment.toLowerCase()+"&hide_deleted=true", {}, (err, response) => {
                     if (response) {
                         //returns all en-us results under the environment specified
                         response.json().then(parsed => {
@@ -277,7 +293,7 @@ import { eventBus } from '../main.js';
                 }
                 queryInfo += "&environment=" + this.environment.toLowerCase();
 
-                this.httpRequest("get", queryInfo, null, (err, response) => {
+                this.httpRequest("get", queryInfo, {}, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
                             if (parsed.data.groups && parsed.data.groups[0]) {
@@ -294,32 +310,18 @@ import { eventBus } from '../main.js';
                 });
             },
             "saveFunctionalGroupInfo": function (cb) {
-                this.httpRequest("post", "groups", this.fg, cb);
+                this.httpRequest("post", "groups", { "body": this.fg }, cb);
             },
             "promoteFunctionalGroupInfo": function (cb) {
-                this.httpRequest("post", "groups/promote", this.fg, cb);
+                this.httpRequest("post", "groups/promote", { "body": this.fg }, cb);
             },
             "deleteFunctionalGroupInfo": function (cb) {
                 this.fg.is_deleted = true;
-                this.httpRequest("post", "groups", this.fg, cb);
+                this.httpRequest("post", "groups", { "body": this.fg }, cb);
             },
             "undeleteFunctionalGroupInfo": function (cb) {
                 this.fg.is_deleted = false;
-                this.httpRequest("post", "groups", this.fg, cb);
-            },
-            "httpRequest": function (action, route, body, cb) {
-                if (action === "delete" || action === "get") {
-                    if (body !== null) {
-                        body = {body: body};
-                    }
-                }
-                this.$http[action](route, body)
-                    .then(response => {
-                        cb(null, response);
-                    }, response => {
-                        console.error(response.body.error);
-                        cb(response, null);
-                    });
+                this.httpRequest("post", "groups", { "body": this.fg }, cb);
             }
         },
         computed: {

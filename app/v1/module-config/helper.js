@@ -9,15 +9,15 @@ const sql = require('./sql.js');
 //validation functions
 
 function validatePost (req, res) {
-    //coerce to a number first. NOTE: empty string is coerced to 0 
+    //coerce to a number first. NOTE: empty string is coerced to 0
     req.body.exchange_after_x_ignition_cycles -= 0;
     req.body.exchange_after_x_kilometers -= 0;
     req.body.exchange_after_x_days -= 0;
-    req.body.timeout_after_x_seconds -= 0;  
+    req.body.timeout_after_x_seconds -= 0;
 
     if (!check.boolean(req.body.preloaded_pt)) {
         return setError("preloaded_pt required");
-    } 
+    }
     if (!check.number(req.body.exchange_after_x_ignition_cycles)) {
         return setError("exchange_after_x_ignition_cycles required");
     }
@@ -41,9 +41,6 @@ function validatePost (req, res) {
     }
     if (!req.body.endpoints) {
         return setError("endpoints object required");
-    }
-    if (!req.body.endpoints["0x07"]) {
-        return setError("0x07 endpoint required");
     }
     if (!req.body.endpoints["0x04"]) {
         return setError("0x04 endpoint required");

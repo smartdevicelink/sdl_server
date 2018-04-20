@@ -18,7 +18,7 @@ function transformModuleConfig (info, next) {
         hashBase[base[i].id].seconds_between_retries = [];
     }
 
-    //retry seconds are ordered 
+    //retry seconds are ordered
     for (let i = 0; i < retrySeconds.length; i++) {
         hashBase[retrySeconds[i].id].seconds_between_retries.push(retrySeconds[i].seconds);
     }
@@ -43,7 +43,6 @@ function baseTemplate (objOverride) {
         timeout_after_x_seconds: 0,
         seconds_between_retries: [],
         endpoints: {
-            "0x07": "",
             "0x04": "",
             "queryAppsUrl": "",
             "lock_screen_icon_url": ""
@@ -68,7 +67,6 @@ function baseTemplate (objOverride) {
         obj.exchange_after_x_days = objOverride.exchange_after_x_days;
         obj.timeout_after_x_seconds = objOverride.timeout_after_x_seconds;
         obj.seconds_between_retries = objOverride.seconds_between_retries;
-        obj.endpoints["0x07"] = objOverride.endpoint_0x07;
         obj.endpoints["0x04"] = objOverride.endpoint_0x04;
         obj.endpoints.queryAppsUrl = objOverride.query_apps_url;
         obj.endpoints.lock_screen_icon_url = objOverride.lock_screen_default_url;
@@ -95,7 +93,7 @@ function insertModuleConfig (isProduction, moduleConfig, next) {
     // process message groups synchronously (due to the SQL transaction)
     db.runAsTransaction(function (client, callback) {
         flame.async.waterfall([
-            //stage 1: insert module config 
+            //stage 1: insert module config
             client.getOne.bind(client, sql.insertModuleConfig(moduleConfig)),
             //stage 2: insert module config retry seconds
             function (newModConf, next) {

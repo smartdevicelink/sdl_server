@@ -206,9 +206,15 @@
                 this.getUnmappedPermissions();
             },
             "getFunctionalGroupData": function () {
-                this.$http.get("groups?environment=" + this.environment, {})
-                    .then(response => {
-                        // success
+                this.httpRequest("get", "groups", {
+                    "params": {
+                        "environment": this.environment
+                    }
+                }, (err, response) => {
+                    if (err) {
+                        console.log("Error fetching functional group data: ");
+                        console.log(err);
+                    } else {
                         response.json().then(parsed => {
                             if(parsed.data.groups && parsed.data.groups.length){
                                 this.functional_groups = parsed.data.groups;
@@ -216,24 +222,26 @@
                                 console.log("No functional data returned");
                             }
                         });
-                    }, response => {
-                        // error
-                        console.log("Error fetching functional group data: " + response.body.error);
-                    });
+                    }
+                });
             },
             "getUnmappedPermissions": function () {
-                this.$http.get("permissions/unmapped?environment=" + this.environment, {})
-                    .then(response => {
-                        // success
+                this.httpRequest("get", "permissions/unmapped", {
+                    "params": {
+                        "environment": this.environment
+                    }
+                }, (err, response) => {
+                    if (err) {
+                        console.log("Error fetching functional group data: ");
+                        console.log(err);
+                    } else {
                         response.json().then(parsed => {
                             this.unmapped_permissions = parsed.data.permissions;
                             this.unused_count.rpcs = parsed.data.unmapped_rpc_count;
                             this.unused_count.parameters = parsed.data.unmapped_parameter_count;
                         });
-                    }, response => {
-                        // error
-                        console.log("Error fetching functional group data: " + response.body.error);
-                    });
+                    }
+                });
             },
             "promoteGroupsClick": function () {
                 this.handleModalClick("promote_button_loading", "promoteModal", "promoteAllGroups");
@@ -247,7 +255,7 @@
                     }
                 }
 
-                staging_ids.length ? this.httpRequest("post", "groups/promote", {id: staging_ids}, cb) : cb();
+                staging_ids.length ? this.httpRequest("post", "groups/promote", { "body": { id: staging_ids } }, cb) : cb();
             },
             "selectedFunctionalGroup": function () {
                 this.is_clone_disabled = this.selected_group_id != "null" ? false : true;
@@ -268,10 +276,10 @@
                 });
             },
             "getFunctionalGroupInfo": function (id, cb) {
-                this.httpRequest("get", "groups?id=" + id, null, cb);
+                this.httpRequest("get", "groups?id=" + id, {}, cb);
             },
             "saveFunctionalGroupInfo": function (functionalGroup, cb) {
-                this.httpRequest("post", "groups", functionalGroup, cb);
+                this.httpRequest("post", "groups", { "body": functionalGroup }, cb);
             }
         },
         mounted: function(){

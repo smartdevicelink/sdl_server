@@ -14,7 +14,11 @@
                     :options="environmentOptions"
                     name="chooseEnvironment" />
 
-                <h4>Policy Table Preview<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/view-policy-table/"></a></h4>
+                <h4>Policy Table<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/view-policy-table/"></a></h4>
+                <b-input-group style="margin-bottom:0.5em;">
+                    <b-input-group-addon>POST</b-input-group-addon>
+                    <b-form-input type="text" v-bind:value="policyTablePostUrl"></b-form-input>
+                </b-input-group>
                 <div v-if="policytable !== null">
                     <vue-json-pretty :data="policytable"></vue-json-pretty>
                     <a id="back-to-top" v-scroll-to="'body'" v-on:click.prevent class="btn btn-primary btn-lg back-to-top" role="button"><i class="fa fa-fw fa-chevron-up"></i></a>
@@ -48,25 +52,33 @@ export default {
             "policytable": null
         };
     },
+    computed: {
+        "policyTablePostUrl": function(){
+            return location.protocol + "//" + location.host + "/api/v1/" + this.environment + "/policy";
+        }
+    },
     methods: {
         "environmentClick": function(){
             const self = this;
             console.log("Selected environment: " + this.environment);
-            this.$http.get("policy/preview?environment=" + this.environment, {
-            }).then(response => {
-                // success
-                console.log("policy table retrieved");
-                response.json().then(parsed => {
-                    if(parsed.data && parsed.data.length){
-                        this.policytable = parsed.data[0];
-                    }else{
-                        console.log("No policy table returned");
-                    }
-                });
-            }, response => {
-                // error
-                console.log("Error fetching policy table. Status code: " + response.status);
-                console.log("Error fetching policy table. Error message: " + response.body.error);
+            this.httpRequest("get", "policy/preview", {
+                "params": {
+                    "environment": this.environment
+                }
+            }, (err, response) => {
+                if (err) {
+                    console.log("Error fetching policy table.");
+                    console.log(err);
+                } else {
+                    console.log("policy table retrieved");
+                    response.json().then(parsed => {
+                        if(parsed.data && parsed.data.length){
+                            this.policytable = parsed.data[0];
+                        }else{
+                            console.log("No policy table returned");
+                        }
+                    });
+                }
             });
         },
     },

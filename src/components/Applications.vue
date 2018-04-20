@@ -102,18 +102,20 @@
         },
         methods: {
             "getApplications": function(status = "PENDING", storage_attribute ="apps_pending") {
-                this.$http.get("applications", {
+                this.httpRequest("get", "applications", {
                     "params": {
                         "approval_status": status
                     }
-                }).then(response => {
-                    // success
-                    response.json().then(parsed => {
-                        this[storage_attribute] = parsed.data.applications;
-                    });
-                }, response => {
-                    // error
-                    console.log("Error receiving " + status + " applications. Status code: " + response.status);
+                }, (err, response) => {
+                    if(err){
+                        // error
+                        console.log("Error receiving " + status + " applications. Status code: " + response.status);
+                    }else{
+                        // success
+                        response.json().then(parsed => {
+                            this[storage_attribute] = parsed.data.applications;
+                        });
+                    }
                 });
             }
         },

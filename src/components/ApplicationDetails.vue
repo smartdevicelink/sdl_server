@@ -226,34 +226,43 @@ export default {
         "approveClick": function(){
             this.button_loading = true;
 
-            this.$http.post("applications/action", {
-                "id": this.$route.params.id,
-                "approval_status": "ACCEPTED"
-            }).then(response => {
-                // success
-                this.app.approval_status = "ACCEPTED";
-                this.button_loading = false;
-                this.actions_visible = false;
-            }, response => {
-                // error
-                console.log("Error approving application. Status code: " + response.status);
-                this.button_loading = false;
-                this.actions_visible = false;
+            this.httpRequest("post", "applications/action", {
+                "body": {
+                    "id": this.$route.params.id,
+                    "approval_status": "ACCEPTED"
+                }
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error approving application.");
+                    this.button_loading = false;
+                    this.actions_visible = false;
+                }else{
+                    // success
+                    console.log("done");
+                    this.app.approval_status = "ACCEPTED";
+                    this.button_loading = false;
+                    this.actions_visible = false;
+                }
             });
         },
         "autoApproveClick": function(){
             console.log("Requesting auto-approval change to: " + this.app.is_auto_approved_enabled);
 
-            this.$http.post("applications/auto", {
-                "uuid": this.app.uuid,
-                "is_auto_approved_enabled": this.app.is_auto_approved_enabled
-            }).then(response => {
-                // success
-                console.log("Auto-approve setting changed to: " + this.app.is_auto_approved_enabled);
-            }, response => {
-                // error
-                console.log("Error changing auto-approval setting. Status code: " + response.status);
-                this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
+            this.httpRequest("post", "applications/auto", {
+                "body": {
+                    "uuid": this.app.uuid,
+                    "is_auto_approved_enabled": this.app.is_auto_approved_enabled
+                }
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error changing auto-approval setting.");
+                    this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
+                }else{
+                    // success
+                    console.log("Auto-approve setting changed to: " + this.app.is_auto_approved_enabled);
+                }
             });
         },
         "sendDenyClick": function(with_feedback){
@@ -266,51 +275,57 @@ export default {
                 console.log("sending denial without feedback");
             }
 
-            this.$http.post("applications/action", {
-                "id": this.$route.params.id,
-                "approval_status": "DENIED",
-                "denial_message": with_feedback ? this.app.denial_message : null
-            }).then(response => {
-                // success
-                console.log("done");
-                this.app.approval_status = "DENIED";
-                this.send_button_loading = false;
-                this.no_feedback_button_loading = false;
-                this.actions_visible = false;
-                this.$refs.appActionModal.hide();
-            }, response => {
-                // error
-                console.log("Error denying application. Status code: " + response.status);
-                this.send_button_loading = false;
-                this.no_feedback_button_loading = false;
-                this.actions_visible = false;
+            this.httpRequest("post", "applications/action", {
+                "body": {
+                    "id": this.$route.params.id,
+                    "approval_status": "DENIED",
+                    "denial_message": with_feedback ? this.app.denial_message : null
+                }
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error denying application.");
+                    this.send_button_loading = false;
+                    this.no_feedback_button_loading = false;
+                    this.actions_visible = false;
+                }else{
+                    // success
+                    console.log("done");
+                    this.app.approval_status = "DENIED";
+                    this.send_button_loading = false;
+                    this.no_feedback_button_loading = false;
+                    this.actions_visible = false;
+                    this.$refs.appActionModal.hide();
+                }
             });
         },
         getPolicy: function(){
-            //
-            //this.$http.post((this.app.approval_status == "ACCEPTED" ? "production" : "staging") + "/policy", {
             const envName = this.app.approval_status == "ACCEPTED" ? "production" : "staging";
-            this.$http.post("policy/apps?environment=" + envName, {
-                "policy_table": {
-                    "app_policies": {
-                        [this.app.uuid]: {}
+            this.httpRequest("post", "policy/apps?environment=" + envName, {
+                "body": {
+                    "policy_table": {
+                        "app_policies": {
+                            [this.app.uuid]: {}
+                        }
                     }
                 }
-            }).then(response => {
-                // success
-                console.log("policy table retrieved");
-                console.log(response);
-                response.json().then(parsed => {
-                    if(parsed.data && parsed.data.length && parsed.data[0].policy_table.app_policies[this.app.uuid]){
-                        this.policytable = parsed.data[0].policy_table.app_policies[this.app.uuid];
-                    }else{
-                        console.log("No policy table returned");
-                    }
-                });
-            }, response => {
-                // error
-                console.log("Error fetching policy table. Status code: " + response.status);
-                console.log(response.body.error);
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error fetching policy table.");
+                    console.log(response);
+                }else{
+                    // success
+                    console.log("policy table retrieved");
+                    console.log(response);
+                    response.json().then(parsed => {
+                        if(parsed.data && parsed.data.length && parsed.data[0].policy_table.app_policies[this.app.uuid]){
+                            this.policytable = parsed.data[0].policy_table.app_policies[this.app.uuid];
+                        }else{
+                            console.log("No policy table returned");
+                        }
+                    });
+                }
             });
         }
     },
@@ -322,24 +337,27 @@ export default {
             }
         }
     },
-    beforeCreate: function(){
-        this.$http.get("applications", {
+    created: function(){
+        this.httpRequest("get", "applications", {
             "params": {
                 "id": this.$route.params.id
             }
-        }).then(response => {
-            // success
-            response.json().then(parsed => {
-                if(parsed.data.applications.length){
-                    this.app = parsed.data.applications[0];
-                    this.getPolicy();
-                }else{
-                    console.log("No applications returned");
-                }
-            });
-        }, response => {
-            // error
-            console.log("Error receiving application. Status code: " + response.status);
+        }, (err, response) => {
+            if(err){
+                // error
+                console.log("Error receiving application.");
+                console.log(response);
+            }else{
+                // success
+                response.json().then(parsed => {
+                    if(parsed.data.applications.length){
+                        this.app = parsed.data.applications[0];
+                        this.getPolicy();
+                    }else{
+                        console.log("No applications returned");
+                    }
+                });
+            }
         });
     }
 }

@@ -214,9 +214,14 @@
                 this.$scrollTo("body", 500);
             },
             "environmentClick": function () {
-                this.httpRequest("get", "module?environment=" + this.environment, null, (err, res) => {
+                this.httpRequest("get", "module", {
+                    "params": {
+                        "environment": this.environment
+                    }
+                }, (err, res) => {
                     if (err) {
-                        console.log("Error fetching module config data: " + res.body.error);
+                        console.log("Error fetching module config data: ");
+                        console.log(err);
                     }
                     else {
                         res.json().then(parsed => {
@@ -234,7 +239,7 @@
                 this.handleModalClick("save_button_loading", null, "saveConfig");
             },
             "saveConfig": function (cb) {
-                this.httpRequest("post", "module", this.module_config, (err) => {
+                this.httpRequest("post", "module", { "body": this.module_config }, (err) => {
                     this.toTop();
                     cb();
                 });
@@ -243,7 +248,7 @@
                 this.handleModalClick("promote_button_loading", "promoteModal", "promoteConfig");
             },
             "promoteConfig": function (cb) {
-                this.httpRequest("post", "module/promote", this.module_config, cb);
+                this.httpRequest("post", "module/promote", { "body": this.module_config }, cb);
             },
             "addRetryUpdateElement": function () {
                 var newVal = this.module_config.seconds_between_retries.length ? this.module_config.seconds_between_retries[this.module_config.seconds_between_retries.length - 1]*5 : 1;
