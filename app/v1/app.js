@@ -20,7 +20,7 @@ app.locals.flame = flame;
 module.exports = app;
 
 //module for communicating with SHAID
-app.locals.shaid = require('./shaid'); 
+app.locals.shaid = require('./shaid');
 //load all the routes in the controllers files and other places
 const login = require('./login/controller.js');
 const forgot = require('./forgot/controller.js');
@@ -31,6 +31,7 @@ const permissions = require('./permissions/controller.js');
 const groups = require('./groups/controller.js');
 const messages = require('./messages/controller.js');
 const moduleConfig = require('./module-config/controller.js');
+const auth = require('./middleware/auth.js');
 
 function exposeRoutes () {
 	// extend response builder to all routes
@@ -40,9 +41,10 @@ function exposeRoutes () {
 	//app.post('/login', login.post);
 	//app.post('/forgot', forgot.post);
 	//app.post('/register', register.post);
-	app.get('/applications', applications.get);
-	app.post('/applications/action', applications.actionPost);
-	app.post('/applications/auto', applications.autoPost);
+	app.post('/login/basic', login.validateBasicAuth);
+	app.get('/applications', auth.validateBasicAuth, applications.get);
+	app.post('/applications/action', auth.validateBasicAuth, applications.actionPost);
+	app.post('/applications/auto', auth.validateBasicAuth, applications.autoPost);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -50,18 +52,18 @@ function exposeRoutes () {
 	app.get('/policy/preview', policy.getPreview);
 	app.post('/policy/apps', policy.postAppPolicy);
 	//end policy table routes
-	app.post('/permissions/update', permissions.post);
-	app.get('/permissions/unmapped', permissions.get);
-	app.get('/groups', groups.get);
-	app.post('/groups', groups.postAddGroup);
-	app.post('/groups/promote', groups.postPromote);
-	app.get('/messages', messages.getInfo);
-	app.post('/messages', messages.postAddMessage);
-	app.post('/messages/promote', messages.postPromoteMessages);
-	app.post('/messages/update', messages.updateLanguages);	
-	app.get('/module', moduleConfig.get);
-	app.post('/module', moduleConfig.post);
-	app.post('/module/promote', moduleConfig.promote);
+	app.post('/permissions/update', auth.validateBasicAuth, permissions.post);
+	app.get('/permissions/unmapped', auth.validateBasicAuth, permissions.get);
+	app.get('/groups', auth.validateBasicAuth, groups.get);
+	app.post('/groups', auth.validateBasicAuth, groups.postAddGroup);
+	app.post('/groups/promote', auth.validateBasicAuth, groups.postPromote);
+	app.get('/messages', auth.validateBasicAuth, messages.getInfo);
+	app.post('/messages', auth.validateBasicAuth, messages.postAddMessage);
+	app.post('/messages/promote', auth.validateBasicAuth, messages.postPromoteMessages);
+	app.post('/messages/update', auth.validateBasicAuth, messages.updateLanguages);
+	app.get('/module', auth.validateBasicAuth, moduleConfig.get);
+	app.post('/module', auth.validateBasicAuth, moduleConfig.post);
+	app.post('/module/promote', auth.validateBasicAuth, moduleConfig.promote);
 }
 
 function updatePermissionsAndGenerateTemplates (next) {

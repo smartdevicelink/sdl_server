@@ -46,7 +46,7 @@ export default {
           eventBus.$on("logout", ()=> {
               console.log("logout");
               this.$session.destroy();
-              this.$router.push("/");
+              this.$router.go();
           });
       }
 }

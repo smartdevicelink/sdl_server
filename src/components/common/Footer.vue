@@ -22,16 +22,19 @@ export default {
             return (this.latest_version != null && this.latest_version !== this.current_version);
         }
     },
-    beforeCreate: function(){
+    created: function(){
         //get current version
-        this.$http.get("/version").then(response => {
-            // success
-            this.current_version = response.body;
-        }, response => {
-            // error
-            console.log("Error checking local Policy Server version. Status code: " + response.status);
+        this.httpRequest("get", "/version", {}, (err, response) => {
+            if(err){
+                // error
+                console.log("Error checking local Policy Server version.");
+                console.log(err);
+            }else{
+                // success
+                this.current_version = response.body;
+            }
         });
-        
+
         this.$http.get("https://raw.githubusercontent.com/smartdevicelink/sdl_server/master/package.json").then(response => {
             // success
             response.json().then(parsed => {

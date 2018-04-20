@@ -5,15 +5,17 @@
                 <i class="fa fa-fw fa-1-5x fa-times hover-color-green"></i>
             </a>
         </div>
+        <!--
         <div class="user-sidebar-header">
             <h5>{{ email }}</h5>
             <router-link to="/user" class="color-white">
                 <i class="fa fa-fw fa-1-5x fa-gear hover-color-green hover-spin"></i>
             </router-link>
         </div>
+        -->
         <div>
             <b-btn v-on:click="logout" class="btn btn-card btn-user-sidebar btn-style-green">Logout</b-btn>
-            <router-link to="/invite" class="btn btn-card btn-user-sidebar btn-style-white">Invite Members</router-link>
+            <!--<router-link to="/invite" class="btn btn-card btn-user-sidebar btn-style-white">Invite Members</router-link>-->
         </div>
     </div>
 </template>

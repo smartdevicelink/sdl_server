@@ -61,21 +61,24 @@ export default {
         "environmentClick": function(){
             const self = this;
             console.log("Selected environment: " + this.environment);
-            this.$http.get("policy/preview?environment=" + this.environment, {
-            }).then(response => {
-                // success
-                console.log("policy table retrieved");
-                response.json().then(parsed => {
-                    if(parsed.data && parsed.data.length){
-                        this.policytable = parsed.data[0];
-                    }else{
-                        console.log("No policy table returned");
-                    }
-                });
-            }, response => {
-                // error
-                console.log("Error fetching policy table. Status code: " + response.status);
-                console.log("Error fetching policy table. Error message: " + response.body.error);
+            this.httpRequest("get", "policy/preview", {
+                "params": {
+                    "environment": this.environment
+                }
+            }, (err, response) => {
+                if (err) {
+                    console.log("Error fetching policy table.");
+                    console.log(err);
+                } else {
+                    console.log("policy table retrieved");
+                    response.json().then(parsed => {
+                        if(parsed.data && parsed.data.length){
+                            this.policytable = parsed.data[0];
+                        }else{
+                            console.log("No policy table returned");
+                        }
+                    });
+                }
             });
         },
     },

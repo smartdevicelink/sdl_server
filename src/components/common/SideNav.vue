@@ -38,32 +38,37 @@ export default {
     methods: {
         "setPendingAppCount": function() {
             // get number of pending applications
-            this.$http.get("applications", {
+            this.httpRequest("get", "applications", {
                 "params": {
                     "approval_status": "PENDING"
                 }
-            }).then(response => {
-                // success
-                response.json().then(parsed => {
-                    this.badge_counts.applications = parsed.data.applications.length;
-                });
-            }, response => {
-                // error
-                console.log("Error receiving PENDING applications. Status code: " + response.status);
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error receiving PENDING applications.");
+                }else{
+                    // success
+                    response.json().then(parsed => {
+                        this.badge_counts.applications = parsed.data.applications.length;
+                    });
+                }
             });
         },
         "setUnmappedFunctionalCount": function() {
             // get number of unmapped RPCs and parameters in PRODUCTION
-            this.$http.get("permissions/unmapped?environment=PRODUCTION", {})
-                .then(response => {
+            this.httpRequest("get", "permissions/unmapped?environment=PRODUCTION", {
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error fetching functional group data.");
+                    console.log(response);
+                }else{
                     // success
                     response.json().then(parsed => {
                         this.badge_counts.functional_groups = (parsed.data.unmapped_rpc_count + parsed.data.unmapped_parameter_count);
                     });
-                }, response => {
-                    // error
-                    console.log("Error fetching functional group data: " + response.body.error);
-                });
+                }
+            });
         }
     },
     created: function(){
