@@ -371,6 +371,8 @@ div.horizontal-divider .text {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 1em;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .tiles .description {
@@ -379,6 +381,7 @@ div.horizontal-divider .text {
     overflow: hidden;
     height: 90px;
     max-height: 90px;
+    max-width: 100%;
 }
 
 .tiles .permission-count {
