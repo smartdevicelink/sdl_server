@@ -30,7 +30,7 @@ export default {
     },
     methods: {
         "loginClick": function(){
-            this.httpRequest("post", "login/basic", {
+            this.httpRequest("post", "login", {
                 "body": {
                     "password": this.password_input
                 },

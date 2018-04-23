@@ -38,13 +38,12 @@ function exposeRoutes () {
 	app.route("*").all(parcel.extendExpress);
 
 	//route definitions
-	//app.post('/login', login.post);
 	//app.post('/forgot', forgot.post);
 	//app.post('/register', register.post);
-	app.post('/login/basic', login.validateBasicAuth);
-	app.get('/applications', auth.validateBasicAuth, applications.get);
-	app.post('/applications/action', auth.validateBasicAuth, applications.actionPost);
-	app.post('/applications/auto', auth.validateBasicAuth, applications.autoPost);
+	app.post('/login', login.validateAuth);
+	app.get('/applications', auth.validateAuth, applications.get);
+	app.post('/applications/action', auth.validateAuth, applications.actionPost);
+	app.post('/applications/auto', auth.validateAuth, applications.autoPost);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -52,18 +51,18 @@ function exposeRoutes () {
 	app.get('/policy/preview', policy.getPreview);
 	app.post('/policy/apps', policy.postAppPolicy);
 	//end policy table routes
-	app.post('/permissions/update', auth.validateBasicAuth, permissions.post);
-	app.get('/permissions/unmapped', auth.validateBasicAuth, permissions.get);
-	app.get('/groups', auth.validateBasicAuth, groups.get);
-	app.post('/groups', auth.validateBasicAuth, groups.postAddGroup);
-	app.post('/groups/promote', auth.validateBasicAuth, groups.postPromote);
-	app.get('/messages', auth.validateBasicAuth, messages.getInfo);
-	app.post('/messages', auth.validateBasicAuth, messages.postAddMessage);
-	app.post('/messages/promote', auth.validateBasicAuth, messages.postPromoteMessages);
-	app.post('/messages/update', auth.validateBasicAuth, messages.updateLanguages);
-	app.get('/module', auth.validateBasicAuth, moduleConfig.get);
-	app.post('/module', auth.validateBasicAuth, moduleConfig.post);
-	app.post('/module/promote', auth.validateBasicAuth, moduleConfig.promote);
+	app.post('/permissions/update', auth.validateAuth, permissions.post);
+	app.get('/permissions/unmapped', auth.validateAuth, permissions.get);
+	app.get('/groups', auth.validateAuth, groups.get);
+	app.post('/groups', auth.validateAuth, groups.postAddGroup);
+	app.post('/groups/promote', auth.validateAuth, groups.postPromote);
+	app.get('/messages', auth.validateAuth, messages.getInfo);
+	app.post('/messages', auth.validateAuth, messages.postAddMessage);
+	app.post('/messages/promote', auth.validateAuth, messages.postPromoteMessages);
+	app.post('/messages/update', auth.validateAuth, messages.updateLanguages);
+	app.get('/module', auth.validateAuth, moduleConfig.get);
+	app.post('/module', auth.validateAuth, moduleConfig.post);
+	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
 }
 
 function updatePermissionsAndGenerateTemplates (next) {

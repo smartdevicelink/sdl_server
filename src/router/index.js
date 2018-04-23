@@ -16,7 +16,7 @@ import User from '@/components/User'
 import Invite from '@/components/Invite'
 import NotFound from '@/components/NotFound'
 
-import Settings from '../../settings.js'
+var authType = AUTH_TYPE; // defined via webpack build
 
 Vue.use(Router)
 
@@ -196,7 +196,7 @@ const router = new Router({
 router.beforeEach((to, from, next) => {
     document.title = to.meta.title || "Policy Server";
     if(to.matched.some(record => record.meta.auth) && !router.app.$session.exists()){
-        if(Settings.authType == "basic" && Settings.basicAuthPassword){
+        if(authType == "basic"){
             // must log in
             next({
                 "path": "/login/basic",

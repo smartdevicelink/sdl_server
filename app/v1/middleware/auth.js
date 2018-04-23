@@ -1,6 +1,6 @@
 const settings = require('../../../settings.js');
 
-function validateBasicAuth (req, res, next) {
+function validateAuth (req, res, next) {
 	if(settings.authType == "basic" && settings.basicAuthPassword
 		&& req.get("BASIC-AUTH-PASSWORD") != settings.basicAuthPassword){
 		res.parcel.setStatus(401)
@@ -13,5 +13,5 @@ function validateBasicAuth (req, res, next) {
 }
 
 module.exports = {
-	validateBasicAuth: validateBasicAuth
+	validateAuth: validateAuth
 };
