@@ -54,4 +54,14 @@ exports.del = function (key, callback) {
         return;
     }
     redis.del(key, callback);
-}
+};
+
+exports.flushall = function (callback) {
+    if (!redis) {
+        if (callback) {
+            callback(null, null);
+        }
+        return;
+    }
+    redis.flushall(callback);
+};

@@ -47,7 +47,7 @@ function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
         makePolicyTable.appPolicies = setupAppPolicies(isProduction, appPolicyObj);
     }
 
-    cache.getCacheData(isProduction, cache.policyTableKey, function (err, cacheData) {
+    cache.getCacheData(isProduction, app.locals.version, cache.policyTableKey, function (err, cacheData) {
         if (cacheData) {
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
@@ -62,7 +62,7 @@ function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
             }
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
-                cache.setCacheData(isProduction, cache.policyTableKey, data);
+                cache.setCacheData(isProduction, app.locals.version, cache.policyTableKey, data);
                 cb(err, data);
             });
         }

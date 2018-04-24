@@ -50,7 +50,7 @@ function post (isProduction, req, res, next) {
                 .setStatus(500);
         }
         else {
-            cache.deleteCacheData(isProduction, cache.policyTableKey);
+            cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
             res.parcel.setStatus(200);
         }
         res.parcel.deliver();

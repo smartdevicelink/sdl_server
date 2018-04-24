@@ -1,5 +1,6 @@
 const express = require('express');
 let app = express();
+const path = require('path');
 
 //custom modules
 const config = require('../../settings'); //configuration module
@@ -15,12 +16,13 @@ app.locals.log = log;
 app.locals.db = db;
 app.locals.flow = flame.flow;
 app.locals.flame = flame;
+app.locals.version = path.basename(__dirname);
 
 //export app before requiring dependent modules to avoid circular dependency issues
 module.exports = app;
 
 //module for communicating with SHAID
-app.locals.shaid = require('./shaid'); 
+app.locals.shaid = require('./shaid');
 //load all the routes in the controllers files and other places
 const login = require('./login/controller.js');
 const forgot = require('./forgot/controller.js');
@@ -58,7 +60,7 @@ function exposeRoutes () {
 	app.get('/messages', messages.getInfo);
 	app.post('/messages', messages.postAddMessage);
 	app.post('/messages/promote', messages.postPromoteMessages);
-	app.post('/messages/update', messages.updateLanguages);	
+	app.post('/messages/update', messages.updateLanguages);
 	app.get('/module', moduleConfig.get);
 	app.post('/module', moduleConfig.post);
 	app.post('/module/promote', moduleConfig.promote);

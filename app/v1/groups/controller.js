@@ -64,7 +64,7 @@ function postStaging (req, res, next) {
                         .setStatus(500);
                 }
                 else {
-                    cache.deleteCacheData(false, cache.policyTableKey);
+                    cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
                     res.parcel.setStatus(200);
                 }
                 res.parcel.deliver();
@@ -101,7 +101,7 @@ function promoteIds (req, res, next) {
     ], {method: 'waterfall'});
 
     getAndInsertFlow(function () {
-        cache.deleteCacheData(true, cache.policyTableKey);
+        cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
         res.parcel
             .setStatus(200)
             .deliver(); //done

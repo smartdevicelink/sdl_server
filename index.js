@@ -65,8 +65,7 @@ function start (overrideApp) {
 	});
 
 	// Invalidate previous data in the cache on startup
-	cache.deleteCacheData(true, cache.policyTableKey); // Cached production policy table
-	cache.deleteCacheData(false, cache.policyTableKey); // Cached staging policy table
+	cache.flushAll();
 
 	//start the server
 	app.listen(config.policyServerPort, function () {
