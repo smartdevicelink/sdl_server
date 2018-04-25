@@ -82,7 +82,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div>
+                    <div v-if="app.approval_status !== 'DENIED'">
                         <label class="switch">
                             <input v-on:click="autoApproveClick" v-model="app.is_auto_approved_enabled" type="checkbox"></input>
                             <span class="slider round"></span>
@@ -194,6 +194,22 @@
                             v-bind:loading="no_feedback_button_loading">
                             Send without feedback
                         </vue-ladda>
+                        <div class="horizontal-divider">
+                            <span class="line"></span>
+                            <span class="text">OR</span>
+                            <span class="line"></span>
+                        </div>
+                        <vue-ladda
+                            type="button"
+                            v-on:click="sendBlacklistClick()"
+                            class="btn btn-card btn-style-black"
+                            data-style="zoom-in"
+                            v-bind:loading="blacklist_button_loading">
+                            Blacklist Application
+                        </vue-ladda>
+                        <br>
+                        <br>
+                        <h4>Note: Blacklisting an application will deny it from receiving any permissions in both staging and production</h4>
                     </form>
                 </b-modal>
 
@@ -215,6 +231,7 @@ export default {
             "button_loading": false,
             "send_button_loading": false,
             "no_feedback_button_loading": false,
+            "blacklist_button_loading": false,
             "app": null,
             "policytable": null
         };
@@ -229,7 +246,9 @@ export default {
             this.httpRequest("post", "applications/action", {
                 "body": {
                     "id": this.$route.params.id,
-                    "approval_status": "ACCEPTED"
+                    "approval_status": "ACCEPTED",
+                    "blacklist": false,
+                    "uuid": this.app.uuid
                 }
             }, (err, response) => {
                 if(err){
@@ -297,6 +316,24 @@ export default {
                     this.actions_visible = false;
                     this.$refs.appActionModal.hide();
                 }
+            });
+        },
+        "sendBlacklistClick": function() {
+            this.blacklist_button_loading = true;
+            this.httpRequest("post", "applications/action", {
+                "body": {
+                    "id": this.$route.params.id,
+                    "approval_status": "DENIED",
+                    "blacklist": true,
+                    "uuid": this.app.uuid
+                }
+            }, (err, response) => {
+                if (!err) {
+                    this.app.approval_status = "DENIED";
+                    this.$refs.appActionModal.hide();
+                }
+                this.actions_visible = false;
+                this.blacklist_button_loading = false;
             });
         },
         getPolicy: function(){

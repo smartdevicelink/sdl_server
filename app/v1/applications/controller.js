@@ -49,6 +49,20 @@ function actionPost (req, res, next) {
             app.locals.log.error(err);
             return res.parcel.setStatus(500).deliver();
         }
+
+		if (req.body.blacklist !== null) {
+			let blacklistCommand = req.body.blacklist ?
+				app.locals.db.sqlCommand.bind(null, sql.insertAppBlacklist(req.body))
+				: app.locals.db.sqlCommand.bind(null, sql.deleteAppBlacklist(req.body.uuid));
+
+			blacklistCommand(function (err, results) {
+				if (err) {
+					app.locals.log.error(err);
+					return res.parcel.setStatus(500).deliver();
+				}
+			});
+		}
+
         return res.parcel.setStatus(200).deliver();
     });
 }

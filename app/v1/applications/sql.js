@@ -314,6 +314,32 @@ function insertAppAutoApproval (obj) {
         .toString();
 }
 
+function insertAppBlacklist (obj) {
+    return sql.insert('app_blacklist', 'app_uuid')
+        .select(`'${obj.uuid}' AS app_uuid`)
+        .where(
+            sql.not(
+                sql.exists(
+                    sql.select('*')
+                        .from('app_blacklist ab')
+                        .where({
+                            'ab.app_uuid': obj.uuid
+                        })
+                )
+            )
+        )
+        .toString()
+}
+
+function deleteAppBlacklist (uuid) {
+    return sql.delete()
+        .from('app_blacklist')
+        .where({
+            app_uuid: uuid
+        })
+        .toString();
+}
+
 module.exports = {
     changeAppApprovalStatus: changeAppApprovalStatus,
     deleteAutoApproval: deleteAutoApproval,
@@ -354,6 +380,7 @@ module.exports = {
     insertAppCountries: insertAppCountries,
     insertAppDisplayNames: insertAppDisplayNames,
     insertAppPermissions: insertAppPermissions,
-    insertAppAutoApproval: insertAppAutoApproval
+    insertAppAutoApproval: insertAppAutoApproval,
+    insertAppBlacklist: insertAppBlacklist,
+    deleteAppBlacklist: deleteAppBlacklist
 }
-
