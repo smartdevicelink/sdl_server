@@ -8,7 +8,7 @@
             <div class="description">
                 {{ item.description }}
             </div>
-            <div v-if="item.is_default_fg" class="color-green">
+            <div v-if="item.is_default" class="color-green">
                 <p>DEFAULT</p>
             </div>
             <div class="permission-count">
