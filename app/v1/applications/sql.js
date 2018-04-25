@@ -328,15 +328,18 @@ function insertAppBlacklist (obj) {
                 )
             )
         )
+        .returning('*')
         .toString()
 }
 
 function deleteAppBlacklist (uuid) {
+    console.log("In deleteAppBlacklist");
     return sql.delete()
         .from('app_blacklist')
         .where({
             app_uuid: uuid
         })
+        .returning('*')
         .toString();
 }
 

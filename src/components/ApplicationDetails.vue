@@ -209,7 +209,7 @@
                         </vue-ladda>
                         <br>
                         <br>
-                        <h4>Note: Blacklisting an application will deny it from receiving any permissions in both staging and production</h4>
+                        <h4>Note: Blacklisting an application will deny any version of it from receiving any permissions in both staging and production</h4>
                     </form>
                 </b-modal>
 
