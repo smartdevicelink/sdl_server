@@ -7,7 +7,7 @@ module.exports = {
     loggerModule: "winston",
     //name of the folder in the `cache` folder that is used as the module for interfacing
     //with a cache module. The entry point must be named index.js and implement the required functions
-    //cacheModule: "redis",
+    cacheModule: null,
     cacheModulePort: process.env.CACHE_PORT,
     cacheModuleHost: process.env.CACHE_HOST,
     cacheModulePassword: process.env.CACHE_PASSWORD,
