@@ -1,6 +1,15 @@
 # Security
 For your convenience, we have implemented the following security features into the Policy Server.
 
+### HTTPS Connections (SSL/TLS)
+HTTPS connections (disabled by default) can be enabled by doing the following:
+* Store your SSL Certificate and Private Key files in the `./customizable/ssl` directory
+* Set your `POLICY_SERVER_PORT_SSL` environment variable to your desired secure port (typically 443)
+* Set your `SSL_CERTIFICATE_FILENAME` environment variable to the filename of your SSL Certificate file
+* Set your `SSL_PRIVATE_KEY_FILENAME` environment variable to the filename of your Private Key file
+* If  you are unable to modify your environment variables, you may define these settings in the `./settings.js` configuration file
+* Restart your Policy Server and navigate to your server's hostname on the secure port!
+
 ### Basic Authentication
 You may optionally require your Policy Server administrators to enter a password before being able to access the user interface. We recommend using a more secure method of authentication in accordance to your company's IT security standards, but provide this basic authentication feature for convenience.
 
