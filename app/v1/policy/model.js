@@ -14,9 +14,11 @@ function transformModuleConfig (isProduction, info, next) {
 
     var concatPort = "";
     var protocol = "http://";
-    if(settings.policyServerPortSSL && settings.policyServerPortSSL != 443){
+    if(settings.policyServerPortSSL){
         protocol = "https://";
-        concatPort = ":" + settings.policyServerPortSSL;
+        if(settings.policyServerPortSSL != 443){
+            concatPort = ":" + settings.policyServerPortSSL;
+        }
     }else if(!settings.policyServerPortSSL && settings.policyServerPort != 80){
         concatPort = ":" + settings.policyServerPort;
     }
