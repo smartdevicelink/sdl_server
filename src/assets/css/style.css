@@ -677,6 +677,64 @@ input:checked + .slider:before {
 /*
 * Card
 */
+.card-header {
+    width: 100%;
+    background-color: inherit;
+    border: none;
+    padding: 0;
+    padding-bottom: 12px;
+}
+.card-title {
+    width: 90%;
+    margin: 0;
+    display: inline-block;
+}
+.card-title h5 {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.card-pencil {
+    width: 5%;
+    display: inline-block;
+    float: right;
+}
+.card-description {
+    width: 100%;
+    height: 4.4rem;
+    padding-bottom: 14px;
+}
+.card-description p {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre-line;
+}
+.card-default {
+    padding-bottom: 14px;
+    height: 2rem;
+}
+.card-count {
+    margin: 0;
+    bottom: 0;
+    display: inline-block;
+}
+.card-status {
+    margin: 0;
+    float: right;
+    display: inline-block;
+}
+.card-footer {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background-color: inherit;
+}
+
 .card {
     padding: 65px 80px;
     background-color: #FFFFFF;
