@@ -706,7 +706,8 @@ input:checked + .slider:before {
     padding-bottom: 14px;
 }
 .card-description p {
-    height: 100%;
+    max-height: 105%;
+    height: auto;
     width: 100%;
     margin: 0;
     overflow: hidden;
