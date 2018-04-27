@@ -12,6 +12,17 @@ function transformModuleConfig (isProduction, info, next) {
         return secondObj.seconds;
     });
 
+    var concatPort = "";
+    var protocol = "http://";
+    if(settings.policyServerPortSSL){
+        protocol = "https://";
+        if(settings.policyServerPortSSL != 443){
+            concatPort = ":" + settings.policyServerPortSSL;
+        }
+    }else if(!settings.policyServerPortSSL && settings.policyServerPort != 80){
+        concatPort = ":" + settings.policyServerPort;
+    }
+
     next(null, {
         "preloaded_pt": base.preloaded_pt,
         "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
@@ -21,7 +32,7 @@ function transformModuleConfig (isProduction, info, next) {
         "seconds_between_retries": retrySeconds,
         "endpoints": {
             "0x07": {
-                default: ["http://" + settings.policyServerHost + ":" + settings.policyServerPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]
+                default: [ protocol + settings.policyServerHost + concatPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]
             },
             "0x04": {
                 default: [base.endpoint_0x04]

@@ -1,4 +1,5 @@
 const express = require('express');
+const helmet = require('helmet');
 let app = express();
 
 //custom modules
@@ -34,6 +35,8 @@ const moduleConfig = require('./module-config/controller.js');
 const auth = require('./middleware/auth.js');
 
 function exposeRoutes () {
+	// use helmet middleware for security
+	app.use(helmet());
 	// extend response builder to all routes
 	app.route("*").all(parcel.extendExpress);
 

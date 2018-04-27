@@ -1,7 +1,10 @@
 //load the environment variables from the .env file in the same directory
 require('dotenv').config();
 //load modules
+const fs = require('fs');
 const express = require('express');
+const https = require('https');
+const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const EventEmitter = require('events');
 const config = require('./settings.js'); //configuration module
@@ -28,6 +31,7 @@ function start (overrideApp) {
 	else {
 		app = express();
 	}
+	app.use(helmet());
 	app.use(bodyParser.json({limit: "1mb"})); //allow json parsing
 	app.use(bodyParser.urlencoded({extended: true, limit: "1mb"})); //for parsing application/x-www-form-urlencoded
 
@@ -63,10 +67,23 @@ function start (overrideApp) {
 	    res.sendFile(htmlLocation);
 	});
 
-	//start the server
+	// if SSL is configured, load the cert and listen on the secure port
+	if(config.policyServerPortSSL && config.sslPrivateKeyFilename && config.sslCertificateFilename){
+		log.info(`Lisening for secure connections on port ${config.policyServerPortSSL}!`);
+
+		//start listening on secure port
+		https.createServer({
+			"key": fs.readFileSync('./customizable/ssl/' + config.sslPrivateKeyFilename),
+			"cert": fs.readFileSync('./customizable/ssl/' + config.sslCertificateFilename)
+		}, app).listen(config.policyServerPortSSL);
+	}
+
+	//start the server on the unsecure port
 	app.listen(config.policyServerPort, function () {
 	    log.info(`Policy server started on port ${config.policyServerPort}!`);
 	});
+
+
 }
 
 module.exports = function (app) {

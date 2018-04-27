@@ -9,6 +9,11 @@ module.exports = {
     policyServerHost: process.env.POLICY_SERVER_HOST || "localhost",
     //the port this server will be running in
     policyServerPort: process.env.POLICY_SERVER_PORT || 3000,
+    //the SSL certificate files and secure port to listen for secure connections with
+    //files should be stored in ./customizable/ssl
+    sslPrivateKeyFilename: process.env.SSL_PRIVATE_KEY_FILENAME || null,
+    sslCertificateFilename: process.env.SSL_CERTIFICATE_FILENAME || null,
+    policyServerPortSSL: process.env.POLICY_SERVER_PORT_SSL || null, // typically 443
     //what kind of auth to enforce? "basic" or null (no authentication)
     authType: process.env.AUTH_TYPE || null,
     //an optional password users must enter to access the Policy Server interface when paired with "basic" authType
