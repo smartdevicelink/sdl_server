@@ -8,6 +8,28 @@
             <main v-if="app != null" class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
 
                 <div class="app-action pull-right">
+                    <b-dropdown right
+                        id="ddown-right" 
+                        :text="selected_option.state" 
+                        class="m-md-2">
+                        <div
+                            v-for="opt in dropdown_options[selected_option.id]"
+                            :key="opt.id">
+
+                            <b-dropdown-item
+                                v-if="opt !== 'divide'"
+                                @click="selected_option = opt"
+                                :class="opt.color"
+                            >
+                                {{opt.name}}
+                            </b-dropdown-item>
+                            <b-dropdown-divider
+                                v-if="opt === 'divide'">
+                            </b-dropdown-divider>
+                            
+                        </div>
+                    </b-dropdown>
+                    <!--
                     <template v-if="app.approval_status === 'PENDING'">
                         <vue-ladda
                             type="button"
@@ -39,6 +61,7 @@
                         <span v-else class="app-status align-middle"><i class="fa fa-fw fa-circle" v-bind:class="classStatusDot"></i> {{ app.approval_status }}</span>
                         <a v-on:click="toggleActions" class="fa fa-fw fa-1-5x fa-ellipsis-v align-middle"></a>
                     </template>
+                    -->
                 </div>
 
                 <div class="app-table">
@@ -227,7 +250,28 @@ export default {
     components: {
         VueJsonPretty
     },
-    data: function(){
+    data: function () {
+        const pending_opt = {
+            "name": "Revert to Pending",
+            "state": "Pending",
+            "id": "pending"
+        };
+        const staging_opt = {
+            "name": "Test in Staging",
+            "state": "Staging",
+            "id": "staging"
+        };
+        const production_opt = {
+            "name": "Promote to Production",
+            "state": "Production",
+            "id": "production"
+        };
+        const denied_opt = {
+            "name": "Deny Application",
+            "state": "Denied",
+            "id": "denied",
+            "color": "color-red"
+        };
         return {
             "actions_visible": false,
             "button_loading": false,
@@ -235,10 +279,36 @@ export default {
             "no_feedback_button_loading": false,
             "blacklist_button_loading": false,
             "app": null,
-            "policytable": null
+            "policytable": null,
+            "dropdown_options": {
+                "pending": [
+                    staging_opt,
+                    "divide",
+                    denied_opt
+                ],
+                "staging": [
+                    production_opt,
+                    "divide",
+                    pending_opt,
+                    denied_opt
+                ],
+                "production": [
+                    staging_opt,
+                    pending_opt,
+                    denied_opt
+                ],
+                "denied": [
+                    pending_opt,
+                    staging_opt
+                ]
+            },
+            "selected_option": pending_opt
         };
     },
     methods: {
+        "runme": function (event) {
+            alert(event);
+        },
         "toggleActions": function(){
             this.actions_visible = !this.actions_visible;
         },
