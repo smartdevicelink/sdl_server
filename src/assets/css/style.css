@@ -685,7 +685,7 @@ input:checked + .slider:before {
     padding-bottom: 12px;
 }
 .card-title {
-    width: 90%;
+    width: 95%;
     margin: 0;
     display: inline-block;
 }
@@ -705,14 +705,42 @@ input:checked + .slider:before {
     height: 4.4rem;
     padding-bottom: 14px;
 }
-.card-description p {
-    max-height: 105%;
-    height: auto;
+.card-description-text {
     width: 100%;
-    margin: 0;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: pre-line;
+    position: relative;
+    line-height: 1.2em;
+    max-height: 3.6em;
+    text-align: justify;
+    margin: 0 -1em 0 0;
+    padding-right: 1em;
+}
+.card-description-text:before {
+    content: '...';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+.card-description-text:after {
+    content: '';
+    position: absolute;
+    right: 0;
+    width: 1em;
+    height: 1em;
+    margin-top: 0.2em;
+    background: #FFF;
+}
+.card-contents {
+    padding: 1.25rem;
+}
+.card-contents:hover .card-description-text:after {
+    background: #4A5E71;
+}
+.tiles a {
+    padding: 0;
+}
+.tiles a:hover .card-description-text:after {
+    background: #4A5E71;
 }
 .card-default {
     padding-bottom: 14px;
