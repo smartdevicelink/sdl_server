@@ -50,7 +50,8 @@ function createAppInfoFlow (filterTypeFunc, value) {
 		appPermissions: setupSql.bind(null, sql.getApp.permissions[filterTypeFunc](value)),
 		appVendors: setupSql.bind(null, sql.getApp.vendor[filterTypeFunc](value)),
 		appCategories: setupSql.bind(null, sql.getApp.category[filterTypeFunc](value)),
-		appAutoApprovals: setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value))
+		appAutoApprovals: setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value)),
+		appBlacklist: setupSql.bind(null, sql.getApp.blacklist[filterTypeFunc](value))
 	}, {method: 'parallel', eventLoop: true});
 
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
@@ -63,13 +64,16 @@ function storeApps (includeApprovalStatus, apps, callback) {
     function recStore(includeApprovalStatus, theseApps, cb){
         const fullFlow = flow([
             //first check if the apps need to be stored in the database
-            flow(flame.map(theseApps, checkNeedsInsertion), {method: "parallel"}), 
-            filterApps.bind(null, includeApprovalStatus), 
+            flow(flame.map(theseApps, checkNeedsInsertion), {method: "parallel"}),
+            filterApps.bind(null, includeApprovalStatus),
             //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
             //should change to be accepted
             function (appObjs, next) {
                 flame.async.map(appObjs, autoApprovalModifier, next);
             },
+			function (appObjs, next) {
+				flame.async.map(appObjs, autoBlacklistModifier, next);
+			},
             function (appObjs, next) {
                 flame.async.map(appObjs, model.storeApp, next);
             }
@@ -83,12 +87,12 @@ function storeApps (includeApprovalStatus, apps, callback) {
                 let appID = res[res.length - 1];
                 if(appID && queue[queue.length - 1] !== appID){ // ensures that the appID is not null and not already in the queue
                     queue.push(appID);
-                } 
+                }
                 if(res.length !== theseApps.length){
                     let appsLeftover = theseApps.slice(res.length);
                     return recStore(includeApprovalStatus, appsLeftover, cb);
                 }
-            } 
+            }
             cb();
         });
     }
@@ -113,7 +117,7 @@ function checkNeedsInsertion (appObj, next) {
             const incomingDate = new Date(timestamp);
             const currentDate = new Date(dbTimestamp);
             if (incomingDate > currentDate) {
-                //the app in the policy server's database is outdated! 
+                //the app in the policy server's database is outdated!
                 next(null, appObj);
             }
             else { //app is already there
@@ -152,8 +156,18 @@ function autoApprovalModifier (appObj, next) {
         if (res.length > 0) {
             appObj.approval_status = 'ACCEPTED';
         }
-        next(null, appObj); 
+        next(null, appObj);
     });
+}
+
+// Auto deny new application versions of an app that is blacklisted
+function autoBlacklistModifier (appObj, next) {
+	db.sqlCommand(sql.getBlacklistedApps(appObj.uuid), function (err, res) {
+		if (res.length > 0) {
+			appObj.approval_status = 'DENIED';
+		}
+		next(null, appObj);
+	});
 }
 
 // checks a retry queue of app IDs to requery their information from SHAID and attempt insertion into the database
@@ -171,13 +185,16 @@ function attemptRetry(milliseconds, retryQueue){
                 function(apps, callback){
                     const fullFlow = flow([
                         //first check if the apps need to be stored in the database
-                        flow(flame.map(apps, checkNeedsInsertion), {method: "parallel"}), 
-                        filterApps.bind(null, false), 
+                        flow(flame.map(apps, checkNeedsInsertion), {method: "parallel"}),
+                        filterApps.bind(null, false),
                         //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
                         //should change to be accepted
                         function (appObjs, callback) {
                             flame.async.map(appObjs, autoApprovalModifier, callback);
                         },
+						function (appObjs, callback) {
+							flame.async.map(appObjs, autoBlacklistModifier, callback);
+						},
                         function (appObjs, callback) {
                             flame.async.map(appObjs, model.storeApp, callback);
                         }

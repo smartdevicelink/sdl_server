@@ -20,7 +20,8 @@
                         <b-btn v-b-modal.appActionModal class="btn btn-danger btn-sm align-middle">Deny</b-btn>
                     </template>
                     <template v-else-if="actions_visible">
-                        <span class="app-status align-middle"><i class="fa fa-fw fa-circle" v-bind:class="classStatusDot"></i> {{ app.approval_status }}</span>
+                        <span v-if="app.is_blacklisted" class="app-status align-middle"><i class="fa fa-fw fa-circle" style="color: black;"></i> BLACKLISTED</span>
+                        <span v-else class="app-status align-middle"><i class="fa fa-fw fa-circle" v-bind:class="classStatusDot"></i> {{ app.approval_status }}</span>
                         <vue-ladda
                             v-if="app.approval_status == 'DENIED'"
                             type="button"
@@ -34,7 +35,8 @@
                         <a v-on:click="toggleActions" class="fa fa-fw fa-1-5x fa-times align-middle"></a>
                     </template>
                     <template v-else>
-                        <span class="app-status align-middle"><i class="fa fa-fw fa-circle" v-bind:class="classStatusDot"></i> {{ app.approval_status }}</span>
+                        <span v-if="app.is_blacklisted" class="app-status align-middle"><i class="fa fa-fw fa-circle" style="color: black;"></i> BLACKLISTED</span>
+                        <span v-else class="app-status align-middle"><i class="fa fa-fw fa-circle" v-bind:class="classStatusDot"></i> {{ app.approval_status }}</span>
                         <a v-on:click="toggleActions" class="fa fa-fw fa-1-5x fa-ellipsis-v align-middle"></a>
                     </template>
                 </div>
@@ -260,6 +262,7 @@ export default {
                     // success
                     console.log("done");
                     this.app.approval_status = "ACCEPTED";
+                    this.app.is_blacklisted = false;
                     this.button_loading = false;
                     this.actions_visible = false;
                 }
@@ -330,6 +333,7 @@ export default {
             }, (err, response) => {
                 if (!err) {
                     this.app.approval_status = "DENIED";
+                    this.app.is_blacklisted = true;
                     this.$refs.appActionModal.hide();
                 }
                 this.actions_visible = false;
@@ -356,8 +360,10 @@ export default {
                     console.log("policy table retrieved");
                     console.log(response);
                     response.json().then(parsed => {
-                        if(parsed.data && parsed.data.length && parsed.data[0].policy_table.app_policies[this.app.uuid]){
-                            this.policytable = parsed.data[0].policy_table.app_policies[this.app.uuid];
+                        if(parsed.data && parsed.data.length ) {
+                            var appObject = {};
+                            appObject[this.app.uuid] = parsed.data[0].policy_table.app_policies[this.app.uuid];
+                            this.policytable = appObject;
                         }else{
                             console.log("No policy table returned");
                         }

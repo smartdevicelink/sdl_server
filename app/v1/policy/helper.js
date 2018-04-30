@@ -4,6 +4,7 @@ const flame = app.locals.flame;
 const model = require('./model.js');
 const setupSqlCommand = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
+const sqlApps = require('../applications/sql.js');
 const funcGroupSql = require('../groups/sql.js');
 const messagesSql = require('../messages/sql.js');
 const moduleConfigSql = require('../module-config/sql.js');
@@ -100,7 +101,7 @@ function setupAppPolicies (isProduction, reqAppPolicy) {
     let getAppPolicy = [];
     if (uuids.length) {
         getAppPolicy.push(setupSqlCommand.bind(null, sql.getBaseAppInfo(isProduction, uuids)));
-    } 
+    }
     else {
         getAppPolicy.push(function (callback) {
             callback(null, []);
@@ -116,6 +117,7 @@ function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
             displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
             moduleNames: setupSqlCommand.bind(null, sql.getAppModules(appObj.id)),
             funcGroupNames: setupSqlCommand.bind(null, sql.getAppFunctionalGroups(isProduction, appObj)),
+            blacklistedApps: setupSqlCommand.bind(null, sqlApps.getBlacklistedApps()),
         }, {method: 'parallel'});
 
         flame.flow([
@@ -133,7 +135,6 @@ function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
         preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
         deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction))
     }, {method: 'parallel'});
-
     flame.flow([
         getAllDataFlow,
         model.aggregateResults

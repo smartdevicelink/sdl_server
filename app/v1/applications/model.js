@@ -14,16 +14,21 @@ function constructFullAppObjs (res, next) {
     const appVendors = res.appVendors;
     const appCategories = res.appCategories;
     const appAutoApprovals = res.appAutoApprovals;
+    const appBlacklist = res.appBlacklist;
 
     //convert appCategories and appAutoApprovals to hash by id
     const hashedCategories = {};
     const hashedAutoApproval = {};
+    const hashedBlacklist = {};
 
     for (let i = 0; i < appCategories.length; i++) {
         hashedCategories[appCategories[i].id] = appCategories[i].display_name;
     }
     for (let i = 0; i < appAutoApprovals.length; i++) {
         hashedAutoApproval[appAutoApprovals[i].app_uuid] = true;
+    }
+    for (let i = 0; i < appBlacklist.length; i++) {
+        hashedBlacklist[appBlacklist[i].app_uuid] = true;
     }
 
     //convert appBase to hash by id for fast assignment of other information
@@ -41,6 +46,13 @@ function constructFullAppObjs (res, next) {
         else {
             hashedApps[appBase[i].id].is_auto_approved_enabled = false;
         }
+
+        if (hashedBlacklist[appBase[i].app_uuid]) {
+            hashedApps[appBase[i].id].is_blacklisted = true;
+        } else {
+            hashedApps[appBase[i].id].is_blacklisted = false;
+        }
+
         delete hashedApps[appBase[i].id].app_uuid;
         hashedApps[appBase[i].id].countries = [];
         hashedApps[appBase[i].id].display_names = [];

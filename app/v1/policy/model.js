@@ -1,6 +1,7 @@
 const app = require('../app');
 const flame = app.locals.flame;
 const settings = require('../../../settings.js');
+const sqlApp = require('../applications/sql.js');
 
 //module config
 
@@ -217,8 +218,16 @@ function constructAppPolicy (appObj, res, next) {
     const funcGroupNames = res.funcGroupNames.map(function (elem) {
         return elem.property_name;
     });
+    const blacklistedApps = res.blacklistedApps;
 
     const appPolicyObj = {};
+    for (let i = 0; i < blacklistedApps.length; i++) {
+        if (blacklistedApps[i].app_uuid === appObj.app_uuid) {
+            appPolicyObj[appObj.app_uuid] = null;
+            next(null, appPolicyObj);
+            return;
+        }
+    }
     appPolicyObj[appObj.app_uuid] = {
         nicknames: displayNames,
         keep_context: true,
@@ -228,7 +237,6 @@ function constructAppPolicy (appObj, res, next) {
         groups: funcGroupNames,
         moduleType: moduleNames
     };
-
     next(null, appPolicyObj);
 }
 
