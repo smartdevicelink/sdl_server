@@ -218,16 +218,8 @@ function constructAppPolicy (appObj, res, next) {
     const funcGroupNames = res.funcGroupNames.map(function (elem) {
         return elem.property_name;
     });
-    const blacklistedApps = res.blacklistedApps;
 
     const appPolicyObj = {};
-    for (let i = 0; i < blacklistedApps.length; i++) {
-        if (blacklistedApps[i].app_uuid === appObj.app_uuid) {
-            appPolicyObj[appObj.app_uuid] = null;
-            next(null, appPolicyObj);
-            return;
-        }
-    }
     appPolicyObj[appObj.app_uuid] = {
         nicknames: displayNames,
         keep_context: true,
@@ -251,6 +243,7 @@ function aggregateResults (res, next) {
     const deviceFuncGroups = res.deviceFuncGroups.map(function (obj) {
         return obj.property_name;
     });
+    const blacklistedApps = res.blacklistedApps;
 
     const appPolicy = {};
 
@@ -263,6 +256,11 @@ function aggregateResults (res, next) {
     for (let i = 0; i < policyObjs.length; i++) {
         const key = Object.keys(policyObjs[i])[0];
         appPolicy[key] = policyObjs[i][key];
+    }
+
+    // Set app policy object to null if it is blacklisted
+    for (let i = 0; i < blacklistedApps.length; i++) {
+        appPolicy[blacklistedApps[i].app_uuid] = null;
     }
 
     //setup defaults after the app ids are populated

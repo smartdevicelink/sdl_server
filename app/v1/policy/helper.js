@@ -117,7 +117,6 @@ function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
             displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
             moduleNames: setupSqlCommand.bind(null, sql.getAppModules(appObj.id)),
             funcGroupNames: setupSqlCommand.bind(null, sql.getAppFunctionalGroups(isProduction, appObj)),
-            blacklistedApps: setupSqlCommand.bind(null, sqlApps.getBlacklistedApps()),
         }, {method: 'parallel'});
 
         flame.flow([
@@ -133,7 +132,8 @@ function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
         },
         defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
         preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
-        deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction))
+        deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction)),
+        blacklistedApps: setupSqlCommand.bind(null, sqlApps.getBlacklistedApps())
     }, {method: 'parallel'});
     flame.flow([
         getAllDataFlow,
