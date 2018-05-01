@@ -1,4 +1,15 @@
 @font-face {
+    font-family: 'LivioMono';
+    src: url('../fonts/LivioMono/LivioMono-Regular-WebS.eot');
+    src: url('../fonts/LivioMono/LivioMono-Regular-WebS.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/LivioMono/LivioMono-Regular-WebS.woff2') format('woff2'),
+    url('../fonts/LivioMono/LivioMono-Regular-WebS.woff') format('woff'),
+    url('../fonts/LivioMono/LivioMono-Regular-WebS.ttf') format('ttf'),
+    url('../fonts/LivioMono/LivioMono-Regular-WebS.svg') format('svg');
+    font-weight: 400;
+}
+
+@font-face {
     font-family: 'LivioNorm';
     src: url('../fonts/LivioNorm/LivioNorm-Light-WebS.eot');
     src: url('../fonts/LivioNorm/LivioNorm-Light-WebS.eot?#iefix') format('embedded-opentype'),
@@ -682,7 +693,7 @@ input:checked + .slider:before {
     background-color: inherit;
     border: none;
     padding: 0;
-    padding-bottom: 12px;
+    padding-bottom: 0.75em;
 }
 .card-title {
     width: 95%;
@@ -702,8 +713,8 @@ input:checked + .slider:before {
 }
 .card-description {
     width: 100%;
-    height: 4.4rem;
-    padding-bottom: 14px;
+    height: 4.4em;
+    padding-bottom: 0.8em;
 }
 .card-description-text {
     width: 100%;
@@ -731,7 +742,7 @@ input:checked + .slider:before {
     background: #FFF;
 }
 .card-contents {
-    padding: 1.25rem;
+    padding: 1.25em;
 }
 .card-contents:hover .card-description-text:after {
     background: #4A5E71;
@@ -743,8 +754,10 @@ input:checked + .slider:before {
     background: #4A5E71;
 }
 .card-default {
-    padding-bottom: 14px;
-    height: 2rem;
+    padding-bottom: 0.9em;
+    height: 2em;
+    font-family: 'LivioMono';
+    color: #BAC6D2;
 }
 .card-count {
     margin: 0;

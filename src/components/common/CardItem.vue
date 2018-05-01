@@ -15,7 +15,7 @@
                 <p class="card-description-text" ref="descriptionText">{{ item.description }}</p>
             </div>
             <div class="card-default">
-                <div v-if="item.is_default" class="color-green">
+                <div v-if="item.is_default">
                     DEFAULT
                 </div>
             </div>
