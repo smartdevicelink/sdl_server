@@ -4,10 +4,10 @@ module.exports = {
     dbModule: "postgres",
     //name of the folder in the `loggers` folder that is used as the module of interfacing
     //with a loggin module. The entry point must be named index.js and implement the required functions
-    loggerModule: "winston",
+    loggerModule: process.env.LOG_MODULE || "winston",
     //name of the folder in the `cache` folder that is used as the module for interfacing
     //with a cache module. The entry point must be named index.js and implement the required functions
-    cacheModule: null,
+    cacheModule: process.env.CACHE_MODULE || null,
     cacheModulePort: process.env.CACHE_PORT,
     cacheModuleHost: process.env.CACHE_HOST,
     cacheModulePassword: process.env.CACHE_PASSWORD,
