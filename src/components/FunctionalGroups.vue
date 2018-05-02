@@ -34,6 +34,7 @@
                             description: item.description,
                             count: item.selected_rpc_count,
                             is_deleted: item.is_deleted,
+                            is_default: item.is_default,
                             status: item.status
                         }"
                         v-bind:environment="environment"
