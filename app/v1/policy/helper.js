@@ -114,12 +114,11 @@ function setupFunctionalGroups (isProduction) {
 function setupAppPolicies (isProduction, reqAppPolicy) {
     const uuids = Object.keys(reqAppPolicy);
     let getAppPolicy = [];
-    if(uuids.length){
-        console.log("app IDs present");
+    if (uuids.length) {
         getAppPolicy.push(setupSqlCommand.bind(null, sql.getBaseAppInfo(isProduction, uuids)));
-    }else{
-        console.log("app IDs not present");
-        getAppPolicy.push(function(callback){
+    } 
+    else {
+        getAppPolicy.push(function (callback) {
             callback(null, []);
         });
     }

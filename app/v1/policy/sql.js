@@ -7,7 +7,7 @@ function getBaseAppInfo (isProduction, appUuids) {
         approvalStatusArray = ["ACCEPTED"];
     }
     else {
-        approvalStatusArray = ["ACCEPTED", "PENDING"];
+        approvalStatusArray = ["ACCEPTED", "PENDING", "DENIED"]; //permit all apps regardless of approval state
     }
 
     let tempTable = sql.select('app_uuid', 'max(id) AS id')

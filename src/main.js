@@ -52,18 +52,44 @@ export const eventBus = new Vue();
 //reusable methods
 Vue.mixin({
 	methods: {
-		"httpRequest": function (action, route, body, cb) {
-	        if (action === "delete" || action === "get") {
-	            if (body !== null) {
-	                body = {body: body};
-	            }
-	        }
-	        this.$http[action](route, body)
+		"httpRequest": function (action, route, options = {}, cb) {
+			if(!options){
+				options = {};
+			}
+			if(!options.headers){
+				options.headers = {};
+			}
+			if(!options.body){
+				options.body = {};
+			}
+			if(this.$session.get("BASIC_AUTH_PASSWORD")){
+				options.headers["BASIC-AUTH-PASSWORD"] = this.$session.get("BASIC_AUTH_PASSWORD");
+			}
+			if(["post","put","patch"].indexOf(action) >= 0){
+				this.$http[action](route, options.body, options)
 	            .then(response => {
 	                cb(null, response);
 	            }, response => {
-	                cb(response, null);
+					if(response.status == 401 && !options.preventAuthRedirect){
+						this.$session.destroy();
+						this.$router.go();
+					}else{
+						cb(response, null);
+					}
 	            });
+			}else{
+				this.$http[action](route, options)
+	            .then(response => {
+	                cb(null, response);
+	            }, response => {
+					if(response.status == 401 && !options.preventAuthRedirect){
+						this.$session.destroy();
+						this.$router.go();
+					}else{
+						cb(response, null);
+					}
+	            });
+			}
 	    },
 		"handleModalClick": function (loadingProp, modalName, methodName) {
 			//show a loading icon for the modal, and call the methodName passed in

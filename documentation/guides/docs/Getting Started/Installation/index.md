@@ -14,7 +14,11 @@ Once you set up a database (locally or remotely) you'll need to supply the Polic
 
 Here are the environment variables that will most likely be used:
 
+* `POLICY_SERVER_HOST`: The hostname or public IP address which the server runs on.
 * `POLICY_SERVER_PORT`: The port which the server runs on. It is optional and the default is 3000.
+* `POLICY_SERVER_PORT_SSL`: The port which the server should listen for SSL connections on (typically 443). It is optional and the default is `null` (do not listen for SSL connections).
+* `SSL_CERTIFICATE_FILENAME`: The filename of the SSL certificate located in `./customizable/ssl`. Required if a value is set for `POLICY_SERVER_PORT_SSL`.
+* `SSL_PRIVATE_KEY_FILENAME`: The filename of the SSL certificate's private key located in `./customizable/ssl`. Required if a value is set for `POLICY_SERVER_PORT_SSL`.
 * `SHAID_PUBLIC_KEY`: A public key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
 * `SHAID_SECRET_KEY`: A secret key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
 * `STAGING_PG_USER`: The name of the user to allow the server access the database (staging mode)
@@ -49,7 +53,7 @@ Run the following command to finalize set up and start the server in staging mod
 
 `npm run start-pg-staging`
 
-Verify that it started properly by navigating to <a href="http://localhost:3000/">`http://localhost:3000/`</a>
+Verify that it started properly by navigating to your configured host and port, or to the default address: <a href="http://localhost:3000/">`http://localhost:3000/`</a>
 
 Now you have a Policy Server running!
 

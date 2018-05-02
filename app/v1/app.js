@@ -1,4 +1,5 @@
 const express = require('express');
+const helmet = require('helmet');
 let app = express();
 const path = require('path');
 
@@ -33,18 +34,21 @@ const permissions = require('./permissions/controller.js');
 const groups = require('./groups/controller.js');
 const messages = require('./messages/controller.js');
 const moduleConfig = require('./module-config/controller.js');
+const auth = require('./middleware/auth.js');
 
 function exposeRoutes () {
+	// use helmet middleware for security
+	app.use(helmet());
 	// extend response builder to all routes
 	app.route("*").all(parcel.extendExpress);
 
 	//route definitions
-	//app.post('/login', login.post);
 	//app.post('/forgot', forgot.post);
 	//app.post('/register', register.post);
-	app.get('/applications', applications.get);
-	app.post('/applications/action', applications.actionPost);
-	app.post('/applications/auto', applications.autoPost);
+	app.post('/login', login.validateAuth);
+	app.get('/applications', auth.validateAuth, applications.get);
+	app.post('/applications/action', auth.validateAuth, applications.actionPost);
+	app.post('/applications/auto', auth.validateAuth, applications.autoPost);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -52,18 +56,18 @@ function exposeRoutes () {
 	app.get('/policy/preview', policy.getPreview);
 	app.post('/policy/apps', policy.postAppPolicy);
 	//end policy table routes
-	app.post('/permissions/update', permissions.post);
-	app.get('/permissions/unmapped', permissions.get);
-	app.get('/groups', groups.get);
-	app.post('/groups', groups.postAddGroup);
-	app.post('/groups/promote', groups.postPromote);
-	app.get('/messages', messages.getInfo);
-	app.post('/messages', messages.postAddMessage);
-	app.post('/messages/promote', messages.postPromoteMessages);
-	app.post('/messages/update', messages.updateLanguages);
-	app.get('/module', moduleConfig.get);
-	app.post('/module', moduleConfig.post);
-	app.post('/module/promote', moduleConfig.promote);
+	app.post('/permissions/update', auth.validateAuth, permissions.post);
+	app.get('/permissions/unmapped', auth.validateAuth, permissions.get);
+	app.get('/groups', auth.validateAuth, groups.get);
+	app.post('/groups', auth.validateAuth, groups.postAddGroup);
+	app.post('/groups/promote', auth.validateAuth, groups.postPromote);
+	app.get('/messages', auth.validateAuth, messages.getInfo);
+	app.post('/messages', auth.validateAuth, messages.postAddMessage);
+	app.post('/messages/promote', auth.validateAuth, messages.postPromoteMessages);
+	app.post('/messages/update', auth.validateAuth, messages.updateLanguages);
+	app.get('/module', auth.validateAuth, moduleConfig.get);
+	app.post('/module', auth.validateAuth, moduleConfig.post);
+	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
 }
 
 function updatePermissionsAndGenerateTemplates (next) {

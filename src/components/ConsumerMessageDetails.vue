@@ -143,7 +143,7 @@ import { eventBus } from '../main.js';
             },
             "saveMessageGroup": function (callback) {
                 // save the entire group w/ languages
-                this.httpRequest("post", "messages", {messages: [this.message]}, callback);
+                this.httpRequest("post", "messages", {"body": { messages: [this.message]} }, callback);
             },
             "showDeleteModal": function() {
                 this.$refs.deleteModal.show();
@@ -153,11 +153,11 @@ import { eventBus } from '../main.js';
             },
             "deleteMessageGroup": function (cb) {
                 this.message.is_deleted = true;
-                this.httpRequest("post", "messages", {messages: [this.message]}, cb);
+                this.httpRequest("post", "messages", {"body": { messages: [this.message]} }, cb);
             },
             "undeleteMessageGroup": function(cb) {
                 this.message.is_deleted = false;
-                this.httpRequest("post", "messages", {messages: [this.message]}, cb);
+                this.httpRequest("post", "messages", {"body": { messages: [this.message]} }, cb);
             },
             "getConsumerMessageInfo": function (cb) {
                 let queryInfo = "messages";
@@ -166,8 +166,10 @@ import { eventBus } from '../main.js';
                 }else{
                     queryInfo += "?id=" + this.id;
                 }
-                this.httpRequest("get", queryInfo, null, (err, response) => {
-                    if (response) {
+                this.httpRequest("get", queryInfo, {}, (err, response) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
                         response.json().then(parsed => {
                             if (parsed.data.messages && parsed.data.messages.length) {
                                 this.message = parsed.data.messages[0];
@@ -181,20 +183,6 @@ import { eventBus } from '../main.js';
                         });
                     }
                 });
-            },
-            "httpRequest": function (action, route, body, cb) {
-                if (action === "delete" || action === "get") {
-                    if (body !== null) {
-                        body = {body: body};
-                    }
-                }
-                this.$http[action](route, body)
-                    .then(response => {
-                        cb(null, response);
-                    }, response => {
-                        console.error(response.body.error);
-                        cb(response, null);
-                    });
             },
             "deleteGroup": function () {
                 this.handleModalClick("delete_button_loading", "deleteModal", "deleteMessageGroup");
