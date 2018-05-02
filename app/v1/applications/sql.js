@@ -364,19 +364,10 @@ function getAppBlacklist (id) {
 }
 
 function getBlacklistedApps (uuids) {
-    if (!Array.isArray(uuids)) {
-        uuids = [uuids];
-    }
-    if (uuids) {
-        return sql.select('app_uuid')
+    return sql.select('app_uuid')
             .from('app_blacklist')
             .where(sql.in('app_uuid', uuids))
             .toString();
-    } else {
-        return sql.select('app_uuid')
-            .from('app_blacklist')
-            .toString();
-    }
 }
 
 module.exports = {
