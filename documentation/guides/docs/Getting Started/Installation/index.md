@@ -27,6 +27,7 @@ Here are the environment variables that will most likely be used:
 * `PRODUCTION_PG_PASSWORD`: The password used to log into the database (production mode)
 * `PRODUCTION_PG_HOST`: The host name or IP address of the database (production mode)
 * `PRODUCTION_PG_PORT`: The port number of the database (production mode)
+* `CACHE_MODULE`: The name of the caching module to use. Currently supports null (no caching, default) or "redis".
 * `CACHE_HOST`: The host name or IP address of the cache
 * `CACHE_PORT`: The port number of the cache
 * `CACHE_PASSWORD`: The password used to log into the cache
@@ -52,14 +53,10 @@ Verify that it started properly by navigating to <a href="http://localhost:3000/
 
 Now you have a Policy Server running!
 
-Additionally, you may decide to set up the policy server with a cache. The following steps outline how to set one up:
 
-* Create a custom cache module. Do so by creating a folder inside `custom/cache` with the name of your module. Put your implementation in a file named `index.js` inside of your module's folder. Your module should export the following functions:
+* If you wish to enable caching with an unofficially supported datastore, you may create a custom cache module. Do so by creating a folder inside `custom/cache` with the name of your module. Put your implementation in a file named `index.js` inside of your module's folder. Your module should export the following functions:
     * `get(key, callback)`: Receives a value from the cache stored at key.
     * `set(key, value, callback)`: Sets a value in the cache stored at key.
     * `del(key, callback)`: Deletes a value from the cache stored at key.
     * `flushall(callback)`: Deletes all data previously set in the cache.
-* In your `.env` file, specify the values for `CACHE_HOST`, `CACHE_PORT`, and `CACHE_PASSWORD` that correspond to where your cache is running.
-* In `settings.js`, set `cacheModule` equal to the name of your custom cache module's folder in `custom/cache`. Caching will be turned on by setting this value. To turn it off, simply set `cacheModule` equal to `null`.
-
-Currently, the policy server caches the policy table which drastically improves response times for policy table requests. Additional caching opportunities will be looked at in the future.
+* Set your `CACHE_` environment variables to correspond with your new datastore solution and access information.
