@@ -133,7 +133,7 @@ function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
         defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
         preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
         deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction)),
-        blacklistedApps: setupSqlCommand.bind(null, sqlApps.getBlacklistedApps())
+        blacklistedApps: setupSqlCommand.bind(null, sqlApps.getBlacklistedApps(requestedUuids))
     }, {method: 'parallel'});
     flame.flow([
         getAllDataFlow,
