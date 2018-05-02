@@ -6,12 +6,14 @@
             <page-user-nav/>
 
             <main v-if="app != null" class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
-
+                <!--
+                m-md-2
+                -->
                 <div class="app-action pull-right">
                     <b-dropdown right
                         id="ddown-right" 
                         :text="selected_option.state" 
-                        class="m-md-2">
+                        :class="selected_option.class">
                         <div
                             v-for="opt in dropdown_options[selected_option.id]"
                             :key="opt.id">
@@ -254,23 +256,39 @@ export default {
         const pending_opt = {
             "name": "Revert to Pending",
             "state": "Pending",
-            "id": "pending"
+            "id": "pending",
+            "class": "dropdown-primary"
         };
         const staging_opt = {
             "name": "Test in Staging",
             "state": "Staging",
-            "id": "staging"
+            "id": "staging",
+            "class": "dropdown-primary"
         };
         const production_opt = {
             "name": "Promote to Production",
             "state": "Production",
-            "id": "production"
+            "id": "production",
+            "class": "dropdown-green"
         };
         const denied_opt = {
             "name": "Deny Application",
             "state": "Denied",
             "id": "denied",
-            "color": "color-red"
+            "color": "color-red",
+            "class": "dropdown-red"
+        };
+        const blacklist_opt = {
+            "name": "Blacklist Application",
+            "state": "Blacklisted",
+            "id": "blacklist",
+            "class": "dropdown-black"
+        };
+        const remove_blacklisted_opt = {
+            "name": "Remove from Blacklist",
+            "state": "Denied",
+            "id": "denied",
+            "class": "dropdown-red"
         };
         return {
             "actions_visible": false,
@@ -300,6 +318,9 @@ export default {
                 "denied": [
                     pending_opt,
                     staging_opt
+                ],
+                "blacklist": [
+                    remove_blacklisted_opt
                 ]
             },
             "selected_option": pending_opt

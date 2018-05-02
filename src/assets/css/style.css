@@ -1109,6 +1109,25 @@ input:checked + .slider:before {
     border-color: #fff;
 }
 
+/*
+* Background Colors for Buttons
+*/
+.dropdown-red button {
+    background-color: #FF5E71;
+}
+
+.dropdown-green button {
+    background-color: #78C970;
+}
+
+.dropdown-primary button {
+    background-color: #4A5E71;
+}
+
+.dropdown-black button {
+    background-color: #000000;
+}
+
 
 /*
 * Make things spin
