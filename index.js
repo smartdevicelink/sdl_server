@@ -10,6 +10,7 @@ const EventEmitter = require('events');
 const config = require('./settings.js'); //configuration module
 const packageJson = require('./package.json'); //configuration module
 const log = require(`./custom/loggers/${config.loggerModule}/index.js`); //logger module
+const cache = require('./custom/cache');
 
 const versions = ["1"];
 const htmlLocation = __dirname + '/dist/index.html';
@@ -67,6 +68,11 @@ function start (overrideApp) {
 	    res.sendFile(htmlLocation);
 	});
 
+
+	// Invalidate previous data in the cache on startup
+	cache.flushAll();
+
+	//start the server
 	// if SSL is configured, load the cert and listen on the secure port
 	if(config.policyServerPortSSL && config.sslPrivateKeyFilename && config.sslCertificateFilename){
 		log.info(`Lisening for secure connections on port ${config.policyServerPortSSL}!`);
@@ -89,5 +95,3 @@ function start (overrideApp) {
 module.exports = function (app) {
 	start(app);
 }
-
-

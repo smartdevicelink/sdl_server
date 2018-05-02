@@ -40,6 +40,7 @@
     "needle": "2.1.0",
     "pg": "6.4.2",
     "portfinder": "1.0.13",
+    "redis": "^2.8.0",
     "shaidkit": "1.0.1",
     "sql-bricks-postgres": "0.5.0",
     "uuid": "3.2.1",

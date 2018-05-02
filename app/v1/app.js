@@ -1,6 +1,7 @@
 const express = require('express');
 const helmet = require('helmet');
 let app = express();
+const path = require('path');
 
 //custom modules
 const config = require('../../settings'); //configuration module
@@ -16,6 +17,7 @@ app.locals.log = log;
 app.locals.db = db;
 app.locals.flow = flame.flow;
 app.locals.flame = flame;
+app.locals.version = path.basename(__dirname);
 
 //export app before requiring dependent modules to avoid circular dependency issues
 module.exports = app;
