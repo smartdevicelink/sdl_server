@@ -1,6 +1,7 @@
 const app = require('../app');
 const flame = app.locals.flame;
 const settings = require('../../../settings.js');
+const sqlApp = require('../applications/sql.js');
 
 //module config
 
@@ -239,7 +240,6 @@ function constructAppPolicy (appObj, res, next) {
         groups: funcGroupNames,
         moduleType: moduleNames
     };
-
     next(null, appPolicyObj);
 }
 
@@ -254,6 +254,7 @@ function aggregateResults (res, next) {
     const deviceFuncGroups = res.deviceFuncGroups.map(function (obj) {
         return obj.property_name;
     });
+    const blacklistedApps = res.blacklistedApps;
 
     const appPolicy = {};
 
@@ -266,6 +267,11 @@ function aggregateResults (res, next) {
     for (let i = 0; i < policyObjs.length; i++) {
         const key = Object.keys(policyObjs[i])[0];
         appPolicy[key] = policyObjs[i][key];
+    }
+
+    // Set app policy object to null if it is blacklisted
+    for (let i = 0; i < blacklistedApps.length; i++) {
+        appPolicy[blacklistedApps[i].app_uuid] = null;
     }
 
     //setup defaults after the app ids are populated

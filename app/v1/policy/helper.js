@@ -4,6 +4,7 @@ const flame = app.locals.flame;
 const model = require('./model.js');
 const setupSqlCommand = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
+const sqlApps = require('../applications/sql.js');
 const funcGroupSql = require('../groups/sql.js');
 const messagesSql = require('../messages/sql.js');
 const moduleConfigSql = require('../module-config/sql.js');
@@ -116,7 +117,7 @@ function setupAppPolicies (isProduction, reqAppPolicy) {
     let getAppPolicy = [];
     if (uuids.length) {
         getAppPolicy.push(setupSqlCommand.bind(null, sql.getBaseAppInfo(isProduction, uuids)));
-    } 
+    }
     else {
         getAppPolicy.push(function (callback) {
             callback(null, []);
@@ -147,9 +148,15 @@ function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
         },
         defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
         preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
-        deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction))
+        deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction)),
+        blacklistedApps: function (callback) {
+            if (requestedUuids.length > 0) {
+                setupSqlCommand(sqlApps.getBlacklistedApps(requestedUuids), callback);
+            } else {
+                callback(null, []);
+            }
+        }
     }, {method: 'parallel'});
-
     flame.flow([
         getAllDataFlow,
         model.aggregateResults

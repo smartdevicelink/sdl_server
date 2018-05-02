@@ -314,6 +314,62 @@ function insertAppAutoApproval (obj) {
         .toString();
 }
 
+function insertAppBlacklist (obj) {
+    return sql.insert('app_blacklist', 'app_uuid')
+        .select(`'${obj.uuid}' AS app_uuid`)
+        .where(
+            sql.not(
+                sql.exists(
+                    sql.select('*')
+                        .from('app_blacklist ab')
+                        .where({
+                            'ab.app_uuid': obj.uuid
+                        })
+                )
+            )
+        )
+        .returning('*')
+        .toString()
+}
+
+function deleteAppBlacklist (uuid) {
+    return sql.delete()
+        .from('app_blacklist')
+        .where({
+            app_uuid: uuid
+        })
+        .returning('*')
+        .toString();
+}
+
+function getAppBlacklistFilter (filterObj) {
+    return sql.select('app_blacklist.app_uuid')
+        .from('app_blacklist')
+        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
+            'ai.app_uuid': 'app_blacklist.app_uuid'
+        })
+        .toString();
+}
+
+function getAppBlacklist (id) {
+    return sql.select('app_blacklist.app_uuid')
+        .from('app_blacklist')
+        .join('app_info', {
+            'app_blacklist.app_uuid': 'app_info.app_uuid'
+        })
+        .where({
+            id: id
+        })
+        .toString();
+}
+
+function getBlacklistedApps (uuids) {
+    return sql.select('app_uuid')
+            .from('app_blacklist')
+            .where(sql.in('app_uuid', uuids))
+            .toString();
+}
+
 module.exports = {
     changeAppApprovalStatus: changeAppApprovalStatus,
     deleteAutoApproval: deleteAutoApproval,
@@ -345,6 +401,10 @@ module.exports = {
         autoApproval: {
             multiFilter: getAppAutoApprovalFilter,
             idFilter: getAppAutoApproval
+        },
+        blacklist: {
+            multiFilter: getAppBlacklistFilter,
+            idFilter: getAppBlacklist
         }
     },
     timestampCheck: timestampCheck,
@@ -354,6 +414,8 @@ module.exports = {
     insertAppCountries: insertAppCountries,
     insertAppDisplayNames: insertAppDisplayNames,
     insertAppPermissions: insertAppPermissions,
-    insertAppAutoApproval: insertAppAutoApproval
+    insertAppAutoApproval: insertAppAutoApproval,
+    insertAppBlacklist: insertAppBlacklist,
+    deleteAppBlacklist: deleteAppBlacklist,
+    getBlacklistedApps: getBlacklistedApps
 }
-

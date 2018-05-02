@@ -2,6 +2,7 @@ const app = require('../app');
 const helper = require('./helper.js');
 const sql = require('./sql.js');
 const flow = app.locals.flow;
+const async = require('async');
 
 function get (req, res, next) {
 	//prioritize id, uuid, approval status, in that order.
@@ -43,14 +44,29 @@ function actionPost (req, res, next) {
 		return res.parcel.deliver();
 	}
 
-    //modify the existing entry in the database to change the approval status
-    app.locals.db.sqlCommand(sql.changeAppApprovalStatus(req.body.id, req.body.approval_status, (req.body.denial_message || null)), function (err, results) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.parcel.setStatus(500).deliver();
-        }
-        return res.parcel.setStatus(200).deliver();
-    });
+	app.locals.db.runAsTransaction(function (client, callback) {
+		async.waterfall([
+			// Blacklist/Unblacklist app
+			function (callback) {
+				if (req.body.blacklist) {
+					client.getOne(sql.insertAppBlacklist(req.body), callback);
+				} else {
+					client.getOne(sql.deleteAppBlacklist(req.body.uuid), callback);
+				}
+			},
+			// Update approval status for app
+			function (blacklist, callback) {
+				client.getOne(sql.changeAppApprovalStatus(req.body.id, req.body.approval_status, (req.body.denial_message || null)), callback);
+			}
+		], callback);
+	}, function (err, response) {
+		if (err) {
+			app.locals.log.error(err);
+			return res.parcel.setStatus(500).deliver();
+		} else {
+			return res.parcel.setStatus(200).deliver();
+		}
+	});
 }
 
 function autoPost (req, res, next) {
