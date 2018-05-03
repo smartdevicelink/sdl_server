@@ -9,36 +9,7 @@ function getBaseAppInfo (isProduction, appUuids) {
     else {
         approvalStatusArray = ["ACCEPTED", "STAGING"];
     }
-/*
-SELECT * FROM view_partial_app_info
-INNER JOIN app_info
-ON app_info.id = view_partial_app_info.id
-WHERE app_info.approval_status IN ('ACCEPTED')
 
-
-SELECT * FROM app_info
-WHERE app_info.id IN (
-    SELECT max(id) AS id
-    FROM (
-        SELECT * FROM view_partial_app_info
-        WHERE approval_status IN ('ACCEPTED', 'STAGING')
-        AND app_uuid IN ('449aa478-fe7a-4408-95e6-59ae6ccfdf60', '82c933c7-0f4d-4da7-b7fd-97cad910a609')
-    ) AS test   
-    GROUP BY app_uuid
-)
-
-SELECT * FROM app_info 
-WHERE app_info.id IN (
-    SELECT max(id) AS id 
-    FROM (
-        SELECT * FROM view_partial_app_info 
-        WHERE approval_status IN ('ACCEPTED', 'STAGING') 
-        AND app_uuid IN ('82c933c7-0f4d-4da7-b7fd-97cad910a609')
-    ) AS test 
-    GROUP BY app_uuid
-)
-
-*/
     const innerSelect = sql.select('*')
         .from('view_partial_app_info')
         .where(
@@ -52,32 +23,11 @@ WHERE app_info.id IN (
         .from('(' + innerSelect + ') AS test')
         .groupBy('app_uuid');
 
-    const main = sql.select("*")
+    return sql.select("*")
         .from("app_info")
         .where(
             sql.in('app_info.id', whereIn)
         );
-
-    console.log(main.toString());
-    return main;
-/*
-    let tempTable = sql.select('app_uuid', 'max(id) AS id')
-        .from('view_partial_app_info group_ai')
-        .where(
-            sql.in('group_ai.approval_status', approvalStatusArray)
-        )
-        .where(
-            sql.in('group_ai.app_uuid', appUuids)
-        )
-        .groupBy('app_uuid');
-
-    return sql.select('app_info.*')
-        .from('('+tempTable+') ai')
-        .join('app_info', {
-            'app_info.id': 'ai.id'
-        })
-        .toString();
-        */
 }
 
 function getAppDisplayNames (appId) {
