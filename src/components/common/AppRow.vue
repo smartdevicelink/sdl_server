@@ -7,10 +7,15 @@
         <td class="title">{{ item.name }}</td>
         <td>{{ item.updated_ts }}</td>
         <td>{{ item.platform }}</td>
-        <td>{{ item.category.display_name }}</td>
+        <td v-if="item.is_blacklisted">
+            BLACKLISTED
+        </td>
+        <td v-else>
+            {{ item.approval_status }}
+        </td>
         <td class="actions">
             <div class="app-action pull-right">
-                <template v-if="item.approval_status === 'PENDING'">
+                <template v-if="item.approval_status === 'PENDING' || item.approval_status === 'STAGING'">
                     <router-link v-bind:to="'/applications/' + item.id" class="btn btn-dark btn-sm">Review</router-link>
                 </template>
                 <template v-else>
@@ -40,7 +45,8 @@
             classStatusDot: function(){
                 return {
                     "color-red": this.item.approval_status == "DENIED",
-                    "color-green": this.item.approval_status == "ACCEPTED"
+                    "color-green": this.item.approval_status == "ACCEPTED",
+                    "color-black": this.item.is_blacklisted
                 }
             },
             actionIcon: function(){

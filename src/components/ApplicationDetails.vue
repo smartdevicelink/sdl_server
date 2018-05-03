@@ -20,7 +20,7 @@
 
                             <b-dropdown-item
                                 v-if="opt !== 'divide'"
-                                @click="handleAppState(opt.id)"
+                                @click="immediate_option_clicked = opt; handleAppState(opt.id)"
                                 :class="opt.color"
                             >
                                 {{opt.name}}
@@ -31,39 +31,6 @@
                             
                         </div>
                     </b-dropdown>
-                    <!--
-                    <template v-if="app.approval_status === 'PENDING'">
-                        <vue-ladda
-                            type="button"
-                            class="btn btn-success btn-sm align-middle mr-md-3"
-                            data-style="zoom-in"
-                            v-on:click="approveClick"
-                            v-bind:loading="button_loading">
-                            Approve
-                        </vue-ladda>
-                        <b-btn v-b-modal.appActionModal class="btn btn-danger btn-sm align-middle">Deny</b-btn>
-                    </template>
-                    <template v-else-if="actions_visible">
-                        <span v-if="app.is_blacklisted" class="app-status align-middle"><i class="fa fa-fw fa-circle" style="color: black;"></i> BLACKLISTED</span>
-                        <span v-else class="app-status align-middle"><i class="fa fa-fw fa-circle" v-bind:class="classStatusDot"></i> {{ app.approval_status }}</span>
-                        <vue-ladda
-                            v-if="app.approval_status == 'DENIED'"
-                            type="button"
-                            class="btn btn-success btn-sm align-middle"
-                            data-style="zoom-in"
-                            v-on:click="approveClick"
-                            v-bind:loading="button_loading">
-                            Approve
-                        </vue-ladda>
-                        <b-btn v-else v-b-modal.appActionModal class="btn btn-danger btn-sm align-middle">Deny</b-btn>
-                        <a v-on:click="toggleActions" class="fa fa-fw fa-1-5x fa-times align-middle"></a>
-                    </template>
-                    <template v-else>
-                        <span v-if="app.is_blacklisted" class="app-status align-middle"><i class="fa fa-fw fa-circle" style="color: black;"></i> BLACKLISTED</span>
-                        <span v-else class="app-status align-middle"><i class="fa fa-fw fa-circle" v-bind:class="classStatusDot"></i> {{ app.approval_status }}</span>
-                        <a v-on:click="toggleActions" class="fa fa-fw fa-1-5x fa-ellipsis-v align-middle"></a>
-                    </template>
-                    -->
                 </div>
 
                 <div class="app-table">
@@ -240,6 +207,22 @@
                     </form>
                 </b-modal>
 
+
+                <!-- NOT PRODUCTION MODAL -->
+                <b-modal ref="notProductionModal" title="Take App Out of Production" hide-footer id="notProductionModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                    <form>
+                        <h4>WARNING: You are about to move this application from Production to {{ immediate_option_clicked.state }}! This will revoke all permissions requested from this application and it may no longer function! Are you sure you want to do this?</h4>
+
+                        <vue-ladda
+                            type="button"
+                            v-on:click="changeState(immediate_option_clicked.id)"
+                            class="btn btn-card btn-style-green"
+                            data-style="zoom-in"
+                            v-bind:loading="send_button_loading">
+                            Remove from Production
+                        </vue-ladda>
+                    </form>
+                </b-modal>
             </main>
         </div>
     </div>
@@ -291,8 +274,6 @@ export default {
             "class": "dropdown-red"
         };
         return {
-            "actions_visible": false,
-            "button_loading": false,
             "send_button_loading": false,
             "no_feedback_button_loading": false,
             "blacklist_button_loading": false,
@@ -330,11 +311,21 @@ export default {
                     remove_blacklisted_opt
                 ]
             },
-            "selected_option": pending_opt
+            "selected_option": pending_opt,
+            "immediate_option_clicked": {}
         };
     },
     methods: {
         "handleAppState": function (changedState) {
+            if (this.app) {
+                const isProduction = this.app.approval_status === "ACCEPTED";
+                if (isProduction) {
+                    return this.$refs.notProductionModal.show();
+                }
+                this.changeState(changedState);
+            }
+        },
+        "changeState": function (changedState) {
             if (this.app) {
                 if (changedState === "pending") {
                     this.changeApprovalState("PENDING", false);
@@ -378,6 +369,7 @@ export default {
                 }
             }, (err, response) => {
                 this.$refs.appActionModal.hide();
+                this.$refs.notProductionModal.hide();
                 if (loadingIconProperty) {
                     this[loadingIconProperty] = false;
                 }
@@ -481,6 +473,11 @@ export default {
     },
     created: function(){
         this.getApp();
+    },
+    beforeDestroy () {
+        // ensure closing of all modals
+        this.$refs.appActionModal.onAfterLeave();
+        this.$refs.notProductionModal.onAfterLeave();
     }
 }
 </script>

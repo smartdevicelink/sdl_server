@@ -654,6 +654,9 @@ input:checked + .slider:before {
 .color-primary {
     color: #4A5E71 !important;
 }
+.color-black {
+    color: #000000 !important;
+}
 
 .color-bg-gray {
     background-color: #F4F5F7;
