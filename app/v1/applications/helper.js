@@ -14,7 +14,8 @@ function validateActionPost (req, res) {
 	if (!req.body.id || !req.body.approval_status) {
 		res.parcel.setStatus(400).setMessage("Id and approval status required");
 	} else if (req.body.approval_status !== 'PENDING'
-		&& req.body.approval_status !== 'ACCEPTED'
+		&& req.body.approval_status !== 'STAGING'
+        && req.body.approval_status !== 'ACCEPTED'
 		&& req.body.approval_status !== 'DENIED') {
 			res.parcel.setStatus(400).setMessage("Invalid approval status value");
 	}

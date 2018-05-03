@@ -20,7 +20,7 @@
 
                             <b-dropdown-item
                                 v-if="opt !== 'divide'"
-                                @click="handleAppState(opt)"
+                                @click="handleAppState(opt.id)"
                                 :class="opt.color"
                             >
                                 {{opt.name}}
@@ -202,7 +202,7 @@
                         </div>
                         <vue-ladda
                             type="button"
-                            v-on:click="sendDenyClick(true)"
+                            v-on:click="handleModalClick(false, true)"
                             class="btn btn-card btn-style-green"
                             data-style="zoom-in"
                             v-bind:loading="send_button_loading">
@@ -215,7 +215,7 @@
                         </div>
                         <vue-ladda
                             type="button"
-                            v-on:click="sendDenyClick(false)"
+                            v-on:click="handleModalClick(false, false)"
                             class="btn btn-card btn-style-white"
                             data-style="zoom-in"
                             v-bind:loading="no_feedback_button_loading">
@@ -228,7 +228,7 @@
                         </div>
                         <vue-ladda
                             type="button"
-                            v-on:click="sendBlacklistClick()"
+                            v-on:click="handleModalClick(true, true)"
                             class="btn btn-card btn-style-black"
                             data-style="zoom-in"
                             v-bind:loading="blacklist_button_loading">
@@ -287,7 +287,7 @@ export default {
         const remove_blacklisted_opt = {
             "name": "Remove from Blacklist",
             "state": "Denied",
-            "id": "denied",
+            "id": "removeBlacklist",
             "class": "dropdown-red"
         };
         return {
@@ -298,6 +298,13 @@ export default {
             "blacklist_button_loading": false,
             "app": null,
             "policytable": null,
+            "options": {
+                "PENDING": pending_opt,
+                "STAGING": staging_opt,
+                "ACCEPTED": production_opt,
+                "DENIED": denied_opt,
+                "BLACKLISTED": blacklist_opt
+            },
             "dropdown_options": {
                 "pending": [
                     staging_opt,
@@ -327,15 +334,28 @@ export default {
         };
     },
     methods: {
-        "handleAppState": function (event) {
-            const changedState = event.id;
-            console.log(changedState);
-            console.log(this.app);
-            //pending
-            //staging
-            //production
-            //denied
-            //blacklist
+        "handleAppState": function (changedState) {
+            if (this.app) {
+                if (changedState === "pending") {
+                    this.changeApprovalState("PENDING", false);
+                }
+                else if (changedState === "staging") {
+                    this.changeApprovalState("STAGING", false);
+                }
+                else if (changedState === "production") {
+                    this.changeApprovalState("ACCEPTED", false);
+                }
+                else if (changedState === "denied") {
+                    this.$refs.appActionModal.show();
+                }
+                else if (changedState === "removeBlacklist") {
+                    this.changeApprovalState("DENIED", false, null, true);
+                }
+            }
+        },
+        "handleModalClick": function (isBlacklisted, sendFeedback) {
+            const loadingIndicator = isBlacklisted ? "blacklist_button_loading" : "send_button_loading";
+            this.changeApprovalState("DENIED", isBlacklisted, loadingIndicator, sendFeedback);
         },
         "runme": function (event) {
             alert(event);
@@ -343,29 +363,31 @@ export default {
         "toggleActions": function(){
             this.actions_visible = !this.actions_visible;
         },
-        "approveClick": function(){
-            this.button_loading = true;
+        "changeApprovalState": function (approvalStatus, isBlacklisted, loadingIconProperty, withFeedBack) {
+            if (loadingIconProperty) {
+                this[loadingIconProperty] = true;
+            }
 
             this.httpRequest("post", "applications/action", {
                 "body": {
                     "id": this.$route.params.id,
-                    "approval_status": "ACCEPTED",
-                    "blacklist": false,
-                    "uuid": this.app.uuid
+                    "approval_status": approvalStatus,
+                    "blacklist": isBlacklisted,
+                    "uuid": this.app.uuid,
+                    "denial_message": withFeedBack ? this.app.denial_message : null
                 }
             }, (err, response) => {
-                if(err){
+                this.$refs.appActionModal.hide();
+                if (loadingIconProperty) {
+                    this[loadingIconProperty] = false;
+                }
+                if (err) {
                     // error
-                    console.log("Error approving application.");
-                    this.button_loading = false;
-                    this.actions_visible = false;
-                }else{
+                    console.log("Error changing approval status of application.");
+                }
+                else {
                     // success
-                    console.log("done");
-                    this.app.approval_status = "ACCEPTED";
-                    this.app.is_blacklisted = false;
-                    this.button_loading = false;
-                    this.actions_visible = false;
+                    this.getApp();
                 }
             });
         },
@@ -386,59 +408,6 @@ export default {
                     // success
                     console.log("Auto-approve setting changed to: " + this.app.is_auto_approved_enabled);
                 }
-            });
-        },
-        "sendDenyClick": function(with_feedback){
-            if(with_feedback){
-                this.send_button_loading = true;
-                console.log("sending denial with feedback");
-                console.log(this.app.denial_message);
-            }else{
-                this.no_feedback_button_loading = true;
-                console.log("sending denial without feedback");
-            }
-
-            this.httpRequest("post", "applications/action", {
-                "body": {
-                    "id": this.$route.params.id,
-                    "approval_status": "DENIED",
-                    "denial_message": with_feedback ? this.app.denial_message : null
-                }
-            }, (err, response) => {
-                if(err){
-                    // error
-                    console.log("Error denying application.");
-                    this.send_button_loading = false;
-                    this.no_feedback_button_loading = false;
-                    this.actions_visible = false;
-                }else{
-                    // success
-                    console.log("done");
-                    this.app.approval_status = "DENIED";
-                    this.send_button_loading = false;
-                    this.no_feedback_button_loading = false;
-                    this.actions_visible = false;
-                    this.$refs.appActionModal.hide();
-                }
-            });
-        },
-        "sendBlacklistClick": function() {
-            this.blacklist_button_loading = true;
-            this.httpRequest("post", "applications/action", {
-                "body": {
-                    "id": this.$route.params.id,
-                    "approval_status": "DENIED",
-                    "blacklist": true,
-                    "uuid": this.app.uuid
-                }
-            }, (err, response) => {
-                if (!err) {
-                    this.app.approval_status = "DENIED";
-                    this.app.is_blacklisted = true;
-                    this.$refs.appActionModal.hide();
-                }
-                this.actions_visible = false;
-                this.blacklist_button_loading = false;
             });
         },
         getPolicy: function(){
@@ -471,6 +440,35 @@ export default {
                     });
                 }
             });
+        },
+        getApp: function () {
+            this.httpRequest("get", "applications", {
+                "params": {
+                    "id": this.$route.params.id
+                }
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error receiving application.");
+                    console.log(response);
+                }else{
+                    // success
+                    response.json().then(parsed => {
+                        if(parsed.data.applications.length){
+                            this.app = parsed.data.applications[0];
+                            if (this.app.is_blacklisted) {
+                                this.selected_option = this.options["BLACKLISTED"];
+                            }
+                            else {
+                                this.selected_option = this.options[this.app.approval_status];
+                            }
+                            this.getPolicy();
+                        }else{
+                            console.log("No applications returned");
+                        }
+                    });
+                }
+            });            
         }
     },
     computed: {
@@ -482,27 +480,7 @@ export default {
         }
     },
     created: function(){
-        this.httpRequest("get", "applications", {
-            "params": {
-                "id": this.$route.params.id
-            }
-        }, (err, response) => {
-            if(err){
-                // error
-                console.log("Error receiving application.");
-                console.log(response);
-            }else{
-                // success
-                response.json().then(parsed => {
-                    if(parsed.data.applications.length){
-                        this.app = parsed.data.applications[0];
-                        this.getPolicy();
-                    }else{
-                        console.log("No applications returned");
-                    }
-                });
-            }
-        });
+        this.getApp();
     }
 }
 </script>
