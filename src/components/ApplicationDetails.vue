@@ -20,7 +20,7 @@
 
                             <b-dropdown-item
                                 v-if="opt !== 'divide'"
-                                @click="selected_option = opt"
+                                @click="handleAppState(opt)"
                                 :class="opt.color"
                             >
                                 {{opt.name}}
@@ -327,6 +327,16 @@ export default {
         };
     },
     methods: {
+        "handleAppState": function (event) {
+            const changedState = event.id;
+            console.log(changedState);
+            console.log(this.app);
+            //pending
+            //staging
+            //production
+            //denied
+            //blacklist
+        },
         "runme": function (event) {
             alert(event);
         },
