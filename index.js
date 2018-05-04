@@ -75,7 +75,7 @@ function start (overrideApp) {
 	//start the server
 	// if SSL is configured, load the cert and listen on the secure port
 	if(config.policyServerPortSSL && config.sslPrivateKeyFilename && config.sslCertificateFilename){
-		log.info(`Lisening for secure connections on port ${config.policyServerPortSSL}!`);
+		log.info(`Listening for secure connections on port ${config.policyServerPortSSL}!`);
 
 		//start listening on secure port
 		https.createServer({
