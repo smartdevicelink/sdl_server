@@ -153,19 +153,20 @@
                     </div>
                 </div>
 
-                <div v-if="policytableStaging != null"class="app-table">
-                    <h4>Policy Table Preview (STAGING)</h4>
-                    <div class="policy-table">
-                        <!--<pre class="prettyprint linenums hidenums">{{ policytable }}</pre>-->
-                        <vue-json-pretty :data="policytableStaging"></vue-json-pretty>
-                    </div>
-                </div>
+                <div class="app-table">
+                    <h4>Policy Table Preview</h4>
 
-                <div v-if="policytableProduction != null"class="app-table">
-                    <h4>Policy Table Preview (PRODUCTION)</h4>
-                    <div class="policy-table">
+                    <b-form-radio-group id="selectEnvironment"
+                        buttons
+                        button-variant="toggle"
+                        v-model="environment"
+                        :options="environmentOptions"
+                        name="chooseEnvironment" />
+
+                    <div class="policy-table" style="word-break:break-all">
                         <!--<pre class="prettyprint linenums hidenums">{{ policytable }}</pre>-->
-                        <vue-json-pretty :data="policytableProduction"></vue-json-pretty>
+                        <vue-json-pretty v-if="environment == 'STAGING' " :data="policytableStaging"></vue-json-pretty>
+                        <vue-json-pretty v-else :data="policytableProduction"></vue-json-pretty>
                     </div>
                 </div>
 
@@ -261,6 +262,17 @@ export default {
             "class": "dropdown-red"
         };
         return {
+            "environment": "STAGING",
+            "environmentOptions": [
+                {
+                    "text": "Staging",
+                    "value": "STAGING"
+                },
+                {
+                    "text": "Production",
+                    "value": "PRODUCTION"
+                }
+            ],
             "send_button_loading": false,
             "no_feedback_button_loading": false,
             "blacklist_button_loading": false,
