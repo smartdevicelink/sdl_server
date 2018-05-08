@@ -597,9 +597,15 @@ div.horizontal-divider .text {
   transition: .4s;
 }
 
+
 input:checked + .slider {
   background-color: #78C970;
   border: solid 1px #78C970;
+}
+
+input:checked + .slider-red {
+  background-color: #FF5E71;
+  border: solid 1px #FF5E71;
 }
 
 input:focus + .slider {
@@ -663,7 +669,7 @@ input:checked + .slider:before {
     color: #4A5E71 !important;
 }
 .color-black {
-    color: #000000 !important;
+    color: #222C37 !important;
 }
 
 .color-bg-gray {
@@ -1136,7 +1142,7 @@ input:checked + .slider:before {
 }
 
 .dropdown-black button {
-    background-color: #000000;
+    background-color: #222C37;
 }
 
 

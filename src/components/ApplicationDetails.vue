@@ -178,12 +178,30 @@
                         </div>
                         <label class="switch">
                             <input v-model="blacklist_toggle" type="checkbox"></input>
-                            <span class="slider round"></span>
+                            <span class="slider slider-red round"></span>
                         </label>
                         <label class="form-check-label switch-label">
                             Blacklist this application
                         </label>
-                        <h5 v-if="blacklist_toggle"><br>Warning: Blacklisting an application will deny any version of it from receiving any permissions in both staging and production</h5>
+                        <h5 v-if="blacklist_toggle"><br>Warning: Blacklisting an application will deny any version of it from receiving any permissions in both staging and production.</h5>
+                        <vue-ladda
+                            type="button"
+                            v-on:click="handleModalClick()"
+                            class="btn btn-card btn-style-red"
+                            data-style="zoom-in"
+                            v-bind:loading="send_button_loading">
+                            {{ deny_button_text }}
+                        </vue-ladda>
+                    </form>
+                </b-modal>
+
+                <!-- APP BLACKLIST MODAL -->
+                <b-modal ref="appBlacklistModal" title="Blacklist Application" hide-footer id="appBlacklistModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                    <form>
+                        <div class="form-group">
+                            <textarea v-model="app.denial_message" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
+                        </div>
+                        <h5>Warning: Blacklisting an application will deny any version of it from receiving any permissions in both staging and production.</h5>
                         <vue-ladda
                             type="button"
                             v-on:click="handleModalClick()"
@@ -302,7 +320,9 @@ export default {
                     denied_opt
                 ],
                 "denied": [
-                    staging_opt
+                    staging_opt,
+                    "divide",
+                    blacklist_opt
                 ],
                 "blacklist": [
                     remove_blacklisted_opt
@@ -340,6 +360,10 @@ export default {
                 else if (changedState === "removeBlacklist") {
                     this.changeApprovalState("DENIED", false, null, true);
                 }
+                else if (changedState === "blacklist") {
+                    this.blacklist_toggle = true;
+                    this.$refs.appBlacklistModal.show();
+                }
             }
         },
         "handleModalClick": function () {
@@ -363,6 +387,7 @@ export default {
                 }
             }, (err, response) => {
                 this.$refs.appActionModal.hide();
+                this.$refs.appBlacklistModal.hide();
                 this.$refs.notProductionModal.hide();
                 this.blacklist_toggle = false; //reset the toggle
                 if (loadingIconProperty) {
@@ -485,6 +510,7 @@ export default {
     beforeDestroy () {
         // ensure closing of all modals
         this.$refs.appActionModal.onAfterLeave();
+        this.$refs.appBlacklistModal.onAfterLeave();
         this.$refs.notProductionModal.onAfterLeave();
     }
 }
