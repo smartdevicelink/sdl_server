@@ -153,11 +153,19 @@
                     </div>
                 </div>
 
-                <div v-if="policytable != null"class="app-table">
-                    <h4>Policy Table Preview</h4>
+                <div v-if="policytableStaging != null"class="app-table">
+                    <h4>Policy Table Preview (STAGING)</h4>
                     <div class="policy-table">
                         <!--<pre class="prettyprint linenums hidenums">{{ policytable }}</pre>-->
-                        <vue-json-pretty :data="policytable"></vue-json-pretty>
+                        <vue-json-pretty :data="policytableStaging"></vue-json-pretty>
+                    </div>
+                </div>
+
+                <div v-if="policytableProduction != null"class="app-table">
+                    <h4>Policy Table Preview (PRODUCTION)</h4>
+                    <div class="policy-table">
+                        <!--<pre class="prettyprint linenums hidenums">{{ policytable }}</pre>-->
+                        <vue-json-pretty :data="policytableProduction"></vue-json-pretty>
                     </div>
                 </div>
 
@@ -167,56 +175,35 @@
                         <div class="form-group">
                             <textarea v-model="app.denial_message" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
                         </div>
+                        <label class="switch">
+                            <input v-model="blacklist_toggle" type="checkbox"></input>
+                            <span class="slider round"></span>
+                        </label>
+                        <label class="form-check-label switch-label">
+                            Blacklist this application
+                        </label>
+                        <h5 v-if="blacklist_toggle"><br>Warning: Blacklisting an application will deny any version of it from receiving any permissions in both staging and production</h5>
                         <vue-ladda
                             type="button"
-                            v-on:click="handleModalClick(false, true)"
-                            class="btn btn-card btn-style-green"
+                            v-on:click="handleModalClick()"
+                            class="btn btn-card btn-style-red"
                             data-style="zoom-in"
                             v-bind:loading="send_button_loading">
-                            Send
+                            {{ deny_button_text }}
                         </vue-ladda>
-                        <div class="horizontal-divider">
-                            <span class="line"></span>
-                            <span class="text">OR</span>
-                            <span class="line"></span>
-                        </div>
-                        <vue-ladda
-                            type="button"
-                            v-on:click="handleModalClick(false, false)"
-                            class="btn btn-card btn-style-white"
-                            data-style="zoom-in"
-                            v-bind:loading="no_feedback_button_loading">
-                            Send without feedback
-                        </vue-ladda>
-                        <div class="horizontal-divider">
-                            <span class="line"></span>
-                            <span class="text">OR</span>
-                            <span class="line"></span>
-                        </div>
-                        <vue-ladda
-                            type="button"
-                            v-on:click="handleModalClick(true, true)"
-                            class="btn btn-card btn-style-black"
-                            data-style="zoom-in"
-                            v-bind:loading="blacklist_button_loading">
-                            Blacklist Application
-                        </vue-ladda>
-                        <br>
-                        <br>
-                        <h4>Note: Blacklisting an application will deny any version of it from receiving any permissions in both staging and production</h4>
                     </form>
                 </b-modal>
 
 
                 <!-- NOT PRODUCTION MODAL -->
-                <b-modal ref="notProductionModal" title="Take App Out of Production" hide-footer id="notProductionModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                <b-modal ref="notProductionModal" title="Remove from Production" hide-footer id="notProductionModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                     <form>
-                        <h4>WARNING: You are about to move this application from Production to {{ immediate_option_clicked.state }}! This will revoke all permissions requested from this application and it may no longer function! Are you sure you want to do this?</h4>
+                        <h5>WARNING: You are about to move this application from Production to {{ immediate_option_clicked.state }}. This will revoke all permissions requested from this application and it may no longer function. Are you sure you want to do this?</h5>
 
                         <vue-ladda
                             type="button"
                             v-on:click="changeState(immediate_option_clicked.id)"
-                            class="btn btn-card btn-style-green"
+                            class="btn btn-card btn-style-red"
                             data-style="zoom-in"
                             v-bind:loading="send_button_loading">
                             Remove from Production
@@ -278,7 +265,8 @@ export default {
             "no_feedback_button_loading": false,
             "blacklist_button_loading": false,
             "app": null,
-            "policytable": null,
+            "policytableStaging": null,
+            "policytableProduction": null,
             "options": {
                 "PENDING": pending_opt,
                 "STAGING": staging_opt,
@@ -295,16 +283,13 @@ export default {
                 "staging": [
                     production_opt,
                     "divide",
-                    pending_opt,
                     denied_opt
                 ],
                 "production": [
                     staging_opt,
-                    pending_opt,
                     denied_opt
                 ],
                 "denied": [
-                    pending_opt,
                     staging_opt
                 ],
                 "blacklist": [
@@ -312,7 +297,8 @@ export default {
                 ]
             },
             "selected_option": pending_opt,
-            "immediate_option_clicked": {}
+            "immediate_option_clicked": {},
+            "blacklist_toggle": false,
         };
     },
     methods: {
@@ -344,12 +330,8 @@ export default {
                 }
             }
         },
-        "handleModalClick": function (isBlacklisted, sendFeedback) {
-            const loadingIndicator = isBlacklisted ? "blacklist_button_loading" : "send_button_loading";
-            this.changeApprovalState("DENIED", isBlacklisted, loadingIndicator, sendFeedback);
-        },
-        "runme": function (event) {
-            alert(event);
+        "handleModalClick": function () {
+            this.changeApprovalState("DENIED", this.blacklist_toggle, "send_button_loading", this.contains_feedback);
         },
         "toggleActions": function(){
             this.actions_visible = !this.actions_visible;
@@ -370,6 +352,7 @@ export default {
             }, (err, response) => {
                 this.$refs.appActionModal.hide();
                 this.$refs.notProductionModal.hide();
+                this.blacklist_toggle = false; //reset the toggle
                 if (loadingIconProperty) {
                     this[loadingIconProperty] = false;
                 }
@@ -402,8 +385,8 @@ export default {
                 }
             });
         },
-        getPolicy: function(){
-            const envName = this.app.approval_status == "ACCEPTED" ? "production" : "staging";
+        getPolicy: function (isProduction, modelName) {
+            const envName = isProduction ? "production" : "staging";
             this.httpRequest("post", "policy/apps?environment=" + envName, {
                 "body": {
                     "policy_table": {
@@ -425,7 +408,7 @@ export default {
                         if(parsed.data && parsed.data.length ) {
                             var appObject = {};
                             appObject[this.app.uuid] = parsed.data[0].policy_table.app_policies[this.app.uuid];
-                            this.policytable = appObject;
+                            this[modelName] = appObject;
                         }else{
                             console.log("No policy table returned");
                         }
@@ -454,7 +437,8 @@ export default {
                             else {
                                 this.selected_option = this.options[this.app.approval_status];
                             }
-                            this.getPolicy();
+                            this.getPolicy(false, "policytableStaging");
+                            this.getPolicy(true, "policytableProduction");
                         }else{
                             console.log("No applications returned");
                         }
@@ -469,6 +453,18 @@ export default {
                 "color-red": this.app.approval_status == "DENIED",
                 "color-green": this.app.approval_status == "ACCEPTED"
             }
+        },
+        deny_button_text: function () {
+            const actionName = this.blacklist_toggle ? "Blacklist" : "Deny";
+            if (this.contains_feedback) {
+                return actionName + " application with feedback";
+            }
+            else {
+                return actionName + " application without feedback";
+            }
+        },
+        contains_feedback: function () {
+            return this.app && this.app.denial_message;
         }
     },
     created: function(){

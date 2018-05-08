@@ -525,6 +525,14 @@ div.horizontal-divider .text {
     background-color: #384F61 !important;
     color: #FFFFFF !important;
 }
+.btn-style-red {
+    background-color: #FF5E71 !important;
+    color: #FFFFFF !important;
+}
+.btn-style-red:hover {
+    background-color: #4A5E71 !important;
+    color: #FFFFFF !important;
+}
 
 .app-action {
     font-size: .875rem;
