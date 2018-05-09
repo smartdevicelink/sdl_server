@@ -34,6 +34,8 @@
             "name": "Policy Table Update"
         }, {
             "name": "SQL"
+        }, {
+            "name": "Granting Functional Groups"
         }
     ]
 }

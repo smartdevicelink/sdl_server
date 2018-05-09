@@ -52,6 +52,28 @@ This is an example of how the app and its required permissions will appear in th
     ]
   }
 ```
-## Approved, Denied, & Pending
-Pending applications are automatically granted all requested permissions in your staging Policy Table so you can perform any required internal testing. Select approve in the top right corner if you would like to give this app the permissions it needs in your production Policy Table, otherwise select deny. Only approved applications will be given access to the RPCs and permissions that they require on your production environment. If you choose to deny an application, you will be asked to (optionally) provide your reasoning for doing so. Each time that an app is updated on the SDL Developer Portal at smartdevicelink.com, the app's changes will appear in your Policy Server pending re-approval. If an app is from a trusted developer and you would like to always approve future revisions of it, you can choose to "Automatically approve updates" under "General App Info" of the app's review page. This setting can be changed later if the need arises.
+## Significance of Approval States
+The top right corner of the application's review page contains a drop down allowing the user to change the approval state of the application. See below for what each state signifies.
+
+##### Pending
+New applications and updated applications that reach your SDL Policy Server will be granted the approval state of pending. Pending applications are treated like denied applications in that they will not be given any permissions requested, and will only be given permissions in default functional groups. Pending applications require action performed on them in order for the application to be officially approved or denied. 
+
+##### Staging
+Applications in the staging state will have their permissions granted when using the staging policy table, but not the production policy table. This mode is useful for testing purposes.
+
+##### Accepted
+Applications in the accepted state will have their permissions granted when using both the staging and the production policy table. This state is for applications that are allowed to be used in a production environment. 
+
+##### Denied
+Denied applications will not receive their requested permissions, and will only be given permissions in default functional groups. Additional options include providing a reasoning for denying the applications for your future reference. While denying or when in the denied state, you also have the option to blacklist the application.
+
+##### Blacklisted
+All previous and future versions of a blacklisted application will not receive any permissions, including permissions from default functional groups. This action is reversible.
+ 
 ![App-Details](./assets/App-Details.png)
+
+
+## New Application Versions
+Each time an app is updated on the SDL Developer Portal at smartdevicelink.com, the app's changes will appear in your Policy Server pending re-approval. If an app is from a trusted developer and you would like to always approve future revisions of it, you can choose to "Automatically approve updates" under "General App Info" of the app's review page.
+
+Newer versions of applications that come in will have a state of pending, but that will not affect the statuses granted to its previously approved versions. An application that had permissions approved because of its approval status will remain that way until action is taken on the newer application.
