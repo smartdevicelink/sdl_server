@@ -78,4 +78,4 @@ All previous and future versions of a blacklisted application will not receive a
 ## New Application Versions
 Each time an app is updated on the SDL Developer Portal at smartdevicelink.com, the app's changes will appear in your Policy Server pending re-approval. If an app is from a trusted developer and you would like to always approve future revisions of it, you can choose to "Automatically approve updates" under "General App Info" of the app's review page.
 
-Newer versions of applications that come in will have a state of pending, but that will not affect the statuses granted to its previously approved versions. An application that had permissions approved because of its approval status will remain that way until action is taken on the newer application.
+Newer versions of applications that come in will have a state of pending, but that will not affect the statuses granted to its previously approved versions. The latest permitted application will have their changes used for the policy table until a new version's changes are also permitted.
