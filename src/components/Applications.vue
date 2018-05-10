@@ -87,7 +87,7 @@
             this.getApplications("PENDING", "apps_pending");
             this.getApplications("STAGING", "apps_pending");
             this.getApplications("ACCEPTED", "apps_approved");
-            this.getApplications("DENIED", "apps_denied");
+            this.getApplications("LIMITED", "apps_denied");
         }
     }
 </script>

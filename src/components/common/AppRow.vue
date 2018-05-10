@@ -44,7 +44,7 @@
         computed: {
             classStatusDot: function(){
                 return {
-                    "color-red": this.item.approval_status == "DENIED",
+                    "color-red": this.item.approval_status == "LIMITED",
                     "color-green": this.item.approval_status == "ACCEPTED",
                     "color-black": this.item.is_blacklisted
                 }

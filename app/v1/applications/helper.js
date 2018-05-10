@@ -16,7 +16,7 @@ function validateActionPost (req, res) {
 	} else if (req.body.approval_status !== 'PENDING'
 		&& req.body.approval_status !== 'STAGING'
         && req.body.approval_status !== 'ACCEPTED'
-		&& req.body.approval_status !== 'DENIED') {
+		&& req.body.approval_status !== 'LIMITED') {
 			res.parcel.setStatus(400).setMessage("Invalid approval status value");
 	}
 	return;
@@ -165,7 +165,7 @@ function autoApprovalModifier (appObj, next) {
 function autoBlacklistModifier (appObj, next) {
 	db.sqlCommand(sql.getBlacklistedApps(appObj.uuid), function (err, res) {
 		if (res.length > 0) {
-			appObj.approval_status = 'DENIED';
+			appObj.approval_status = 'LIMITED';
 		}
 		next(null, appObj);
 	});

@@ -55,12 +55,17 @@
                                     <td>{{ app.uuid }}</td>
                                     <td>{{ app.platform }}</td>
                                     <td>{{ app.category.display_name }}</td>
-                                    <td>{{ app.approval_status }}</td>
+                                    <td v-if="app.is_blacklisted">
+                                        BLACKLISTED
+                                    </td>
+                                    <td v-else>
+                                        {{ app.approval_status }}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="app.approval_status == 'DENIED'" class="table-responsive">
+                    <div v-if="app.approval_status == 'LIMITED'" class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
@@ -76,7 +81,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="app.approval_status !== 'DENIED'">
+                    <div v-if="app.approval_status !== 'LIMITED'">
                         <label class="switch">
                             <input v-on:click="autoApproveClick" v-model="app.is_auto_approved_enabled" type="checkbox"></input>
                             <span class="slider round"></span>
@@ -170,9 +175,10 @@
                     </div>
                 </div>
 
-                <!-- APP DENY MODAL -->
-                <b-modal ref="appActionModal" title="Deny Application" hide-footer id="appActionModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                <!-- APP LIMITED MODAL -->
+                <b-modal ref="appActionModal" title="Reject Application Updates" hide-footer id="appActionModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                     <form>
+                        <h6>Rejecting an application will disallow any changes the application requested, but permissions received from default functional groups will still be given.</h6>
                         <div class="form-group">
                             <textarea v-model="app.denial_message" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
                         </div>
@@ -217,7 +223,7 @@
                 <!-- NOT PRODUCTION MODAL -->
                 <b-modal ref="notProductionModal" title="Remove from Production" hide-footer id="notProductionModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                     <form>
-                        <h5>WARNING: You are about to move this application from Production to {{ immediate_option_clicked.state }}. This will revoke all permissions requested from this application and it may no longer function. Are you sure you want to do this?</h5>
+                        <h5>WARNING: You are about to move this application from Production to {{ immediate_option_clicked.state }}. This will revoke all changes requested from this application and it may no longer function. Are you sure you want to do this?</h5>
 
                         <vue-ladda
                             type="button"
@@ -256,14 +262,14 @@ export default {
         };
         const production_opt = {
             "name": "Promote to Production",
-            "state": "Production",
+            "state": "Accepted",
             "id": "production",
             "class": "dropdown-green"
         };
-        const denied_opt = {
-            "name": "Deny Application",
-            "state": "Denied",
-            "id": "denied",
+        const limited_opt = {
+            "name": "Reject Updates",
+            "state": "Limited",
+            "id": "limited",
             "color": "color-red",
             "class": "dropdown-red"
         };
@@ -275,7 +281,7 @@ export default {
         };
         const remove_blacklisted_opt = {
             "name": "Remove from Blacklist",
-            "state": "Denied",
+            "state": "Limited",
             "id": "removeBlacklist",
             "class": "dropdown-red"
         };
@@ -301,25 +307,25 @@ export default {
                 "PENDING": pending_opt,
                 "STAGING": staging_opt,
                 "ACCEPTED": production_opt,
-                "DENIED": denied_opt,
+                "LIMITED": limited_opt,
                 "BLACKLISTED": blacklist_opt
             },
             "dropdown_options": {
                 "pending": [
                     staging_opt,
                     "divide",
-                    denied_opt
+                    limited_opt
                 ],
                 "staging": [
                     production_opt,
                     "divide",
-                    denied_opt
+                    limited_opt
                 ],
                 "production": [
                     staging_opt,
-                    denied_opt
+                    limited_opt
                 ],
-                "denied": [
+                "limited": [
                     staging_opt,
                     "divide",
                     blacklist_opt
@@ -354,11 +360,11 @@ export default {
                 else if (changedState === "production") {
                     this.changeApprovalState("ACCEPTED", false);
                 }
-                else if (changedState === "denied") {
+                else if (changedState === "limited") {
                     this.$refs.appActionModal.show();
                 }
                 else if (changedState === "removeBlacklist") {
-                    this.changeApprovalState("DENIED", false, null, true);
+                    this.changeApprovalState("LIMITED", false, null, true);
                 }
                 else if (changedState === "blacklist") {
                     this.blacklist_toggle = true;
@@ -367,7 +373,7 @@ export default {
             }
         },
         "handleModalClick": function () {
-            this.changeApprovalState("DENIED", this.blacklist_toggle, "send_button_loading", this.contains_feedback);
+            this.changeApprovalState("LIMITED", this.blacklist_toggle, "send_button_loading", this.contains_feedback);
         },
         "toggleActions": function(){
             this.actions_visible = !this.actions_visible;
@@ -487,17 +493,17 @@ export default {
     computed: {
         classStatusDot: function(){
             return {
-                "color-red": this.app.approval_status == "DENIED",
+                "color-red": this.app.approval_status == "LIMITED",
                 "color-green": this.app.approval_status == "ACCEPTED"
             }
         },
         deny_button_text: function () {
-            const actionName = this.blacklist_toggle ? "Blacklist" : "Deny";
+            const actionName = this.blacklist_toggle ? "Blacklist application" : "Reject application updates";
             if (this.contains_feedback) {
-                return actionName + " application with feedback";
+                return actionName + " with feedback";
             }
             else {
-                return actionName + " application without feedback";
+                return actionName + " without feedback";
             }
         },
         contains_feedback: function () {

@@ -8,10 +8,17 @@ WITH ( OIDS = FALSE );
 DROP VIEW view_partial_app_info;
 
 ALTER TYPE approval_status RENAME TO approval_status_temp;
-CREATE TYPE approval_status AS ENUM ('PENDING', 'STAGING', 'ACCEPTED', 'DENIED');
+CREATE TYPE approval_status AS ENUM ('PENDING', 'STAGING', 'ACCEPTED', 'LIMITED');
 
 ALTER TABLE app_info
 	ALTER COLUMN approval_status DROP DEFAULT,
+	ALTER COLUMN approval_status TYPE TEXT;
+
+UPDATE app_info 
+	SET approval_status = 'LIMITED'
+	WHERE approval_status = 'DENIED';
+    
+ALTER TABLE app_info
 	ALTER COLUMN approval_status 
 		SET DATA TYPE approval_status
 		USING approval_status::text::approval_status,
