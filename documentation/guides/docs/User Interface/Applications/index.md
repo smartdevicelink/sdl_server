@@ -70,10 +70,10 @@ Applications in the staging state will have their permissions granted when using
 Applications in the accepted state will have their permissions granted when using both the staging and the production policy table. This state is for applications that are allowed to be used in a production environment. 
 
 ##### Limited
-Limited applications will not receive their requested changes, but will be given permissions in default functional groups. Additional options include providing a reasoning for limiting the application for your future reference. While in the modal or when in the limited state, you also have the option to blacklist the application.
+Limited applications will not receive their requested changes. However, permissions received from the previously accepted version and from default functional groups will still be given. Additional options include providing a reasoning for limiting the application for your future reference. While in the limited state, you also have the option to blacklist the application.
 
 ##### Blacklisted
-All previous and future versions of a blacklisted application will not receive any permissions, including permissions from default functional groups. This action is reversible.
+A blacklisted application will not receive any permissions, including permissions from default functional groups. All future update requests will also be blacklisted. This action is reversible.
 
 ## New Application Versions
 Each time an app is updated on the SDL Developer Portal at smartdevicelink.com, the app's changes will appear in your Policy Server pending re-approval. If an app is from a trusted developer and you would like to always approve future revisions of it, you can choose to "Automatically approve updates" under "General App Info" of the app's review page.

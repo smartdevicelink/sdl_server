@@ -178,18 +178,11 @@
                 <!-- APP LIMITED MODAL -->
                 <b-modal ref="appActionModal" title="Reject Application Updates" hide-footer id="appActionModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                     <form>
-                        <h6>Rejecting an application will disallow any changes the application requested, but permissions received from default functional groups will still be given.</h6>
+                        <h6>Rejecting an application will disallow any changes the application requested, including additional permissions. <br><br>
+                            However, permissions received from the previously accepted version and from default functional groups will still be given.</h6>
                         <div class="form-group">
                             <textarea v-model="app.denial_message" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
                         </div>
-                        <label class="switch">
-                            <input v-model="blacklist_toggle" type="checkbox"></input>
-                            <span class="slider slider-red round"></span>
-                        </label>
-                        <label class="form-check-label switch-label">
-                            Blacklist this application
-                        </label>
-                        <h5 v-if="blacklist_toggle"><br>Warning: Blacklisting an application will deny any version of it from receiving any permissions in both staging and production.</h5>
                         <vue-ladda
                             type="button"
                             v-on:click="handleModalClick()"
@@ -204,10 +197,10 @@
                 <!-- APP BLACKLIST MODAL -->
                 <b-modal ref="appBlacklistModal" title="Blacklist Application" hide-footer id="appBlacklistModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                     <form>
+                        <h6>Blacklisting an application will prevent it from receiving any permissions on both staging and production.</h6>
                         <div class="form-group">
                             <textarea v-model="app.denial_message" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
                         </div>
-                        <h5>Warning: Blacklisting an application will deny any version of it from receiving any permissions in both staging and production.</h5>
                         <vue-ladda
                             type="button"
                             v-on:click="handleModalClick()"

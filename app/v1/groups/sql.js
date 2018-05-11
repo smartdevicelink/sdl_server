@@ -24,6 +24,13 @@ const hmiLevels = sql.select('hmi_level_enum AS id')
     })
     .toString();
 
+function getDuplicateNames (name) {
+    return sql.select('property_name')
+        .from('(' + getFuncGroupStatus(false) + ') fgi')
+        .where({property_name: name})
+        .toString();
+}
+
 function getFuncGroupId (id) {
     return sql.select('*').from('function_group_info')
         .where({
@@ -206,6 +213,7 @@ module.exports = {
     rpcs: rpcs,
     hmiLevels: hmiLevels,
     permissionRelationsNoModules: permissionRelationsNoModules,
+    getDuplicateNames: getDuplicateNames,
     getFuncGroup: {
         base: {
             idFilter: getFuncGroupId,

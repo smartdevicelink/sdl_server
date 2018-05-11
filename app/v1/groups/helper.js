@@ -128,11 +128,17 @@ function createFuncGroupFlow (filterTypeProp, value, includeRpcs, isProduction) 
     ], {method: 'waterfall', eventLoop: true});
 }
 
+function duplicateNameCheck (name, callback) {
+    setupSql(sql.getDuplicateNames(name), function (err, res) {
+        callback (err, res.length > 0);
+    });
+}
 
 module.exports = {
 	createFuncGroupFlow: createFuncGroupFlow,
 	validatePromote: validatePromote,
 	validatePromptExistence: validatePromptExistence,
 	validateFuncGroup: validateFuncGroup,
+    duplicateNameCheck: duplicateNameCheck,
     generateFunctionGroupTemplates: generateFunctionGroupTemplates
 }

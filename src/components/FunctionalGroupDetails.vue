@@ -178,7 +178,6 @@
                         Promote to Production
                     </vue-ladda>
                 </b-modal>
-
             </div>
         </div>
     </div>
@@ -238,6 +237,12 @@ import { eventBus } from '../main.js';
                 this.handleModalClick("undelete_button_loading", "undeleteModal", "undeleteFunctionalGroupInfo");
             },
             "saveGroup": function () {
+                /*this.httpRequest("get", "/groups/duplicate?name=" + this.fg.name, {}, (err, isDuplicated) => {
+                    if (isDuplicated) {
+                    }
+                    else {
+                    }
+                });*/
                 this.handleModalClick("save_button_loading", null, "saveFunctionalGroupInfo");
             },
             "copyGroup": function () {

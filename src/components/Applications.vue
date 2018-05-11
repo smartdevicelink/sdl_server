@@ -56,7 +56,7 @@
                     "apps_denied": {
                         "list": [],
                         "class": "color-red",
-                        "title": "Denied Applications"
+                        "title": "Limited Applications"
                     },                   
                 }
             }
