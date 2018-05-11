@@ -21,6 +21,7 @@
                     <div class="form-row">
                         <h4 for="name">Name</h4>
                         <input v-model="message.message_category" :disabled="id" type="email" class="form-control" id="email">
+                        <p v-if="duplicateName"><br>A consumer message with this name already exists! By saving, you will overwrite the previously existing consumer message.</p>
                     </div>
 
                     <!-- container for languages -->
@@ -126,7 +127,8 @@ import { eventBus } from '../main.js';
                 "lang_search": null,
                 "save_button_loading": false,
                 "delete_button_loading": false,
-                "undelete_button_loading": false
+                "undelete_button_loading": false,
+                "message_names": []
             };
         },
         methods: {
@@ -206,14 +208,27 @@ import { eventBus } from '../main.js';
                     this.$router.push("/consumermessages");
                 });
             },
+            "getConsumerMessageNames": function () {
+                this.httpRequest("get", "messages/names", {}, (err, response) => {
+                    if (response) {
+                        response.json().then(parsed => {
+                            this.message_names = parsed.data.names;
+                        });
+                    }
+                });
+            }
         },
         computed: {
             fieldsDisabled: function () {
                 return (this.message.is_deleted || this.environment != 'STAGING');
+            },
+            duplicateName: function () {
+                return this.message_names.includes(this.message ? this.message.message_category : undefined);
             }
         },
         created: function () {
             this.getConsumerMessageInfo();
+            this.getConsumerMessageNames();
         },
         beforeDestroy () {
             // ensure closing of all modals

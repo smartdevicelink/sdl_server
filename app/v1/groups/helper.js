@@ -128,9 +128,9 @@ function createFuncGroupFlow (filterTypeProp, value, includeRpcs, isProduction) 
     ], {method: 'waterfall', eventLoop: true});
 }
 
-function duplicateNameCheck (name, callback) {
-    setupSql(sql.getDuplicateNames(name), function (err, res) {
-        callback (err, res.length > 0);
+function getGroupNamesStaging (callback) {
+    setupSql(sql.getGroupNamesStaging, function (err, names) {
+        callback(err, names.map(function (elem) {return elem.property_name;}));
     });
 }
 
@@ -139,6 +139,6 @@ module.exports = {
 	validatePromote: validatePromote,
 	validatePromptExistence: validatePromptExistence,
 	validateFuncGroup: validateFuncGroup,
-    duplicateNameCheck: duplicateNameCheck,
+    getGroupNamesStaging: getGroupNamesStaging,
     generateFunctionGroupTemplates: generateFunctionGroupTemplates
 }

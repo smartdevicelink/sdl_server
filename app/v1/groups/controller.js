@@ -43,9 +43,8 @@ function get (req, res, next) {
     });
 }
 
-function duplicateNameCheck (req, res, next) {
-    const functionalGroupName = "" + req.query.name;
-    helper.duplicateNameCheck(functionalGroupName, function (err, isDuplicate) {
+function getGroupNamesStaging (req, res, next) {
+    helper.getGroupNamesStaging(function (err, groupNames) {
         if (err) {
             app.locals.log.error(err);
             return res.parcel
@@ -56,7 +55,7 @@ function duplicateNameCheck (req, res, next) {
         return res.parcel
             .setStatus(200)
             .setData({
-                "isDuplicate": isDuplicate
+                "names": groupNames
             })
             .deliver();        
     });
@@ -133,6 +132,6 @@ module.exports = {
     get: get,
     postAddGroup: postStaging,
     postPromote: promoteIds,
-    getDuplicate: duplicateNameCheck,
+    getNames: getGroupNamesStaging,
     generateFunctionGroupTemplates: helper.generateFunctionGroupTemplates
 };
