@@ -17,5 +17,14 @@
       "port": {"ENV": "PRODUCTION_PG_PORT"},
       "schema": "public"
   },
+  "pg-test": {
+      "driver": "pg",
+      "user": {"ENV": "TEST_PG_USER"},
+      "password": {"ENV": "TEST_PG_PASSWORD"},
+      "host": {"ENV": "TEST_PG_HOST"},
+      "database": {"ENV": "TEST_PG_DATABASE"},
+      "port": {"ENV": "TEST_PG_PORT"},
+      "schema": "public"
+  },
   "sql-file": true
 }

@@ -14,13 +14,15 @@
     "dev": "npm run-script db-migrate-up-pg-staging && NODE_ENV=staging node build/dev-server.js",
     "start": "npm run dev",
     "build": "node build/build.js",
-    "test": "NODE_ENV=staging mocha",
+    "test": "npm run db-migrate-reset-pg-test > /dev/null 2>&1 && npm run db-migrate-up-pg-test > /dev/null 2>&1 && NODE_ENV=test mocha",
     "start-pg-staging": "npm run build && npm run db-migrate-up-pg-staging && NODE_ENV=staging node index.js",
     "start-pg-production": "npm run build && npm run db-migrate-up-pg-production && NODE_ENV=production node index.js",
     "db-migrate": "node_modules/db-migrate/bin/db-migrate",
     "db-migrate-up-pg-staging": "npm run db-migrate -- up -e pg-staging",
     "db-migrate-up-pg-production": "npm run db-migrate -- up -e pg-production",
-    "db-migrate-reset-pg-staging": "npm run db-migrate -- reset -e pg-staging"
+    "db-migrate-reset-pg-staging": "npm run db-migrate -- reset -e pg-staging",
+    "db-migrate-up-pg-test": "npm run db-migrate -- up -e pg-test",
+    "db-migrate-reset-pg-test": "npm run db-migrate -- reset -e pg-test"
   },
   "dependencies": {
     "async": "2.5.0",
