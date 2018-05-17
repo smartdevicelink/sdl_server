@@ -1,70 +1,61 @@
 var common = require('../../../common');
 var expect = common.expect;
+var sql = common.sql;
+var setupSql = require('../../../../app/v1/app').locals.db.setupSqlCommand;
 var endpoint = '/api/v1/messages';
 
-// TODO: check that info is correct
+function getMessageByName(name) {
+    return sql.select('*')
+        .from('message_group')
+        .where({
+            message_category: name
+        })
+        .toString();
+}
+
 common.get(
-    'get with no parameters',
+    'should get all messages',
     endpoint,
     {},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        expect(res.body.data.messages).to.have.lengthOf.above(0);
         done();
     }
 );
 
-// TODO: check that info is correct
 common.get(
-    'get with environment and id',
+    'should get message with the given id',
     endpoint,
-    {environment: 'staging', id: 1},
+    {id: 1},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        expect(res.body.data.messages).to.have.lengthOf(1);
         done();
     }
 );
 
-// TODO: check that info is correct
 common.get(
-    'get with invalid environment',
+    'should not get any message with invalid id',
     endpoint,
-    {environment: 'INVALID', id: 1},
+    {id: 1000},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        expect(res.body.data.messages).to.have.lengthOf(0);
         done();
     }
 );
 
-// TODO: check that info is correct
-common.get(
-    'get with invalid id',
-    endpoint,
-    {environment: 'staging', id: 1000},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
-
-// TODO: check that messages are created or altered
 common.post(
-    'post with messages',
+    'should create new message',
     endpoint,
     {
         messages: [
             {
                 message_category: 'Blarg',
-                is_deleted: false,
-                languages: [
-
-                ]
-            },
-            {
-                message_category: 'Blarg2',
                 is_deleted: false,
                 languages: [
 
@@ -75,12 +66,16 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        done();
+        setupSql(getMessageByName('Blarg'), (err, res) => {
+            expect(err).to.be.null;
+            expect(res).to.have.lengthOf(1);
+            done();
+        });
     }
 );
 
 common.post(
-    'post with invalid messages',
+    'should return 400 with invalid messages',
     endpoint,
     {
         messages: [
@@ -107,7 +102,7 @@ common.post(
 );
 
 common.post(
-    'post with no body',
+    'should return 400 with no body specified',
     endpoint,
     {},
     (err, res, done) => {

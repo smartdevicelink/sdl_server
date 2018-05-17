@@ -2,9 +2,8 @@ var common = require('../../../common');
 var expect = common.expect;
 var endpoint = '/api/v1/staging/policy';
 
-// TODO: check that returned policy table is correct
 common.post(
-    'post with policy table',
+    'should return staging policy table',
     endpoint,
     {
         policy_table: {
@@ -24,7 +23,7 @@ common.post(
 );
 
 common.post(
-    'post with invalid policy table',
+    'should return 400 with invalid policy_table',
     endpoint,
     {
         policy_table: {
@@ -43,7 +42,7 @@ common.post(
 );
 
 common.post(
-    'post with no body',
+    'should return 400 with no body specified',
     endpoint,
     {},
     (err, res, done) => {

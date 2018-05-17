@@ -2,9 +2,8 @@ var common = require('../../../common');
 var expect = common.expect;
 var endpoint = '/api/v1/policy/apps';
 
-// TODO: check to make sure correct info is returned
 common.post(
-    'post with environment and app_policies',
+    'should get staging policy objects',
     endpoint,
     {
         policy_table: {
@@ -19,13 +18,13 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        expect(Object.keys(res.body.data[0].policy_table.app_policies).length).to.equal(6);
         done();
     }
 );
 
-// TODO: check to make sure correct info is returned
 common.post(
-    'post with app_policies',
+    'should get production policy objects',
     endpoint,
     {
         policy_table: {
@@ -34,17 +33,19 @@ common.post(
                 "ac0a3e87-a45a-4c29-af4c-a3a4955a5ad1": 1,
                 "dfda5c35-700e-487e-87d2-ea4b2c572802": 2
             }
-        }
+        },
+        environment: "production"
     },
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        expect(Object.keys(res.body.data[0].policy_table.app_policies).length).to.equal(6);
         done();
     }
 );
 
 common.post(
-    'post with environment and app_policies',
+    'should return 400 with no app policies specified',
     endpoint,
     {
         policy_table: {
@@ -58,27 +59,26 @@ common.post(
     }
 );
 
-// TODO: check to make sure correct info is returned
 common.post(
-    'post with environment and app_policies',
+    'should get default permissions for invalid app uuid',
     endpoint,
     {
         policy_table: {
             app_policies: {
                 "INVALID_APP": 1
             }
-        },
-        environment: "staging"
+        }
     },
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        expect(Object.keys(res.body.data[0].policy_table.app_policies).length).to.equal(4);
         done();
     }
 );
 
 common.post(
-    'post with no body',
+    'should return 400 with no body specified',
     endpoint,
     {},
     (err, res, done) => {

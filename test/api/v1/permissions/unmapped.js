@@ -2,9 +2,8 @@ var common = require('../../../common');
 var expect = common.expect;
 var endpoint = '/api/v1/permissions/unmapped';
 
-// TODO: check if info returned is correct
 common.get(
-    'get with environment',
+    'should get unmapped permissions in staging',
     endpoint,
     {environment: 'staging'},
     (err, res, done) => {
@@ -14,11 +13,10 @@ common.get(
     }
 );
 
-// TODO: check if info returned is correct
 common.get(
-    'get with invalid environment',
+    'should get unmapped permissions in production',
     endpoint,
-    {environment: 'INVALID'},
+    {environment: 'production'},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
@@ -26,9 +24,8 @@ common.get(
     }
 );
 
-// TODO: check if info returned is correct
 common.get(
-    'get with environment',
+    'should get unmapped production permissions when no environment is specified',
     endpoint,
     {},
     (err, res, done) => {

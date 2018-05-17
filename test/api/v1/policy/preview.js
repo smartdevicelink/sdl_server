@@ -3,7 +3,7 @@ var expect = common.expect;
 var endpoint = '/api/v1/policy/preview';
 
 common.get(
-    'get with no parameters',
+    'should get production policy table by default',
     endpoint,
     {},
     (err, res, done) => {
@@ -13,9 +13,8 @@ common.get(
     }
 );
 
-// TODO: check for correct policy table based on environment
 common.get(
-    'get with environment',
+    'should get policy table for given environment',
     endpoint,
     {environment: 'staging'},
     (err, res, done) => {

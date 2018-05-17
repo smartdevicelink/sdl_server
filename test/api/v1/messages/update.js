@@ -2,9 +2,8 @@ var common = require('../../../common');
 var expect = common.expect;
 var endpoint = '/api/v1/messages/update';
 
-// TODO: check that the languages were updated
 common.post(
-    'post with no body',
+    'should update the list of languages',
     endpoint,
     {},
     (err, res, done) => {

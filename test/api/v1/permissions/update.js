@@ -4,7 +4,7 @@ var endpoint = '/api/v1/permissions/update';
 
 // TODO: check that permissions were updated
 common.post(
-    'post with no body',
+    'should update permissions',
     endpoint,
     {},
     (err, res, done) => {

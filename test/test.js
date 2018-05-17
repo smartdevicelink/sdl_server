@@ -10,8 +10,8 @@ function importTest(name, path) {
 
 describe('SDL SERVER TESTS', function () {
     before(function(done) {
-        this.timeout(11000);
-        setTimeout(done, 10000);
+        this.timeout(16000);
+        setTimeout(done, 15000);
     });
 
     describe('api', function() {
@@ -36,4 +36,7 @@ describe('SDL SERVER TESTS', function () {
             importTest('/module/promote', './api/v1/module/promote');
         });
     });
+
+    importTest('cache', './cache/cache');
+    importTest('basic-auth', './basicAuth/basicAuth');
 });

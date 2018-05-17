@@ -1,58 +1,56 @@
 var common = require('../../../common');
 var expect = common.expect;
+var sql = common.sql;
+var setupSql = require('../../../../app/v1/app').locals.db.setupSqlCommand;
 var endpoint = '/api/v1/groups';
 
-// TODO: check if info is correct
+function getFunctionGroupByName(name) {
+    return sql.select('*')
+        .from('function_group_info')
+        .where({
+            property_name: name
+        })
+        .toString();
+}
+
 common.get(
-    'get with no parameters',
+    'should get all groups',
     endpoint,
     {},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        expect(res.body.data.groups).to.have.lengthOf.above(0);
         done();
     }
 );
 
-// TODO: check if info is correct
 common.get(
-    'get with environment and id',
-    endpoint,
-    {environment: 'staging', id: 1},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
-
-// TODO: check if info is correct
-common.get(
-    'get with id',
+    'should get group with given id',
     endpoint,
     {id: 1},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        expect(res.body.data.groups).to.have.lengthOf(1);
         done();
     }
 );
 
-// TODO: check if info is correct
 common.get(
-    'get with invalid id',
+    'should not get any groups with invalid id',
     endpoint,
     {id: 1000},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        expect(res.body.data.groups).to.have.lengthOf(0);
         done();
     }
 );
 
-// TODO: check that group is created or altered
 common.post(
-    'post with name, is_default, and rpcs',
+    'should add new group',
     endpoint,
     {
         name: 'Blarg',
@@ -65,12 +63,16 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        done();
+        setupSql(getFunctionGroupByName('Blarg'), (err, res) => {
+            expect(err).to.be.null;
+            expect(res).to.have.lengthOf(1);
+            done();
+        });
     }
 );
 
 common.post(
-    'post with invalid name',
+    'should return 400 with invalid name type',
     endpoint,
     {
         name: 7,
@@ -88,7 +90,7 @@ common.post(
 );
 
 common.post(
-    'post with invalid is_default',
+    'should return 400 with invalid is_default type',
     endpoint,
     {
         name: 'Blarg',
@@ -106,7 +108,7 @@ common.post(
 );
 
 common.post(
-    'post with no body',
+    'should return 400 with no body specified',
     endpoint,
     {},
     (err, res, done) => {

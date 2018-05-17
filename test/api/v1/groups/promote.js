@@ -1,45 +1,76 @@
 var common = require('../../../common');
 var expect = common.expect;
+var sql = common.sql;
+var setupSql = require('../../../../app/v1/app').locals.db.setupSqlCommand;
 var endpoint = '/api/v1/groups/promote';
 
-// TODO: check that the group was promoted
+function getMostRecentFunctionGroupsById(ids) {
+    if (!Array.isArray(ids)) {
+        ids = [ids];
+    }
+
+    let inner = sql.select('property_name')
+        .from('function_group_info')
+        .where(sql.in('id', ids));
+
+    return sql.select('max(id) as id', 'property_name', 'status')
+        .from('function_group_info')
+        .where(sql.in('property_name', inner))
+        .groupBy('property_name', 'status')
+        .toString();
+}
+
 common.post(
-    'post with single id',
+    'should promote group to production',
     endpoint,
     {id: [ 1 ]},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        done();
+        setupSql(getMostRecentFunctionGroupsById(1), (err, res) => {
+            expect(err).to.be.null;
+            expect(res[0].id).to.be.above(1);
+            expect(res[0].status).to.equal('PRODUCTION');
+            done();
+        });
     }
 );
 
-// TODO: check that the groups were promoted
 common.post(
-    'post with multiple ids',
+    'should promote groups to production',
     endpoint,
-    {id: [ 1, 2, 3 ]},
+    {id: [ 2, 3, 4 ]},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        done();
+        setupSql(getMostRecentFunctionGroupsById([2, 3, 4]), (err, res) => {
+            expect(err).to.be.null;
+            expect(res).to.have.lengthOf(3);
+            for (let i = 0; i < res.length; i++) {
+                expect(res[i].status).to.equal('PRODUCTION');
+            }
+            done();
+        });
     }
 );
 
-// TODO: check that no group was promoted
 common.post(
-    'post with invalid id',
+    'should not promote group with invalid id',
     endpoint,
     {id: [ 1000 ]},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        done();
+        setupSql(getMostRecentFunctionGroupsById(1000), (err, res) => {
+            expect(err).to.be.null;
+            expect(res).to.have.lengthOf(0);
+            done();
+        });
     }
 );
 
 common.post(
-    'post with no body',
+    'should return 400 with no body',
     endpoint,
     {},
     (err, res, done) => {
