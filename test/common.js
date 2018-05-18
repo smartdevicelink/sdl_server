@@ -4,6 +4,7 @@ const chaiJsonSchema = require('chai-json-schema');
 const expect = chai.expect;
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 const sql = require('sql-bricks-postgres');
+const config = require('../settings.js');
 
 chai.use(chaiHttp);
 chai.use(chaiJsonSchema);
@@ -13,7 +14,7 @@ exports.get = (testName, endpoint, queryParams, endFunction) => {
         chai.request(BASE_URL)
             .get(endpoint)
             .set('Accept', 'application/json')
-            .set('BASIC-AUTH-PASSWORD', process.env.BASIC_AUTH_PASSWORD)
+            .set('BASIC-AUTH-PASSWORD', config.basicAuthPassword)
             .query(queryParams)
             .send()
             .end( (err, res) => {
@@ -28,7 +29,7 @@ exports.post = (testName, endpoint, body, endFunction) => {
             .post(endpoint)
             .set('Accept', 'application/json')
             .set('Content-Type', 'application/json')
-            .set('BASIC-AUTH-PASSWORD', process.env.BASIC_AUTH_PASSWORD)
+            .set('BASIC-AUTH-PASSWORD', config.basicAuthPassword)
             .send(body)
             .end( (err, res) => {
                 endFunction(err, res, done);

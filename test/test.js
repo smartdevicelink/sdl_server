@@ -1,6 +1,6 @@
 "use strict";
 
-var sdlServer = require('../build/dev-server.js');
+var sdlServer = require('../index.js');
 
 function importTest(name, path) {
     describe(name, function() {
