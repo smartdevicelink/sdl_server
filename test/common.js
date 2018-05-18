@@ -4,6 +4,7 @@ const chaiJsonSchema = require('chai-json-schema');
 const expect = chai.expect;
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 const sql = require('sql-bricks-postgres');
+const setupSql = require('../app/v1/app').locals.db.setupSqlCommand;
 const config = require('../settings.js');
 
 chai.use(chaiHttp);
@@ -41,3 +42,5 @@ exports.chai = chai;
 exports.expect = expect;
 exports.BASE_URL = BASE_URL;
 exports.sql = sql;
+exports.setupSql = setupSql;
+exports.config = config;

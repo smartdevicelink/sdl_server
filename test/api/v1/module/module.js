@@ -1,7 +1,7 @@
 var common = require('../../../common');
 var expect = common.expect;
 var sql = common.sql;
-var setupSql = require('../../../../app/v1/app').locals.db.setupSqlCommand;
+var setupSql = common.setupSql;
 var endpoint = '/api/v1/module';
 
 function getModuleByKilometers(kilometers) {
