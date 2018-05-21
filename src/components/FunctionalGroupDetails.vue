@@ -21,6 +21,7 @@
                     <div class="form-row">
                         <h4 for="name">Name</h4>
                         <input v-model="fg.name" :disabled="id" type="email" class="form-control" id="email" required>
+                        <p v-if="duplicateName"><br>A functional group with this name already exists! By saving, you will overwrite the previously existing functional group.</p>
                     </div>
 
                     <!-- Description -->
@@ -178,7 +179,6 @@
                         Promote to Production
                     </vue-ladda>
                 </b-modal>
-
             </div>
         </div>
     </div>
@@ -210,7 +210,8 @@ import { eventBus } from '../main.js';
                 "save_button_loading": false,
                 "promote_button_loading": false,
                 "selected_prompt": null,
-                "consent_prompts": []
+                "consent_prompts": [],
+                "group_names": []
             };
         },
         methods: {
@@ -322,6 +323,15 @@ import { eventBus } from '../main.js';
             "undeleteFunctionalGroupInfo": function (cb) {
                 this.fg.is_deleted = false;
                 this.httpRequest("post", "groups", { "body": this.fg }, cb);
+            },
+            "getFunctionalGroupNames": function () {
+                this.httpRequest("get", "groups/names", {}, (err, response) => {
+                    if (response) {
+                        response.json().then(parsed => {
+                            this.group_names = parsed.data.names;
+                        });
+                    }
+                });
             }
         },
         computed: {
@@ -337,6 +347,9 @@ import { eventBus } from '../main.js';
             },
             fieldsDisabled: function () {
                 return (this.fg.is_deleted || this.environment != 'STAGING');
+            },
+            duplicateName: function () {
+                return this.group_names.includes(this.fg.name);
             }
         },
         created: function(){
@@ -359,6 +372,7 @@ import { eventBus } from '../main.js';
             //get consent prompts regardless in case a new functional group from scratch is desired
             this.getConsentPrompts();
             this.getFunctionalGroupInfo();
+            this.getFunctionalGroupNames();
         },
         mounted: function(){
             //this.$methods.addInvitee();

@@ -116,11 +116,30 @@ function postUpdate (req, res, next) {
     });
 }
 
+function getMessageNamesStaging (req, res, next) {
+    helper.getMessageNamesStaging(function (err, names) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.parcel
+                .setStatus(500)
+                .setMessage("Internal server error")
+                .deliver();
+        }
+        return res.parcel
+            .setStatus(200)
+            .setData({
+                "names": names
+            })
+            .deliver();        
+    });
+}
+
 module.exports = {
     getInfo: getInfo,
     getMessageGroups: helper.getMessageGroups, //used by the groups module
     postAddMessage: postStaging,
     postPromoteMessages: promoteIds,
     postUpdate: postUpdate,
-    updateLanguages: helper.updateLanguages
+    updateLanguages: helper.updateLanguages,
+    getNames: getMessageNamesStaging,
 };

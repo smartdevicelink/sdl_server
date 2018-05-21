@@ -5,6 +5,9 @@ const log = require(`../../../custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`../../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
 const groupsSql = require('../groups/sql.js');
 const getLanguages = sql.select('*').from('languages').toString();
+const getMessageNamesStaging = sql.select('message_category')
+    .from('(' + getMessageGroups(false) + ') fgi')
+    .toString();
 
 module.exports = {
     insert: {
@@ -21,6 +24,7 @@ module.exports = {
         byIds: getMessagesByIdsStagingFilter,
         groupsByIds: getMessageGroupsByIdsStagingFilter
     },
+    getMessageNamesStaging: getMessageNamesStaging,
     getLanguages: getLanguages,
     getAttachedFunctionalGroupsById: getAttachedFunctionalGroupsById
 }

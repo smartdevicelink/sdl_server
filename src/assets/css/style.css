@@ -525,6 +525,14 @@ div.horizontal-divider .text {
     background-color: #384F61 !important;
     color: #FFFFFF !important;
 }
+.btn-style-red {
+    background-color: #FF5E71 !important;
+    color: #FFFFFF !important;
+}
+.btn-style-red:hover {
+    background-color: #4A5E71 !important;
+    color: #FFFFFF !important;
+}
 
 .app-action {
     font-size: .875rem;
@@ -589,9 +597,15 @@ div.horizontal-divider .text {
   transition: .4s;
 }
 
+
 input:checked + .slider {
   background-color: #78C970;
   border: solid 1px #78C970;
+}
+
+input:checked + .slider-red {
+  background-color: #FF5E71;
+  border: solid 1px #FF5E71;
 }
 
 input:focus + .slider {
@@ -653,6 +667,9 @@ input:checked + .slider:before {
 }
 .color-primary {
     color: #4A5E71 !important;
+}
+.color-black {
+    color: #222C37 !important;
 }
 
 .color-bg-gray {
@@ -1107,6 +1124,25 @@ input:checked + .slider:before {
     color: #FFFFFF !important;
     border: solid 4px;
     border-color: #fff;
+}
+
+/*
+* Background Colors for Buttons
+*/
+.dropdown-red button {
+    background-color: #FF5E71;
+}
+
+.dropdown-green button {
+    background-color: #78C970;
+}
+
+.dropdown-primary button {
+    background-color: #4A5E71;
+}
+
+.dropdown-black button {
+    background-color: #222C37;
 }
 
 

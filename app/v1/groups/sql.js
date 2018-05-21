@@ -24,6 +24,10 @@ const hmiLevels = sql.select('hmi_level_enum AS id')
     })
     .toString();
 
+const getGroupNamesStaging = sql.select('property_name')
+    .from('(' + getFuncGroupStatus(false) + ') fgi')
+    .toString();
+
 function getFuncGroupId (id) {
     return sql.select('*').from('function_group_info')
         .where({
@@ -206,6 +210,7 @@ module.exports = {
     rpcs: rpcs,
     hmiLevels: hmiLevels,
     permissionRelationsNoModules: permissionRelationsNoModules,
+    getGroupNamesStaging: getGroupNamesStaging,
     getFuncGroup: {
         base: {
             idFilter: getFuncGroupId,

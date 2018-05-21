@@ -43,8 +43,26 @@ function get (req, res, next) {
     });
 }
 
+function getGroupNamesStaging (req, res, next) {
+    helper.getGroupNamesStaging(function (err, groupNames) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.parcel
+                .setStatus(500)
+                .setMessage("Internal server error")
+                .deliver();
+        }
+        return res.parcel
+            .setStatus(200)
+            .setData({
+                "names": groupNames
+            })
+            .deliver();        
+    });
+}
+
 function postStaging (req, res, next) {
-    helper.validateFuncGroup(req, res, function (isValid) {
+    helper.validateFuncGroup(req, res, function () {
         if (res.parcel.message) {
             res.parcel.deliver();
             return;
@@ -82,8 +100,6 @@ function promoteIds (req, res, next) {
     if (check.number(req.body.id)) {
         req.body.id = [req.body.id];
     }
-    //TODO: check prompt existence in production mode
-    //get function group information first so prompt existence checks can be attempted
 
     const getFuncGroupsFlow = flow(req.body.id.map(function (id) {
         return helper.createFuncGroupFlow('idFilter', id, true);
@@ -92,10 +108,13 @@ function promoteIds (req, res, next) {
     const getAndInsertFlow = app.locals.flow([
         getFuncGroupsFlow,
         function (funcGroups, next) {
-            //format the functional groups so it's a single array
-            next(null, funcGroups.map(function (funcGroup) {
+            const notNullGroups = funcGroups.map(function (funcGroup) {
                 return funcGroup[0];
-            }));
+            }).filter(function (elem) {
+                return elem;
+            });
+            //format the functional groups so it's a single array
+            next(null, notNullGroups);
         },
         model.insertFunctionalGroupsWithTransaction.bind(null, true)
     ], {method: 'waterfall'});
@@ -113,5 +132,6 @@ module.exports = {
     get: get,
     postAddGroup: postStaging,
     postPromote: promoteIds,
+    getNames: getGroupNamesStaging,
     generateFunctionGroupTemplates: helper.generateFunctionGroupTemplates
 };

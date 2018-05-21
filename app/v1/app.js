@@ -59,9 +59,11 @@ function exposeRoutes () {
 	app.post('/permissions/update', auth.validateAuth, permissions.post);
 	app.get('/permissions/unmapped', auth.validateAuth, permissions.get);
 	app.get('/groups', auth.validateAuth, groups.get);
+	app.get('/groups/names', auth.validateAuth, groups.getNames);
 	app.post('/groups', auth.validateAuth, groups.postAddGroup);
 	app.post('/groups/promote', auth.validateAuth, groups.postPromote);
 	app.get('/messages', auth.validateAuth, messages.getInfo);
+	app.get('/messages/names', auth.validateAuth, messages.getNames);
 	app.post('/messages', auth.validateAuth, messages.postAddMessage);
 	app.post('/messages/promote', auth.validateAuth, messages.postPromoteMessages);
 	app.post('/messages/update', auth.validateAuth, messages.updateLanguages);

@@ -7,25 +7,27 @@ function getBaseAppInfo (isProduction, appUuids) {
         approvalStatusArray = ["ACCEPTED"];
     }
     else {
-        approvalStatusArray = ["ACCEPTED", "PENDING", "DENIED"]; //permit all apps regardless of approval state
+        approvalStatusArray = ["ACCEPTED", "STAGING"];
     }
 
-    let tempTable = sql.select('app_uuid', 'max(id) AS id')
-        .from('view_partial_app_info group_ai')
+    const innerSelect = sql.select('*')
+        .from('view_partial_app_info')
         .where(
-            sql.in('group_ai.approval_status', approvalStatusArray)
+            sql.in('approval_status', approvalStatusArray)
         )
         .where(
-            sql.in('group_ai.app_uuid', appUuids)
-        )
+            sql.in('app_uuid', appUuids)
+        );
+
+    const whereIn = sql.select('max(id) AS id')
+        .from('(' + innerSelect + ') AS test')
         .groupBy('app_uuid');
 
-    return sql.select('app_info.*')
-        .from('('+tempTable+') ai')
-        .join('app_info', {
-            'app_info.id': 'ai.id'
-        })
-        .toString();
+    return sql.select("*")
+        .from("app_info")
+        .where(
+            sql.in('app_info.id', whereIn)
+        );
 }
 
 function getAppDisplayNames (appId) {
