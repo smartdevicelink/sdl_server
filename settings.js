@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 module.exports = {
     //name of the folder in the `databases` folder that you want to use as the module of
     //interfacing with a specific database. The entry point must be named index.js and implement the required functions

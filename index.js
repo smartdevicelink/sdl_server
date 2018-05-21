@@ -1,5 +1,3 @@
-//load the environment variables from the .env file in the same directory
-require('dotenv').config();
 //load modules
 const fs = require('fs');
 const express = require('express');
