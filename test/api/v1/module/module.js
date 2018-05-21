@@ -1,18 +1,6 @@
 var common = require('../../../common');
 var expect = common.expect;
-var sql = common.sql;
-var setupSql = common.setupSql;
 var endpoint = '/api/v1/module';
-
-function getModuleByKilometers(kilometers) {
-    return sql.select('*')
-        .from('module_config')
-        .where({
-            exchange_after_x_kilometers: kilometers,
-            status: 'STAGING'
-        })
-        .toString();
-}
 
 common.get(
     'should get module config with given id',
@@ -77,11 +65,7 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        setupSql(getModuleByKilometers(777), (err, res) => {
-            expect(err).to.be.null;
-            expect(res).to.have.lengthOf(1);
-            done();
-        });
+        done();
     }
 );
 

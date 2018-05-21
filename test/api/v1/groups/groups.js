@@ -1,17 +1,6 @@
 var common = require('../../../common');
 var expect = common.expect;
-var sql = common.sql;
-var setupSql = common.setupSql;
 var endpoint = '/api/v1/groups';
-
-function getFunctionGroupByName(name) {
-    return sql.select('*')
-        .from('function_group_info')
-        .where({
-            property_name: name
-        })
-        .toString();
-}
 
 common.get(
     'should get all groups',
@@ -63,11 +52,7 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        setupSql(getFunctionGroupByName('Blarg'), (err, res) => {
-            expect(err).to.be.null;
-            expect(res).to.have.lengthOf(1);
-            done();
-        });
+        done();
     }
 );
 

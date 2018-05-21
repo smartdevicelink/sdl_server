@@ -1,17 +1,6 @@
 var common = require('../../../common');
 var expect = common.expect;
-var sql = common.sql;
-var setupSql = common.setupSql;
 var endpoint = '/api/v1/applications/action';
-
-function getAppStatusById(id) {
-    return sql.select('approval_status')
-        .from('app_info')
-        .where({
-            id: id
-        })
-        .toString();
-}
 
 common.post(
     'should change application status',
@@ -20,11 +9,7 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        setupSql(getAppStatusById(1), (err, res) => {
-            expect(err).to.be.null;
-            expect(res[0].approval_status).to.equal('DENIED');
-            done();
-        });
+        done();
     }
 );
 
@@ -68,11 +53,7 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        setupSql(getAppStatusById(1000), (err, res) => {
-            expect(err).to.be.null;
-            expect(res).to.have.lengthOf(0);
-            done();
-        });
+        done();
     }
 );
 

@@ -1,18 +1,6 @@
 var common = require('../../../common');
 var expect = common.expect;
-var sql = common.sql;
-var setupSql = common.setupSql;
 var endpoint = '/api/v1/module/promote';
-
-function getModuleByKilometers(kilometers) {
-    return sql.select('*')
-        .from('module_config')
-        .where({
-            exchange_after_x_kilometers: kilometers,
-            status: 'PRODUCTION'
-        })
-        .toString();
-}
 
 common.post(
     'should create new production module config',
@@ -41,11 +29,7 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        setupSql(getModuleByKilometers(777), (err, res) => {
-            expect(err).to.be.null;
-            expect(res).to.have.lengthOf(1);
-            done();
-        });
+        done();
     }
 );
 

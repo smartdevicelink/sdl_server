@@ -1,17 +1,6 @@
 var common = require('../../../common');
 var expect = common.expect;
-var sql = common.sql;
-var setupSql = common.setupSql;
 var endpoint = '/api/v1/messages';
-
-function getMessageByName(name) {
-    return sql.select('*')
-        .from('message_group')
-        .where({
-            message_category: name
-        })
-        .toString();
-}
 
 common.get(
     'should get all messages',
@@ -66,11 +55,7 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-        setupSql(getMessageByName('Blarg'), (err, res) => {
-            expect(err).to.be.null;
-            expect(res).to.have.lengthOf(1);
-            done();
-        });
+        done();
     }
 );
 
