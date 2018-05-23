@@ -11,8 +11,8 @@
                 -->
                 <div class="app-action pull-right">
                     <b-dropdown right
-                        id="ddown-right" 
-                        :text="selected_option.state" 
+                        id="ddown-right"
+                        :text="selected_option.state"
                         :class="selected_option.class">
                         <div
                             v-for="opt in dropdown_options[selected_option.id]"
@@ -28,13 +28,13 @@
                             <b-dropdown-divider
                                 v-if="opt === 'divide'">
                             </b-dropdown-divider>
-                            
+
                         </div>
                     </b-dropdown>
                 </div>
 
                 <div class="app-table">
-                    <h4>General App Info<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/applications/"></a></h4>
+                    <h4>General App Info<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/applications/" target="_blank"></a></h4>
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -181,7 +181,7 @@
                         <h6>Rejecting an application will disallow any changes the application requested, including additional permissions. <br><br>
                             However, permissions received from the previously accepted version and from default functional groups will still be given.</h6>
                         <div class="form-group">
-                            <textarea v-model="app.denial_message" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
+                            <textarea v-model="modal_text" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
                         </div>
                         <vue-ladda
                             type="button"
@@ -199,7 +199,7 @@
                     <form>
                         <h6>Blacklisting an application will prevent it from receiving any permissions on both staging and production.</h6>
                         <div class="form-group">
-                            <textarea v-model="app.denial_message" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
+                            <textarea v-model="modal_text" class="app-action form-control" id="appActionReason" rows="5" placeholder="Reason here..."></textarea>
                         </div>
                         <vue-ladda
                             type="button"
@@ -330,6 +330,7 @@ export default {
             "selected_option": pending_opt,
             "immediate_option_clicked": {},
             "blacklist_toggle": false,
+            "modal_text": "",
         };
     },
     methods: {
@@ -382,7 +383,7 @@ export default {
                     "approval_status": approvalStatus,
                     "blacklist": isBlacklisted,
                     "uuid": this.app.uuid,
-                    "denial_message": withFeedBack ? this.app.denial_message : null
+                    "denial_message": withFeedBack ? this.modal_text : null
                 }
             }, (err, response) => {
                 this.$refs.appActionModal.hide();
@@ -480,7 +481,7 @@ export default {
                         }
                     });
                 }
-            });            
+            });
         }
     },
     computed: {
@@ -500,7 +501,7 @@ export default {
             }
         },
         contains_feedback: function () {
-            return this.app && this.app.denial_message;
+            return this.app && this.modal_text;
         }
     },
     created: function(){

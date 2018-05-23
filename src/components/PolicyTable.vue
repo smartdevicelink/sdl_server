@@ -14,14 +14,14 @@
                     :options="environmentOptions"
                     name="chooseEnvironment" />
 
-                <h4>Policy Table<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/view-policy-table/"></a></h4>
+                <h4>Policy Table<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/view-policy-table/" target="_blank"></a></h4>
                 <b-input-group style="margin-bottom:0.5em;">
                     <b-input-group-addon>POST</b-input-group-addon>
                     <b-form-input type="text" v-bind:value="policyTablePostUrl"></b-form-input>
                 </b-input-group>
                 <div v-if="policytable !== null">
                     <vue-json-pretty :data="policytable"></vue-json-pretty>
-                    <a id="back-to-top" v-scroll-to="'body'" v-on:click.prevent class="btn btn-primary btn-lg back-to-top" role="button"><i class="fa fa-fw fa-chevron-up"></i></a>
+                    <a v-if="!at_top" id="back-to-top" v-scroll-to="'body'" v-on:click.prevent class="btn btn-primary btn-lg back-to-top" role="button"><i class="fa fa-fw fa-chevron-up"></i></a>
                 </div>
             </main>
         </div>
@@ -49,7 +49,8 @@ export default {
                     "value": "production"
                 }
             ],
-            "policytable": null
+            "policytable": null,
+            "at_top": true
         };
     },
     computed: {
@@ -81,11 +82,18 @@ export default {
                 }
             });
         },
+        "checkScroll": function(e) {
+            this.at_top = window.scrollY ? false : true;
+        }
     },
     created: function(){
+        window.addEventListener('scroll', this.checkScroll);
     },
     mounted: function(){
         this.environmentClick();
+    },
+    destroyed: function() {
+        window.removeEventListener('scroll', this.checkScroll);
     }
 }
 </script>

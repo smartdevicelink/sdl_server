@@ -9,7 +9,7 @@
 
                 <div v-for="appList in apps">
                     <div class="app-table" v-if="appList.list.length > 0">
-                        <h4 :class="appList.class">{{ appList.title }}<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/applications/"></a></h4>
+                        <h4 :class="appList.class">{{ appList.title }}<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/applications/" target="_blank"></a></h4>
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
@@ -51,13 +51,13 @@
                     "apps_approved": {
                         "list": [],
                         "class": "color-green",
-                        "title": "Approved Applications"
+                        "title": "Accepted Applications"
                     },
                     "apps_denied": {
                         "list": [],
                         "class": "color-red",
                         "title": "Limited Applications"
-                    },                   
+                    },
                 }
             }
         },
