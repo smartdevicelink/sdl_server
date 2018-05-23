@@ -11,8 +11,8 @@
                 -->
                 <div class="app-action pull-right">
                     <b-dropdown right
-                        id="ddown-right" 
-                        :text="selected_option.state" 
+                        id="ddown-right"
+                        :text="selected_option.state"
                         :class="selected_option.class">
                         <div
                             v-for="opt in dropdown_options[selected_option.id]"
@@ -28,7 +28,7 @@
                             <b-dropdown-divider
                                 v-if="opt === 'divide'">
                             </b-dropdown-divider>
-                            
+
                         </div>
                     </b-dropdown>
                 </div>
@@ -83,7 +83,7 @@
                     </div>
                     <div v-if="app.approval_status !== 'LIMITED'">
                         <label class="switch">
-                            <input v-on:click="autoApproveClick" v-model="app.is_auto_approved_enabled" type="checkbox"></input>
+                            <input v-on:click="autoApproveClick" type="checkbox" :checked="app.is_auto_approved_enabled"></input>
                             <span class="slider round"></span>
                         </label>
                         <label class="form-check-label switch-label">
@@ -403,6 +403,7 @@ export default {
             });
         },
         "autoApproveClick": function(){
+            this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
             console.log("Requesting auto-approval change to: " + this.app.is_auto_approved_enabled);
 
             this.httpRequest("post", "applications/auto", {
@@ -480,7 +481,7 @@ export default {
                         }
                     });
                 }
-            });            
+            });
         }
     },
     computed: {
