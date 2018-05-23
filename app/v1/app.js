@@ -66,7 +66,7 @@ function exposeRoutes () {
 	app.get('/messages/names', auth.validateAuth, messages.getNames);
 	app.post('/messages', auth.validateAuth, messages.postAddMessage);
 	app.post('/messages/promote', auth.validateAuth, messages.postPromoteMessages);
-	app.post('/messages/update', auth.validateAuth, messages.updateLanguages);
+	app.post('/messages/update', auth.validateAuth, messages.postUpdate);
 	app.get('/module', auth.validateAuth, moduleConfig.get);
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
