@@ -153,6 +153,10 @@ function transformMessages (info, next) {
         return elem.property_name
     });
 
+    if (!group) {
+        return next(null, []);
+    }
+
     template = hashifyTemplate(template);
 
     //fill out the base object first
