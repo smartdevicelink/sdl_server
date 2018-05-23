@@ -59,26 +59,28 @@ export default {
     },
     methods: {
         "environmentClick": function(){
-            const self = this;
-            console.log("Selected environment: " + this.environment);
-            this.httpRequest("get", "policy/preview", {
-                "params": {
-                    "environment": this.environment
-                }
-            }, (err, response) => {
-                if (err) {
-                    console.log("Error fetching policy table.");
-                    console.log(err);
-                } else {
-                    console.log("policy table retrieved");
-                    response.json().then(parsed => {
-                        if(parsed.data && parsed.data.length){
-                            this.policytable = parsed.data[0];
-                        }else{
-                            console.log("No policy table returned");
-                        }
-                    });
-                }
+            this.$nextTick(function () {
+                const self = this;
+                console.log("Selected environment: " + this.environment);
+                this.httpRequest("get", "policy/preview", {
+                    "params": {
+                        "environment": this.environment
+                    }
+                }, (err, response) => {
+                    if (err) {
+                        console.log("Error fetching policy table.");
+                        console.log(err);
+                    } else {
+                        console.log("policy table retrieved");
+                        response.json().then(parsed => {
+                            if(parsed.data && parsed.data.length){
+                                this.policytable = parsed.data[0];
+                            }else{
+                                console.log("No policy table returned");
+                            }
+                        });
+                    }
+                });
             });
         },
     },

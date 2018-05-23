@@ -142,9 +142,11 @@
                 });
             },
             "environmentClick": function () {
-                //get high level message data
-                this.getConsumerMessageInfo(messages => {
-                    this.consumer_messages = messages;
+                this.$nextTick(function () {
+                    //get high level message data
+                    this.getConsumerMessageInfo(messages => {
+                        this.consumer_messages = messages;
+                    });
                 });
             }
         },
