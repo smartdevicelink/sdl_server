@@ -15,12 +15,13 @@
                 </div>
 
                 <div class="functional-content">
-                    <h4>Functional Group <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/messages-and-functional-groups/"></a></h4>
+                    <h4>Functional Group <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/messages-and-functional-groups/" target="_blank"></a></h4>
 
                     <!-- Name -->
                     <div class="form-row">
                         <h4 for="name">Name</h4>
                         <input v-model="fg.name" :disabled="id" type="email" class="form-control" id="email" required>
+                        <p v-if="duplicateName && !id"><br>A functional group with this name already exists! By saving, you will overwrite the previously existing functional group.</p>
                     </div>
 
                     <!-- Description -->
@@ -45,12 +46,26 @@
 
                     <!-- Is default checkbox -->
                     <div class="form-row">
-                        <h4 for="is-default">Make Default Functional Group</h4>
+                        <h4 for="is-default">Special Grants</h4>
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_default"
                             v-bind:disabled="fieldsDisabled">
-                            Always allow applications access to this functional group
+                            Grant this functional group to all applications by default
+                        </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_pre_data_consent"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to all applications prior to the user accepting SDL data consent
+                        </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_device"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to all applications after the user has accepted SDL data consent
                         </b-form-checkbox>
                     </div>
 
@@ -100,7 +115,7 @@
                             v-if="isRpcAvailable(item)"
                             v-on:click="addRpc(item)"
                         >
-                        {{ item.name }}<i v-b-tooltip.hover.auto title="" class="fa fa-info-circle pull-right"></i>
+                        {{ item.name }}
                         </li>
                     </ul>
                 </b-modal>
@@ -164,7 +179,6 @@
                         Promote to Production
                     </vue-ladda>
                 </b-modal>
-
             </div>
         </div>
     </div>
@@ -184,6 +198,8 @@ import { eventBus } from '../main.js';
                     "user_consent_prompt": null,
                     "selected_prompt_id": "null",
                     "is_default": false,
+                    "is_pre_data_consent": false,
+                    "is_device": false,
                     "rpcs": [
                     ]
                 },
@@ -194,7 +210,8 @@ import { eventBus } from '../main.js';
                 "save_button_loading": false,
                 "promote_button_loading": false,
                 "selected_prompt": null,
-                "consent_prompts": []
+                "consent_prompts": [],
+                "group_names": []
             };
         },
         methods: {
@@ -244,7 +261,7 @@ import { eventBus } from '../main.js';
                 });
             },
             "getConsentPrompts": function () {
-                this.httpRequest("get", "messages?environment="+this.environment.toLowerCase()+"&hide_deleted=true", null, (err, response) => {
+                this.httpRequest("get", "messages?environment="+this.environment.toLowerCase()+"&hide_deleted=true", {}, (err, response) => {
                     if (response) {
                         //returns all en-us results under the environment specified
                         response.json().then(parsed => {
@@ -277,7 +294,7 @@ import { eventBus } from '../main.js';
                 }
                 queryInfo += "&environment=" + this.environment.toLowerCase();
 
-                this.httpRequest("get", queryInfo, null, (err, response) => {
+                this.httpRequest("get", queryInfo, {}, (err, response) => {
                     if (response) {
                         response.json().then(parsed => {
                             if (parsed.data.groups && parsed.data.groups[0]) {
@@ -294,32 +311,27 @@ import { eventBus } from '../main.js';
                 });
             },
             "saveFunctionalGroupInfo": function (cb) {
-                this.httpRequest("post", "groups", this.fg, cb);
+                this.httpRequest("post", "groups", { "body": this.fg }, cb);
             },
             "promoteFunctionalGroupInfo": function (cb) {
-                this.httpRequest("post", "groups/promote", this.fg, cb);
+                this.httpRequest("post", "groups/promote", { "body": this.fg }, cb);
             },
             "deleteFunctionalGroupInfo": function (cb) {
                 this.fg.is_deleted = true;
-                this.httpRequest("post", "groups", this.fg, cb);
+                this.httpRequest("post", "groups", { "body": this.fg }, cb);
             },
             "undeleteFunctionalGroupInfo": function (cb) {
                 this.fg.is_deleted = false;
-                this.httpRequest("post", "groups", this.fg, cb);
+                this.httpRequest("post", "groups", { "body": this.fg }, cb);
             },
-            "httpRequest": function (action, route, body, cb) {
-                if (action === "delete" || action === "get") {
-                    if (body !== null) {
-                        body = {body: body};
+            "getFunctionalGroupNames": function () {
+                this.httpRequest("get", "groups/names", {}, (err, response) => {
+                    if (response) {
+                        response.json().then(parsed => {
+                            this.group_names = parsed.data.names;
+                        });
                     }
-                }
-                this.$http[action](route, body)
-                    .then(response => {
-                        cb(null, response);
-                    }, response => {
-                        console.error(response.body.error);
-                        cb(response, null);
-                    });
+                });
             }
         },
         computed: {
@@ -335,6 +347,9 @@ import { eventBus } from '../main.js';
             },
             fieldsDisabled: function () {
                 return (this.fg.is_deleted || this.environment != 'STAGING');
+            },
+            duplicateName: function () {
+                return this.group_names.includes(this.fg.name);
             }
         },
         created: function(){
@@ -357,6 +372,7 @@ import { eventBus } from '../main.js';
             //get consent prompts regardless in case a new functional group from scratch is desired
             this.getConsentPrompts();
             this.getFunctionalGroupInfo();
+            this.getFunctionalGroupNames();
         },
         mounted: function(){
             //this.$methods.addInvitee();

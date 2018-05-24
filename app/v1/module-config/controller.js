@@ -3,6 +3,7 @@ const app = require('../app');
 const helper = require('./helper.js');
 const model = require('./model.js');
 const flow = app.locals.flow;
+const cache = require('../../../custom/cache');
 
 function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
@@ -49,6 +50,7 @@ function post (isProduction, req, res, next) {
                 .setStatus(500);
         }
         else {
+            cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
             res.parcel.setStatus(200);
         }
         res.parcel.deliver();

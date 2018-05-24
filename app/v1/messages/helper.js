@@ -190,6 +190,12 @@ function extractLanguages (rpcSpec, next) {
     next(null, languages);
 }
 
+function getMessageNamesStaging (callback) {
+    setupSql(sql.getMessageNamesStaging, function (err, names) {
+        callback(err, names.map(function (elem) {return elem.message_category;}));
+    });
+}
+
 module.exports = {
     getMessageGroups: getMessageGroups,
     getMessageDetailsFlow: getMessageDetailsFlow,
@@ -197,5 +203,6 @@ module.exports = {
     getMessagesDetailsSqlFlow: getMessagesDetailsSqlFlow,
     validatePromote: validatePromote,
     validatePost: validatePost,
-    updateLanguages: updateLanguages
+    updateLanguages: updateLanguages,
+    getMessageNamesStaging: getMessageNamesStaging
 }

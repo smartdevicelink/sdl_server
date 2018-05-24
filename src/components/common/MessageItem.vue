@@ -59,14 +59,19 @@
             "saveMessageGroup": function () {
                 let body = { messages: {} };
                 body.messages[this.index] = this.item;
-                this.$http.post("messages", body)
-                    .then(response => {
+                this.httpRequest("post", "messages", {
+                    "body": body
+                }, (err, response) => {
+                    if(err){
+                        // error
+                        console.error(response);
+                        this.save_button_loading = false;
+                    }else{
+                        // success
                         this.save_button_loading = false;
                         this.$router.go(); //reload current page
-                    }, response => {
-                        console.error(response.body.error);
-                        this.save_button_loading = false;
-                    });
+                    }
+                });
             },
             "removeLanguage": function() {
                 this.item.selected = false;

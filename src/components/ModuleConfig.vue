@@ -19,7 +19,7 @@
                     <b-btn v-if="environment == 'STAGING' && canPromote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
-                <h4>Module Config<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/module-config/"></a></h4>
+                <h4>Module Config<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/module-config/" target="_blank"></a></h4>
 
                 <!-- module config data -->
                 <div class="functional-content" v-if="module_config">
@@ -122,7 +122,7 @@
                                         <input v-model="module_config.endpoints['lock_screen_icon_url']" :disabled="fieldsDisabled" class="form-control"></input>
                                     </div>
                                     <div class="col-sm">
-                                        <img v-if="module_config.endpoints['lock_screen_icon_url']" v-bind:src="module_config.endpoints['lock_screen_icon_url']" class="pull-right" style="max-width:50px;max-height:50px;"/>
+                                        <img v-if="module_config.endpoints['lock_screen_icon_url']" v-bind:src="module_config.endpoints['lock_screen_icon_url']" class="pull-right" style="max-width:90px;max-height:50px;"/>
                                     </div>
                                 </div>
 
@@ -214,27 +214,34 @@
                 this.$scrollTo("body", 500);
             },
             "environmentClick": function () {
-                this.httpRequest("get", "module?environment=" + this.environment, null, (err, res) => {
-                    if (err) {
-                        console.log("Error fetching module config data: " + res.body.error);
-                    }
-                    else {
-                        res.json().then(parsed => {
-                            if (parsed.data.module_configs && parsed.data.module_configs.length) {
-                                this.module_config = parsed.data.module_configs[0]; //only one entry
-                            }
-                            else {
-                                console.log("No module config data returned");
-                            }
-                        });
-                    }
+                this.$nextTick(function () {
+                    this.httpRequest("get", "module", {
+                        "params": {
+                            "environment": this.environment
+                        }
+                    }, (err, res) => {
+                        if (err) {
+                            console.log("Error fetching module config data: ");
+                            console.log(err);
+                        }
+                        else {
+                            res.json().then(parsed => {
+                                if (parsed.data.module_configs && parsed.data.module_configs.length) {
+                                    this.module_config = parsed.data.module_configs[0]; //only one entry
+                                }
+                                else {
+                                    console.log("No module config data returned");
+                                }
+                            });
+                        }
+                    });
                 });
             },
             "saveModuleConfig": function () {
                 this.handleModalClick("save_button_loading", null, "saveConfig");
             },
             "saveConfig": function (cb) {
-                this.httpRequest("post", "module", this.module_config, (err) => {
+                this.httpRequest("post", "module", { "body": this.module_config }, (err) => {
                     this.toTop();
                     cb();
                 });
@@ -243,7 +250,7 @@
                 this.handleModalClick("promote_button_loading", "promoteModal", "promoteConfig");
             },
             "promoteConfig": function (cb) {
-                this.httpRequest("post", "module/promote", this.module_config, cb);
+                this.httpRequest("post", "module/promote", { "body": this.module_config }, cb);
             },
             "addRetryUpdateElement": function () {
                 var newVal = this.module_config.seconds_between_retries.length ? this.module_config.seconds_between_retries[this.module_config.seconds_between_retries.length - 1]*5 : 1;

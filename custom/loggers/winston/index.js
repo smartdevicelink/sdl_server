@@ -16,11 +16,13 @@ const logger = new winston.Logger({
             timestamp: true,
             level: logLevel
         }),
+        /*
         new winston.transports.File({ //write logs to a file as well
             level: logLevel,
             name: 'policy_logs',
             filename: 'policy_logs.log'
         })
+        */
     ],
     exitOnError: false
 });

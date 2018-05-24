@@ -1,4 +1,15 @@
 @font-face {
+    font-family: 'LivioMono';
+    src: url('../fonts/LivioMono/LivioMono-Regular-WebS.eot');
+    src: url('../fonts/LivioMono/LivioMono-Regular-WebS.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/LivioMono/LivioMono-Regular-WebS.woff2') format('woff2'),
+    url('../fonts/LivioMono/LivioMono-Regular-WebS.woff') format('woff'),
+    url('../fonts/LivioMono/LivioMono-Regular-WebS.ttf') format('ttf'),
+    url('../fonts/LivioMono/LivioMono-Regular-WebS.svg') format('svg');
+    font-weight: 400;
+}
+
+@font-face {
     font-family: 'LivioNorm';
     src: url('../fonts/LivioNorm/LivioNorm-Light-WebS.eot');
     src: url('../fonts/LivioNorm/LivioNorm-Light-WebS.eot?#iefix') format('embedded-opentype'),
@@ -371,6 +382,8 @@ div.horizontal-divider .text {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 1em;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .tiles .description {
@@ -379,6 +392,7 @@ div.horizontal-divider .text {
     overflow: hidden;
     height: 90px;
     max-height: 90px;
+    max-width: 100%;
 }
 
 .tiles .permission-count {
@@ -511,6 +525,14 @@ div.horizontal-divider .text {
     background-color: #384F61 !important;
     color: #FFFFFF !important;
 }
+.btn-style-red {
+    background-color: #FF5E71 !important;
+    color: #FFFFFF !important;
+}
+.btn-style-red:hover {
+    background-color: #4A5E71 !important;
+    color: #FFFFFF !important;
+}
 
 .app-action {
     font-size: .875rem;
@@ -575,9 +597,15 @@ div.horizontal-divider .text {
   transition: .4s;
 }
 
+
 input:checked + .slider {
   background-color: #78C970;
   border: solid 1px #78C970;
+}
+
+input:checked + .slider-red {
+  background-color: #FF5E71;
+  border: solid 1px #FF5E71;
 }
 
 input:focus + .slider {
@@ -640,6 +668,9 @@ input:checked + .slider:before {
 .color-primary {
     color: #4A5E71 !important;
 }
+.color-black {
+    color: #222C37 !important;
+}
 
 .color-bg-gray {
     background-color: #F4F5F7;
@@ -677,6 +708,95 @@ input:checked + .slider:before {
 /*
 * Card
 */
+.card-header {
+    width: 100%;
+    background-color: inherit;
+    border: none;
+    padding: 0;
+    padding-bottom: 0.75em;
+}
+.card-title {
+    width: 95%;
+    margin: 0;
+    display: inline-block;
+}
+.card-title h5 {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.card-pencil {
+    width: 5%;
+    display: inline-block;
+    float: right;
+}
+.card-description {
+    width: 100%;
+    height: 4.4em;
+    padding-bottom: 0.8em;
+}
+.card-description-text {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    line-height: 1.2em;
+    max-height: 3.6em;
+    text-align: justify;
+    margin: 0 -1em 0 0;
+    padding-right: 1em;
+}
+.card-description-text:before {
+    content: '...';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+.card-description-text:after {
+    content: '';
+    position: absolute;
+    right: 0;
+    width: 1em;
+    height: 1em;
+    margin-top: 0.2em;
+    background: #FFF;
+}
+.card-contents {
+    padding: 1.25em;
+}
+.card-contents:hover .card-description-text:after {
+    background: #4A5E71;
+}
+.tiles a {
+    padding: 0;
+}
+.tiles a:hover .card-description-text:after {
+    background: #4A5E71;
+}
+.card-default {
+    padding-bottom: 0.9em;
+    height: 2em;
+    font-family: 'LivioMono';
+    color: #BAC6D2;
+}
+.card-count {
+    margin: 0;
+    bottom: 0;
+    display: inline-block;
+}
+.card-status {
+    margin: 0;
+    float: right;
+    display: inline-block;
+}
+.card-footer {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background-color: inherit;
+}
+
 .card {
     padding: 65px 80px;
     background-color: #FFFFFF;
@@ -1004,6 +1124,25 @@ input:checked + .slider:before {
     color: #FFFFFF !important;
     border: solid 4px;
     border-color: #fff;
+}
+
+/*
+* Background Colors for Buttons
+*/
+.dropdown-red button {
+    background-color: #FF5E71;
+}
+
+.dropdown-green button {
+    background-color: #78C970;
+}
+
+.dropdown-primary button {
+    background-color: #4A5E71;
+}
+
+.dropdown-black button {
+    background-color: #222C37;
 }
 
 

@@ -4,6 +4,7 @@ const model = require('./model.js');
 const helper = require('./helper.js');
 const async = require('async');
 const sql = require('./sql.js');
+const cache = require('../../../custom/cache');
 
 function getInfo (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
@@ -12,7 +13,7 @@ function getInfo (req, res, next) {
     //if hide_deleted is true, then always hide deleted consumer messages regardless of environment
     //this is only for getting functional group details
     const alwaysHideDeleted = req.query.hide_deleted && req.query.hide_deleted == 'true' ? true: false;
-    
+
     if (returnTemplate) { //template mode. return just the shell of a message
         chosenFlow = helper.makeCategoryTemplateFlow();
     }
@@ -50,6 +51,7 @@ function postStaging (req, res, next) {
                 .setMessage("Interal server error")
                 .setStatus(500);
         }else{
+            cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
             res.parcel.setStatus(200);
         }
         res.parcel.deliver();
@@ -91,6 +93,7 @@ function promoteIds (req, res, next) {
                 .setStatus(500);
         }
         else {
+            cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
             res.parcel.setStatus(200);
         }
         res.parcel.deliver();
@@ -104,10 +107,30 @@ function postUpdate (req, res, next) {
                 .setStatus(500)
                 .deliver();
         }
+        cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
+        cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
         res.parcel
             .setStatus(200)
             .deliver();
         return;
+    });
+}
+
+function getMessageNamesStaging (req, res, next) {
+    helper.getMessageNamesStaging(function (err, names) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.parcel
+                .setStatus(500)
+                .setMessage("Internal server error")
+                .deliver();
+        }
+        return res.parcel
+            .setStatus(200)
+            .setData({
+                "names": names
+            })
+            .deliver();        
     });
 }
 
@@ -117,5 +140,6 @@ module.exports = {
     postAddMessage: postStaging,
     postPromoteMessages: promoteIds,
     postUpdate: postUpdate,
-    updateLanguages: helper.updateLanguages
+    updateLanguages: helper.updateLanguages,
+    getNames: getMessageNamesStaging,
 };

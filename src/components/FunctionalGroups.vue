@@ -24,7 +24,7 @@
                         {{ perm.name }} ({{ perm.type }})
                     </div>
                 </div>
-                <h4>Functional Groups<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/messages-and-functional-groups/"></a></h4>
+                <h4>Functional Groups<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/messages-and-functional-groups/" target="_blank"></a></h4>
                 <section class="tiles">
                     <card-item
                         v-for="(item, index) in functional_groups"
@@ -34,6 +34,7 @@
                             description: item.description,
                             count: item.selected_rpc_count,
                             is_deleted: item.is_deleted,
+                            is_default: item.is_default,
                             status: item.status
                         }"
                         v-bind:environment="environment"
@@ -199,16 +200,24 @@
         },
         methods: {
             "environmentClick": function () {
-                this.functional_groups = [];
-                //get high level functional group data
-                this.getFunctionalGroupData();
-                //get unmapped permissions
-                this.getUnmappedPermissions();
+                this.$nextTick(function () {
+                    this.functional_groups = [];
+                    //get high level functional group data
+                    this.getFunctionalGroupData();
+                    //get unmapped permissions
+                    this.getUnmappedPermissions();
+                });
             },
             "getFunctionalGroupData": function () {
-                this.$http.get("groups?environment=" + this.environment, {})
-                    .then(response => {
-                        // success
+                this.httpRequest("get", "groups", {
+                    "params": {
+                        "environment": this.environment
+                    }
+                }, (err, response) => {
+                    if (err) {
+                        console.log("Error fetching functional group data: ");
+                        console.log(err);
+                    } else {
                         response.json().then(parsed => {
                             if(parsed.data.groups && parsed.data.groups.length){
                                 this.functional_groups = parsed.data.groups;
@@ -216,24 +225,26 @@
                                 console.log("No functional data returned");
                             }
                         });
-                    }, response => {
-                        // error
-                        console.log("Error fetching functional group data: " + response.body.error);
-                    });
+                    }
+                });
             },
             "getUnmappedPermissions": function () {
-                this.$http.get("permissions/unmapped?environment=" + this.environment, {})
-                    .then(response => {
-                        // success
+                this.httpRequest("get", "permissions/unmapped", {
+                    "params": {
+                        "environment": this.environment
+                    }
+                }, (err, response) => {
+                    if (err) {
+                        console.log("Error fetching functional group data: ");
+                        console.log(err);
+                    } else {
                         response.json().then(parsed => {
                             this.unmapped_permissions = parsed.data.permissions;
                             this.unused_count.rpcs = parsed.data.unmapped_rpc_count;
                             this.unused_count.parameters = parsed.data.unmapped_parameter_count;
                         });
-                    }, response => {
-                        // error
-                        console.log("Error fetching functional group data: " + response.body.error);
-                    });
+                    }
+                });
             },
             "promoteGroupsClick": function () {
                 this.handleModalClick("promote_button_loading", "promoteModal", "promoteAllGroups");
@@ -247,7 +258,7 @@
                     }
                 }
 
-                staging_ids.length ? this.httpRequest("post", "groups/promote", {id: staging_ids}, cb) : cb();
+                staging_ids.length ? this.httpRequest("post", "groups/promote", { "body": { id: staging_ids } }, cb) : cb();
             },
             "selectedFunctionalGroup": function () {
                 this.is_clone_disabled = this.selected_group_id != "null" ? false : true;
@@ -268,10 +279,10 @@
                 });
             },
             "getFunctionalGroupInfo": function (id, cb) {
-                this.httpRequest("get", "groups?id=" + id, null, cb);
+                this.httpRequest("get", "groups?id=" + id, {}, cb);
             },
             "saveFunctionalGroupInfo": function (functionalGroup, cb) {
-                this.httpRequest("post", "groups", functionalGroup, cb);
+                this.httpRequest("post", "groups", { "body": functionalGroup }, cb);
             }
         },
         mounted: function(){

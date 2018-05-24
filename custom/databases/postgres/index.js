@@ -44,6 +44,13 @@ else if (process.env.NODE_ENV === "production") {
     config.host = process.env.PRODUCTION_PG_HOST;
     config.port = process.env.PRODUCTION_PG_PORT;
 }
+else if (process.env.NODE_ENV === 'test') {
+    config.user = process.env.TEST_PG_USER;
+    config.database = process.env.TEST_PG_DATABASE;
+    config.password = process.env.TEST_PG_PASSWORD;
+    config.host = process.env.TEST_PG_HOST;
+    config.port = process.env.TEST_PG_PORT;
+}
 
 //create a pool of clients
 const pool = new pg.Pool(config);
@@ -72,7 +79,7 @@ module.exports = function (log) {
             pool.query(query, function (err, res) {
                 if (err) {
                     log.error(err);
-                    log.error(sqlString);
+                    log.error(query);
                 }
                 //always return an array
                 callback(err, (res && res.rows) ? res.rows : []);
