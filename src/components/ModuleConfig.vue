@@ -214,25 +214,27 @@
                 this.$scrollTo("body", 500);
             },
             "environmentClick": function () {
-                this.httpRequest("get", "module", {
-                    "params": {
-                        "environment": this.environment
-                    }
-                }, (err, res) => {
-                    if (err) {
-                        console.log("Error fetching module config data: ");
-                        console.log(err);
-                    }
-                    else {
-                        res.json().then(parsed => {
-                            if (parsed.data.module_configs && parsed.data.module_configs.length) {
-                                this.module_config = parsed.data.module_configs[0]; //only one entry
-                            }
-                            else {
-                                console.log("No module config data returned");
-                            }
-                        });
-                    }
+                this.$nextTick(function () {
+                    this.httpRequest("get", "module", {
+                        "params": {
+                            "environment": this.environment
+                        }
+                    }, (err, res) => {
+                        if (err) {
+                            console.log("Error fetching module config data: ");
+                            console.log(err);
+                        }
+                        else {
+                            res.json().then(parsed => {
+                                if (parsed.data.module_configs && parsed.data.module_configs.length) {
+                                    this.module_config = parsed.data.module_configs[0]; //only one entry
+                                }
+                                else {
+                                    console.log("No module config data returned");
+                                }
+                            });
+                        }
+                    });
                 });
             },
             "saveModuleConfig": function () {
