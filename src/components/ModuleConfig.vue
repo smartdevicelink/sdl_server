@@ -19,7 +19,7 @@
                     <b-btn v-if="environment == 'STAGING' && canPromote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
-                <h4>Module Config<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/module-config/"></a></h4>
+                <h4>Module Config<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/module-config/" target="_blank"></a></h4>
 
                 <!-- module config data -->
                 <div class="functional-content" v-if="module_config">
@@ -122,7 +122,7 @@
                                         <input v-model="module_config.endpoints['lock_screen_icon_url']" :disabled="fieldsDisabled" class="form-control"></input>
                                     </div>
                                     <div class="col-sm">
-                                        <img v-if="module_config.endpoints['lock_screen_icon_url']" v-bind:src="module_config.endpoints['lock_screen_icon_url']" class="pull-right" style="max-width:50px;max-height:50px;"/>
+                                        <img v-if="module_config.endpoints['lock_screen_icon_url']" v-bind:src="module_config.endpoints['lock_screen_icon_url']" class="pull-right" style="max-width:90px;max-height:50px;"/>
                                     </div>
                                 </div>
 

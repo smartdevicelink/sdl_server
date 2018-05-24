@@ -15,13 +15,13 @@
                 </div>
 
                 <div class="functional-content">
-                    <h4>Consumer Message {{ message.is_deleted ? "(deleted)" : "" }} <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/messages-and-functional-groups/"></a></h4>
+                    <h4>Consumer Message {{ message.is_deleted ? "(deleted)" : "" }} <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/messages-and-functional-groups/" target="_blank"></a></h4>
 
                     <!-- Name -->
                     <div class="form-row">
                         <h4 for="name">Name</h4>
                         <input v-model="message.message_category" :disabled="id" type="email" class="form-control" id="email">
-                        <p v-if="duplicateName"><br>A consumer message with this name already exists! By saving, you will overwrite the previously existing consumer message.</p>
+                        <p v-if="duplicateName && !id"><br>A consumer message with this name already exists! By saving, you will overwrite the previously existing consumer message.</p>
                     </div>
 
                     <!-- container for languages -->
@@ -69,7 +69,7 @@
                         v-if="isLangAvailable(value)"
                         v-on:click="addLanguage(value)"
                     >
-                    {{ value.language_id }}<i v-b-tooltip.hover.auto title="" class="fa fa-info-circle pull-right"></i>
+                    {{ value.language_id }}
                     </li>
                 </ul>
             </b-modal>
