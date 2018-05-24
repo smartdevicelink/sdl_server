@@ -301,13 +301,23 @@ function insertAppAutoApproval (obj) {
             `'${obj.uuid}' AS app_uuid`
             )
         .where(
-            sql.not(
+            sql.and(
+                sql.not(
+                    sql.exists(
+                        sql.select('*')
+                            .from('app_auto_approval aaa')
+                            .where({
+                                'aaa.app_uuid': obj.uuid
+                            })
+                    )
+                ),
                 sql.exists(
                     sql.select('*')
-                        .from('app_auto_approval aaa')
+                        .from('app_info')
                         .where({
-                            'aaa.app_uuid': obj.uuid
+                            'app_uuid': obj.uuid
                         })
+                        .limit(1)
                 )
             )
         )
