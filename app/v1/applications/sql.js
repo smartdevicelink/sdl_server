@@ -136,6 +136,13 @@ function getAppInfoId (id) {
         .toString();
 }
 
+function getAppInfoUuid (uuid) {
+    return sql.select('*')
+        .from('app_info')
+        .where({ app_uuid: uuid })
+        .toString()
+}
+
 function getAppCountriesId (id) {
     return sql.select('app_id AS id', 'country_iso', 'name')
         .from('app_countries')
@@ -321,6 +328,7 @@ function insertAppAutoApproval (obj) {
                 )
             )
         )
+        .returning('*')
         .toString();
 }
 
@@ -386,7 +394,8 @@ module.exports = {
     getApp: {
         base: {
             multiFilter: getFullAppInfoFilter,
-            idFilter: getAppInfoId
+            idFilter: getAppInfoId,
+            uuidFilter: getAppInfoUuid
         },
         countries: {
             multiFilter: getAppCountriesFilter,
