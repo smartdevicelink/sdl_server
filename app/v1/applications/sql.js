@@ -240,7 +240,8 @@ function insertAppInfo (obj) {
         tech_email: obj.tech_email,
         tech_phone: obj.tech_phone,
         category_id: obj.category.id,
-        vendor_id: obj.vendor_id
+        vendor_id: obj.vendor_id,
+        version_id: obj.version_id
     };
 
     if (obj.approval_status) { //has a defined approval_status. otherwise leave as default
