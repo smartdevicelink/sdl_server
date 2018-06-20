@@ -209,6 +209,13 @@ function timestampCheck (tableName, whereObj) {
         .toString();
 }
 
+function versionCheck (tableName, whereObj) {
+    return sql.select('version_id')
+        .from(tableName)
+        .where(whereObj)
+        .toString();
+}
+
 function checkAutoApproval (uuid) {
     return sql.select('app_auto_approval.app_uuid')
         .from('app_auto_approval')
@@ -419,6 +426,7 @@ module.exports = {
         }
     },
     timestampCheck: timestampCheck,
+    versionCheck: versionCheck,
     checkAutoApproval: checkAutoApproval,
     insertVendor: insertVendor,
     insertAppInfo: insertAppInfo,

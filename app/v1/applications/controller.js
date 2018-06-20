@@ -57,6 +57,16 @@ function actionPost (req, res, next) {
 			// Update approval status for app
 			function (blacklist, callback) {
 				client.getOne(sql.changeAppApprovalStatus(req.body.id, req.body.approval_status, (req.body.denial_message || null)), callback);
+			},
+			// sync the status to SHAID
+			function (result, callback) {
+				app.locals.shaid.setApplicationApprovalVendor([{
+					"uuid": req.body.uuid,
+					"blacklist": req.body.blacklist || false,
+					"version_id": req.body.version_id,
+					"approval_status": req.body.approval_status,
+					"notes": req.body.denial_message || null
+				}], callback);
 			}
 		], callback);
 	}, function (err, response) {

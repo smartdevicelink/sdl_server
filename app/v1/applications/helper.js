@@ -107,28 +107,20 @@ function storeApps (includeApprovalStatus, apps, callback) {
 
 //determine whether the object needs to be stored in the database
 function checkNeedsInsertion (appObj, next) {
-    const timestamp = appObj.updated_ts;
     const tableName = 'app_info';
-    const whereObj = {app_uuid: appObj.uuid};
-    //compare timestamps to determine if the object passed in actually changed before insertion
-    const getObjStr = sql.timestampCheck(tableName, whereObj);
+    const whereObj = {
+		app_uuid: appObj.uuid,
+		version_id: appObj.version_id
+	};
+    // check if the version exists in the database before attempting insertion
+    const getObjStr = sql.versionCheck(tableName, whereObj);
     db.sqlCommand(getObjStr, function (err, data) {
-        const dbTimestamp = data[0].max;
-        if (dbTimestamp !== null && dbTimestamp !== undefined && timestamp !== null && timestamp !== undefined) {
-            const incomingDate = new Date(timestamp);
-            const currentDate = new Date(dbTimestamp);
-            if (incomingDate > currentDate) {
-                //the app in the policy server's database is outdated!
-                next(null, appObj);
-            }
-            else { //app is already there
-                next(null, null);
-            }
-        }
-        else {
-            //app doesn't exist, or has missing timestamp information! add the app
-            next(null, appObj);
-        }
+		if(data.length > 0){
+			// record exists, skip it!
+			next(null, null);
+		}else{
+			next(null, appObj);
+		}
     });
 }
 

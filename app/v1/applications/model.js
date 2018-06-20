@@ -94,6 +94,7 @@ function constructFullAppObjs (res, next) {
 
 //store the information using a SQL transaction
 function storeApp (appObj, next) {
+    var storedApp = null;
     // process message groups synchronously (due to the SQL transaction)
     db.runAsTransaction(function (client, callback) {
         flame.async.waterfall([
@@ -107,6 +108,7 @@ function storeApp (appObj, next) {
             //stage 3: insert countries, display names, permissions, and app auto approvals
             function (app, next) {
                 log.info("New/updated app " + app.app_uuid + " added to the database");
+                storedApp = app;
                 const allInserts = [];
                 if (appObj.countries.length > 0) {
                     allInserts.push(sql.insertAppCountries(appObj.countries, app.id));
@@ -123,6 +125,12 @@ function storeApp (appObj, next) {
                 //execute all the sql statements. client.getOne needs client as context or the query will fail
                 flame.async.series(flame.map(allInserts, client.getOne, client), next);
             },
+            //stage 4: sync with shaid
+            function (res, next) {
+                app.locals.shaid.setApplicationApprovalVendor([storedApp], function(err, result){
+                    next(err, res);
+                });
+            }
         ], function(err, res){
             if(err){
                 callback(err, appObj.uuid);
