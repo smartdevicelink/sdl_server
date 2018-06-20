@@ -60,6 +60,11 @@ function actionPost (req, res, next) {
 			},
 			// sync the status to SHAID
 			function (result, callback) {
+				if(!req.body.version_id){
+					// skip notifying SHAID if there is no version ID (legacy support)
+					callback(null, null);
+					return;
+				}
 				app.locals.shaid.setApplicationApprovalVendor([{
 					"uuid": req.body.uuid,
 					"blacklist": req.body.blacklist || false,
