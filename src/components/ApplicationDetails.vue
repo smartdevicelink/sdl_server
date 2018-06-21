@@ -383,6 +383,7 @@ export default {
                     "approval_status": approvalStatus,
                     "blacklist": isBlacklisted,
                     "uuid": this.app.uuid,
+                    "version_id": this.app.version_id,
                     "denial_message": withFeedBack ? this.modal_text : null
                 }
             }, (err, response) => {
