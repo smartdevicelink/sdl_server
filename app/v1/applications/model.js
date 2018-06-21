@@ -127,6 +127,11 @@ function storeApp (appObj, next) {
             },
             //stage 4: sync with shaid
             function (res, next) {
+                if(!storedApp.version_id){
+                    // skip sync with SHAID if no app version ID is present
+                    next(null, null);
+                    return;
+                }
                 app.locals.shaid.setApplicationApprovalVendor([storedApp], function(err, result){
                     next(err, res);
                 });
