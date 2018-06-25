@@ -28,11 +28,11 @@
   },
   "pg-policy": {
       "driver": "pg",
-      "user": {"ENV": "PG_USER"},
-      "password": {"ENV": "PG_PASSWORD"},
-      "host": {"ENV": "PG_HOST"},
-      "database": {"ENV": "PG_DATABASE"},
-      "port": {"ENV": "PG_PORT"},
+      "user": {"ENV": "DB_USER"},
+      "password": {"ENV": "DB_PASSWORD"},
+      "host": {"ENV": "DB_HOST"},
+      "database": {"ENV": "DB_DATABASE"},
+      "port": {"ENV": "DB_PORT"},
       "schema": "public"
   },
   "sql-file": true
