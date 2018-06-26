@@ -11,6 +11,7 @@ import FunctionalGroupDetails from '@/components/FunctionalGroupDetails'
 import ConsumerMessages from '@/components/ConsumerMessages'
 import ConsumerMessageDetails from '@/components/ConsumerMessageDetails'
 import ModuleConfig from '@/components/ModuleConfig'
+import About from '@/components/About'
 import PolicyTable from '@/components/PolicyTable'
 import User from '@/components/User'
 import Invite from '@/components/Invite'
@@ -158,6 +159,15 @@ const router = new Router({
             meta: {
                 auth: true,
                 title: 'Policy Server - Module Config'
+            }
+        },
+        {
+            path: '/about',
+            name: 'About',
+            component: About,
+            meta: {
+                auth: true,
+                title: 'Policy Server - About'
             }
         },/*
         {

@@ -16,6 +16,9 @@
             <router-link tag="li" class="nav-item" to="/moduleconfig" active-class="active">
                 <a class="nav-link">Module Config</a>
             </router-link>
+            <router-link tag="li" class="nav-item" to="/about" active-class="active">
+                <a class="nav-link">About</a>
+            </router-link>
         </ul>
     </nav>
 </template>
