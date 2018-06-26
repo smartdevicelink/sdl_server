@@ -34,6 +34,7 @@ const permissions = require('./permissions/controller.js');
 const groups = require('./groups/controller.js');
 const messages = require('./messages/controller.js');
 const moduleConfig = require('./module-config/controller.js');
+const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
 
 function exposeRoutes () {
@@ -70,6 +71,7 @@ function exposeRoutes () {
 	app.get('/module', auth.validateAuth, moduleConfig.get);
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
+	app.get('/about', auth.validateAuth, about.getInfo);
 }
 
 function updatePermissionsAndGenerateTemplates (next) {
