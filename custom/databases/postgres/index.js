@@ -32,18 +32,18 @@ let dbParameters = {
 
 //environment-specific information for connecting to the database
 if (process.env.NODE_ENV === "staging") {
-    dbParameters.user = process.env.STAGING_PG_USER;
-    dbParameters.database = process.env.STAGING_PG_DATABASE;
-    dbParameters.password = process.env.STAGING_PG_PASSWORD;
-    dbParameters.host = process.env.STAGING_PG_HOST;
-    dbParameters.port = process.env.STAGING_PG_PORT;
+    dbParameters.user = process.env.STAGING_PG_USER || config.dbUser;
+    dbParameters.database = process.env.STAGING_PG_DATABASE || config.dbDatabase;
+    dbParameters.password = process.env.STAGING_PG_PASSWORD || config.dbPassword;
+    dbParameters.host = process.env.STAGING_PG_HOST || config.dbHost;
+    dbParameters.port = process.env.STAGING_PG_PORT || config.dbPort;
 }
 else if (process.env.NODE_ENV === "production") {
-    dbParameters.user = process.env.PRODUCTION_PG_USER;
-    dbParameters.database = process.env.PRODUCTION_PG_DATABASE;
-    dbParameters.password = process.env.PRODUCTION_PG_PASSWORD;
-    dbParameters.host = process.env.PRODUCTION_PG_HOST;
-    dbParameters.port = process.env.PRODUCTION_PG_PORT;
+    dbParameters.user = process.env.PRODUCTION_PG_USER || config.dbUser;
+    dbParameters.database = process.env.PRODUCTION_PG_DATABASE || config.dbDatabase;
+    dbParameters.password = process.env.PRODUCTION_PG_PASSWORD || config.dbPassword;
+    dbParameters.host = process.env.PRODUCTION_PG_HOST || config.dbHost;
+    dbParameters.port = process.env.PRODUCTION_PG_PORT || config.dbPort;
 }
 else if (process.env.NODE_ENV === 'test') {
     dbParameters.user = process.env.TEST_PG_USER;
