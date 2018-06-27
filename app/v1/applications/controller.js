@@ -90,24 +90,28 @@ function autoPost (req, res, next) {
 		return res.parcel.deliver();
 	}
 
-	let chosenCommand;
+	app.locals.db.sqlCommand(sql.getApp.base['uuidFilter'](req.body.uuid), function(err, results) {
+		if (err) {
+			return res.parcel.setStatus(500).deliver();
+		}
+		if (!results.length) {
+			return res.parcel.setStatus(400).deliver();
+		}
 
-	if (req.body.is_auto_approved_enabled) {
-		//add the uuid to the auto approval table
-        chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppAutoApproval(req.body));
-	}
-	else {
-		//remove the uuid from the auto approval table
-        chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAutoApproval(req.body.uuid));
-	}
+		let chosenCommand;
+		if (req.body.is_auto_approved_enabled) {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppAutoApproval(req.body));
+		} else {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAutoApproval(req.body.uuid));
+		}
 
-    chosenCommand(function (err, results) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.parcel.setStatus(500).deliver();
-        }
-        return res.parcel.setStatus(200).deliver();
-    });
+		chosenCommand(function (err, results) {
+			if (err) {
+				return res.parcel.setStatus(500).deliver();
+			}
+			return res.parcel.setStatus(200).deliver();
+		});
+	});
 }
 
 //expects a POST from SHAID
