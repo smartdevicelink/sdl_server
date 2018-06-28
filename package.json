@@ -22,7 +22,11 @@
     "db-migrate-up-pg-production": "npm run db-migrate -- up -e pg-production",
     "db-migrate-reset-pg-staging": "npm run db-migrate -- reset -e pg-staging",
     "db-migrate-up-pg-test": "npm run db-migrate -- up -e pg-test",
-    "db-migrate-reset-pg-test": "npm run db-migrate -- reset -e pg-test"
+    "db-migrate-reset-pg-test": "npm run db-migrate -- reset -e pg-test",
+
+    "start-server": "npm run build && npm run db-migrate-up && node index.js",
+    "db-migrate-up": "npm run db-migrate -- up -e pg-policy",
+    "db-migrate-reset": "npm run db-migrate -- reset -e pg-policy"
   },
   "dependencies": {
     "async": "2.5.0",
