@@ -36,6 +36,7 @@ function constructFullAppObjs (res, next) {
     for (let i = 0; i < appBase.length; i++) {
         hashedApps[appBase[i].id] = appBase[i];
         hashedApps[appBase[i].id].uuid = hashedApps[appBase[i].id].app_uuid;
+        hashedApps[appBase[i].id].short_uuid = hashedApps[appBase[i].id].app_short_uuid;
         hashedApps[appBase[i].id].category = {
             id: appBase[i].category_id,
             display_name: hashedCategories[appBase[i].category_id]
@@ -54,6 +55,8 @@ function constructFullAppObjs (res, next) {
         }
 
         delete hashedApps[appBase[i].id].app_uuid;
+        delete hashedApps[appBase[i].id].app_short_uuid;
+
         hashedApps[appBase[i].id].countries = [];
         hashedApps[appBase[i].id].display_names = [];
         hashedApps[appBase[i].id].permissions = [];

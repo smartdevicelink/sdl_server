@@ -1,7 +1,7 @@
 const sql = require('sql-bricks-postgres');
 const funcGroupSql = require('../groups/sql.js');
 
-function getBaseAppInfo (isProduction, appUuids) {
+function getBaseAppInfo (isProduction, useLongUuids = false, appUuids) {
     let approvalStatusArray = [];
     if (isProduction) {
         approvalStatusArray = ["ACCEPTED"];
@@ -14,10 +14,17 @@ function getBaseAppInfo (isProduction, appUuids) {
         .from('view_partial_app_info')
         .where(
             sql.in('approval_status', approvalStatusArray)
-        )
-        .where(
+        );
+    if(useLongUuids){
+        innerSelect.where(
             sql.in('app_uuid', appUuids)
         );
+    }else{
+        innerSelect.where(
+            sql.in('app_short_uuid', appUuids)
+        );
+    }
+
 
     const whereIn = sql.select('max(id) AS id')
         .from('(' + innerSelect + ') AS test')

@@ -2,6 +2,7 @@
 const app = require('../app');
 const helper = require('./helper.js');
 const encryption = require('../../../customizable/encryption');
+const GET = require('lodash.get');
 
 function postFromCore (isProduction) {
 	return function (req, res, next) {
@@ -14,22 +15,24 @@ function postFromCore (isProduction) {
 		if (res.errorMsg) {
 			return res.status(400).send({ error: res.errorMsg });
 		}
-        helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, true, handlePolicyTableFlow.bind(null, res, true));
+		const useLongUuids = GET(req, "body.policy_table.module_config.full_app_id_supported", false) ? true : false;
+        helper.generatePolicyTable(isProduction, useLongUuids, req.body.policy_table.app_policies, true, handlePolicyTableFlow.bind(null, res, true));
 	}
 }
 
 function getPreview (req, res, next) {
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
-    helper.generatePolicyTable(isProduction, {}, true, handlePolicyTableFlow.bind(null, res, false));
+    helper.generatePolicyTable(isProduction, false, {}, true, handlePolicyTableFlow.bind(null, res, false));
 }
 
 function postAppPolicy (req, res, next) {
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
+	const useLongUuids = GET(req, "body.policy_table.module_config.full_app_id_supported", false) ? true : false;
     helper.validateAppPolicyOnlyPost(req, res);
     if (res.errorMsg) {
         return res.status(400).send({ error: res.errorMsg });
     }
-    helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, false, handlePolicyTableFlow.bind(null, res, false));
+    helper.generatePolicyTable(isProduction, useLongUuids, req.body.policy_table.app_policies, false, handlePolicyTableFlow.bind(null, res, false));
 }
 
 function handlePolicyTableFlow (res, encrypt = false, err, pieces) {

@@ -6,7 +6,7 @@ const sqlApp = require('../applications/sql.js');
 //module config
 
 //keeping this synchronous due to how small the data is. pass this to the event loop
-function transformModuleConfig (isProduction, info, next) {
+function transformModuleConfig (isProduction, useLongUuids = false, info, next) {
     //expecting only one module config
     const base = info.base[0];
     const retrySeconds = info.retrySeconds.map(function (secondObj) {
@@ -26,6 +26,7 @@ function transformModuleConfig (isProduction, info, next) {
 
     next(null, {
         "preloaded_pt": base.preloaded_pt,
+        "full_app_id_supported": useLongUuids,
         "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
         "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
         "exchange_after_x_days": base.exchange_after_x_days,
@@ -219,7 +220,7 @@ function transformFunctionalGroups (isProduction, info, next) {
 
 //application policies
 
-function constructAppPolicy (appObj, res, next) {
+function constructAppPolicy (appObj, useLongUuids = false, res, next) {
     const displayNames = res.displayNames.map(function (elem) {
         return elem.display_text;
     });
@@ -231,7 +232,7 @@ function constructAppPolicy (appObj, res, next) {
     });
 
     const appPolicyObj = {};
-    appPolicyObj[appObj.app_uuid] = {
+    appPolicyObj[(useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)] = {
         nicknames: displayNames,
         keep_context: true,
         steal_focus: appObj.can_steal_focus,
@@ -265,13 +266,14 @@ function aggregateResults (res, next) {
 
     // overwrite available apps with their granted permissions
     for (let i = 0; i < policyObjs.length; i++) {
+        console.log(policyObjs[i]);
         const key = Object.keys(policyObjs[i])[0];
         appPolicy[key] = policyObjs[i][key];
     }
 
     // Set app policy object to null if it is blacklisted
     for (let i = 0; i < blacklistedApps.length; i++) {
-        appPolicy[blacklistedApps[i].app_uuid] = null;
+        appPolicy[(res.useLongUuids ? blacklistedApps[i].app_uuid : blacklistedApps[i].app_short_uuid)] = null;
     }
 
     //setup defaults after the app ids are populated

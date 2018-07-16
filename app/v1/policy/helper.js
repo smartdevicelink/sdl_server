@@ -11,6 +11,7 @@ const moduleConfigSql = require('../module-config/sql.js');
 const messages = require('../messages/helper.js');
 const cache = require('../../../custom/cache');
 const log = require('../../../custom/loggers/winston');
+const GET = require('lodash.get');
 
 //validation functions
 
@@ -42,14 +43,17 @@ function validateAppPolicyOnlyPost (req, res) {
 
 //helper functions
 
-function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
+function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, returnPreview, cb) {
     let makePolicyTable = {};
     if (appPolicyObj) { //existence of appPolicyObj implies to return the app policy object
-        makePolicyTable.appPolicies = setupAppPolicies(isProduction, appPolicyObj);
+        makePolicyTable.appPolicies = setupAppPolicies(isProduction, useLongUuids, appPolicyObj);
     }
 
     cache.getCacheData(isProduction, app.locals.version, cache.policyTableKey, function (err, cacheData) {
         if (cacheData) {
+            if(cacheData.moduleConfig){
+                cacheData.moduleConfig.full_app_id_supported = useLongUuids;
+            }
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
                 cacheData.appPolicies = data.appPolicies;
@@ -57,7 +61,7 @@ function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
             });
         } else {
             if (returnPreview) {
-                makePolicyTable.moduleConfig = setupModuleConfig(isProduction);
+                makePolicyTable.moduleConfig = setupModuleConfig(isProduction, useLongUuids);
                 makePolicyTable.functionalGroups = setupFunctionalGroups(isProduction);
                 makePolicyTable.consumerFriendlyMessages = setupConsumerFriendlyMessages(isProduction);
             }
@@ -70,7 +74,7 @@ function generatePolicyTable (isProduction, appPolicyObj, returnPreview, cb) {
     });
 }
 
-function setupModuleConfig (isProduction) {
+function setupModuleConfig (isProduction, useLongUuids = false) {
     const getModuleConfig = {
         base: setupSqlCommand.bind(null, moduleConfigSql.moduleConfig.status(isProduction)),
         retrySeconds: setupSqlCommand.bind(null, moduleConfigSql.retrySeconds.status(isProduction))
@@ -78,7 +82,7 @@ function setupModuleConfig (isProduction) {
     const moduleConfigGetFlow = flame.flow(getModuleConfig, {method: 'parallel'});
     const makeModuleConfig = [
         moduleConfigGetFlow,
-        model.transformModuleConfig.bind(null, isProduction)
+        model.transformModuleConfig.bind(null, isProduction, useLongUuids)
     ];
     return flame.flow(makeModuleConfig, {method: 'waterfall'});
 }
@@ -112,22 +116,22 @@ function setupFunctionalGroups (isProduction) {
     return flame.flow(makeFunctionGroupInfo, {method: 'waterfall'});
 }
 
-function setupAppPolicies (isProduction, reqAppPolicy) {
+function setupAppPolicies (isProduction, useLongUuids = false, reqAppPolicy) {
     const uuids = Object.keys(reqAppPolicy);
     let getAppPolicy = [];
     if (uuids.length) {
-        getAppPolicy.push(setupSqlCommand.bind(null, sql.getBaseAppInfo(isProduction, uuids)));
+        getAppPolicy.push(setupSqlCommand.bind(null, sql.getBaseAppInfo(isProduction, useLongUuids, uuids)));
     }
     else {
         getAppPolicy.push(function (callback) {
             callback(null, []);
         });
     }
-    getAppPolicy.push(mapAppBaseInfo.bind(null, isProduction, uuids));
+    getAppPolicy.push(mapAppBaseInfo.bind(null, isProduction, useLongUuids, uuids));
     return flame.flow(getAppPolicy, {method: 'waterfall'});
 }
 
-function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
+function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, appObjs, callback) {
     const makeAppPolicyFlow = flame.flow(flame.map(appObjs, function (appObj, next) {
         const getInfoFlow = flame.flow({
             displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
@@ -137,7 +141,7 @@ function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
 
         flame.flow([
             getInfoFlow,
-            model.constructAppPolicy.bind(null, appObj)
+            model.constructAppPolicy.bind(null, appObj, useLongUuids)
         ], {method: 'waterfall'})(next); //run it
     }), {method: 'parallel'});
 
@@ -146,12 +150,15 @@ function mapAppBaseInfo (isProduction, requestedUuids, appObjs, callback) {
         requestedUuids: function(callback){
             callback(null, requestedUuids);
         },
+        useLongUuids: function(callback){
+            callback(null, useLongUuids);
+        },
         defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
         preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
         deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction)),
         blacklistedApps: function (callback) {
             if (requestedUuids.length > 0) {
-                setupSqlCommand(sqlApps.getBlacklistedApps(requestedUuids), callback);
+                setupSqlCommand(sqlApps.getBlacklistedApps(requestedUuids, useLongUuids), callback);
             } else {
                 callback(null, []);
             }
