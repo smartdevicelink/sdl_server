@@ -14,6 +14,10 @@ function postFromCore (isProduction) {
 		if (res.errorMsg) {
 			return res.status(400).send({ error: res.errorMsg });
 		}
+		console.log("usage_and_error_counts");
+		console.log(JSON.stringify(req.body.policy_table.usage_and_error_counts));
+		console.log("device_data");
+		console.log(JSON.stringify(req.body.policy_table.device_data));
         helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, true, handlePolicyTableFlow.bind(null, res, true));
 	}
 }
@@ -29,10 +33,6 @@ function postAppPolicy (req, res, next) {
     if (res.errorMsg) {
         return res.status(400).send({ error: res.errorMsg });
     }
-	console.log("usage_and_error_counts");
-	console.log(JSON.stringify(req.body.policy_table.usage_and_error_counts));
-	console.log("device_data");
-	console.log(JSON.stringify(req.body.policy_table.device_data));
     helper.generatePolicyTable(isProduction, req.body.policy_table.app_policies, false, handlePolicyTableFlow.bind(null, res, false));
 }
 
