@@ -25,7 +25,6 @@ function transformModuleConfig (isProduction, info, next) {
     }
 
     next(null, {
-        "preloaded_pt": base.preloaded_pt,
         "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
         "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
         "exchange_after_x_days": base.exchange_after_x_days,

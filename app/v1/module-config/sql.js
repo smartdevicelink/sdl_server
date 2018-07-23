@@ -30,7 +30,6 @@ function retrySecondsByStatus (isProduction) {
 function insertModuleConfig (moduleConfig) {
     return sql.insert('module_config', {
         status: moduleConfig.status,
-        preloaded_pt: moduleConfig.preloaded_pt,
         exchange_after_x_ignition_cycles: moduleConfig.exchange_after_x_ignition_cycles,
         exchange_after_x_kilometers: moduleConfig.exchange_after_x_kilometers,
         exchange_after_x_days: moduleConfig.exchange_after_x_days,

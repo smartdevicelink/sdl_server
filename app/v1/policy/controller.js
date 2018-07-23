@@ -14,6 +14,8 @@ function postFromCore (isProduction) {
 		if (res.errorMsg) {
 			return res.status(400).send({ error: res.errorMsg });
 		}
+		console.log("module_meta");
+		console.log(JSON.stringify(req.body.policy_table.module_meta));
 		console.log("usage_and_error_counts");
 		console.log(JSON.stringify(req.body.policy_table.usage_and_error_counts));
 		console.log("device_data");

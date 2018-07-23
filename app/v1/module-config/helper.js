@@ -15,9 +15,6 @@ function validatePost (req, res) {
     req.body.exchange_after_x_days -= 0;
     req.body.timeout_after_x_seconds -= 0;
 
-    if (!check.boolean(req.body.preloaded_pt)) {
-        return setError("preloaded_pt required");
-    }
     if (!check.number(req.body.exchange_after_x_ignition_cycles)) {
         return setError("exchange_after_x_ignition_cycles required");
     }
