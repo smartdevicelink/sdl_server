@@ -25,7 +25,6 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
     }
 
     next(null, {
-        "preloaded_pt": base.preloaded_pt,
         "full_app_id_supported": useLongUuids,
         "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
         "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
