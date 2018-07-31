@@ -429,6 +429,9 @@ export default {
             this.httpRequest("post", "policy/apps?environment=" + envName, {
                 "body": {
                     "policy_table": {
+                        "module_config": {
+                            "full_app_id_supported": true
+                        },
                         "app_policies": {
                             [this.app.uuid]: {}
                         }
