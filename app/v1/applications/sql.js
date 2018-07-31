@@ -230,6 +230,7 @@ function insertVendor (obj) {
 function insertAppInfo (obj) {
     let insertObj = {
         app_uuid: obj.uuid,
+        app_short_uuid: obj.short_uuid,
         name: obj.name,
         platform: obj.platform,
         platform_app_id: obj.platform_app_id,
@@ -373,11 +374,24 @@ function getAppBlacklist (id) {
         .toString();
 }
 
-function getBlacklistedApps (uuids) {
-    return sql.select('app_uuid')
-            .from('app_blacklist')
-            .where(sql.in('app_uuid', uuids))
-            .toString();
+function getBlacklistedApps (uuids, useLongUuids = false) {
+    var query = sql.select('app_info.app_uuid, app_info.app_short_uuid')
+        .from('app_info')
+        .join('app_blacklist', {
+            "app_blacklist.app_uuid": 'app_info.app_uuid'
+        });
+
+    if(useLongUuids){
+        query.where(
+            sql.in('app_info.app_uuid', uuids)
+        );
+    }else{
+        query.where(
+            sql.in('app_info.app_short_uuid', uuids)
+        );
+    }
+
+    return query.toString();
 }
 
 module.exports = {

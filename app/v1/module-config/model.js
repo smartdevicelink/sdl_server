@@ -36,7 +36,6 @@ function baseTemplate (objOverride) {
     const obj = {
         id: 0,
         status: "PRODUCTION",
-        preloaded_pt: true,
         exchange_after_x_ignition_cycles: 0,
         exchange_after_x_kilometers: 0,
         exchange_after_x_days: 0,
@@ -61,7 +60,6 @@ function baseTemplate (objOverride) {
         //add overrides to the default
         obj.id = objOverride.id;
         obj.status = objOverride.status;
-        obj.preloaded_pt = objOverride.preloaded_pt;
         obj.exchange_after_x_ignition_cycles = objOverride.exchange_after_x_ignition_cycles;
         obj.exchange_after_x_kilometers = objOverride.exchange_after_x_kilometers;
         obj.exchange_after_x_days = objOverride.exchange_after_x_days;
