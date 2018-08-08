@@ -271,7 +271,7 @@ function insertAppInfo (obj) {
 function purgeAppInfo (obj) {
     return sql.delete('app_info')
         .where({
-            'uuid': obj.uuid
+            'app_uuid': obj.uuid
         })
         .returning('*')
         .toString();
