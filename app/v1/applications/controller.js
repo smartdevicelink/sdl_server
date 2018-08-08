@@ -121,20 +121,35 @@ function webhook (req, res, next) {
         return res.parcel.deliver();
     }
 
+	async.waterfall([
+		(callback)=>{
+			if(req.body.entity != "application"){
+				callback(null, null);
+			}else{
+				const query = {
+		            uuid: req.body.uuid
+		        };
+
+				if(req.body.deleted_ts){
+					// delete flow
+					app.locals.db.sqlCommand(sql.purgeAppInfo(query), callback);
+				}else{
+					// query from shaid and store flow
+					const queryAndStoreFlow = queryAndStoreApplicationsFlow(query);
+			        queryAndStoreFlow(callback);
+				}
+			}
+		}
+	], (err, result)=>{
+		if (err) {
+			req.app.locals.log.error(err);
+		}
+		res.parcel.setStatus(200);
+		res.parcel.deliver();
+	});
+
     if (req.body.entity === "application") {
-        const query = {
-            uuid: req.body.uuid
-        };
 
-        const queryAndStoreFlow = queryAndStoreApplicationsFlow(query);
-
-        queryAndStoreFlow(function (err) {
-            if (err) {
-                req.app.locals.log.error(err);
-            }
-            res.parcel.setStatus(200);
-            res.parcel.deliver();
-        });
     }
 }
 

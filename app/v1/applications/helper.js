@@ -30,14 +30,11 @@ function validateAutoPost (req, res) {
 }
 
 function validateWebHook (req, res) {
-    if (req.body.entity === "application") {
-        //valid
-    }
-    else {
-        //request contained an entity the server cannot handle
-        res.parcel.setStatus(500).setMessage("Entity property is undefined or not valid");
-    }
-    return;
+	if(req.headers["public_key"] != app.locals.config.shaidPublicKey){
+		//request contained an entity the server cannot handle
+        res.parcel.setStatus(401).setMessage("Unable to validate webhook with SHAID public key");
+	}
+	return;
 }
 
 //helper functions

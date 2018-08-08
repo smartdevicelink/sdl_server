@@ -268,6 +268,15 @@ function insertAppInfo (obj) {
         .toString();
 }
 
+function purgeAppInfo (obj) {
+    return sql.delete('app_info')
+        .where({
+            'uuid': obj.uuid
+        })
+        .returning('*')
+        .toString();
+}
+
 function insertAppCountries (objs, appId) {
     if (objs.length === 0) {
         return null;
@@ -453,6 +462,7 @@ module.exports = {
     checkAutoApproval: checkAutoApproval,
     insertVendor: insertVendor,
     insertAppInfo: insertAppInfo,
+    purgeAppInfo: purgeAppInfo,
     insertAppCountries: insertAppCountries,
     insertAppDisplayNames: insertAppDisplayNames,
     insertAppPermissions: insertAppPermissions,
