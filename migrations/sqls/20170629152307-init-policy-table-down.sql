@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS rpc_permission;
 DROP TABLE IF EXISTS vehicle_data;
 DROP TABLE IF EXISTS rpc_names;
 DROP TABLE IF EXISTS function_group_info;
-DROP TABLE IF EXISTS message_text;
+DROP TABLE IF EXISTS message_text CASCADE;
 DROP TABLE IF EXISTS languages;
 DROP TABLE IF EXISTS module_config_retry_seconds;
 DROP TABLE IF EXISTS module_config;
