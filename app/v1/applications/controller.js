@@ -147,10 +147,6 @@ function webhook (req, res, next) {
 		res.parcel.setStatus(200);
 		res.parcel.deliver();
 	});
-
-    if (req.body.entity === "application") {
-
-    }
 }
 
 //queries SHAID to get applications and stores them into the database
