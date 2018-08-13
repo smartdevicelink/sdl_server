@@ -30,14 +30,11 @@ function validateAutoPost (req, res) {
 }
 
 function validateWebHook (req, res) {
-    if (req.body.entity === "application") {
-        //valid
-    }
-    else {
-        //request contained an entity the server cannot handle
-        res.parcel.setStatus(500).setMessage("Entity property is undefined or not valid");
-    }
-    return;
+	if(req.headers["public_key"] != app.locals.config.shaidPublicKey){
+		//request contained an entity the server cannot handle
+        res.parcel.setStatus(401).setMessage("Unable to validate webhook with SHAID public key");
+	}
+	return;
 }
 
 //helper functions
@@ -64,8 +61,8 @@ function storeApps (includeApprovalStatus, apps, callback) {
     let queue = [];
     function recStore(includeApprovalStatus, theseApps, cb){
         const fullFlow = flow([
-            //first check if the apps need to be stored in the database
-            flow(flame.map(theseApps, checkNeedsInsertion), {method: "parallel"}),
+            //first check if the apps need to be deleted from or stored in the database
+            flow(flame.map(theseApps, checkNeedsInsertionOrDeletion), {method: "parallel"}),
             filterApps.bind(null, includeApprovalStatus),
             //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
             //should change to be accepted
@@ -105,23 +102,29 @@ function storeApps (includeApprovalStatus, apps, callback) {
     });
 }
 
-//determine whether the object needs to be stored in the database
-function checkNeedsInsertion (appObj, next) {
-    const tableName = 'app_info';
-    const whereObj = {
-		app_uuid: appObj.uuid,
-		version_id: appObj.version_id
-	};
-    // check if the version exists in the database before attempting insertion
-    const getObjStr = sql.versionCheck(tableName, whereObj);
-    db.sqlCommand(getObjStr, function (err, data) {
-		if(data.length > 0){
-			// record exists, skip it!
+//determine whether the object needs to be deleted or stored in the database
+function checkNeedsInsertionOrDeletion (appObj, next) {
+	if(appObj.deleted_ts){
+		// delete!
+		db.sqlCommand(sql.purgeAppInfo(appObj), function(err, data){
+			// delete attempt made, skip it!
 			next(null, null);
-		}else{
-			next(null, appObj);
-		}
-    });
+		});
+	}else{
+	    // check if the version exists in the database before attempting insertion
+	    const getObjStr = sql.versionCheck('app_info', {
+			app_uuid: appObj.uuid,
+			version_id: appObj.version_id
+		});
+	    db.sqlCommand(getObjStr, function (err, data) {
+			if(data.length > 0){
+				// record exists, skip it!
+				next(null, null);
+			}else{
+				next(null, appObj);
+			}
+	    });
+	}
 }
 
 //any elements that are null are removed
