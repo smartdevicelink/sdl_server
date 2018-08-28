@@ -25,6 +25,7 @@
     "db-migrate-reset-pg-test": "npm run db-migrate -- reset -e pg-test",
 
     "start-server": "npm run build && npm run db-migrate-up && node index.js",
+    "start-test": "npm run db-migrate-reset > /dev/null 2>&1 && npm run db-migrate-up > /dev/null 2>&1 && NODE_ENV=production mocha",
     "db-migrate-up": "npm run db-migrate -- up -e pg-policy",
     "db-migrate-reset": "npm run db-migrate -- reset -e pg-policy"
   },

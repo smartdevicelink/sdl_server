@@ -259,6 +259,14 @@ function insertAppInfo (obj) {
         version_id: obj.version_id
     };
 
+    if(obj.created_ts){
+        insertObj.created_ts = obj.created_ts;
+    }
+
+    if(obj.updated_ts){
+        insertObj.updated_ts = obj.updated_ts;
+    }
+    
     if (obj.approval_status) { //has a defined approval_status. otherwise leave as default
         insertObj.approval_status = obj.approval_status;
     }

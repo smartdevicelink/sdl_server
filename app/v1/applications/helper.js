@@ -31,7 +31,7 @@ function validateAutoPost (req, res) {
 
 function validateWebHook (req, res) {
 	if(req.headers["public_key"] != app.locals.config.shaidPublicKey){
-		//request contained an entity the server cannot handle
+		// request cannot be verified as authentic
         res.parcel.setStatus(401).setMessage("Unable to validate webhook with SHAID public key");
 	}
 	return;
@@ -110,6 +110,12 @@ function checkNeedsInsertionOrDeletion (appObj, next) {
 			// delete attempt made, skip it!
 			next(null, null);
 		});
+	}else if(appObj.blacklisted_ts){
+		// blacklist!
+		db.sqlCommand(sql.insertAppBlacklist(appObj), function(err, data){
+			// blacklist attempt made, skip it!
+			next(null, null);
+		});
 	}else{
 	    // check if the version exists in the database before attempting insertion
 	    const getObjStr = sql.versionCheck('app_info', {
@@ -158,7 +164,7 @@ function autoApprovalModifier (appObj, next) {
 
 // Auto deny new application versions of an app that is blacklisted
 function autoBlacklistModifier (appObj, next) {
-	db.sqlCommand(sql.getBlacklistedApps(appObj.uuid), function (err, res) {
+	db.sqlCommand(sql.getBlacklistedApps(appObj.uuid, true), function (err, res) {
 		if (res.length > 0) {
 			appObj.approval_status = 'LIMITED';
 		}
@@ -181,7 +187,7 @@ function attemptRetry(milliseconds, retryQueue){
                 function(apps, callback){
                     const fullFlow = flow([
                         //first check if the apps need to be stored in the database
-                        flow(flame.map(apps, checkNeedsInsertion), {method: "parallel"}),
+                        flow(flame.map(apps, checkNeedsInsertionOrDeletion), {method: "parallel"}),
                         filterApps.bind(null, false),
                         //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
                         //should change to be accepted

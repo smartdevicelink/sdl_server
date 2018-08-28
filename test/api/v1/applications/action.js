@@ -5,7 +5,7 @@ var endpoint = '/api/v1/applications/action';
 common.post(
     'should change application status',
     endpoint,
-    {id: 1, approval_status: 'DENIED'},
+    {id: 1, approval_status: 'LIMITED'},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);

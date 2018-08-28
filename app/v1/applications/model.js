@@ -38,6 +38,8 @@ function constructFullAppObjs (res, next) {
         hashedApps[appBase[i].id].uuid = hashedApps[appBase[i].id].app_uuid;
         hashedApps[appBase[i].id].short_uuid = hashedApps[appBase[i].id].app_short_uuid;
         hashedApps[appBase[i].id].version_id = hashedApps[appBase[i].id].version_id;
+        hashedApps[appBase[i].id].created_ts = hashedApps[appBase[i].id].created_ts;
+        hashedApps[appBase[i].id].updated_ts = hashedApps[appBase[i].id].updated_ts;
 
         hashedApps[appBase[i].id].category = {
             id: appBase[i].category_id,

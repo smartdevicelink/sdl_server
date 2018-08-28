@@ -123,21 +123,27 @@ function webhook (req, res, next) {
 
 	async.waterfall([
 		(callback)=>{
-			if(req.body.entity != "application"){
-				callback(null, null);
-			}else{
+			if(req.body.entity == "application"){
 				const query = {
 		            uuid: req.body.uuid
 		        };
 
-				if(req.body.deleted_ts){
-					// delete flow
-					app.locals.db.sqlCommand(sql.purgeAppInfo(query), callback);
-				}else{
-					// query from shaid and store flow
-					const queryAndStoreFlow = queryAndStoreApplicationsFlow(query);
-			        queryAndStoreFlow(callback);
+				switch(req.body.action){
+					case "UPSERT":
+						const queryAndStoreFlow = queryAndStoreApplicationsFlow(query);
+				        queryAndStoreFlow(callback);
+						break;
+					case "DELETE":
+						app.locals.db.sqlCommand(sql.purgeAppInfo(query), callback);
+						break;
+					case "BLACKLIST":
+						app.locals.db.sqlCommand(sql.insertAppBlacklist(query), callback);
+						break;
+					default:
+						callback(null, null);
 				}
+			}else{
+				callback(null, null);
 			}
 		}
 	], (err, result)=>{
