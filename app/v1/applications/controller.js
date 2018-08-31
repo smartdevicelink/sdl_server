@@ -125,7 +125,9 @@ function webhook (req, res, next) {
 		(callback)=>{
 			if(req.body.entity == "application"){
 				const query = {
-		            uuid: req.body.uuid
+		            "uuid": req.body.uuid,
+					"include_deleted": true,
+					"include_blacklisted": true
 		        };
 
 				switch(req.body.action){

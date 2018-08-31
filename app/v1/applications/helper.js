@@ -182,7 +182,9 @@ function attemptRetry(milliseconds, retryQueue){
         flame.async.map(retryQueue, function(appID, callback){
             flame.async.waterfall([
                 app.locals.shaid.getApplications.bind(null, {
-                    uuid: appID,
+                    "uuid": appID,
+					"include_deleted": true,
+					"include_blacklisted": true
                 }),
                 function(apps, callback){
                     const fullFlow = flow([
