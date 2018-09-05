@@ -58,11 +58,16 @@
                         "class": "color-red",
                         "title": "Limited Applications"
                     },
+                    "apps_blacklisted": {
+                        "list": [],
+                        "class": "color-black",
+                        "title": "Blacklisted Applications"
+                    }
                 }
             }
         },
         methods: {
-            "getApplications": function(status = "PENDING", storage_attribute ="apps_pending") {
+            "getApplications": function(status = "PENDING", storage_attribute ="apps_pending", get_blacklist = false) {
                 this.httpRequest("get", "applications", {
                     "params": {
                         "approval_status": status
@@ -74,7 +79,7 @@
                     }else{
                         // success
                         response.json().then(parsed => {
-                            this.apps[storage_attribute].list = this.apps[storage_attribute].list.concat(parsed.data.applications);
+                            this.apps[storage_attribute].list = this.apps[storage_attribute].list.concat(parsed.data.applications.filter(function(app){return (app.is_blacklisted && get_blacklist) || (!app.is_blacklisted && !get_blacklist)}));
                         });
                     }
                 });
@@ -88,6 +93,7 @@
             this.getApplications("STAGING", "apps_pending");
             this.getApplications("ACCEPTED", "apps_approved");
             this.getApplications("LIMITED", "apps_denied");
+            this.getApplications("LIMITED", "apps_blacklisted", true);
         }
     }
 </script>
