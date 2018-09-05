@@ -136,6 +136,13 @@ function getAppInfoId (id) {
         .toString();
 }
 
+function getAppInfoUuid (uuid) {
+    return sql.select('*')
+        .from('app_info')
+        .where({ app_uuid: uuid })
+        .toString()
+}
+
 function getAppCountriesId (id) {
     return sql.select('app_id AS id', 'country_iso', 'name')
         .from('app_countries')
@@ -209,6 +216,13 @@ function timestampCheck (tableName, whereObj) {
         .toString();
 }
 
+function versionCheck (tableName, whereObj) {
+    return sql.select('version_id')
+        .from(tableName)
+        .where(whereObj)
+        .toString();
+}
+
 function checkAutoApproval (uuid) {
     return sql.select('app_auto_approval.app_uuid')
         .from('app_auto_approval')
@@ -230,6 +244,7 @@ function insertVendor (obj) {
 function insertAppInfo (obj) {
     let insertObj = {
         app_uuid: obj.uuid,
+        app_short_uuid: obj.short_uuid,
         name: obj.name,
         platform: obj.platform,
         platform_app_id: obj.platform_app_id,
@@ -240,14 +255,32 @@ function insertAppInfo (obj) {
         tech_email: obj.tech_email,
         tech_phone: obj.tech_phone,
         category_id: obj.category.id,
-        vendor_id: obj.vendor_id
+        vendor_id: obj.vendor_id,
+        version_id: obj.version_id
     };
 
+    if(obj.created_ts){
+        insertObj.created_ts = obj.created_ts;
+    }
+
+    if(obj.updated_ts){
+        insertObj.updated_ts = obj.updated_ts;
+    }
+    
     if (obj.approval_status) { //has a defined approval_status. otherwise leave as default
         insertObj.approval_status = obj.approval_status;
     }
 
     return sql.insert('app_info', insertObj)
+        .returning('*')
+        .toString();
+}
+
+function purgeAppInfo (obj) {
+    return sql.delete('app_info')
+        .where({
+            'app_uuid': obj.uuid
+        })
         .returning('*')
         .toString();
 }
@@ -321,6 +354,7 @@ function insertAppAutoApproval (obj) {
                 )
             )
         )
+        .returning('*')
         .toString();
 }
 
@@ -373,11 +407,24 @@ function getAppBlacklist (id) {
         .toString();
 }
 
-function getBlacklistedApps (uuids) {
-    return sql.select('app_uuid')
-            .from('app_blacklist')
-            .where(sql.in('app_uuid', uuids))
-            .toString();
+function getBlacklistedApps (uuids, useLongUuids = false) {
+    var query = sql.select('app_info.app_uuid, app_info.app_short_uuid')
+        .from('app_info')
+        .join('app_blacklist', {
+            "app_blacklist.app_uuid": 'app_info.app_uuid'
+        });
+
+    if(useLongUuids){
+        query.where(
+            sql.in('app_info.app_uuid', uuids)
+        );
+    }else{
+        query.where(
+            sql.in('app_info.app_short_uuid', uuids)
+        );
+    }
+
+    return query.toString();
 }
 
 module.exports = {
@@ -386,7 +433,8 @@ module.exports = {
     getApp: {
         base: {
             multiFilter: getFullAppInfoFilter,
-            idFilter: getAppInfoId
+            idFilter: getAppInfoId,
+            uuidFilter: getAppInfoUuid
         },
         countries: {
             multiFilter: getAppCountriesFilter,
@@ -418,9 +466,11 @@ module.exports = {
         }
     },
     timestampCheck: timestampCheck,
+    versionCheck: versionCheck,
     checkAutoApproval: checkAutoApproval,
     insertVendor: insertVendor,
     insertAppInfo: insertAppInfo,
+    purgeAppInfo: purgeAppInfo,
     insertAppCountries: insertAppCountries,
     insertAppDisplayNames: insertAppDisplayNames,
     insertAppPermissions: insertAppPermissions,

@@ -1,6 +1,6 @@
 {
   "name": "sdl_policy_server",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "license": "BSD-3-Clause",
   "description": "Integrates with SHAID to allow managing app permissions through policy tables",
   "author": "Livio",
@@ -22,7 +22,12 @@
     "db-migrate-up-pg-production": "npm run db-migrate -- up -e pg-production",
     "db-migrate-reset-pg-staging": "npm run db-migrate -- reset -e pg-staging",
     "db-migrate-up-pg-test": "npm run db-migrate -- up -e pg-test",
-    "db-migrate-reset-pg-test": "npm run db-migrate -- reset -e pg-test"
+    "db-migrate-reset-pg-test": "npm run db-migrate -- reset -e pg-test",
+
+    "start-server": "npm run build && npm run db-migrate-up && node index.js",
+    "start-test": "npm run db-migrate-reset > /dev/null 2>&1 && npm run db-migrate-up > /dev/null 2>&1 && NODE_ENV=production mocha",
+    "db-migrate-up": "npm run db-migrate -- up -e pg-policy",
+    "db-migrate-reset": "npm run db-migrate -- reset -e pg-policy"
   },
   "dependencies": {
     "async": "2.5.0",
@@ -43,7 +48,8 @@
     "pg": "6.4.2",
     "portfinder": "1.0.13",
     "redis": "^2.8.0",
-    "shaidkit": "1.0.1",
+    "request": "^2.87.0",
+    "shaidkit": "1.1.0",
     "sql-bricks-postgres": "0.5.0",
     "uuid": "3.2.1",
     "vue": "2.4.3",

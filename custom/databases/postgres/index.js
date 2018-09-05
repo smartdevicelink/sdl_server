@@ -2,6 +2,7 @@
 const pg = require('pg'); //handles connections to the postgres database
 const async = require('async');
 const sqlBrick = require('sql-bricks-postgres');
+const config = require('../../../settings.js');
 //get configurations from environment variables
 
 // extend the Postgres client to easily fetch a single expected result as an object
@@ -24,36 +25,42 @@ pg.Client.prototype.getMany = pg.Pool.prototype.getMany = function(query, callba
     });
 };
 
-let config = {
+let dbParameters = {
     max: 10,
     idleTimeoutMillis: 30000
 };
 
 //environment-specific information for connecting to the database
 if (process.env.NODE_ENV === "staging") {
-    config.user = process.env.STAGING_PG_USER;
-    config.database = process.env.STAGING_PG_DATABASE;
-    config.password = process.env.STAGING_PG_PASSWORD;
-    config.host = process.env.STAGING_PG_HOST;
-    config.port = process.env.STAGING_PG_PORT;
+    dbParameters.user = process.env.STAGING_PG_USER || config.dbUser;
+    dbParameters.database = process.env.STAGING_PG_DATABASE || config.dbDatabase;
+    dbParameters.password = process.env.STAGING_PG_PASSWORD || config.dbPassword;
+    dbParameters.host = process.env.STAGING_PG_HOST || config.dbHost;
+    dbParameters.port = process.env.STAGING_PG_PORT || config.dbPort;
 }
 else if (process.env.NODE_ENV === "production") {
-    config.user = process.env.PRODUCTION_PG_USER;
-    config.database = process.env.PRODUCTION_PG_DATABASE;
-    config.password = process.env.PRODUCTION_PG_PASSWORD;
-    config.host = process.env.PRODUCTION_PG_HOST;
-    config.port = process.env.PRODUCTION_PG_PORT;
+    dbParameters.user = process.env.PRODUCTION_PG_USER || config.dbUser;
+    dbParameters.database = process.env.PRODUCTION_PG_DATABASE || config.dbDatabase;
+    dbParameters.password = process.env.PRODUCTION_PG_PASSWORD || config.dbPassword;
+    dbParameters.host = process.env.PRODUCTION_PG_HOST || config.dbHost;
+    dbParameters.port = process.env.PRODUCTION_PG_PORT || config.dbPort;
 }
 else if (process.env.NODE_ENV === 'test') {
-    config.user = process.env.TEST_PG_USER;
-    config.database = process.env.TEST_PG_DATABASE;
-    config.password = process.env.TEST_PG_PASSWORD;
-    config.host = process.env.TEST_PG_HOST;
-    config.port = process.env.TEST_PG_PORT;
+    dbParameters.user = process.env.TEST_PG_USER;
+    dbParameters.database = process.env.TEST_PG_DATABASE;
+    dbParameters.password = process.env.TEST_PG_PASSWORD;
+    dbParameters.host = process.env.TEST_PG_HOST;
+    dbParameters.port = process.env.TEST_PG_PORT;
+} else {
+    dbParameters.user = config.dbUser;
+    dbParameters.database = config.dbDatabase;
+    dbParameters.password = config.dbPassword;
+    dbParameters.host = config.dbHost;
+    dbParameters.port = config.dbPort;
 }
 
 //create a pool of clients
-const pool = new pg.Pool(config);
+const pool = new pg.Pool(dbParameters);
 
 //the log parameter is the choice logger module that's loaded. info() and error() are available
 module.exports = function (log) {

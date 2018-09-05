@@ -2,6 +2,11 @@ var common = require('../common');
 var expect = common.expect;
 var cache = require('../../custom/cache');
 
+it('should be enabled', (done) => {
+    expect(common.config.cacheModule).to.not.be.null;
+    done();
+});
+
 it('should set a value in the cache and get the value back', (done) => {
     cache.setCacheData(true, 'test', 'key', 'someValue', (err, res) => {
         expect(err).to.be.null;

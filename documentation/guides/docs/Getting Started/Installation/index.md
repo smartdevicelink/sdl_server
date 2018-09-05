@@ -21,37 +21,47 @@ Here are the environment variables that will most likely be used:
 * `SSL_PRIVATE_KEY_FILENAME`: The filename of the SSL certificate's private key located in `./customizable/ssl`. Required if a value is set for `POLICY_SERVER_PORT_SSL`.
 * `SHAID_PUBLIC_KEY`: A public key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
 * `SHAID_SECRET_KEY`: A secret key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
-* `STAGING_PG_USER`: The name of the user to allow the server access the database (staging mode)
-* `STAGING_PG_DATABASE`: The name of the database where policy and app data is stored (staging mode)
-* `STAGING_PG_PASSWORD`: The password used to log into the database (staging mode)
-* `STAGING_PG_HOST`: The host name or IP address of the database (staging mode)
-* `STAGING_PG_PORT`: The port number of the database (staging mode)
-* `PRODUCTION_PG_USER`: The name of the user to allow the server access the database (production mode)
-* `PRODUCTION_PG_DATABASE`: The name of the database where policy and app data is stored (production mode)
-* `PRODUCTION_PG_PASSWORD`: The password used to log into the database (production mode)
-* `PRODUCTION_PG_HOST`: The host name or IP address of the database (production mode)
-* `PRODUCTION_PG_PORT`: The port number of the database (production mode)
+* `DB_USER`: The name of the user to allow the server to access the database
+* `DB_DATABASE`: The name of the database where polciy and app data is stored
+* `DB_PASSWORD`: The password used to log into the database
+* `DB_HOST`: The host name or IP address of the database
+* `DB_PORT`: The port number of the database
+* `STAGING_PG_USER` **DEPRECATED**: The name of the user to allow the server access the database (staging mode)
+* `STAGING_PG_DATABASE` **DEPRECATED**: The name of the database where policy and app data is stored (staging mode)
+* `STAGING_PG_PASSWORD` **DEPRECATED**: The password used to log into the database (staging mode)
+* `STAGING_PG_HOST` **DEPRECATED**: The host name or IP address of the database (staging mode)
+* `STAGING_PG_PORT` **DEPRECATED**: The port number of the database (staging mode)
+* `PRODUCTION_PG_USER` **DEPRECATED**: The name of the user to allow the server access the database (production mode)
+* `PRODUCTION_PG_DATABASE` **DEPRECATED**: The name of the database where policy and app data is stored (production mode)
+* `PRODUCTION_PG_PASSWORD` **DEPRECATED**: The password used to log into the database (production mode)
+* `PRODUCTION_PG_HOST` **DEPRECATED**: The host name or IP address of the database (production mode)
+* `PRODUCTION_PG_PORT` **DEPRECATED**: The port number of the database (production mode)
 * `CACHE_MODULE`: The name of the caching module to use. Currently supports null (no caching, default) or "redis".
 * `CACHE_HOST`: The host name or IP address of the cache
 * `CACHE_PORT`: The port number of the cache
 * `CACHE_PASSWORD`: The password used to log into the cache
 
-Once these environment variables are set, initialize the database. The staging database should be given the same name set in `STAGING_PG_DATABASE`. For the production database, use the name set in `PRODUCTION_PG_DATABASE`.
+Production/Staging environment variables for the database are now deprecated. Please use the corresponding `DB_` values in place of them (ex. `DB_USER` instead of `PRODUCTION_PG_USER` or `STAGING_PG_USER`).
+
+Once these environment variables are set, initialize the database. The database should be given the same name set in `DB_DATABASE`.
 
 Using the createdb program that comes with the installation of PostgreSQL, for example:
-`createdb policy_server_staging`
+`createdb policy_server`
 
 The Policy Server comes with migration scripts that can be run using npm scripts. You can see a list of all the possible scripts by looking in `package.json`, but these are the most important ones:
 
-* `start-pg-staging`: Runs the migration up script which initializes data in the database, sets the environment to `staging` and starts the Policy Server
-* `start-pg-production`: Runs the migration up script which initializes data in the database, sets the environment to `production` and starts the Policy Server
-* `db-migrate-reset-pg-staging`: Runs the migration down script which drops all the data and tables in the staging database
+* `start-server`: Runs the migration up script which initializes data in the database and starts the Policy Server
+* `start-pg-staging` **DEPRECATED**: Runs the migration up script which initializes data in the database, sets the environment to `staging` and starts the Policy Server
+* `start-pg-production` **DEPRECATED**: Runs the migration up script which initializes data in the database, sets the environment to `production` and starts the Policy Server
+* `db-migrate-reset-pg-staging` **DEPRECATED**: Runs the migration down script which drops all the data and tables in the staging database
 * `dev` or `start`: Starts the server with hot reloading so any changes made to the UI are instantly updated in the browser
 * `build`: Generates a new staging/production build using webpack. This command should only be run if you made front-end modifications to the UI.
 
-Run the following command to finalize set up and start the server in staging mode.
+Production/Staging scripts are now deprecated. Please use `start-server` instead of `start-pg-staging` or `start-pg-production`.
 
-`npm run start-pg-staging`
+Run the following command to finalize set up and start the server.
+
+`npm run start-server`
 
 Verify that it started properly by navigating to your configured host and port, or to the default address: <a href="http://localhost:3000/">`http://localhost:3000/`</a>
 
