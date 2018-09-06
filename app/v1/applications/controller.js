@@ -21,7 +21,6 @@ function get (req, res, next) {
 	else { //get all applications whose information are the latest versions
 		chosenFlow = helper.createAppInfoFlow('multiFilter');
 	}
-
 	chosenFlow(function (err, apps) {
 		if (err) {
 			app.locals.log.error(err);
@@ -30,7 +29,7 @@ function get (req, res, next) {
 			res.parcel
 				.setStatus(200)
 				.setData({
-					applications: apps
+					applications: apps.filter(app => {return ((req.query.get_blacklist == "true") && app.is_blacklisted) || (!(req.query.get_blacklist == "true") && !app.is_blacklisted)})
 				});
 		}
 		return res.parcel.deliver();
