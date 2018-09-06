@@ -46,7 +46,6 @@ function createAppInfoFlow (filterTypeFunc, value) {
 		appCountries: setupSql.bind(null, sql.getApp.countries[filterTypeFunc](value)),
 		appDisplayNames: setupSql.bind(null, sql.getApp.displayNames[filterTypeFunc](value)),
 		appPermissions: setupSql.bind(null, sql.getApp.permissions[filterTypeFunc](value)),
-		appVendors: setupSql.bind(null, sql.getApp.vendor[filterTypeFunc](value)),
 		appCategories: setupSql.bind(null, sql.getApp.category[filterTypeFunc](value)),
 		appAutoApprovals: setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value)),
 		appBlacklist: setupSql.bind(null, sql.getApp.blacklist[filterTypeFunc](value))

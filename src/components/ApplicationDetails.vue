@@ -140,16 +140,14 @@
                                 <tr>
                                     <th>Vendor</th>
                                     <th>Email</th>
-                                    <th>Phone</th>
                                     <th>Tech Email</th>
                                     <th>Tech Phone</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{{ app.vendor.name }}</td>
-                                    <td>{{ app.vendor.email }}</td>
-                                    <td>{{ app.vendor.phone }}</td>
+                                    <td>{{ app.vendor_name }}</td>
+                                    <td>{{ app.vendor_email }}</td>
                                     <td>{{ app.tech_email }}</td>
                                     <td>{{ app.tech_phone }}</td>
                                 </tr>
