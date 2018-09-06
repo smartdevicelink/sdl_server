@@ -16,7 +16,8 @@ function get (req, res, next) {
 		chosenFlow = helper.createAppInfoFlow('multiFilter', {app_uuid: req.query.uuid});
 	}
 	else if (req.query.approval_status) { //filter by approval status
-		chosenFlow = helper.createAppInfoFlow('multiFilter', {approval_status: req.query.approval_status});
+		console.log(`\n\n\n\n\n\n\n\n\n\n${req.query.get_blacklist}\n\n\n\n\n${req.query.get_blacklist == "true"}`)
+		chosenFlow = helper.createAppInfoFlow('multiFilter', {approval_status: req.query.approval_status, get_blacklist: (req.query.get_blacklist == "true")});
 	}
 	else { //get all applications whose information are the latest versions
 		chosenFlow = helper.createAppInfoFlow('multiFilter');
@@ -29,7 +30,7 @@ function get (req, res, next) {
 			res.parcel
 				.setStatus(200)
 				.setData({
-					applications: apps.filter(app => {return ((req.query.get_blacklist == "true") && app.is_blacklisted) || (!(req.query.get_blacklist == "true") && !app.is_blacklisted)})
+					applications: apps
 				});
 		}
 		return res.parcel.deliver();

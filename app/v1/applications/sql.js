@@ -24,9 +24,19 @@ function getAppInfoFilter (filterObj) {
             .where({
                 'app_info.approval_status': filterObj.approval_status
             });
+        if(filterObj.get_blacklist){
+            statement = statement.and(idInAppBlacklist());
+        } else {
+            statement = statement.and(sql.not(idInAppBlacklist()));
+        }
     }
-
+    console.log(statement.toString())
     return statement.toString();
+}
+
+function idInAppBlacklist(){
+    return sql.in('app_info.app_uuid', sql.select('app_uuid')
+            .from('app_blacklist'));
 }
 
 function changeAppApprovalStatus (id, statusName, reason) {
