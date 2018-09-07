@@ -94,7 +94,7 @@
             this.getApplications("STAGING", "apps_pending");
             this.getApplications("ACCEPTED", "apps_approved");
             this.getApplications("LIMITED", "apps_denied");
-            this.getApplications("LIMITED", "apps_blacklisted", true);
+            this.getApplications(undefined, "apps_blacklisted", true);
         }
     }
 </script>
