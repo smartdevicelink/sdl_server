@@ -30,7 +30,6 @@ function getAppInfoFilter (filterObj) {
             statement = statement.and(sql.not(idInAppBlacklist()));
         }
     }
-    console.log(statement.toString())
     return statement.toString();
 }
 
