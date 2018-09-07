@@ -67,7 +67,8 @@
             }
         },
         methods: {
-            "getApplications": function(status = "PENDING", storage_attribute ="apps_pending", get_blacklist = false) {
+            "getApplications": function(status, storage_attribute ="apps_pending", get_blacklist = false) {
+                console.log("get_blacklist"+ get_blacklist);
                 this.httpRequest("get", "applications", {
                     "params": {
                         "approval_status": status,
@@ -94,7 +95,7 @@
             this.getApplications("STAGING", "apps_pending");
             this.getApplications("ACCEPTED", "apps_approved");
             this.getApplications("LIMITED", "apps_denied");
-            this.getApplications(undefined, "apps_blacklisted", true);
+            this.getApplications(null, "apps_blacklisted", true);
         }
     }
 </script>

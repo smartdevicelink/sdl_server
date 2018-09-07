@@ -15,31 +15,25 @@ function getAppInfoFilter (filterObj) {
     statement = statement.groupBy('app_uuid').toString();
 
     //put the approval status filter on the outside
-    if (filterObj && filterObj.approval_status && !filterObj.get_blacklist) {
+    if (filterObj && (filterObj.approval_status || filterObj.get_blacklist)) {
         statement = sql.select('app_info.*')
             .from('app_info')
             .join('(' + statement + ') innerai', {
                 'innerai.id': 'app_info.id'
             })
-            .where({
-                'app_info.approval_status': filterObj.approval_status
+            .leftJoin('app_blacklist', {
+                'app_info.app_uuid': 'app_blacklist.app_uuid'
             })
-            .and(
-                sql.not(
-                    sql.in(
-                        'app_info.app_uuid',
-                        sql.select('app_uuid')
-                            .from('app_blacklist')
-                    )
-                )
-            );
-    }
-    if (filterObj && filterObj.get_blacklist) {
-        statement = sql.select('leftai.*')
-            .from('app_blacklist')
-            .leftJoin(`(${statement}) leftai`, {
-                'leftai.app_uuid': 'app_blacklist.app_uuid'
+        if(filterObj.approval_status){
+            statement.where({
+                'app_info.approval_status': filterObj.approval_status
             });
+        }
+        if(filterObj.get_blacklist){
+            statement.where(sql.isNotNull('app_blacklist.app_uuid'));
+        } else {
+            statement.where(sql.isNull('app_blacklist.app_uuid'));
+        }
     }
 
     return statement.toString();
