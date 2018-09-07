@@ -1,3 +1,15 @@
+## Prerequisites
+The following must be installed before installation of the Policy Server can begin:
+
+| Project | Version |
+|---------|---------|
+| `Postgres` | 9.6+ |
+| `Node.js` | 4.0.0+ |
+| `NPM` | 3.0.0+ |
+
+You must also acquire a set of SHAID API keys. These are made available to level 4 OEM members through the [developer portal](https://smartdevicelink.com/).
+
+## Setup Guide
 Download the project to your current directory.
 ```
 git clone https://github.com/smartdevicelink/sdl_server.git

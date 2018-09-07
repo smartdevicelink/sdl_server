@@ -15,13 +15,12 @@ function get (req, res, next) {
 	else if (req.query.uuid) { //filter by app uuid
 		chosenFlow = helper.createAppInfoFlow('multiFilter', {app_uuid: req.query.uuid});
 	}
-	else if (req.query.approval_status) { //filter by approval status
-		chosenFlow = helper.createAppInfoFlow('multiFilter', {approval_status: req.query.approval_status});
+	else if (req.query.approval_status || req.query.get_blacklist) { //filter by approval status
+		chosenFlow = helper.createAppInfoFlow('multiFilter', {approval_status: req.query.approval_status, get_blacklist: (req.query.get_blacklist == "true")});
 	}
 	else { //get all applications whose information are the latest versions
 		chosenFlow = helper.createAppInfoFlow('multiFilter');
 	}
-
 	chosenFlow(function (err, apps) {
 		if (err) {
 			app.locals.log.error(err);
