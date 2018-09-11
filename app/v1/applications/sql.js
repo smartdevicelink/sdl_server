@@ -105,15 +105,6 @@ function getAppPermissionsFilter (filterObj) {
         .toString();
 }
 
-function getAppVendorFilter (filterObj) {
-    return sql.select('vendors.id', 'vendor_name', 'vendor_email')
-        .from('vendors')
-        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
-            'ai.id': 'vendors.id'
-        })
-        .toString();
-}
-
 function getAppCategoryFilter (filterObj) {
     const innerAppInfoSelect = sql.select('app_info.id', 'app_info.category_id')
         .from('app_info')
@@ -185,15 +176,6 @@ function getAppPermissionsId (id) {
         }).toString();
 }
 
-function getAppVendor (id) {
-    return sql.select('*')
-        .from('vendors')
-        .where({
-            id: id
-        })
-        .toString();
-}
-
 function getAppCategory (id) {
     return sql.select('categories.id', 'display_name')
         .from('categories')
@@ -242,15 +224,6 @@ function checkAutoApproval (uuid) {
         .toString();
 }
 
-function insertVendor (obj) {
-    return sql.insert('vendors', {
-        vendor_name: obj.name,
-        vendor_email: obj.email
-    })
-    .returning('*')
-    .toString();
-}
-
 function insertAppInfo (obj) {
     let insertObj = {
         app_uuid: obj.uuid,
@@ -265,7 +238,8 @@ function insertAppInfo (obj) {
         tech_email: obj.tech_email,
         tech_phone: obj.tech_phone,
         category_id: obj.category.id,
-        vendor_id: obj.vendor_id,
+        vendor_name: obj.vendor.name,
+        vendor_email: obj.vendor.email,
         version_id: obj.version_id
     };
 
@@ -276,7 +250,7 @@ function insertAppInfo (obj) {
     if(obj.updated_ts){
         insertObj.updated_ts = obj.updated_ts;
     }
-    
+
     if (obj.approval_status) { //has a defined approval_status. otherwise leave as default
         insertObj.approval_status = obj.approval_status;
     }
@@ -458,10 +432,6 @@ module.exports = {
             multiFilter: getAppPermissionsFilter,
             idFilter: getAppPermissionsId
         },
-        vendor: {
-            multiFilter: getAppVendorFilter,
-            idFilter: getAppVendor
-        },
         category: {
             multiFilter: getAppCategoryFilter,
             idFilter: getAppCategory
@@ -478,7 +448,6 @@ module.exports = {
     timestampCheck: timestampCheck,
     versionCheck: versionCheck,
     checkAutoApproval: checkAutoApproval,
-    insertVendor: insertVendor,
     insertAppInfo: insertAppInfo,
     purgeAppInfo: purgeAppInfo,
     insertAppCountries: insertAppCountries,
