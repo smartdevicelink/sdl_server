@@ -26,7 +26,7 @@ describe('SDL SERVER TESTS', function () {
             importTest('/permssions/update', './api/v1/permissions/update');
             importTest('/permissions/unmapped', './api/v1/permissions/unmapped');
             importTest('/groups', './api/v1/groups/groups');
-            //importTest('/groups/names', './api/v1/groups/names');
+            importTest('/groups/names', './api/v1/groups/names');
             importTest('/groups/promote', './api/v1/groups/promote');
             importTest('/messages', './api/v1/messages/messages');
             importTest('/messages/promote', './api/v1/messages/promote');
