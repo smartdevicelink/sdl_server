@@ -31,7 +31,7 @@ describe('SDL SERVER TESTS', function () {
             importTest('/messages', './api/v1/messages/messages');
             importTest('/messages/promote', './api/v1/messages/promote');
             importTest('/messages/update', './api/v1/messages/update');
-            //importTest('/messages/names', './api/v1/messages/names');
+            importTest('/messages/names', './api/v1/messages/names');
             importTest('/module', './api/v1/module/module');
             importTest('/module/promote', './api/v1/module/promote');
         });
