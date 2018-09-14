@@ -50,7 +50,9 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
     }
 
     cache.getCacheData(isProduction, app.locals.version, cache.policyTableKey, function (err, cacheData) {
-        if (cacheData) {
+        if (GET(cacheData, "moduleConfig")
+        && GET(cacheData, "functionalGroups")
+        && GET(cacheData, "consumerFriendlyMessages")) {
             if(cacheData.moduleConfig){
                 cacheData.moduleConfig.full_app_id_supported = useLongUuids;
             }
