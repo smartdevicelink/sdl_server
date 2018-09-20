@@ -189,7 +189,8 @@ function transformFunctionalGroups (isProduction, info, next) {
                 if (hmiLevels.length > 0) {
                     data.hmi_levels = hmiLevels;
                 }
-                if (parameters.length > 0) {
+                //if (parameters.length > 0) {
+                if (data.possible_parameter_count > 0) {
                     //sort the parameters array
                     data.parameters = parameters.sort();
                 }
