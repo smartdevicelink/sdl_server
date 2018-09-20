@@ -146,6 +146,7 @@ function transformFunctionalGroups (isProduction, info, next) {
                 groupedData[funcId].rpcs[hmiLevel.permission_name] = {};
                 groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels = {};
                 groupedData[funcId].rpcs[hmiLevel.permission_name].parameters = {};
+                groupedData[funcId].rpcs[hmiLevel.permission_name].possible_parameter_count = parseInt(hmiLevel.possible_parameter_count) || 0;
             }
             groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels[hmiLevel.hmi_level] = true;
             next();
@@ -189,11 +190,12 @@ function transformFunctionalGroups (isProduction, info, next) {
                 if (hmiLevels.length > 0) {
                     data.hmi_levels = hmiLevels;
                 }
-                //if (parameters.length > 0) {
+
                 if (data.possible_parameter_count > 0) {
                     //sort the parameters array
                     data.parameters = parameters.sort();
                 }
+                delete data.possible_parameter_count;
             }
             callback();
         }, next);

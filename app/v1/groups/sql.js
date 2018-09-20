@@ -108,7 +108,7 @@ function getFuncGroupHmiLevelsStatus (isProduction, hideDeleted = false) {
             '(' + sql.select('COUNT(pr.parent_permission_name)')
                 .from('permission_relations pr')
                 .join('permissions p', {
-                    'p.name': 'pr.parent_permission_name'
+                    'p.name': 'pr.child_permission_name'
                 })
                 .where({
                     'pr.parent_permission_name': sql('function_group_hmi_levels.permission_name'),
