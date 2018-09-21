@@ -67,7 +67,7 @@ function getFuncGroupStatus (isProduction, hideDeleted = false) {
     const funcGroupsGroup = sql.select('max(id) AS id', 'property_name')
         .from('view_function_group_info')
         .groupBy('property_name');
-        
+
     let funcGroupsStaging = sql.select('view_function_group_info.*')
         .from('(' + funcGroupsGroup + ') vfgi')
         .innerJoin('view_function_group_info', {
@@ -104,6 +104,19 @@ function getFuncGroupStatus (isProduction, hideDeleted = false) {
 
 function getFuncGroupHmiLevelsStatus (isProduction, hideDeleted = false) {
     return sql.select('function_group_id', 'permission_name', 'hmi_level')
+        .select(
+            '(' + sql.select('COUNT(pr.parent_permission_name)')
+                .from('permission_relations pr')
+                .join('permissions p', {
+                    'p.name': 'pr.child_permission_name'
+                })
+                .where({
+                    'pr.parent_permission_name': sql('function_group_hmi_levels.permission_name'),
+                    'p.type': 'PARAMETER'
+                })
+                .toString()
+            + ') AS possible_parameter_count'
+        )
         .from('(' + getFuncGroupStatus(isProduction, hideDeleted) + ') fgi')
         .innerJoin('function_group_hmi_levels', {
             'fgi.id': 'function_group_hmi_levels.function_group_id'

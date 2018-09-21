@@ -146,6 +146,7 @@ function transformFunctionalGroups (isProduction, info, next) {
                 groupedData[funcId].rpcs[hmiLevel.permission_name] = {};
                 groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels = {};
                 groupedData[funcId].rpcs[hmiLevel.permission_name].parameters = {};
+                groupedData[funcId].rpcs[hmiLevel.permission_name].possible_parameter_count = parseInt(hmiLevel.possible_parameter_count) || 0;
             }
             groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels[hmiLevel.hmi_level] = true;
             next();
@@ -189,10 +190,12 @@ function transformFunctionalGroups (isProduction, info, next) {
                 if (hmiLevels.length > 0) {
                     data.hmi_levels = hmiLevels;
                 }
-                if (parameters.length > 0) {
+
+                if (data.possible_parameter_count > 0) {
                     //sort the parameters array
                     data.parameters = parameters.sort();
                 }
+                delete data.possible_parameter_count;
             }
             callback();
         }, next);
@@ -238,7 +241,9 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         priority: "NONE",
         default_hmi: appObj.default_hmi_level.split("_")[1], //trim the HMI_ prefix
         groups: funcGroupNames,
-        moduleType: moduleNames
+        moduleType: moduleNames,
+        RequestType: [],
+        RequestSubType: []
     };
     next(null, appPolicyObj);
 }
@@ -281,7 +286,9 @@ function aggregateResults (res, next) {
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": defaultFuncGroups
+        "groups": defaultFuncGroups,
+        "RequestType": [],
+        "RequestSubType": []
     };
     //DataConsent-2 functional group removed
     appPolicy.device = {
@@ -289,7 +296,9 @@ function aggregateResults (res, next) {
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": deviceFuncGroups
+        "groups": deviceFuncGroups,
+        "RequestType": [],
+        "RequestSubType": []
     };
     //BaseBeforeDataConsent functional group removed
     appPolicy.pre_DataConsent = {
@@ -297,7 +306,9 @@ function aggregateResults (res, next) {
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": preDataConsentFuncGroups
+        "groups": preDataConsentFuncGroups,
+        "RequestType": [],
+        "RequestSubType": []
     };
     next(null, appPolicy);
 }
