@@ -241,7 +241,9 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         priority: "NONE",
         default_hmi: appObj.default_hmi_level.split("_")[1], //trim the HMI_ prefix
         groups: funcGroupNames,
-        moduleType: moduleNames
+        moduleType: moduleNames,
+        RequestType: [],
+        RequestSubType: []
     };
     next(null, appPolicyObj);
 }
@@ -284,7 +286,9 @@ function aggregateResults (res, next) {
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": defaultFuncGroups
+        "groups": defaultFuncGroups,
+        "RequestType": [],
+        "RequestSubType": []
     };
     //DataConsent-2 functional group removed
     appPolicy.device = {
@@ -292,7 +296,9 @@ function aggregateResults (res, next) {
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": deviceFuncGroups
+        "groups": deviceFuncGroups,
+        "RequestType": [],
+        "RequestSubType": []
     };
     //BaseBeforeDataConsent functional group removed
     appPolicy.pre_DataConsent = {
@@ -300,7 +306,9 @@ function aggregateResults (res, next) {
         "steal_focus": false,
         "priority": "NONE",
         "default_hmi": "NONE",
-        "groups": preDataConsentFuncGroups
+        "groups": preDataConsentFuncGroups,
+        "RequestType": [],
+        "RequestSubType": []
     };
     next(null, appPolicy);
 }
