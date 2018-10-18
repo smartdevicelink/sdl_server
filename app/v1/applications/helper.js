@@ -7,6 +7,7 @@ const flow = app.locals.flow;
 const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
+const config = app.locals.config;
 
 //validation functions
 
@@ -151,6 +152,15 @@ function filterApps (includeApprovalStatus, appObjs, next) {
 
 //auto changes any app's approval status to ACCEPTED if a record was found for that app's uuid in the auto approval table
 function autoApprovalModifier (appObj, next) {
+
+	// check if auto-approve *all apps* is enabled
+	if(config.autoApproveAllApps){
+		appObj.approval_status = 'ACCEPTED';
+		next(null, appObj);
+		return;
+	}
+
+	// check if auto-approve this specific app is enabled
     db.sqlCommand(sql.checkAutoApproval(appObj.uuid), function (err, res) {
         //if res is not an empty array, then a record was found in the app_auto_approval table
         //change the status of this appObj to ACCEPTED
@@ -163,7 +173,7 @@ function autoApprovalModifier (appObj, next) {
 
 // Auto deny new application versions of an app that is blacklisted
 function autoBlacklistModifier (appObj, next) {
-	db.sqlCommand(sql.getBlacklistedApps(appObj.uuid, true), function (err, res) {
+	db.sqlCommand(sql.getBlacklistedAppFullUuids(appObj.uuid), function (err, res) {
 		if (res.length > 0) {
 			appObj.approval_status = 'LIMITED';
 		}

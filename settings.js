@@ -31,6 +31,8 @@ module.exports = {
     authType: process.env.AUTH_TYPE || null,
     //an optional password users must enter to access the Policy Server interface when paired with "basic" authType
     basicAuthPassword: process.env.BASIC_AUTH_PASSWORD || null,
+    //whether or not to auto-approve all app versions received by SHAID (unless specifically blacklisted)
+    autoApproveAllApps: process.env.AUTO_APPROVE_ALL_APPS == "true" ? true : false,
     //credentials for using the SHAID API
     shaidPublicKey: process.env.SHAID_PUBLIC_KEY,
     shaidSecretKey: process.env.SHAID_SECRET_KEY,
