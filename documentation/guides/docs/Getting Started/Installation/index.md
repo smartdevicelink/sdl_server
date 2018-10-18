@@ -26,32 +26,33 @@ Once you set up a database (locally or remotely) you'll need to supply the Polic
 
 Here are the environment variables that will most likely be used:
 
-* `POLICY_SERVER_HOST`: The hostname or public IP address which the server runs on.
-* `POLICY_SERVER_PORT`: The port which the server runs on. It is optional and the default is 3000.
-* `POLICY_SERVER_PORT_SSL`: The port which the server should listen for SSL connections on (typically 443). It is optional and the default is `null` (do not listen for SSL connections).
-* `SSL_CERTIFICATE_FILENAME`: The filename of the SSL certificate located in `./customizable/ssl`. Required if a value is set for `POLICY_SERVER_PORT_SSL`.
-* `SSL_PRIVATE_KEY_FILENAME`: The filename of the SSL certificate's private key located in `./customizable/ssl`. Required if a value is set for `POLICY_SERVER_PORT_SSL`.
-* `SHAID_PUBLIC_KEY`: A public key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
-* `SHAID_SECRET_KEY`: A secret key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
-* `DB_USER`: The name of the user to allow the server to access the database
-* `DB_DATABASE`: The name of the database where polciy and app data is stored
-* `DB_PASSWORD`: The password used to log into the database
-* `DB_HOST`: The host name or IP address of the database
-* `DB_PORT`: The port number of the database
-* `STAGING_PG_USER` **DEPRECATED**: The name of the user to allow the server access the database (staging mode)
-* `STAGING_PG_DATABASE` **DEPRECATED**: The name of the database where policy and app data is stored (staging mode)
-* `STAGING_PG_PASSWORD` **DEPRECATED**: The password used to log into the database (staging mode)
-* `STAGING_PG_HOST` **DEPRECATED**: The host name or IP address of the database (staging mode)
-* `STAGING_PG_PORT` **DEPRECATED**: The port number of the database (staging mode)
-* `PRODUCTION_PG_USER` **DEPRECATED**: The name of the user to allow the server access the database (production mode)
-* `PRODUCTION_PG_DATABASE` **DEPRECATED**: The name of the database where policy and app data is stored (production mode)
-* `PRODUCTION_PG_PASSWORD` **DEPRECATED**: The password used to log into the database (production mode)
-* `PRODUCTION_PG_HOST` **DEPRECATED**: The host name or IP address of the database (production mode)
-* `PRODUCTION_PG_PORT` **DEPRECATED**: The port number of the database (production mode)
-* `CACHE_MODULE`: The name of the caching module to use. Currently supports null (no caching, default) or "redis".
-* `CACHE_HOST`: The host name or IP address of the cache
-* `CACHE_PORT`: The port number of the cache
-* `CACHE_PASSWORD`: The password used to log into the cache
+* `POLICY_SERVER_HOST`: String. The hostname or public IP address which the server runs on.
+* `POLICY_SERVER_PORT`: Integer. The port which the server runs on. It is optional and the default is 3000.
+* `POLICY_SERVER_PORT_SSL`: Integer. The port which the server should listen for SSL connections on (typically 443). It is optional and the default is `null` (do not listen for SSL connections).
+* `SSL_CERTIFICATE_FILENAME`: String. The filename of the SSL certificate located in `./customizable/ssl`. Required if a value is set for `POLICY_SERVER_PORT_SSL`.
+* `SSL_PRIVATE_KEY_FILENAME`: String. The filename of the SSL certificate's private key located in `./customizable/ssl`. Required if a value is set for `POLICY_SERVER_PORT_SSL`.
+* `SHAID_PUBLIC_KEY`: String. A public key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
+* `SHAID_SECRET_KEY`: String. A secret key given to you through the [developer portal](https://smartdevicelink.com/) that allows access to SHAID endpoints.
+* `DB_USER`: String. The name of the user to allow the server to access the database
+* `DB_DATABASE`: String. The name of the database where policy and app data is stored
+* `DB_PASSWORD`: String. The password used to log into the database
+* `DB_HOST`: String. The host name or IP address of the database
+* `DB_PORT`: Integer. The port number of the database
+* `STAGING_PG_USER` **DEPRECATED**: String. The name of the user to allow the server access the database (staging mode)
+* `STAGING_PG_DATABASE` **DEPRECATED**: String. The name of the database where policy and app data is stored (staging mode)
+* `STAGING_PG_PASSWORD` **DEPRECATED**: String. The password used to log into the database (staging mode)
+* `STAGING_PG_HOST` **DEPRECATED**: String. The host name or IP address of the database (staging mode)
+* `STAGING_PG_PORT` **DEPRECATED**: Integer. The port number of the database (staging mode)
+* `PRODUCTION_PG_USER` **DEPRECATED**: String. The name of the user to allow the server access the database (production mode)
+* `PRODUCTION_PG_DATABASE` **DEPRECATED**: String. The name of the database where policy and app data is stored (production mode)
+* `PRODUCTION_PG_PASSWORD` **DEPRECATED**: String. The password used to log into the database (production mode)
+* `PRODUCTION_PG_HOST` **DEPRECATED**: String. The host name or IP address of the database (production mode)
+* `PRODUCTION_PG_PORT` **DEPRECATED**: Integer. The port number of the database (production mode)
+* `CACHE_MODULE`: String. The name of the caching module to use. Currently supports null (no caching, default) or "redis".
+* `CACHE_HOST`: String. The host name or IP address of the cache. Default null.
+* `CACHE_PORT`: Integer. The port number of the cache. Default null.
+* `CACHE_PASSWORD`: String. The password used to log into the cache. Default null.
+* `AUTO_APPROVE_ALL_APPS`: String boolean ("true" or "false"). Whether or not to auto-approve all app versions received by SHAID (except for blacklisted apps). Default "false".
 
 Production/Staging environment variables for the database are now deprecated. Please use the corresponding `DB_` values in place of them (ex. `DB_USER` instead of `PRODUCTION_PG_USER` or `STAGING_PG_USER`).
 

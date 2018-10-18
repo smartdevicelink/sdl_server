@@ -23,6 +23,7 @@ exports.getInfo = function (req, res, next) {
 		"ssl_port": config.policyServerPortSSL,
 		"cache_module": config.cacheModule,
 		"auth_type": config.authType,
+		"auto_approve_all_apps": config.autoApproveAllApps,
 		"base_url": protocol + config.policyServerHost + concatPort
 	};
 
