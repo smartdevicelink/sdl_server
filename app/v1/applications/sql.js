@@ -411,6 +411,16 @@ function getBlacklistedApps (uuids, useLongUuids = false) {
     return query.toString();
 }
 
+function getBlacklistedAppFullUuids (uuids) {
+    var query = sql.select('app_blacklist.app_uuid')
+        .from('app_blacklist')
+        .where(
+            sql.in('app_blacklist.app_uuid', uuids)
+        );
+
+    return query.toString();
+}
+
 module.exports = {
     changeAppApprovalStatus: changeAppApprovalStatus,
     deleteAutoApproval: deleteAutoApproval,
@@ -456,5 +466,6 @@ module.exports = {
     insertAppAutoApproval: insertAppAutoApproval,
     insertAppBlacklist: insertAppBlacklist,
     deleteAppBlacklist: deleteAppBlacklist,
-    getBlacklistedApps: getBlacklistedApps
+    getBlacklistedApps: getBlacklistedApps,
+    getBlacklistedAppFullUuids: getBlacklistedAppFullUuids
 }

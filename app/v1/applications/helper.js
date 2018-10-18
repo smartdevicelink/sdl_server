@@ -173,7 +173,7 @@ function autoApprovalModifier (appObj, next) {
 
 // Auto deny new application versions of an app that is blacklisted
 function autoBlacklistModifier (appObj, next) {
-	db.sqlCommand(sql.getBlacklistedApps(appObj.uuid, true), function (err, res) {
+	db.sqlCommand(sql.getBlacklistedAppFullUuids(appObj.uuid), function (err, res) {
 		if (res.length > 0) {
 			appObj.approval_status = 'LIMITED';
 		}
