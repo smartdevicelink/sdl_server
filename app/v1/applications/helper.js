@@ -7,6 +7,7 @@ const flow = app.locals.flow;
 const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
+const config = app.locals.config;
 
 //validation functions
 
@@ -30,14 +31,11 @@ function validateAutoPost (req, res) {
 }
 
 function validateWebHook (req, res) {
-    if (req.body.entity === "application") {
-        //valid
-    }
-    else {
-        //request contained an entity the server cannot handle
-        res.parcel.setStatus(500).setMessage("Entity property is undefined or not valid");
-    }
-    return;
+	if(req.headers["public_key"] != app.locals.config.shaidPublicKey){
+		// request cannot be verified as authentic
+        res.parcel.setStatus(401).setMessage("Unable to validate webhook with SHAID public key");
+	}
+	return;
 }
 
 //helper functions
@@ -49,7 +47,6 @@ function createAppInfoFlow (filterTypeFunc, value) {
 		appCountries: setupSql.bind(null, sql.getApp.countries[filterTypeFunc](value)),
 		appDisplayNames: setupSql.bind(null, sql.getApp.displayNames[filterTypeFunc](value)),
 		appPermissions: setupSql.bind(null, sql.getApp.permissions[filterTypeFunc](value)),
-		appVendors: setupSql.bind(null, sql.getApp.vendor[filterTypeFunc](value)),
 		appCategories: setupSql.bind(null, sql.getApp.category[filterTypeFunc](value)),
 		appAutoApprovals: setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value)),
 		appBlacklist: setupSql.bind(null, sql.getApp.blacklist[filterTypeFunc](value))
@@ -64,8 +61,8 @@ function storeApps (includeApprovalStatus, apps, callback) {
     let queue = [];
     function recStore(includeApprovalStatus, theseApps, cb){
         const fullFlow = flow([
-            //first check if the apps need to be stored in the database
-            flow(flame.map(theseApps, checkNeedsInsertion), {method: "parallel"}),
+            //first check if the apps need to be deleted from or stored in the database
+            flow(flame.map(theseApps, checkNeedsInsertionOrDeletion), {method: "parallel"}),
             filterApps.bind(null, includeApprovalStatus),
             //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
             //should change to be accepted
@@ -105,31 +102,35 @@ function storeApps (includeApprovalStatus, apps, callback) {
     });
 }
 
-//determine whether the object needs to be stored in the database
-function checkNeedsInsertion (appObj, next) {
-    const timestamp = appObj.updated_ts;
-    const tableName = 'app_info';
-    const whereObj = {app_uuid: appObj.uuid};
-    //compare timestamps to determine if the object passed in actually changed before insertion
-    const getObjStr = sql.timestampCheck(tableName, whereObj);
-    db.sqlCommand(getObjStr, function (err, data) {
-        const dbTimestamp = data[0].max;
-        if (dbTimestamp !== null && dbTimestamp !== undefined && timestamp !== null && timestamp !== undefined) {
-            const incomingDate = new Date(timestamp);
-            const currentDate = new Date(dbTimestamp);
-            if (incomingDate > currentDate) {
-                //the app in the policy server's database is outdated!
-                next(null, appObj);
-            }
-            else { //app is already there
-                next(null, null);
-            }
-        }
-        else {
-            //app doesn't exist, or has missing timestamp information! add the app
-            next(null, appObj);
-        }
-    });
+//determine whether the object needs to be deleted or stored in the database
+function checkNeedsInsertionOrDeletion (appObj, next) {
+	if(appObj.deleted_ts){
+		// delete!
+		db.sqlCommand(sql.purgeAppInfo(appObj), function(err, data){
+			// delete attempt made, skip it!
+			next(null, null);
+		});
+	}else if(appObj.blacklisted_ts){
+		// blacklist!
+		db.sqlCommand(sql.insertAppBlacklist(appObj), function(err, data){
+			// blacklist attempt made, skip it!
+			next(null, null);
+		});
+	}else{
+	    // check if the version exists in the database before attempting insertion
+	    const getObjStr = sql.versionCheck('app_info', {
+			app_uuid: appObj.uuid,
+			version_id: appObj.version_id
+		});
+	    db.sqlCommand(getObjStr, function (err, data) {
+			if(data.length > 0){
+				// record exists, skip it!
+				next(null, null);
+			}else{
+				next(null, appObj);
+			}
+	    });
+	}
 }
 
 //any elements that are null are removed
@@ -151,6 +152,15 @@ function filterApps (includeApprovalStatus, appObjs, next) {
 
 //auto changes any app's approval status to ACCEPTED if a record was found for that app's uuid in the auto approval table
 function autoApprovalModifier (appObj, next) {
+
+	// check if auto-approve *all apps* is enabled
+	if(config.autoApproveAllApps){
+		appObj.approval_status = 'ACCEPTED';
+		next(null, appObj);
+		return;
+	}
+
+	// check if auto-approve this specific app is enabled
     db.sqlCommand(sql.checkAutoApproval(appObj.uuid), function (err, res) {
         //if res is not an empty array, then a record was found in the app_auto_approval table
         //change the status of this appObj to ACCEPTED
@@ -163,7 +173,7 @@ function autoApprovalModifier (appObj, next) {
 
 // Auto deny new application versions of an app that is blacklisted
 function autoBlacklistModifier (appObj, next) {
-	db.sqlCommand(sql.getBlacklistedApps(appObj.uuid), function (err, res) {
+	db.sqlCommand(sql.getBlacklistedAppFullUuids(appObj.uuid), function (err, res) {
 		if (res.length > 0) {
 			appObj.approval_status = 'LIMITED';
 		}
@@ -181,12 +191,14 @@ function attemptRetry(milliseconds, retryQueue){
         flame.async.map(retryQueue, function(appID, callback){
             flame.async.waterfall([
                 app.locals.shaid.getApplications.bind(null, {
-                    uuid: appID,
+                    "uuid": appID,
+					"include_deleted": true,
+					"include_blacklisted": true
                 }),
                 function(apps, callback){
                     const fullFlow = flow([
                         //first check if the apps need to be stored in the database
-                        flow(flame.map(apps, checkNeedsInsertion), {method: "parallel"}),
+                        flow(flame.map(apps, checkNeedsInsertionOrDeletion), {method: "parallel"}),
                         filterApps.bind(null, false),
                         //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
                         //should change to be accepted

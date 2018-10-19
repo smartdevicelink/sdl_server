@@ -15,15 +15,25 @@ function getAppInfoFilter (filterObj) {
     statement = statement.groupBy('app_uuid').toString();
 
     //put the approval status filter on the outside
-    if (filterObj && filterObj.approval_status) {
+    if (filterObj && (filterObj.approval_status || filterObj.get_blacklist)) {
         statement = sql.select('app_info.*')
             .from('app_info')
             .join('(' + statement + ') innerai', {
                 'innerai.id': 'app_info.id'
             })
-            .where({
+            .leftJoin('app_blacklist', {
+                'app_info.app_uuid': 'app_blacklist.app_uuid'
+            })
+        if(filterObj.approval_status){
+            statement.where({
                 'app_info.approval_status': filterObj.approval_status
             });
+        }
+        if(filterObj.get_blacklist){
+            statement.where(sql.isNotNull('app_blacklist.app_uuid'));
+        } else {
+            statement.where(sql.isNull('app_blacklist.app_uuid'));
+        }
     }
 
     return statement.toString();
@@ -95,15 +105,6 @@ function getAppPermissionsFilter (filterObj) {
         .toString();
 }
 
-function getAppVendorFilter (filterObj) {
-    return sql.select('vendors.id', 'vendor_name', 'vendor_email')
-        .from('vendors')
-        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
-            'ai.id': 'vendors.id'
-        })
-        .toString();
-}
-
 function getAppCategoryFilter (filterObj) {
     const innerAppInfoSelect = sql.select('app_info.id', 'app_info.category_id')
         .from('app_info')
@@ -134,6 +135,13 @@ function getAppInfoId (id) {
         .from('app_info')
         .where({id: id})
         .toString();
+}
+
+function getAppInfoUuid (uuid) {
+    return sql.select('*')
+        .from('app_info')
+        .where({ app_uuid: uuid })
+        .toString()
 }
 
 function getAppCountriesId (id) {
@@ -168,15 +176,6 @@ function getAppPermissionsId (id) {
         }).toString();
 }
 
-function getAppVendor (id) {
-    return sql.select('*')
-        .from('vendors')
-        .where({
-            id: id
-        })
-        .toString();
-}
-
 function getAppCategory (id) {
     return sql.select('categories.id', 'display_name')
         .from('categories')
@@ -209,6 +208,13 @@ function timestampCheck (tableName, whereObj) {
         .toString();
 }
 
+function versionCheck (tableName, whereObj) {
+    return sql.select('version_id')
+        .from(tableName)
+        .where(whereObj)
+        .toString();
+}
+
 function checkAutoApproval (uuid) {
     return sql.select('app_auto_approval.app_uuid')
         .from('app_auto_approval')
@@ -216,15 +222,6 @@ function checkAutoApproval (uuid) {
             app_uuid: uuid
         })
         .toString();
-}
-
-function insertVendor (obj) {
-    return sql.insert('vendors', {
-        vendor_name: obj.name,
-        vendor_email: obj.email
-    })
-    .returning('*')
-    .toString();
 }
 
 function insertAppInfo (obj) {
@@ -241,14 +238,33 @@ function insertAppInfo (obj) {
         tech_email: obj.tech_email,
         tech_phone: obj.tech_phone,
         category_id: obj.category.id,
-        vendor_id: obj.vendor_id
+        vendor_name: obj.vendor.name,
+        vendor_email: obj.vendor.email,
+        version_id: obj.version_id
     };
+
+    if(obj.created_ts){
+        insertObj.created_ts = obj.created_ts;
+    }
+
+    if(obj.updated_ts){
+        insertObj.updated_ts = obj.updated_ts;
+    }
 
     if (obj.approval_status) { //has a defined approval_status. otherwise leave as default
         insertObj.approval_status = obj.approval_status;
     }
 
     return sql.insert('app_info', insertObj)
+        .returning('*')
+        .toString();
+}
+
+function purgeAppInfo (obj) {
+    return sql.delete('app_info')
+        .where({
+            'app_uuid': obj.uuid
+        })
         .returning('*')
         .toString();
 }
@@ -322,6 +338,7 @@ function insertAppAutoApproval (obj) {
                 )
             )
         )
+        .returning('*')
         .toString();
 }
 
@@ -394,13 +411,24 @@ function getBlacklistedApps (uuids, useLongUuids = false) {
     return query.toString();
 }
 
+function getBlacklistedAppFullUuids (uuids) {
+    var query = sql.select('app_blacklist.app_uuid')
+        .from('app_blacklist')
+        .where(
+            sql.in('app_blacklist.app_uuid', uuids)
+        );
+
+    return query.toString();
+}
+
 module.exports = {
     changeAppApprovalStatus: changeAppApprovalStatus,
     deleteAutoApproval: deleteAutoApproval,
     getApp: {
         base: {
             multiFilter: getFullAppInfoFilter,
-            idFilter: getAppInfoId
+            idFilter: getAppInfoId,
+            uuidFilter: getAppInfoUuid
         },
         countries: {
             multiFilter: getAppCountriesFilter,
@@ -413,10 +441,6 @@ module.exports = {
         permissions: {
             multiFilter: getAppPermissionsFilter,
             idFilter: getAppPermissionsId
-        },
-        vendor: {
-            multiFilter: getAppVendorFilter,
-            idFilter: getAppVendor
         },
         category: {
             multiFilter: getAppCategoryFilter,
@@ -432,14 +456,16 @@ module.exports = {
         }
     },
     timestampCheck: timestampCheck,
+    versionCheck: versionCheck,
     checkAutoApproval: checkAutoApproval,
-    insertVendor: insertVendor,
     insertAppInfo: insertAppInfo,
+    purgeAppInfo: purgeAppInfo,
     insertAppCountries: insertAppCountries,
     insertAppDisplayNames: insertAppDisplayNames,
     insertAppPermissions: insertAppPermissions,
     insertAppAutoApproval: insertAppAutoApproval,
     insertAppBlacklist: insertAppBlacklist,
     deleteAppBlacklist: deleteAppBlacklist,
-    getBlacklistedApps: getBlacklistedApps
+    getBlacklistedApps: getBlacklistedApps,
+    getBlacklistedAppFullUuids: getBlacklistedAppFullUuids
 }

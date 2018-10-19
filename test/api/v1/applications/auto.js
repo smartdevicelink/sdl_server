@@ -5,7 +5,7 @@ var endpoint = '/api/v1/applications/auto';
 common.post(
     'should add the given uuid to the auto approve table',
     endpoint,
-    {uuid: 'dfda5c35-700e-487e-87d2-ea4b2c572802', is_auto_approved_enabled: true},
+    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', is_auto_approved_enabled: true},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);

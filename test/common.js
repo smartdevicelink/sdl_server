@@ -2,9 +2,8 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const chaiJsonSchema = require('chai-json-schema');
 const expect = chai.expect;
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 const config = require('../settings.js');
-
+const BASE_URL = 'http://' + config.policyServerHost + ':' + config.policyServerPort;
 chai.use(chaiHttp);
 chai.use(chaiJsonSchema);
 

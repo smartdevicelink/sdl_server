@@ -15,13 +15,12 @@ function get (req, res, next) {
 	else if (req.query.uuid) { //filter by app uuid
 		chosenFlow = helper.createAppInfoFlow('multiFilter', {app_uuid: req.query.uuid});
 	}
-	else if (req.query.approval_status) { //filter by approval status
-		chosenFlow = helper.createAppInfoFlow('multiFilter', {approval_status: req.query.approval_status});
+	else if (req.query.approval_status || req.query.get_blacklist) { //filter by approval status
+		chosenFlow = helper.createAppInfoFlow('multiFilter', {approval_status: req.query.approval_status, get_blacklist: (req.query.get_blacklist == "true")});
 	}
 	else { //get all applications whose information are the latest versions
 		chosenFlow = helper.createAppInfoFlow('multiFilter');
 	}
-
 	chosenFlow(function (err, apps) {
 		if (err) {
 			app.locals.log.error(err);
@@ -57,6 +56,21 @@ function actionPost (req, res, next) {
 			// Update approval status for app
 			function (blacklist, callback) {
 				client.getOne(sql.changeAppApprovalStatus(req.body.id, req.body.approval_status, (req.body.denial_message || null)), callback);
+			},
+			// sync the status to SHAID
+			function (result, callback) {
+				if(!req.body.version_id){
+					// skip notifying SHAID if there is no version ID (legacy support)
+					callback(null, null);
+					return;
+				}
+				app.locals.shaid.setApplicationApprovalVendor([{
+					"uuid": req.body.uuid,
+					"blacklist": req.body.blacklist || false,
+					"version_id": req.body.version_id,
+					"approval_status": req.body.approval_status,
+					"notes": req.body.denial_message || null
+				}], callback);
 			}
 		], callback);
 	}, function (err, response) {
@@ -75,24 +89,28 @@ function autoPost (req, res, next) {
 		return res.parcel.deliver();
 	}
 
-	let chosenCommand;
+	app.locals.db.sqlCommand(sql.getApp.base['uuidFilter'](req.body.uuid), function(err, results) {
+		if (err) {
+			return res.parcel.setStatus(500).deliver();
+		}
+		if (!results.length) {
+			return res.parcel.setStatus(400).deliver();
+		}
 
-	if (req.body.is_auto_approved_enabled) {
-		//add the uuid to the auto approval table
-        chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppAutoApproval(req.body));
-	}
-	else {
-		//remove the uuid from the auto approval table
-        chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAutoApproval(req.body.uuid));
-	}
+		let chosenCommand;
+		if (req.body.is_auto_approved_enabled) {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppAutoApproval(req.body));
+		} else {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAutoApproval(req.body.uuid));
+		}
 
-    chosenCommand(function (err, results) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.parcel.setStatus(500).deliver();
-        }
-        return res.parcel.setStatus(200).deliver();
-    });
+		chosenCommand(function (err, results) {
+			if (err) {
+				return res.parcel.setStatus(500).deliver();
+			}
+			return res.parcel.setStatus(200).deliver();
+		});
+	});
 }
 
 //expects a POST from SHAID
@@ -102,21 +120,40 @@ function webhook (req, res, next) {
         return res.parcel.deliver();
     }
 
-    if (req.body.entity === "application") {
-        const query = {
-            uuid: req.body.uuid
-        };
+	async.waterfall([
+		(callback)=>{
+			if(req.body.entity == "application"){
+				const query = {
+		            "uuid": req.body.uuid,
+					"include_deleted": true,
+					"include_blacklisted": true
+		        };
 
-        const queryAndStoreFlow = queryAndStoreApplicationsFlow(query);
-
-        queryAndStoreFlow(function (err) {
-            if (err) {
-                req.app.locals.log.error(err);
-            }
-            res.parcel.setStatus(200);
-            res.parcel.deliver();
-        });
-    }
+				switch(req.body.action){
+					case "UPSERT":
+						const queryAndStoreFlow = queryAndStoreApplicationsFlow(query);
+				        queryAndStoreFlow(callback);
+						break;
+					case "DELETE":
+						app.locals.db.sqlCommand(sql.purgeAppInfo(query), callback);
+						break;
+					case "BLACKLIST":
+						app.locals.db.sqlCommand(sql.insertAppBlacklist(query), callback);
+						break;
+					default:
+						callback(null, null);
+				}
+			}else{
+				callback(null, null);
+			}
+		}
+	], (err, result)=>{
+		if (err) {
+			req.app.locals.log.error(err);
+		}
+		res.parcel.setStatus(200);
+		res.parcel.deliver();
+	});
 }
 
 //queries SHAID to get applications and stores them into the database

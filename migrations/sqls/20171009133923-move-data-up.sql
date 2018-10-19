@@ -3575,6 +3575,28 @@ SELECT id AS function_group_id, 'SystemRequest' AS permission_name, 'NONE' AS hm
 FROM function_group_info
 WHERE property_name = 'RemoteControl';
 
+-- START ADD 9/11/2018
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnRCStatus' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'RemoteControl';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnRCStatus' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'RemoteControl';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnRCStatus' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'RemoteControl';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnRCStatus' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'RemoteControl';
+-- END ADD 9/11/2018
+
 INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
 SELECT id AS function_group_id, 'GetVehicleData' AS permission_name, 'BACKGROUND' AS hmi_level
 FROM function_group_info
@@ -5359,3 +5381,85 @@ INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'UnsubscribeVehicleData' AS rpc_name, 'emergencyEvent' AS parameter
 FROM function_group_info
 WHERE property_name = 'Emergency-1';
+
+-- START ADD 9/11/2018
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'UnsubscribeVehicleData' AS rpc_name, 'turnSignal' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'SubscribeVehicleData' AS rpc_name, 'turnSignal' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'GetVehicleData' AS rpc_name, 'turnSignal' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'OnVehicleData' AS rpc_name, 'turnSignal' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'UnsubscribeVehicleData' AS rpc_name, 'electronicParkBrakeStatus' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'SubscribeVehicleData' AS rpc_name, 'electronicParkBrakeStatus' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'GetVehicleData' AS rpc_name, 'electronicParkBrakeStatus' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'OnVehicleData' AS rpc_name, 'electronicParkBrakeStatus' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'UnsubscribeVehicleData' AS rpc_name, 'engineOilLife' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'SubscribeVehicleData' AS rpc_name, 'engineOilLife' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'GetVehicleData' AS rpc_name, 'engineOilLife' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'OnVehicleData' AS rpc_name, 'engineOilLife' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'UnsubscribeVehicleData' AS rpc_name, 'fuelRange' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'SubscribeVehicleData' AS rpc_name, 'fuelRange' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'GetVehicleData' AS rpc_name, 'fuelRange' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+
+INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
+SELECT id AS function_group_id, 'OnVehicleData' AS rpc_name, 'fuelRange' AS parameter
+FROM function_group_info
+WHERE property_name = 'VehicleInfo-3';
+-- END ADD 9/11/2018
