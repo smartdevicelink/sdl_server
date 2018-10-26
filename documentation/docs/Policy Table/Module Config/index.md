@@ -32,6 +32,12 @@ SDL Core can use a predefined Policy Table located locally on the vehicle's head
 | -------- | ---- | ----------- |
 | preloaded_pt | Boolean | When true, SDL Core will use the local copy of the Policy Table. |
 
+## Policy Table Structure Configurations
+The policy table's structure is determined by the following configurations.
+
+| Property | Type | Description |
+| -------- | ---- | ----------- |
+| full_app_id_supported | Boolean | When true, an app's `fullAppID` will be used in the `app_policies` section as it's key. If false or omitted, the short-form `appID` will be used. |
 
 ## Server Requests
 All requests made directly by SDL Core or by proxy can be configured using the following attributes.
@@ -76,6 +82,7 @@ An example of how the Module Config portion of a Policy Table might look.
         "exchange_after_x_ignition_cycles": 100,
         "exchange_after_x_kilometers": 1800,
         "exchange_after_x_days": 30,
+        "full_app_id_supported": true,
         "notifications_per_minute_by_priority": {
             "EMERGENCY": 60,
             "NAVIGATION": 15,
@@ -88,6 +95,6 @@ An example of how the Module Config portion of a Policy Table might look.
         "timeout_after_x_seconds": 60,
         "vehicle_make": "Ford",
         "vehicle_model": "F-150",
-        "vehicle_year": "2015",
+        "vehicle_year": "2015"
     }
 
