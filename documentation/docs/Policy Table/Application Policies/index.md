@@ -11,12 +11,12 @@ Settings for a specific application are stored in the **app_policies** object as
 | keep_context | Boolean | When true, allows the application to display messages even if another app enters the foreground (HMI level FULL). |
 | steal_focus | Boolean | When true, allows the application to steal the foreground from another application at will. |
 | priority | String | Priority level assigned to the application. |
-| default_hmi | String | [HMI level](#Application-HMI-Levels) given to the application following a successful registration with SDL Core. |
+| default_hmi | String | HMI level given to the application following a successful registration with SDL Core. |
 | groups | Array of Strings | A list of functional groupings the application has access to. |
 | preconsented_groups | Array of Strings | List of [functional groupings](../functional-groupings) that do not require a user consent because the consent has already been given in another place. (e.g. an application EULA) |
-| RequestType | Array of Strings | List of [Request Types](#Application-HMI-Types) that an app is allowed to use in a SystemRequest RPC. If omitted, all requestTypes are disallowed. If an empty array is provided, all requestTypes are allowed. |
+| RequestType | Array of Strings | List of Request Types that an app is allowed to use in a SystemRequest RPC. If omitted, all requestTypes are disallowed. If an empty array is provided, all requestTypes are allowed. |
 | RequestSubType | Array of Strings | List of Request SubTypes (defined by individual OEMs) that an app is allowed to use in a SystemRequest RPC. If omitted, all requestSubTypes are disallowed. If an empty array is provided, all requestSubTypes are allowed. |
-| AppHMIType | Array of Strings | List of [HMI Types](#Application-HMI-Types) used to group the application into different containers in an HMI system. If omitted, all appHMITypes are allowed. |
+| AppHMIType | Array of Strings | List of HMI Types used to group the application into different containers in an HMI system. If omitted, all appHMITypes are allowed. |
 | heart_beat_timeout_ms | String | A streaming/projection app will be automatically disconnected if no app communication occurs over this period of time (in milliseconds). |
 | certificate | String | The app's encryption certificate for video streaming/projection (if applicable) |
 | nicknames | Array of Strings | A list of names the application goes by. Some OEMs may require the app's name to match a value in this array in order to run. |
@@ -55,8 +55,8 @@ An HMI Level describes the state of an application.  Resources are granted to an
 
 ### Request Types
 
-| Application HMI Type | Description |
-| -------------------- | ----------- |
+| Request Type | Description |
+| ------------ | ----------- |
 | HTTP |  |
 | FILE_RESUME |  |
 | AUTH_REQUEST |  |
