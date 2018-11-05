@@ -1,7 +1,8 @@
-# Policy Server Documentation
-Server and Policy documentation for the [SDL Developer Portal](https://smartdevicelink.com/docs/sdl-server/master/). 
+# Policy Server Guide Content
+Guide content for the [SDL Developer Portal](https://smartdevicelink.com/guides/sdl-server/getting-started/).
 
 ## How to Use This Guide
-This documentation is written in DocDown format.  All Policy Server documentation should be stored here, except for [Policy Server Guides](https://github.com/smartdevicelink/sdl_server_guides).  
+
+Documents in this guide are created in DocDown format. One repo is linked per platform. That means that all Policy Server guides get created as directories inside this repo. Each directory gets a link in the left-hand sidebar. Guides do not currently support multiple pages or sub-directories.
 
 Learn how to use DocDown at the [spec page](https://github.com/smartdevicelink/sdl_markdown_spec).
