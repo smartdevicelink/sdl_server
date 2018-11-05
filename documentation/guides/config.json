@@ -2,7 +2,8 @@
     "Authors": [
         "Scott Smereka",
         "Nick Reno",
-        "Nick Schwab"
+        "Nick Schwab",
+        "Chris Rokita"
     ],
     "languages": [
         "en"
@@ -40,6 +41,38 @@
                     "name": "Module Config"
                 }, {
                     "name": "View Policy Table"
+                }
+            ]
+        }, {
+            "name": "API Reference Documentation",
+            "navigation": [
+                {
+                    "name": "Policy Table",
+                    "navigation": [
+                        {
+                            "name": "Overview"
+                        }, {
+                            "name": "Application Policies"
+                        }, {
+                            "name": "Consumer Friendly Messages"
+                        }, {
+                            "name": "Device Data"
+                        }, {
+                            "name": "Functional Groupings"
+                        }, {
+                            "name": "Module Config"
+                        }, {
+                            "name": "Module Meta"
+                        }, {
+                            "name": "Usage and Errors"
+                        }
+                    ]
+                }, {
+                    "name": "Policy Table Update"
+                }, {
+                    "name": "Granting Functional Groups"
+                }, {
+                    "name": "SQL"
                 }
             ]
         }
