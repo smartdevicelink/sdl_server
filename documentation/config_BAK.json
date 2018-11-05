@@ -49,7 +49,26 @@
             "name": "API Reference Documentation",
             "navigation": [
                 {
-                    "name": "Policy Table"
+                    "name": "Policy Table",
+                    "navigation": [
+                        {
+                            "name": "Overview"
+                        }, {
+                            "name": "Application Policies"
+                        }, {
+                            "name": "Consumer Friendly Messages"
+                        }, {
+                            "name": "Device Data"
+                        }, {
+                            "name": "Functional Groupings"
+                        }, {
+                            "name": "Module Config"
+                        }, {
+                            "name": "Module Meta"
+                        }, {
+                            "name": "Usage and Errors"
+                        }
+                    ]
                 }, {
                     "name": "Policy Table Update"
                 }, {
