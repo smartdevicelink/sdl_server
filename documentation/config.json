@@ -1,41 +1,82 @@
-
 {
     "Authors": [
         "Scott Smereka",
-        "Jack Byrne",
-        "Nick Reno"
+        "Nick Reno",
+        "Nick Schwab",
+        "Chris Rokita"
     ],
     "languages": [
         "en"
     ],
     "navigation": [
         {
-            "name": "Policy Table",
+            "name": "Overview"
+        }, {
+            "name": "Getting Started",
+            "navigation": [
+                {
+                    "name": "Installation"
+                }, {
+                    "name": "Security"
+                }, {
+                    "name": "Lifecycles"
+                }, {
+                    "name": "Server Update"
+                }, {
+                    "name": "Custom Modules"
+                }, {
+                    "name": "Migration Scripts"
+                }
+            ]
+        }, {
+            "name": "User Interface",
             "navigation": [
                 {
                     "name": "Overview"
                 }, {
-                    "name": "Application Policies"
+                    "name": "Applications"
                 }, {
-                    "name": "Consumer Friendly Messages"
-                }, {
-                    "name": "Device Data"
-                }, {
-                    "name": "Functional Groupings"
+                    "name": "Messages and Functional Groups"
                 }, {
                     "name": "Module Config"
                 }, {
-                    "name": "Module Meta"
+                    "name": "View Policy Table"
                 }, {
-                    "name": "Usage and Errors"
+                    "name": "About"
                 }
             ]
         }, {
-            "name": "Policy Table Update"
-        }, {
-            "name": "SQL"
-        }, {
-            "name": "Granting Functional Groups"
+            "name": "API Reference Documentation",
+            "navigation": [
+                {
+                    "name": "Policy Table",
+                    "navigation": [
+                        {
+                            "name": "Overview"
+                        }, {
+                            "name": "Application Policies"
+                        }, {
+                            "name": "Consumer Friendly Messages"
+                        }, {
+                            "name": "Device Data"
+                        }, {
+                            "name": "Functional Groupings"
+                        }, {
+                            "name": "Module Config"
+                        }, {
+                            "name": "Module Meta"
+                        }, {
+                            "name": "Usage and Errors"
+                        }
+                    ]
+                }, {
+                    "name": "Policy Table Update"
+                }, {
+                    "name": "Granting Functional Groups"
+                }, {
+                    "name": "SQL"
+                }
+            ]
         }
     ]
 }
