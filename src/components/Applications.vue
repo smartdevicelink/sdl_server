@@ -8,7 +8,7 @@
             <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
 
                 <div v-for="appList in apps">
-                    <div class="app-table" v-if="appList.list.length > 0">
+                    <div class="app-table">
                         <h4 :class="appList.class">{{ appList.title }}<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/applications/" target="_blank"></a></h4>
                         <div class="table-responsive">
                             <table class="table table-striped">
@@ -21,7 +21,7 @@
                                         <th></th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody v-if="appList.list.length > 0">
                                     <app-row
                                         v-for="(item, index) in appList.list"
                                         v-bind:item="item"
@@ -29,6 +29,11 @@
                                         v-bind:key="item.id"
                                         >
                                     </app-row>
+                                </tbody>
+                                <tbody v-else>
+                                    <tr>
+                                        <td colspan="6">No applications in this approval state.</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>

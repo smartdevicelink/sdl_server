@@ -235,6 +235,7 @@ function insertAppInfo (obj) {
         can_background_alert: obj.can_background_alert,
         can_steal_focus: obj.can_steal_focus,
         default_hmi_level: obj.default_hmi_level,
+        icon_url: obj.icon_url,
         tech_email: obj.tech_email,
         tech_phone: obj.tech_phone,
         category_id: obj.category.id,

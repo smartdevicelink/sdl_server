@@ -241,6 +241,7 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         priority: "NONE",
         default_hmi: appObj.default_hmi_level.split("_")[1], //trim the HMI_ prefix
         groups: funcGroupNames,
+        icon_url: appObj.icon_url,
         moduleType: moduleNames,
         RequestType: [],
         RequestSubType: []
