@@ -3,48 +3,15 @@ const sql = require('sql-bricks-postgres');
 
 function insertPermissions (permissionObjs) {
     return permissionObjs.map(function (permission) {
-        return sql.insert('permissions', 'name', 'type')
-            .select
-                (
-                `'${permission.name}' AS name`,
-                `'${permission.type}' AS type`
-                )
-            .where(
-                sql.not(
-                    sql.exists(
-                        sql.select('*')
-                        .from('permissions perm')
-                        .where({
-                            'perm.name': permission.name
-                        })
-                    )
-                )
-            )
-            .toString();
+        return sql.insert("permissions", permission)
+            .onConflict().onConstraint('permissions_pkey').doUpdate().toString();
     });
 }
 
 function insertPermissionRelations (permissionRelationObjs) {
     return permissionRelationObjs.map(function (permissionRelation) {
-        return sql.insert('permission_relations', 'child_permission_name', 'parent_permission_name')
-            .select
-                (
-                `'${permissionRelation.child_permission_name}' AS child_permission_name`,
-                `'${permissionRelation.parent_permission_name}' AS parent_permission_name`
-                )
-            .where(
-                sql.not(
-                    sql.exists(
-                        sql.select('*')
-                            .from('permission_relations perm_rel')
-                            .where({
-                                'perm_rel.child_permission_name': permissionRelation.child_permission_name,
-                                'perm_rel.parent_permission_name': permissionRelation.parent_permission_name
-                            })
-                    )
-                )
-            )
-            .toString();
+        return sql.insert("permission_relations", permissionRelation)
+            .onConflict().onConstraint('permission_relations_pkey').doUpdate().toString();
     });
 }
 

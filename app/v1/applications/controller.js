@@ -113,6 +113,43 @@ function autoPost (req, res, next) {
 	});
 }
 
+function putServicePermission (req, res, next) {
+	helper.validateServicePermissionPut(req, res);
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+	app.locals.db.sqlCommand(sql.getApp.base['idFilter'](req.body.id), function(err, results) {
+		if (err) {
+			return res.parcel.setStatus(500).deliver();
+		}
+		if (!results.length) {
+			return res.parcel.setStatus(400).deliver();
+		}
+
+		if (results[0].approval_status == "ACCEPTED") {
+			return res.parcel
+				.setStatus(400)
+				.setMessage("You may not modify the app service permissions of a production application.")
+				.deliver();
+		}
+
+		let chosenCommand;
+		if (req.body.is_selected) {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppServicePermission(req.body));
+		} else {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAppServicePermission(req.body));
+		}
+
+		chosenCommand(function (err, results) {
+			if (err) {
+				return res.parcel.setStatus(500).deliver();
+			}
+			return res.parcel.setStatus(200).deliver();
+		});
+	});
+}
+
 //expects a POST from SHAID
 function webhook (req, res, next) {
     helper.validateWebHook(req, res);
@@ -167,6 +204,7 @@ function queryAndStoreApplicationsFlow (queryObj) {
 module.exports = {
 	get: get,
 	actionPost: actionPost,
+	putServicePermission: putServicePermission,
 	autoPost: autoPost,
 	webhook: webhook,
 	queryAndStoreApplicationsFlow: queryAndStoreApplicationsFlow

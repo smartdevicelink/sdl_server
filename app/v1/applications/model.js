@@ -12,6 +12,9 @@ function constructFullAppObjs (res, next) {
     const appDisplayNames = res.appDisplayNames;
     const appPermissions = res.appPermissions;
     const appCategories = res.appCategories;
+    const appServiceTypes = res.appServiceTypes;
+    const appServiceTypeNames = res.appServiceTypeNames;
+    const appServiceTypePermissions = res.appServiceTypePermissions;
     const appAutoApprovals = res.appAutoApprovals;
     const appBlacklist = res.appBlacklist;
 
@@ -60,23 +63,55 @@ function constructFullAppObjs (res, next) {
         hashedApps[appBase[i].id].countries = [];
         hashedApps[appBase[i].id].display_names = [];
         hashedApps[appBase[i].id].permissions = [];
+        hashedApps[appBase[i].id].services = [];
     }
-    //iterate through all other info and attach their information to hashedApps
+    // build countries
     for (let i = 0; i < appCountries.length; i++) {
         hashedApps[appCountries[i].id].countries.push({
             iso: appCountries[i].country_iso,
             name: appCountries[i].name
         });
     }
+    // build display names
     for (let i = 0; i < appDisplayNames.length; i++) {
         hashedApps[appDisplayNames[i].id].display_names.push(appDisplayNames[i].display_text);
     }
+    // build permissions
     for (let i = 0; i < appPermissions.length; i++) {
         hashedApps[appPermissions[i].id].permissions.push({
             key: appPermissions[i].permission_name,
             hmi_level: appPermissions[i].hmi_level,
             type: appPermissions[i].type
         });
+    }
+    // build app services
+    for (let i = 0; i < appServiceTypes.length; i++) {
+        var service = {
+            "name": appServiceTypes[i].service_type_name,
+            "display_name": appServiceTypes[i].display_name,
+            "service_names": [],
+            "permissions": []
+        };
+
+        for (let j = 0; j < appServiceTypeNames.length; j++) {
+            if(appServiceTypeNames[j].service_type_name == appServiceTypes[i].service_type_name) {
+                service.service_names.push(appServiceTypeNames[j].service_name);
+            }
+        }
+
+        for (let k = 0; k < appServiceTypePermissions.length; k++) {
+            if(appServiceTypePermissions[k].service_type_name == appServiceTypes[i].service_type_name) {
+                service.permissions.push({
+                    "app_id": appServiceTypes[i].app_id,
+                    "function_id": appServiceTypePermissions[k].function_id,
+                    "display_name": appServiceTypePermissions[k].display_name,
+                    "name": appServiceTypePermissions[k].name,
+                    "is_selected": appServiceTypePermissions[k].is_selected
+                });
+            }
+        }
+
+        hashedApps[appServiceTypes[i].app_id].services.push(service);
     }
 
     //convert the hash back to an array!
@@ -108,6 +143,11 @@ function storeApp (appObj, next) {
                 }
                 if (appObj.permissions.length > 0) {
                     allInserts.push(sql.insertAppPermissions(appObj.permissions, app.id));
+                }
+                if (appObj.services.length > 0) {
+                    allInserts.push(sql.insertAppServices(appObj.services, app.id));
+                    allInserts.push(sql.insertAppServiceNames(appObj.services, app.id));
+                    allInserts.push(sql.insertStandardAppServicePermissions(appObj.services, app.id));
                 }
                 if (appObj.is_auto_approved_enabled) {
                     allInserts.push(sql.insertAppAutoApproval(appObj));

@@ -33,6 +33,7 @@ const policy = require('./policy/controller.js');
 const permissions = require('./permissions/controller.js');
 const groups = require('./groups/controller.js');
 const messages = require('./messages/controller.js');
+const services = require('./services/controller.js');
 const moduleConfig = require('./module-config/controller.js');
 const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
@@ -50,6 +51,7 @@ function exposeRoutes () {
 	app.get('/applications', auth.validateAuth, applications.get);
 	app.post('/applications/action', auth.validateAuth, applications.actionPost);
 	app.post('/applications/auto', auth.validateAuth, applications.autoPost);
+	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -91,6 +93,13 @@ function updatePermissionsAndGenerateTemplates (next) {
 flame.async.parallel([
 	//get and store permission info from SHAID on startup
 	updatePermissionsAndGenerateTemplates,
+	function (next) {
+		// get and store app service type info from SHAID on startup
+		services.upsertTypes(function () {
+			log.info("App service types updated");
+			next();
+		});
+	},
 	function (next) {
 		//get and store language code info from the GitHub SDL RPC specification on startup
 		messages.updateLanguages(function () {

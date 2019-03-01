@@ -94,5 +94,14 @@ const self = module.exports = {
                 callback(null, permissions);
             });
         });
+    },
+    getServices: function(queryObj, callback) {
+        shaid.read(
+            shaid.entity.service,
+            queryObj,
+            function (err, res) {
+                callback(err, res.data.services);
+            }
+        );
     }
 };
