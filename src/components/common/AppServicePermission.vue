@@ -2,8 +2,8 @@
     <tr>
         <td>
             <label class="switch">
-                <input v-on:click="toggleAppServicePermission" type="checkbox" :checked="item.is_selected"></input>
-                <span class="slider round"></span>
+                <input v-on:click="toggleAppServicePermission" type="checkbox" :checked="item.is_selected" :disabled="disableEditing == 1"></input>
+                <span class="slider round" :class="{ disabled: disableEditing }"></span>
             </label>
             <label class="form-check-label switch-label">
               {{ item.name }}
@@ -14,7 +14,7 @@
 
 <script>
     export default {
-        props: ['item', 'app_id', 'service_type_name'],
+        props: ['item', 'approval_status', 'app_id', 'service_type_name'],
         data () {
             return {
             }
@@ -40,6 +40,11 @@
                         console.log("App service permission state saved");
                     }
                 });
+            }
+        },
+        computed: {
+            disableEditing: function(){
+                return ["ACCEPTED"].indexOf(this.approval_status) >= 0;
             }
         }
     }

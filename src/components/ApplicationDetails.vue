@@ -148,7 +148,8 @@
                                     v-bind:item="item"
                                     v-bind:index="index"
                                     v-bind:key="item.id"
-                                    v-bind:app_id="app.id" 
+                                    v-bind:app_id="app.id"
+                                    v-bind:approval_status="app.approval_status"
                                     v-bind:service_type_name="service.name" />
                             </tbody>
                         </table>
