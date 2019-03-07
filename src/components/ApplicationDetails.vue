@@ -150,7 +150,8 @@
                                     v-bind:key="item.id"
                                     v-bind:app_id="app.id"
                                     v-bind:approval_status="app.approval_status"
-                                    v-bind:service_type_name="service.name" />
+                                    v-bind:service_type_name="service.name" 
+                                    v-bind:updatePolicyTablesHandler="getPolicy"/>
                             </tbody>
                         </table>
                     </div>

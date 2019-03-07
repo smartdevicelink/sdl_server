@@ -132,35 +132,38 @@ function getAppServiceTypeNamesFilter (filterObj) {
 }
 
 function getAppServiceTypePermissionsFilter (filterObj) {
-    var brick = sql.select('stp.service_type_name, p.function_id, p.name, p.display_name, p.type')
+    let brick = sql.select('ai.id AS app_id', 'stp.service_type_name', 'p.function_id', 'p.name', 'p.display_name', 'p.type')
+        //generate all possible combinations of selected app ids and possible service type permissions
         .from('service_type_permissions stp')
         .join('permissions p', {
             'p.name': 'stp.permission_name'
         })
-        .where(
-            sql.in('stp.service_type_name',
-                sql.select('ast.service_type_name')
-                    .from('app_service_types ast')
-                    .join('(' + getAppInfoFilter(filterObj) + ') ai', {
-                        'ai.id': 'ast.app_id'
-                    })
-            )
-        )
+        .crossJoin('(XXXXXXXX) ai')
+        //take the combination above and join it with app_service_type_permissions, using astp.app_id
+        //to find out which ones exist in the table above that don't exist in app_service_type_permissions
+        .leftJoin('app_service_type_permissions astp', {
+            'ai.id': 'astp.app_id',
+            'stp.service_type_name': 'astp.service_type_name',
+            'p.name': 'astp.permission_name',
+        })
         .orderBy('p.name ASC');
 
-    brick.select("EXISTS(" +
-        sql.select('astp.permission_name')
-            .from('app_service_type_permissions astp')
-            .join('(' + getAppInfoFilter(filterObj) + ') ai', {
-                'ai.id': 'astp.app_id'
-            })
-            .where({
-                'astp.permission_name': sql('p.name'),
-                'astp.service_type_name': sql('stp.service_type_name')
-            })
-    + ") AS is_selected");
+    //compute is_selected column for each entry
+    brick.select(`CASE
+        WHEN ai.id = astp.app_id
+        AND stp.service_type_name = astp.service_type_name
+        AND p.name = astp.permission_name
+        THEN 'true'
+        ELSE 'false'
+    END AS is_selected`);
 
-    return brick.toString();
+    //sql-bricks modifies the value of the sql string getAppInfoFilter(filterObj) incorrectly, placing an additional
+    //cross join in that string's INNER JOIN when there is none. substitute the placeholder with this string
+    //so that the library doesn't mess with the value
+    let brickString = brick.toString();
+    brickString = brickString.replace('XXXXXXXX', getAppInfoFilter(filterObj))
+
+    return brickString;
 }
 
 function getAppCategoryFilter (filterObj) {
@@ -279,33 +282,35 @@ function getAppServiceTypeNames (id) {
 }
 
 function getAppServiceTypePermissions (id) {
-    var brick = sql.select('stp.service_type_name, p.function_id, p.name, p.display_name, p.type')
+    let brick = sql.select('ai.id AS app_id', 'stp.service_type_name', 'p.function_id', 'p.name', 'p.display_name', 'p.type')
+        //generate all possible combinations of selected app ids and possible service type permissions
         .from('service_type_permissions stp')
         .join('permissions p', {
             'p.name': 'stp.permission_name'
         })
-        .where(
-            sql.in('stp.service_type_name',
-                sql.select('ast.service_type_name')
-                    .from('app_service_types ast')
-                    .where({
-                        'ast.app_id': id
-                    })
-            )
-        )
+        .crossJoin('app_info ai', {
+            'ai.id': 'stp.app_id'
+        })
+        //take the combination above and join it with app_service_type_permissions, using astp.app_id
+        //to find out which ones exist in the table above that don't exist in app_service_type_permissions
+        .leftJoin('app_service_type_permissions astp', {
+            'ai.id': 'astp.app_id',
+            'stp.service_type_name': 'astp.service_type_name',
+            'p.name': 'astp.permission_name',
+        })
+        .where({
+            'ai.id': id
+        })
         .orderBy('p.name ASC');
 
-    brick.select("EXISTS(" +
-        sql.select('astp.permission_name')
-            .from('app_service_type_permissions astp')
-            .join('app_info ai', {
-                'ai.id': 'astp.app_id'
-            })
-            .where({
-                'astp.permission_name': sql('p.name'),
-                'astp.service_type_name': sql('stp.service_type_name')
-            })
-    + ") AS is_selected");
+    //compute is_selected column for each entry
+    brick.select(`CASE
+        WHEN ai.id = astp.app_id
+        AND stp.service_type_name = astp.service_type_name
+        AND p.name = astp.permission_name
+        THEN 'true'
+        ELSE 'false'
+    END AS is_selected`);
 
     return brick.toString();
 }

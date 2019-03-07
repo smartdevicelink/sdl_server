@@ -155,9 +155,31 @@ function getAppFunctionalGroups (isProduction, appObj) {
                     'p.type': 'MODULE',
                     'fghl.hmi_level': sql('hlc.hmi_level_enum')
                 })
-        )
+        ),
+        //adds functional groups containing PublishAppService for an app that is 
+        //allowed at least one app service type permission
+        sql.exists(
+            sql.select()
+                //must contain the passed in id at least once
+                .from('app_service_type_permissions')
+                .where({
+                    'app_id': appObj.id,
+                })
+                .where(
+                    sql.exists(
+                        //the functional group must have a PublishAppService RPC with HMI level NONE
+                        sql.select()
+                        .from('function_group_hmi_levels fghl')
+                        .where({
+                            'fghl.function_group_id': sql('view_function_group_info.id'),
+                            'fghl.permission_name': 'PublishAppService',
+                            'fghl.hmi_level': 'NONE'
+                        })
+                    )
+                )
+        ),
     ];
-
+    
     if(appObj.can_background_alert){
         sqlOr.push(
             sql.exists(

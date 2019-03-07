@@ -14,19 +14,17 @@
 
 <script>
     export default {
-        props: ['item', 'approval_status', 'app_id', 'service_type_name'],
+        props: ['item', 'approval_status', 'app_id', 'service_type_name', 'updatePolicyTablesHandler'],
         data () {
             return {
             }
         },
         methods: {
             "toggleAppServicePermission": function(){
-                this.item.is_selected = !this.item.is_selected;
-
                 this.httpRequest("put", "applications/service/permission", {
                     "body": {
                         "id": this.app_id,
-                        "is_selected": this.item.is_selected,
+                        "is_selected": !this.item.is_selected,
                         "service_type_name": this.service_type_name,
                         "permission_name": this.item.name
                     }
@@ -34,10 +32,13 @@
                     if(err){
                         // error
                         console.log("Error saving app service permission state");
-                        this.item.is_selected = !this.item.is_selected;
                     }else{
                         // success
                         console.log("App service permission state saved");
+                        this.item.is_selected = !this.item.is_selected;
+                        //update the policy tables
+                        this.updatePolicyTablesHandler(false, "policytableStaging");
+                        this.updatePolicyTablesHandler(true, "policytableProduction");
                     }
                 });
             }

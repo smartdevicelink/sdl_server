@@ -5463,3 +5463,241 @@ SELECT id AS function_group_id, 'OnVehicleData' AS rpc_name, 'fuelRange' AS para
 FROM function_group_info
 WHERE property_name = 'VehicleInfo-3';
 -- END ADD 9/11/2018
+
+
+
+-- START ADD 3/5/2019
+INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
+SELECT 'AppServiceProviderGroup' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+WHERE NOT EXISTS (
+    SELECT * FROM function_group_info fgi
+    WHERE fgi.property_name = 'AppServiceProviderGroup'
+);
+
+INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
+SELECT 'AppServiceConsumerGroup' AS property_name, null AS user_consent_prompt, 'false' AS is_default, 'PRODUCTION' AS status
+WHERE NOT EXISTS (
+    SELECT * FROM function_group_info fgi
+    WHERE fgi.property_name = 'AppServiceConsumerGroup'
+);
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetAppServiceData' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetAppServiceData' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetAppServiceData' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetAppServiceData' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetFile' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetFile' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetFile' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetFile' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAppServiceData' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAppServiceData' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAppServiceData' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAppServiceData' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnSystemCapabilityUpdated' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnSystemCapabilityUpdated' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnSystemCapabilityUpdated' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnSystemCapabilityUpdated' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAppServiceInteraction' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAppServiceInteraction' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAppServiceInteraction' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAppServiceInteraction' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PublishAppService' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PublishAppService' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PublishAppService' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PublishAppService' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceProviderGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetAppServiceData' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetAppServiceData' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetAppServiceData' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetAppServiceData' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetFile' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetFile' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetFile' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'GetFile' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAppServiceData' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAppServiceData' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAppServiceData' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnAppServiceData' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnSystemCapabilityUpdated' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnSystemCapabilityUpdated' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnSystemCapabilityUpdated' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'OnSystemCapabilityUpdated' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAppServiceInteraction' AS permission_name, 'BACKGROUND' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAppServiceInteraction' AS permission_name, 'FULL' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAppServiceInteraction' AS permission_name, 'LIMITED' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+
+INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+SELECT id AS function_group_id, 'PerformAppServiceInteraction' AS permission_name, 'NONE' AS hmi_level
+FROM function_group_info
+WHERE property_name = 'AppServiceConsumerGroup';
+-- END ADD 3/5/2019
