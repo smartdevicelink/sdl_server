@@ -24,7 +24,7 @@ function constructFullAppObjs (res, next) {
     }));
     // app services
     const hashedServices = {};
-    hashify(hashedServices, res.appServiceTypes, elem => ({
+    hashify(hashedServices, res.appServiceTypePermissions, elem => ({
         location: [elem.app_id, elem.service_type_name],
         data: obj => {
             obj.name = elem.service_type_name,
