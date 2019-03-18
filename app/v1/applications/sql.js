@@ -132,11 +132,14 @@ function getAppServiceTypeNamesFilter (filterObj) {
 }
 
 function getAppServiceTypePermissionsFilter (filterObj) {
-    let brick = sql.select('ai.id AS app_id', 'stp.service_type_name', 'p.function_id', 'p.name', 'p.display_name', 'p.type')
+    let brick = sql.select('ai.id AS app_id', 'stp.service_type_name', 'p.function_id', 'p.name', 'p.display_name', 'p.type', 'st.display_name AS service_display_name')
         //generate all possible combinations of selected app ids and possible service type permissions
         .from('service_type_permissions stp')
         .join('permissions p', {
             'p.name': 'stp.permission_name'
+        })
+        .join('service_types st', {
+            'st.name': 'stp.service_type_name'
         })
         .crossJoin('(XXXXXXXX) ai')
         //take the combination above and join it with app_service_type_permissions, using astp.app_id
@@ -282,11 +285,14 @@ function getAppServiceTypeNames (id) {
 }
 
 function getAppServiceTypePermissions (id) {
-    let brick = sql.select('ai.id AS app_id', 'stp.service_type_name', 'p.function_id', 'p.name', 'p.display_name', 'p.type')
+    let brick = sql.select('ai.id AS app_id', 'stp.service_type_name', 'p.function_id', 'p.name', 'p.display_name', 'p.type', 'st.display_name AS service_display_name')
         //generate all possible combinations of selected app ids and possible service type permissions
         .from('service_type_permissions stp')
         .join('permissions p', {
             'p.name': 'stp.permission_name'
+        })
+        .join('service_types st', {
+            'st.name': 'stp.service_type_name'
         })
         .crossJoin('app_info ai', {
             'ai.id': 'stp.app_id'

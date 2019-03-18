@@ -156,7 +156,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
                     'fghl.hmi_level': sql('hlc.hmi_level_enum')
                 })
         ),
-        //adds functional groups containing PublishAppService for an app that is 
+        //adds functional groups with is_app_provider_group set to true for an app that is 
         //allowed at least one app service type permission
         sql.exists(
             sql.select()
@@ -165,18 +165,9 @@ function getAppFunctionalGroups (isProduction, appObj) {
                 .where({
                     'app_id': appObj.id,
                 })
-                .where(
-                    sql.exists(
-                        //the functional group must have a PublishAppService RPC with HMI level NONE
-                        sql.select()
-                        .from('function_group_hmi_levels fghl')
-                        .where({
-                            'fghl.function_group_id': sql('view_function_group_info.id'),
-                            'fghl.permission_name': 'PublishAppService',
-                            'fghl.hmi_level': 'NONE'
-                        })
-                    )
-                )
+                .where({ //must have is_app_provider_group set to true
+                    'view_function_group_info.is_app_provider_group': true
+                })
         ),
     ];
     
