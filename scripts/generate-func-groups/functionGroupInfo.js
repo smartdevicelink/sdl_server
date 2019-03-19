@@ -22,7 +22,7 @@ const functionalGroupAlwaysAllowedObj = {
     "DialNumberOnlyGroup": true,
     "HapticGroup": true,
     "AppServiceProviderGroup": false,
-    "AppServiceConsumerGroup": false,
+    "AppServiceConsumerGroup": true,
 };
 
 module.exports = {
