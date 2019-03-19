@@ -160,7 +160,6 @@ function getAppFunctionalGroups (isProduction, appObj) {
         //allowed at least one app service type permission
         sql.exists(
             sql.select()
-                
                 .from('app_service_types')
                 //must contain the passed in id at least once
                 //must have is_app_provider_group set to true
