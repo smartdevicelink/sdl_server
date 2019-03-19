@@ -25,11 +25,11 @@ function constructFullAppObjs (res, next) {
     // app services
     const hashedServices = {};
 
-    hashify(hashedServices, res.appServiceTypePermissions, elem => ({
+    hashify(hashedServices, res.appServiceTypes, elem => ({
         location: [elem.app_id, elem.service_type_name],
         data: obj => {
             obj.name = elem.service_type_name,
-            obj.display_name = elem.service_display_name,
+            obj.display_name = elem.display_name,
             obj.service_names = [],
             obj.permissions = []
         }
@@ -38,7 +38,12 @@ function constructFullAppObjs (res, next) {
         location: [elem.app_id, elem.service_type_name, "service_names"],
         data: arr => arr.push(elem.service_name)
     }))
-    hashify(hashedServices, res.appServiceTypePermissions, elem => ({
+    //filter out appServiceTypePermissions of elements that don't exist in hashedServices
+    const filteredASTP = res.appServiceTypePermissions.filter(astp => {
+        return (hashedServices[astp.app_id] !== undefined && 
+                hashedServices[astp.app_id][astp.service_type_name] !== undefined)
+    });
+    hashify(hashedServices, filteredASTP, elem => ({
         location: [elem.app_id, elem.service_type_name, "permissions"],
         data: arr => arr.push({
             "app_id": elem.app_id,
