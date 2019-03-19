@@ -245,7 +245,7 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
 
     res.serviceTypePermissions.forEach(s => {
         //only allow the permission if it was selected to be enabled
-        if (s.is_selected == 'true') {
+        if (s.is_selected) {
             appServiceObj[s.service_type_name].handled_rpcs.push({
                 function_id: s.function_id
             });            

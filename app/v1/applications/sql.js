@@ -156,8 +156,8 @@ function getAppServiceTypePermissionsFilter (filterObj) {
         WHEN ai.id = astp.app_id
         AND stp.service_type_name = astp.service_type_name
         AND p.name = astp.permission_name
-        THEN 'true'
-        ELSE 'false'
+        THEN true
+        ELSE false
     END AS is_selected`);
 
     //sql-bricks modifies the value of the sql string getAppInfoFilter(filterObj) incorrectly, placing an additional
@@ -314,8 +314,8 @@ function getAppServiceTypePermissions (id) {
         WHEN ai.id = astp.app_id
         AND stp.service_type_name = astp.service_type_name
         AND p.name = astp.permission_name
-        THEN 'true'
-        ELSE 'false'
+        THEN true
+        ELSE false
     END AS is_selected`);
 
     return brick.toString();

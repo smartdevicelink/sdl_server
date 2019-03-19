@@ -43,6 +43,7 @@ function constructFullAppObjs (res, next) {
         return (hashedServices[astp.app_id] !== undefined && 
                 hashedServices[astp.app_id][astp.service_type_name] !== undefined)
     });
+
     hashify(hashedServices, filteredASTP, elem => ({
         location: [elem.app_id, elem.service_type_name, "permissions"],
         data: arr => arr.push({
@@ -50,7 +51,7 @@ function constructFullAppObjs (res, next) {
             "function_id": elem.function_id,
             "display_name": elem.display_name,
             "name": elem.name,
-            "is_selected": (elem.is_selected == 'true') //coerce to boolean
+            "is_selected": elem.is_selected
         })
     }))
 
