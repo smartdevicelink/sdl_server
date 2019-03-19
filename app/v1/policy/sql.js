@@ -160,12 +160,12 @@ function getAppFunctionalGroups (isProduction, appObj) {
         //allowed at least one app service type permission
         sql.exists(
             sql.select()
-                //must contain the passed in id at least once
+                
                 .from('app_service_types')
-                .where({
+                //must contain the passed in id at least once
+                //must have is_app_provider_group set to true
+                .where({ 
                     'app_id': appObj.id,
-                })
-                .where({ //must have is_app_provider_group set to true
                     'view_function_group_info.is_app_provider_group': true
                 })
         ),
