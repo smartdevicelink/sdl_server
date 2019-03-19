@@ -161,7 +161,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
         sql.exists(
             sql.select()
                 //must contain the passed in id at least once
-                .from('app_service_type_permissions')
+                .from('app_service_types')
                 .where({
                     'app_id': appObj.id,
                 })
