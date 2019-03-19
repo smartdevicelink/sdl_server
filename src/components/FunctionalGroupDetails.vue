@@ -72,7 +72,7 @@
                             class="color-bg-gray color-primary"
                             v-model="fg.is_app_provider_group"
                             v-bind:disabled="fieldsDisabled">
-                            Grant this functional group to all applications who request at least one service provider permission
+                            Grant this functional group to all applications with at least one service provider type
                         </b-form-checkbox>
                     </div>
 
