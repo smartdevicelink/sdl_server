@@ -253,7 +253,8 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
     });
 
     const appPolicyObj = {};
-    appPolicyObj[(useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)] = {
+    const uuidProp = (useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)
+    appPolicyObj[uuidProp] = {
         nicknames: displayNames,
         keep_context: true,
         steal_focus: appObj.can_steal_focus,
@@ -265,8 +266,8 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         RequestSubType: [],
         app_services: appServiceObj 
     };
-    if (appObj.icon_url !== null && appObj.icon_url !== undefined) {
-        appPolicyObj[(useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)].icon_url = appObj.icon_url
+    if (appObj.icon_url) {
+        appPolicyObj[uuidProp].icon_url = appObj.icon_url
     }
     next(null, appPolicyObj);
 }
