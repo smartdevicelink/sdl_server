@@ -21,3 +21,6 @@ vin for OnVehicleData is an allowable state. Currently in VehicleInfo-3
 POLICY TABLE DIFFERENCES (3/28/2018)
 Updated policy table module config URLs to be generic
 Replaced references to "Ford" and "SYNC"
+
+POLICY TABLE DIFFERENCES (3/5/2019)
+new AppServiceProviderGroup and AppServiceConsumerGroup for new RPCs

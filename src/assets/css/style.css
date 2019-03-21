@@ -597,6 +597,11 @@ div.horizontal-divider .text {
   transition: .4s;
 }
 
+.slider.disabled {
+    opacity: .6;
+    cursor: default;
+}
+
 
 input:checked + .slider {
   background-color: #78C970;

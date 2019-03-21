@@ -139,6 +139,9 @@ function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, app
             displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
             moduleNames: setupSqlCommand.bind(null, sql.getAppModules(appObj.id)),
             funcGroupNames: setupSqlCommand.bind(null, sql.getAppFunctionalGroups(isProduction, appObj)),
+            serviceTypes: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypes.idFilter(appObj.id)),
+            serviceTypeNames: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypeNames.idFilter(appObj.id)),
+            serviceTypePermissions: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypePermissions.idFilter(appObj.id)),
         }, {method: 'parallel'});
 
         flame.flow([

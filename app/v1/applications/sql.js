@@ -105,6 +105,70 @@ function getAppPermissionsFilter (filterObj) {
         .toString();
 }
 
+function getAppServiceTypesFilter (filterObj) {
+    return sql.select('ast.app_id, ast.service_type_name, st.display_name')
+        .from('app_service_types ast')
+        .join('service_types st', {
+            'st.name': 'ast.service_type_name'
+        })
+        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
+            'ai.id': 'ast.app_id'
+        })
+        .orderBy('ast.service_type_name ASC')
+        .toString();
+}
+
+function getAppServiceTypeNamesFilter (filterObj) {
+    return sql.select('astn.app_id, astn.service_type_name, astn.service_name')
+        .from('app_service_type_names astn')
+        .join('service_types st', {
+            'st.name': 'astn.service_type_name'
+        })
+        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
+            'ai.id': 'astn.app_id'
+        })
+        .orderBy('astn.service_type_name ASC')
+        .toString();
+}
+
+function getAppServiceTypePermissionsFilter (filterObj) {
+    let brick = sql.select('ai.id AS app_id', 'stp.service_type_name', 'p.function_id', 'p.name', 'p.display_name', 'p.type', 'st.display_name AS service_display_name')
+        //generate all possible combinations of selected app ids and possible service type permissions
+        .from('service_type_permissions stp')
+        .join('permissions p', {
+            'p.name': 'stp.permission_name'
+        })
+        .join('service_types st', {
+            'st.name': 'stp.service_type_name'
+        })
+        .crossJoin('(XXXXXXXX) ai')
+        //take the combination above and join it with app_service_type_permissions, using astp.app_id
+        //to find out which ones exist in the table above that don't exist in app_service_type_permissions
+        .leftJoin('app_service_type_permissions astp', {
+            'ai.id': 'astp.app_id',
+            'stp.service_type_name': 'astp.service_type_name',
+            'p.name': 'astp.permission_name',
+        })
+        .orderBy('p.name ASC');
+
+    //compute is_selected column for each entry
+    brick.select(`CASE
+        WHEN ai.id = astp.app_id
+        AND stp.service_type_name = astp.service_type_name
+        AND p.name = astp.permission_name
+        THEN true
+        ELSE false
+    END AS is_selected`);
+
+    //sql-bricks modifies the value of the sql string getAppInfoFilter(filterObj) incorrectly, placing an additional
+    //cross join in that string's INNER JOIN when there is none. substitute the placeholder with this string
+    //so that the library doesn't mess with the value
+    let brickString = brick.toString();
+    brickString = brickString.replace('XXXXXXXX', getAppInfoFilter(filterObj))
+
+    return brickString;
+}
+
 function getAppCategoryFilter (filterObj) {
     const innerAppInfoSelect = sql.select('app_info.id', 'app_info.category_id')
         .from('app_info')
@@ -186,6 +250,75 @@ function getAppCategory (id) {
             'app_info.id': id
         })
         .toString();
+}
+
+function getAppServiceTypes (id) {
+    return sql.select('ast.app_id, ast.service_type_name, st.display_name')
+        .from('app_service_types ast')
+        .join('service_types st', {
+            'st.name': 'ast.service_type_name'
+        })
+        .join('app_info ai', {
+            'ai.id': 'ast.app_id'
+        })
+        .where({
+            'ai.id': id
+        })
+        .orderBy('ast.service_type_name ASC')
+        .toString();
+}
+
+function getAppServiceTypeNames (id) {
+    return sql.select('astn.app_id, astn.service_type_name, astn.service_name')
+        .from('app_service_type_names astn')
+        .join('service_types st', {
+            'st.name': 'astn.service_type_name'
+        })
+        .join('app_info ai', {
+            'ai.id': 'astn.app_id'
+        })
+        .where({
+            'ai.id': id
+        })
+        .orderBy('astn.service_name')
+        .toString();
+}
+
+function getAppServiceTypePermissions (id) {
+    let brick = sql.select('ai.id AS app_id', 'stp.service_type_name', 'p.function_id', 'p.name', 'p.display_name', 'p.type', 'st.display_name AS service_display_name')
+        //generate all possible combinations of selected app ids and possible service type permissions
+        .from('service_type_permissions stp')
+        .join('permissions p', {
+            'p.name': 'stp.permission_name'
+        })
+        .join('service_types st', {
+            'st.name': 'stp.service_type_name'
+        })
+        .crossJoin('app_info ai', {
+            'ai.id': 'stp.app_id'
+        })
+        //take the combination above and join it with app_service_type_permissions, using astp.app_id
+        //to find out which ones exist in the table above that don't exist in app_service_type_permissions
+        .leftJoin('app_service_type_permissions astp', {
+            'ai.id': 'astp.app_id',
+            'stp.service_type_name': 'astp.service_type_name',
+            'p.name': 'astp.permission_name',
+        })
+        .where({
+            'ai.id': id
+        })
+        .orderBy('p.name ASC');
+
+    //compute is_selected column for each entry
+    brick.select(`CASE
+        WHEN ai.id = astp.app_id
+        AND stp.service_type_name = astp.service_type_name
+        AND p.name = astp.permission_name
+        THEN true
+        ELSE false
+    END AS is_selected`);
+
+    return brick.toString();
 }
 
 function getAppAutoApproval (id) {
@@ -310,6 +443,101 @@ function insertAppPermissions (objs, appId) {
     });
 
     return sql.insert('app_permissions', permissionInserts).toString();
+}
+
+function deleteAppServicePermissions (appId) {
+    return sql.delete()
+        .from('app_service_type_permissions')
+        .where({
+            app_id: appId
+        })
+        .toString();
+}
+
+function insertAppServices (objs, appId) {
+    if (objs.length === 0) {
+        return null;
+    }
+    const inserts = objs.map(function (obj) {
+        return {
+            app_id: appId,
+            service_type_name: obj.name
+        }
+    });
+
+    return sql.insert('app_service_types', inserts).toString();
+}
+
+function insertAppServiceNames (objs, appId) {
+    if (objs.length === 0) {
+        return null;
+    }
+
+    var insertObjs = [];
+    objs.forEach(function(obj){
+        obj.service_names.forEach(function(service_name){
+            insertObjs.push({
+                "app_id": appId,
+                "service_type_name": obj.name,
+                "service_name": service_name
+            });
+        });
+    });
+
+    return sql.insert('app_service_type_names', insertObjs).toString();
+}
+
+function insertStandardAppServicePermissions (objs, appId) {
+    if (objs.length === 0) {
+        return null;
+    }
+
+    const serviceTypeNames = objs.map(function (obj) {
+        return obj.name;
+    });
+
+    return sql.insert('app_service_type_permissions')
+        .select(`${appId} AS app_id, stp.service_type_name, stp.permission_name`)
+        .from('service_type_permissions stp')
+        .where(
+            sql.in('stp.service_type_name', serviceTypeNames)
+        )
+        .toString();
+}
+
+function insertAppServicePermissions (objs, appId) {
+    if (objs.length === 0) {
+        return null;
+    }
+
+    const servicePermissions = objs.map(function (obj) {
+        return {
+            "app_id": appId,
+            "service_type_name": obj.service_type_name,
+            "permission_name": obj.permission_name
+        };
+    });
+
+    return sql.insert('app_service_type_permissions', servicePermissions).toString();
+}
+
+function insertAppServicePermission (obj) {
+    return sql.insert('app_service_type_permissions', {
+        "app_id": obj.id,
+        "service_type_name": obj.service_type_name,
+        "permission_name": obj.permission_name
+    }).toString();
+}
+
+function deleteAppServicePermission (obj) {
+    return sql.delete()
+        .from('app_service_type_permissions')
+        .where({
+            "app_id": obj.id,
+            "service_type_name": obj.service_type_name,
+            "permission_name": obj.permission_name
+        })
+        .toString();
 }
 
 function insertAppAutoApproval (obj) {
@@ -447,6 +675,18 @@ module.exports = {
             multiFilter: getAppCategoryFilter,
             idFilter: getAppCategory
         },
+        serviceTypes: {
+            multiFilter: getAppServiceTypesFilter,
+            idFilter: getAppServiceTypes
+        },
+        serviceTypeNames: {
+            multiFilter: getAppServiceTypeNamesFilter,
+            idFilter: getAppServiceTypeNames
+        },
+        serviceTypePermissions: {
+            multiFilter: getAppServiceTypePermissionsFilter,
+            idFilter: getAppServiceTypePermissions
+        },
         autoApproval: {
             multiFilter: getAppAutoApprovalFilter,
             idFilter: getAppAutoApproval
@@ -468,5 +708,12 @@ module.exports = {
     insertAppBlacklist: insertAppBlacklist,
     deleteAppBlacklist: deleteAppBlacklist,
     getBlacklistedApps: getBlacklistedApps,
-    getBlacklistedAppFullUuids: getBlacklistedAppFullUuids
+    getBlacklistedAppFullUuids: getBlacklistedAppFullUuids,
+    insertAppServices: insertAppServices,
+    insertAppServiceNames: insertAppServiceNames,
+    insertAppServicePermission: insertAppServicePermission,
+    deleteAppServicePermission: deleteAppServicePermission,
+    deleteAppServicePermissions: deleteAppServicePermissions,
+    insertAppServicePermissions: insertAppServicePermissions,
+    insertStandardAppServicePermissions: insertStandardAppServicePermissions
 }

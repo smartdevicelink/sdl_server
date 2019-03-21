@@ -232,20 +232,43 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
     const funcGroupNames = res.funcGroupNames.map(function (elem) {
         return elem.property_name;
     });
+    const appServiceObj = {};
+    res.serviceTypes.forEach(s => {
+        appServiceObj[s.service_type_name] = {
+            service_names: [],
+            handled_rpcs: [],
+        };
+    });
+    res.serviceTypeNames.forEach(s => {
+        appServiceObj[s.service_type_name].service_names.push(s.service_name);
+    });
+
+    res.serviceTypePermissions.forEach(s => {
+        //only allow the permission if it was selected to be enabled
+        if (s.is_selected) {
+            appServiceObj[s.service_type_name].handled_rpcs.push({
+                function_id: s.function_id
+            });            
+        }
+    });
 
     const appPolicyObj = {};
-    appPolicyObj[(useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)] = {
+    const uuidProp = (useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)
+    appPolicyObj[uuidProp] = {
         nicknames: displayNames,
         keep_context: true,
         steal_focus: appObj.can_steal_focus,
         priority: "NONE",
         default_hmi: appObj.default_hmi_level.split("_")[1], //trim the HMI_ prefix
         groups: funcGroupNames,
-        icon_url: appObj.icon_url,
         moduleType: moduleNames,
         RequestType: [],
-        RequestSubType: []
+        RequestSubType: [],
+        app_services: appServiceObj 
     };
+    if (appObj.icon_url) {
+        appPolicyObj[uuidProp].icon_url = appObj.icon_url
+    }
     next(null, appPolicyObj);
 }
 
@@ -271,7 +294,6 @@ function aggregateResults (res, next) {
 
     // overwrite available apps with their granted permissions
     for (let i = 0; i < policyObjs.length; i++) {
-        console.log(policyObjs[i]);
         const key = Object.keys(policyObjs[i])[0];
         appPolicy[key] = policyObjs[i][key];
     }

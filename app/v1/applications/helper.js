@@ -23,6 +23,13 @@ function validateActionPost (req, res) {
 	return;
 }
 
+function validateServicePermissionPut (req, res) {
+	if (!req.body.id || !check.boolean(req.body.is_selected) || !check.string(req.body.service_type_name) || !check.string(req.body.permission_name)) {
+		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name required");
+	}
+    return;
+}
+
 function validateAutoPost (req, res) {
 	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_auto_approved_enabled)) {
 		res.parcel.setStatus(400).setMessage("Uuid and auto approved required");
@@ -48,6 +55,9 @@ function createAppInfoFlow (filterTypeFunc, value) {
 		appDisplayNames: setupSql.bind(null, sql.getApp.displayNames[filterTypeFunc](value)),
 		appPermissions: setupSql.bind(null, sql.getApp.permissions[filterTypeFunc](value)),
 		appCategories: setupSql.bind(null, sql.getApp.category[filterTypeFunc](value)),
+		appServiceTypes: setupSql.bind(null, sql.getApp.serviceTypes[filterTypeFunc](value)),
+		appServiceTypeNames: setupSql.bind(null, sql.getApp.serviceTypeNames[filterTypeFunc](value)),
+		appServiceTypePermissions: setupSql.bind(null, sql.getApp.serviceTypePermissions[filterTypeFunc](value)),
 		appAutoApprovals: setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value)),
 		appBlacklist: setupSql.bind(null, sql.getApp.blacklist[filterTypeFunc](value))
 	}, {method: 'parallel', eventLoop: true});
@@ -233,6 +243,7 @@ function attemptRetry(milliseconds, retryQueue){
 module.exports = {
 	validateActionPost: validateActionPost,
 	validateAutoPost: validateAutoPost,
+	validateServicePermissionPut: validateServicePermissionPut,
     validateWebHook: validateWebHook,
 	createAppInfoFlow: createAppInfoFlow,
 	storeApps: storeApps

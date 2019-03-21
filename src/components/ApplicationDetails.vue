@@ -87,7 +87,7 @@
                             <span class="slider round"></span>
                         </label>
                         <label class="form-check-label switch-label">
-                          Automatically approve updates
+                          Automatically approve future updates to this app
                         </label>
                     </div>
                 </div>
@@ -111,14 +111,14 @@
                 </div>
 
                 <div class="app-table">
-                    <h4>Requested Permissions</h4>
+                    <h4>General Permissions</h4>
                     <div class="table-responsive">
                         <table class="table table-striped table-sm table-w-33">
                             <thead>
                                 <tr>
                                     <th>Name</th>
                                     <th>Type</th>
-                                    <th>HMI Level Requested</th>
+                                    <th>Min. HMI Level</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -126,6 +126,46 @@
                                     <td>{{ permission.key }}</td>
                                     <td>{{ permission.type }}</td>
                                     <td>{{ permission.hmi_level }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div v-for="service in app.services" class="app-table">
+                    <h4>{{ service.display_name }} Service Provider</h4>
+                    <!--<span>The developer has indicated that this app is capable of handling one or more App Service Types. Which App Service Provider RPCs would you like to grant to the app? If you wish to deny an entire App Service Type, please reject the application.</span>-->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm table-w-33">
+                            <thead>
+                                <tr>
+                                    <th>Permissions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <app-service-permission-row
+                                    v-for="(item, index) in service.permissions"
+                                    v-bind:item="item"
+                                    v-bind:index="index"
+                                    v-bind:key="item.id"
+                                    v-bind:app_id="app.id"
+                                    v-bind:approval_status="app.approval_status"
+                                    v-bind:service_type_name="service.name" 
+                                    v-bind:updatePolicyTablesHandler="getPolicy"/>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm table-w-33">
+                            <thead>
+                                <tr>
+                                    <th>{{ service.display_name }} Service Names</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="name in service.service_names">
+                                    <td>{{ name }}</td>
                                 </tr>
                             </tbody>
                         </table>
