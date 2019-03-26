@@ -554,6 +554,7 @@ export default {
                 }else{
                     // success
                     console.log("App hybrid preference changed to: " + this.selected_hybrid_app_preference.value);
+                    this.getApp();
                 }
             });
         },
