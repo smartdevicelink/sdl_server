@@ -248,10 +248,9 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         if (s.is_selected) {
             appServiceObj[s.service_type_name].handled_rpcs.push({
                 function_id: s.function_id
-            });            
+            });
         }
     });
-
     const appPolicyObj = {};
     const uuidProp = (useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)
     appPolicyObj[uuidProp] = {
@@ -264,11 +263,20 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         moduleType: moduleNames,
         RequestType: [],
         RequestSubType: [],
-        app_services: appServiceObj 
+        app_services: appServiceObj
     };
-    if (appObj.icon_url) {
-        appPolicyObj[uuidProp].icon_url = appObj.icon_url
+
+    if (appObj.icon_url) appPolicyObj[uuidProp].icon_url = appObj.icon_url;
+    if (appObj.cloud_endpoint) appPolicyObj[uuidProp].endpoint = appObj.cloud_endpoint;
+    if (appObj.cloud_transport_type) appPolicyObj[uuidProp].cloud_transport_type = appObj.cloud_transport_type;
+    if (appObj.ca_certificate) appPolicyObj[uuidProp].certificate = appObj.ca_certificate;
+    if (res.hybridPreference.length) appPolicyObj[uuidProp].hybrid_app_preference = res.hybridPreference[0].hybrid_preference;
+
+    if(res.incomingAppPolicy){
+        if (res.incomingAppPolicy.enabled !== undefined) appPolicyObj[uuidProp].enabled = res.incomingAppPolicy.enabled;
+        if (res.incomingAppPolicy.auth_token !== undefined) appPolicyObj[uuidProp].auth_token = res.incomingAppPolicy.auth_token;
     }
+
     next(null, appPolicyObj);
 }
 

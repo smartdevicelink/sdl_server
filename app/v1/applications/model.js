@@ -22,6 +22,14 @@ function constructFullAppObjs (res, next) {
         location: [elem.app_uuid],
         data: true
     }));
+    const hashedAdministratorApps = hashify({}, res.appAdministrators, elem => ({
+        location: [elem.app_uuid],
+        data: true
+    }));
+    const hashedHybridPreference = hashify({}, res.appHybridPreference, elem => ({
+        location: [elem.app_uuid],
+        data: elem.hybrid_preference
+    }));
     // app services
     const hashedServices = {};
 
@@ -33,14 +41,14 @@ function constructFullAppObjs (res, next) {
             obj.service_names = [],
             obj.permissions = []
         }
-    }))
+    }));
     hashify(hashedServices, res.appServiceTypeNames, elem => ({
         location: [elem.app_id, elem.service_type_name, "service_names"],
         data: arr => arr.push(elem.service_name)
-    }))
+    }));
     //filter out appServiceTypePermissions of elements that don't exist in hashedServices
     const filteredASTP = res.appServiceTypePermissions.filter(astp => {
-        return (hashedServices[astp.app_id] !== undefined && 
+        return (hashedServices[astp.app_id] !== undefined &&
                 hashedServices[astp.app_id][astp.service_type_name] !== undefined)
     });
 
@@ -53,7 +61,7 @@ function constructFullAppObjs (res, next) {
             "name": elem.name,
             "is_selected": elem.is_selected
         })
-    }))
+    }));
 
     const hashedApps = hashify({}, res.appBase, appInfo => ({
         location: [appInfo.id],
@@ -67,8 +75,10 @@ function constructFullAppObjs (res, next) {
                 id: appInfo.category_id,
                 display_name: hashedCategories[appInfo.category_id]
             }
-            obj.is_auto_approved_enabled = !!hashedAutoApproval[appInfo.uuid] //coerce to boolean
-            obj.is_blacklisted = !!hashedBlacklist[appInfo.uuid] //coerce to boolean
+            obj.is_auto_approved_enabled = !!hashedAutoApproval[appInfo.app_uuid]; //coerce to boolean
+            obj.is_blacklisted = !!hashedBlacklist[appInfo.app_uuid]; //coerce to boolean
+            obj.is_administrator_app = !!hashedAdministratorApps[appInfo.app_uuid]; //coerce to boolean
+            obj.hybrid_app_preference = hashedHybridPreference[appInfo.app_uuid] || "BOTH";
             obj.countries = [];
             obj.display_names = [];
             obj.permissions = [];
