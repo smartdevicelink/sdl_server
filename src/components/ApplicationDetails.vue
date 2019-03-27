@@ -41,10 +41,9 @@
                                 <tr>
                                     <th colspan="2">Application Name</th>
                                     <th>Last Update</th>
-                                    <th>UUID</th>
                                     <th>Platform</th>
                                     <th>Category</th>
-                                    <th>Status</th>
+                                    <th>Hybrid App Preference</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -52,15 +51,42 @@
                                     <td class="icon"><img class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" /></td>
                                     <td class="title">{{ app.name }}</td>
                                     <td>{{ app.updated_ts }}</td>
-                                    <td>{{ app.uuid }}</td>
                                     <td>{{ app.platform }}</td>
                                     <td>{{ app.category.display_name }}</td>
-                                    <td v-if="app.is_blacklisted">
-                                        BLACKLISTED
+                                    <td class="overflow-visible">
+                                        <b-dropdown size="sm" right
+                                            variant="secondary"
+                                            id="ddown-right"
+                                            :text="selected_hybrid_app_preference.text">
+                                            <div
+                                                v-for="opt in hybrid_dropdown_options"
+                                                :key="opt.value">
+
+                                                <b-dropdown-item
+                                                    @click="saveHybridPreference(opt.value)"
+                                                >
+                                                    {{opt.text}}
+                                                </b-dropdown-item>
+
+                                            </div>
+                                        </b-dropdown>
                                     </td>
-                                    <td v-else>
-                                        {{ app.approval_status }}
-                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div v-if="app.platform == 'CLOUD'" class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Cloud Endpoint</th>
+                                    <th>Cloud Transport Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ app.cloud_endpoint }}</td>
+                                    <td>{{ app.cloud_transport_type }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -88,6 +114,15 @@
                         </label>
                         <label class="form-check-label switch-label">
                           Automatically approve future updates to this app
+                        </label>
+                    </div>
+                    <div class="app-table">
+                        <label class="switch">
+                            <input v-on:click="toggleAdministratorClick" type="checkbox" :checked="app.is_administrator_app"></input>
+                            <span class="slider round"></span>
+                        </label>
+                        <label class="form-check-label switch-label">
+                          Grant this app access to "Administrator" Functional Groups<a class="fa fa-exclamation-circle color-primary doc-link" v-b-tooltip.hover title="Manage Administator permissions via the Functional Groups tab"></a>
                         </label>
                     </div>
                 </div>
@@ -150,7 +185,7 @@
                                     v-bind:key="item.id"
                                     v-bind:app_id="app.id"
                                     v-bind:approval_status="app.approval_status"
-                                    v-bind:service_type_name="service.name" 
+                                    v-bind:service_type_name="service.name"
                                     v-bind:updatePolicyTablesHandler="getPolicy"/>
                             </tbody>
                         </table>
@@ -369,6 +404,24 @@ export default {
             "immediate_option_clicked": {},
             "blacklist_toggle": false,
             "modal_text": "",
+            "hybrid_dropdown_options": {
+                "BOTH": {
+                    "text": "Both",
+                    "value": "BOTH"
+                },
+                "MOBILE": {
+                    "text": "Mobile",
+                    "value": "MOBILE"
+                },
+                "CLOUD": {
+                    "text": "Cloud",
+                    "value": "CLOUD"
+                }
+            },
+            "selected_hybrid_app_preference": {
+                "text": "Both",
+                "value": "BOTH"
+            }
         };
     },
     methods: {
@@ -462,6 +515,49 @@ export default {
                 }
             });
         },
+        "toggleAdministratorClick": function(){
+            this.app.is_administrator_app = !this.app.is_administrator_app;
+            console.log("Requesting administrator access change to: " + this.app.is_administrator_app);
+
+            this.httpRequest("post", "applications/administrator", {
+                "body": {
+                    "uuid": this.app.uuid,
+                    "is_administrator_app": this.app.is_administrator_app
+                }
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error changing administrator app setting.");
+                    this.app.is_administrator_app = !this.app.is_administrator_app;
+                }else{
+                    // success
+                    console.log("App administrator setting changed to: " + this.app.is_administrator_app);
+                    this.getApp();
+                }
+            });
+        },
+        "saveHybridPreference": function(pref){
+            var old_preference = this.app.hybrid_app_preference.value;
+            this.selected_hybrid_app_preference = this.hybrid_dropdown_options[pref];
+            console.log("Requesting hybrid preference change to: " + this.selected_hybrid_app_preference.value);
+
+            this.httpRequest("post", "applications/hybrid", {
+                "body": {
+                    "uuid": this.app.uuid,
+                    "hybrid_preference": this.selected_hybrid_app_preference.value
+                }
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error changing app hybrid preference.");
+                    this.selected_hybrid_app_preference = this.hybrid_dropdown_options[old_preference.value];
+                }else{
+                    // success
+                    console.log("App hybrid preference changed to: " + this.selected_hybrid_app_preference.value);
+                    this.getApp();
+                }
+            });
+        },
         getPolicy: function (isProduction, modelName) {
             const envName = isProduction ? "production" : "staging";
             this.httpRequest("post", "policy/apps?environment=" + envName, {
@@ -511,6 +607,7 @@ export default {
                     response.json().then(parsed => {
                         if(parsed.data.applications.length){
                             this.app = parsed.data.applications[0];
+                            this.selected_hybrid_app_preference = this.hybrid_dropdown_options[this.app.hybrid_app_preference || "BOTH"];
                             if (this.app.is_blacklisted) {
                                 this.selected_option = this.options["BLACKLISTED"];
                             }
@@ -545,6 +642,9 @@ export default {
         },
         contains_feedback: function () {
             return this.app && this.modal_text;
+        },
+        hybrid_dd_text: function () {
+            return this.hybrid_dropdown_options[this.selected_hybrid_app_preference].text;
         }
     },
     created: function(){

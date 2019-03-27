@@ -21,8 +21,9 @@ function getAppInfoFilter (filterObj) {
             .join('(' + statement + ') innerai', {
                 'innerai.id': 'app_info.id'
             })
-            .leftJoin('app_blacklist', {
-                'app_info.app_uuid': 'app_blacklist.app_uuid'
+            .leftJoin('app_oem_enablements', {
+                'app_info.app_uuid': 'app_oem_enablements.app_uuid',
+                'app_oem_enablements.key': sql.val('blacklist')
             })
         if(filterObj.approval_status){
             statement.where({
@@ -30,9 +31,9 @@ function getAppInfoFilter (filterObj) {
             });
         }
         if(filterObj.get_blacklist){
-            statement.where(sql.isNotNull('app_blacklist.app_uuid'));
+            statement.where(sql.isNotNull('app_oem_enablements.app_uuid'));
         } else {
-            statement.where(sql.isNull('app_blacklist.app_uuid'));
+            statement.where(sql.isNull('app_oem_enablements.app_uuid'));
         }
     }
 
@@ -54,9 +55,10 @@ function changeAppApprovalStatus (id, statusName, reason) {
 
 function deleteAutoApproval (uuid) {
     return sql.delete()
-        .from('app_auto_approval')
+        .from('app_oem_enablements')
         .where({
-            app_uuid: uuid
+            'app_uuid': uuid,
+            'key': 'auto_approve'
         })
         .toString();
 }
@@ -185,10 +187,13 @@ function getAppCategoryFilter (filterObj) {
 }
 
 function getAppAutoApprovalFilter (filterObj) {
-    return sql.select('app_auto_approval.app_uuid')
-        .from('app_auto_approval')
+    return sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
         .join('(' + getAppInfoFilter(filterObj) + ') ai', {
-            'ai.app_uuid': 'app_auto_approval.app_uuid'
+            'ai.app_uuid': 'app_oem_enablements.app_uuid'
+        })
+        .where({
+            'app_oem_enablements.key': 'auto_approve'
         })
         .toString();
 }
@@ -323,13 +328,14 @@ function getAppServiceTypePermissions (id) {
 
 function getAppAutoApproval (id) {
     //find the app uuid from app_info by searching by id, then join with app_auto_approval
-    return sql.select('app_auto_approval.app_uuid')
-        .from('app_auto_approval')
+    return sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
         .join('app_info', {
-            'app_auto_approval.app_uuid': 'app_info.app_uuid'
+            'app_oem_enablements.app_uuid': 'app_info.app_uuid'
         })
         .where({
-            id: id
+            'app_info.id': id,
+            'app_oem_enablements.key': 'auto_approve'
         })
         .toString();
 }
@@ -349,10 +355,11 @@ function versionCheck (tableName, whereObj) {
 }
 
 function checkAutoApproval (uuid) {
-    return sql.select('app_auto_approval.app_uuid')
-        .from('app_auto_approval')
+    return sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
         .where({
-            app_uuid: uuid
+            'app_uuid': uuid,
+            'key': 'auto_approve'
         })
         .toString();
 }
@@ -369,6 +376,9 @@ function insertAppInfo (obj) {
         can_steal_focus: obj.can_steal_focus,
         default_hmi_level: obj.default_hmi_level,
         icon_url: obj.icon_url,
+        cloud_endpoint: obj.cloud_endpoint || null,
+        cloud_transport_type: obj.cloud_transport_type || null,
+        ca_certificate: obj.ca_certificate || null,
         tech_email: obj.tech_email,
         tech_phone: obj.tech_phone,
         category_id: obj.category.id,
@@ -540,20 +550,126 @@ function deleteAppServicePermission (obj) {
         .toString();
 }
 
-function insertAppAutoApproval (obj) {
-    return sql.insert('app_auto_approval', 'app_uuid')
+function deleteHybridPreference (uuid) {
+    return sql.delete()
+        .from('app_hybrid_preference')
+        .where({
+            'app_uuid': uuid
+        })
+        .toString();
+}
+
+function insertHybridPreference (obj) {
+    return sql.insert('app_hybrid_preference', {
+        'app_uuid': obj.uuid,
+        'hybrid_preference': obj.hybrid_preference
+    })
+    .toString();
+}
+
+function getAppHybridPreferenceFilter (filterObj) {
+    return sql.select('app_hybrid_preference.hybrid_preference, app_hybrid_preference.app_uuid')
+        .from('app_hybrid_preference')
+        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
+            'ai.app_uuid': 'app_hybrid_preference.app_uuid'
+        })
+        .toString();
+}
+
+function getAppHybridPreference (id) {
+    return sql.select('app_hybrid_preference.hybrid_preference, app_hybrid_preference.app_uuid')
+        .from('app_hybrid_preference')
+        .join('app_info', {
+            'app_hybrid_preference.app_uuid': 'app_info.app_uuid'
+        })
+        .where({
+            'app_info.id': id
+        })
+        .toString();
+}
+
+function getAppAdministratorFilter (filterObj) {
+    return sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
+        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
+            'ai.app_uuid': 'app_oem_enablements.app_uuid'
+        })
+        .where({
+            'app_oem_enablements.key': 'administrator_fg'
+        })
+        .toString();
+}
+
+function getAppAdministrator (id) {
+    return sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
+        .join('app_info', {
+            'app_oem_enablements.app_uuid': 'app_info.app_uuid'
+        })
+        .where({
+            'app_info.id': id,
+            'app_oem_enablements.key': 'administrator_fg'
+        })
+        .toString();
+}
+
+function deleteAppAdministrator (uuid) {
+    return sql.delete()
+        .from('app_oem_enablements')
+        .where({
+            'app_uuid': uuid,
+            'key': 'administrator_fg'
+        })
+        .toString();
+}
+
+function insertAppAdministrator (obj) {
+    return sql.insert('app_oem_enablements', 'app_uuid, key')
         .select //must have an insert/select in order to include the where statement afterwards
             (
-            `'${obj.uuid}' AS app_uuid`
+            `'${obj.uuid}' AS app_uuid, 'administrator_fg' AS key`
             )
         .where(
             sql.and(
                 sql.not(
                     sql.exists(
                         sql.select('*')
-                            .from('app_auto_approval aaa')
+                            .from('app_oem_enablements aaa')
                             .where({
-                                'aaa.app_uuid': obj.uuid
+                                'aaa.app_uuid': obj.uuid,
+                                'aaa.key': 'administrator_fg'
+                            })
+                    )
+                ),
+                sql.exists(
+                    sql.select('*')
+                        .from('app_info')
+                        .where({
+                            'app_uuid': obj.uuid
+                        })
+                        .limit(1)
+                )
+            )
+        )
+        .returning('*')
+        .toString();
+}
+
+function insertAppAutoApproval (obj) {
+    return sql.insert('app_oem_enablements', 'app_uuid, key')
+        .select //must have an insert/select in order to include the where statement afterwards
+            (
+            `'${obj.uuid}' AS app_uuid, 'auto_approve' AS key`
+            )
+        .where(
+            sql.and(
+                sql.not(
+                    sql.exists(
+                        sql.select('*')
+                            .from('app_oem_enablements aaa')
+                            .where({
+                                'aaa.app_uuid': obj.uuid,
+                                'aaa.key': 'auto_approve'
                             })
                     )
                 ),
@@ -572,15 +688,16 @@ function insertAppAutoApproval (obj) {
 }
 
 function insertAppBlacklist (obj) {
-    return sql.insert('app_blacklist', 'app_uuid')
-        .select(`'${obj.uuid}' AS app_uuid`)
+    return sql.insert('app_oem_enablements', 'app_uuid, key')
+        .select(`'${obj.uuid}' AS app_uuid, 'blacklist' AS key`)
         .where(
             sql.not(
                 sql.exists(
                     sql.select('*')
-                        .from('app_blacklist ab')
+                        .from('app_oem_enablements ab')
                         .where({
-                            'ab.app_uuid': obj.uuid
+                            'ab.app_uuid': obj.uuid,
+                            'ab.key': 'blacklist'
                         })
                 )
             )
@@ -591,31 +708,36 @@ function insertAppBlacklist (obj) {
 
 function deleteAppBlacklist (uuid) {
     return sql.delete()
-        .from('app_blacklist')
+        .from('app_oem_enablements')
         .where({
-            app_uuid: uuid
+            'app_uuid': uuid,
+            'key': 'blacklist'
         })
         .returning('*')
         .toString();
 }
 
 function getAppBlacklistFilter (filterObj) {
-    return sql.select('app_blacklist.app_uuid')
-        .from('app_blacklist')
+    return sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
         .join('(' + getAppInfoFilter(filterObj) + ') ai', {
-            'ai.app_uuid': 'app_blacklist.app_uuid'
+            'ai.app_uuid': 'app_oem_enablements.app_uuid'
+        })
+        .where({
+            'app_oem_enablements.key': 'blacklist'
         })
         .toString();
 }
 
 function getAppBlacklist (id) {
-    return sql.select('app_blacklist.app_uuid')
-        .from('app_blacklist')
+    return sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
         .join('app_info', {
-            'app_blacklist.app_uuid': 'app_info.app_uuid'
+            'app_oem_enablements.app_uuid': 'app_info.app_uuid'
         })
         .where({
-            id: id
+            'app_info.id': id,
+            'app_oem_enablements.key': 'blacklist'
         })
         .toString();
 }
@@ -623,8 +745,9 @@ function getAppBlacklist (id) {
 function getBlacklistedApps (uuids, useLongUuids = false) {
     var query = sql.select('app_info.app_uuid, app_info.app_short_uuid')
         .from('app_info')
-        .join('app_blacklist', {
-            "app_blacklist.app_uuid": 'app_info.app_uuid'
+        .join('app_oem_enablements', {
+            "app_oem_enablements.app_uuid": 'app_info.app_uuid',
+            "app_oem_enablements.key": sql.val('blacklist')
         });
 
     if(useLongUuids){
@@ -641,10 +764,13 @@ function getBlacklistedApps (uuids, useLongUuids = false) {
 }
 
 function getBlacklistedAppFullUuids (uuids) {
-    var query = sql.select('app_blacklist.app_uuid')
-        .from('app_blacklist')
+    var query = sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
+        .where({
+            'app_oem_enablements.key': 'blacklist'
+        })
         .where(
-            sql.in('app_blacklist.app_uuid', uuids)
+            sql.in('app_oem_enablements.app_uuid', uuids)
         );
 
     return query.toString();
@@ -694,6 +820,14 @@ module.exports = {
         blacklist: {
             multiFilter: getAppBlacklistFilter,
             idFilter: getAppBlacklist
+        },
+        administrators: {
+            multiFilter: getAppAdministratorFilter,
+            idFilter: getAppAdministrator
+        },
+        hybridPreference: {
+            multiFilter: getAppHybridPreferenceFilter,
+            idFilter: getAppHybridPreference
         }
     },
     timestampCheck: timestampCheck,
@@ -705,6 +839,10 @@ module.exports = {
     insertAppDisplayNames: insertAppDisplayNames,
     insertAppPermissions: insertAppPermissions,
     insertAppAutoApproval: insertAppAutoApproval,
+    insertAppAdministrator: insertAppAdministrator,
+    deleteAppAdministrator: deleteAppAdministrator,
+    insertHybridPreference: insertHybridPreference,
+    deleteHybridPreference: deleteHybridPreference,
     insertAppBlacklist: insertAppBlacklist,
     deleteAppBlacklist: deleteAppBlacklist,
     getBlacklistedApps: getBlacklistedApps,
