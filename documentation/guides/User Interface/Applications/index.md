@@ -12,19 +12,28 @@ This page displays a list of applications pulled from the SHAID server. When ini
 | Last Update | The timestamp from when the app information was most recently updated. |
 | Platform | Android/IOS |
 | Category | Specifies the type of application. eg. Media, Information, Social. |
-| State | The approval status of the current application. |
+| Hybrid App Preference | Which app to show on the HMI when the same app is detected on multiple platforms. |
+| Endpoint | For cloud/embedded apps, the server endpoint of the app. |
+| Transport Type | For cloud/embedded apps, the expected transport type of the server endpoint. |
 
 ### App Display Names
 | Property | Definition |
 |----------|---------|
 | Name   | Alternate strings to identify the application. The app's name must match one of these in order for it to connect to Core. |
 
-### Requested Permissions
+### General Permissions
 | Property | Definition |
 |----------|---------|
 | Name | Strings to identify the permission. |
 | Type | RPC  |
 | HMI Level Requested | BACKGROUND/FULL/NONE/LIMITED   |
+
+### Service Provider
+Service Provider options appear when an application has requested to be an App Service provider. OEMs may choose which RPCs/events the application is allowed to receive via the permission toggle switches. OEMs should note that disabling all the toggle switches does *not* revoke the application's general ability to act as an App Service Provider, but simply limits the app's abilities regarding that particular Service.
+
+| Property | Definition |
+|----------|---------|
+| Permissions | An RPC/event related to the app's requested service.  |
 
 ### Developer Contact Info
 | Property | Definition |
@@ -39,35 +48,74 @@ This page displays a list of applications pulled from the SHAID server. When ini
 ### Policy Table Preview
 This is an example of how the app and its required permissions will appear in the Policy Table.
 ```
-  {
-    nicknames: [
-      "App Display Names"
-    ],
-    keep_context: true,
-    steal_focus: true,
-    priority: "NONE",
-    default_hmi: "NONE",
-    groups: [
-      "FunctionalGroup1",
-      "FunctionalGroup2",
-      "FunctionalGroup3"
-    ],
-    moduleType: [
-
-    ]
-  }
+{
+  "nicknames": [
+    "Livio Music",
+    "Livio Music Player"
+  ],
+  "keep_context": true,
+  "steal_focus": true,
+  "priority": "NONE",
+  "default_hmi": "NONE",
+  "groups": [
+    "AdministratorGroup",
+    "AppServiceConsumerGroup",
+    "AppServiceProviderGroup",
+    "Base-4",
+    "DialNumberOnlyGroup",
+    "DrivingCharacteristics-3",
+    "HapticGroup",
+    "Notifications",
+    "OnKeyboardInputOnlyGroup",
+    "OnTouchEventOnlyGroup"
+  ],
+  "moduleType": [],
+  "RequestType": [],
+  "RequestSubType": [],
+  "app_services": {
+    "MEDIA": {
+      "service_names": [
+        "Livio Music",
+        "Livio Music Player"
+      ],
+      "handled_rpcs": [
+        {
+          "function_id": 41
+        }
+      ]
+    },
+    "NAVIGATION": {
+      "service_names": [
+        "Livio",
+        "Livio Music and Nav"
+      ],
+      "handled_rpcs": [
+        {
+          "function_id": 45
+        },
+        {
+          "function_id": 32784
+        },
+        {
+          "function_id": 46
+        }
+      ]
+    }
+  },
+  "hybrid_app_preference": "MOBILE"
+}
 ```
 ## Significance of Approval States
 The top right corner of the application's review page contains a drop down allowing the user to change the approval state of the application. See below for what each state signifies.
 
 ##### Pending
-New applications and updated applications that reach your SDL Policy Server will be granted the approval state of pending. Pending applications are treated like limited applications in that they will not be given any changes requested, but will be given permissions in default functional groups. Pending applications require action performed on them in order for the application to be officially approved or limited. 
+New applications and updated applications that reach your SDL Policy Server will be granted the approval state of pending. Pending applications are treated like limited applications in that they will not be given any changes requested, but will be given permissions in default functional groups. Pending applications require action performed on them in order for the application to be officially approved or limited.
 
 ##### Staging
 Applications in the staging state will have their permissions granted when using the staging policy table, but not the production policy table. This mode is useful for testing purposes.
 
 ##### Accepted
-Applications in the accepted state will have their permissions granted when using both the staging and the production policy table. This state is for applications that are allowed to be used in a production environment. 
+Applications in the accepted state will have their permissions granted when using both the staging and the production policy table. This state is for applications that are allowed to be used in a production environment.
 
 ##### Limited
 Limited applications will not receive their requested changes. However, permissions received from the previously accepted version and from default functional groups will still be given. Additional options include providing a reasoning for limiting the application for your future reference. While in the limited state, you also have the option to blacklist the application.

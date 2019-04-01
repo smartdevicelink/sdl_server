@@ -75,12 +75,12 @@
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="app.platform == 'CLOUD'" class="table-responsive">
+                    <div v-if="app.platform == 'CLOUD' || app.platform == 'EMBEDDED'" class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Cloud Endpoint</th>
-                                    <th>Cloud Transport Type</th>
+                                    <th>Endpoint</th>
+                                    <th>Transport Type</th>
                                 </tr>
                             </thead>
                             <tbody>
