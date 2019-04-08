@@ -263,9 +263,10 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         moduleType: moduleNames,
         RequestType: [],
         RequestSubType: [],
-        app_services: appServiceObj
+        app_services: appServiceObj,
+        allow_unknown_rpc_passthrough: res.appPassthrough.length ? true : false
     };
-
+    console.log(res.appPassthrough);
     if (appObj.icon_url) appPolicyObj[uuidProp].icon_url = appObj.icon_url;
     if (appObj.cloud_endpoint) appPolicyObj[uuidProp].endpoint = appObj.cloud_endpoint;
     if (appObj.cloud_transport_type) appPolicyObj[uuidProp].cloud_transport_type = appObj.cloud_transport_type;

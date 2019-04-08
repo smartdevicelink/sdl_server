@@ -51,6 +51,13 @@ function validateAdministratorPost (req, res) {
     return;
 }
 
+function validatePassthroughPost (req, res) {
+	if (!check.string(req.body.uuid) || !check.boolean(req.body.allow_unknown_rpc_passthrough)) {
+		res.parcel.setStatus(400).setMessage("uuid and allow_unknown_rpc_passthrough required");
+	}
+    return;
+}
+
 function validateWebHook (req, res) {
 	if(req.headers["public_key"] != app.locals.config.shaidPublicKey){
 		// request cannot be verified as authentic
@@ -75,7 +82,8 @@ function createAppInfoFlow (filterTypeFunc, value) {
 		appAutoApprovals: setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value)),
 		appBlacklist: setupSql.bind(null, sql.getApp.blacklist[filterTypeFunc](value)),
 		appAdministrators: setupSql.bind(null, sql.getApp.administrators[filterTypeFunc](value)),
-		appHybridPreference: setupSql.bind(null, sql.getApp.hybridPreference[filterTypeFunc](value))
+		appHybridPreference: setupSql.bind(null, sql.getApp.hybridPreference[filterTypeFunc](value)),
+		appPassthrough: setupSql.bind(null, sql.getApp.passthrough[filterTypeFunc](value))
 	}, {method: 'parallel', eventLoop: true});
 
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
@@ -260,6 +268,7 @@ module.exports = {
 	validateActionPost: validateActionPost,
 	validateAutoPost: validateAutoPost,
 	validateAdministratorPost: validateAdministratorPost,
+	validatePassthroughPost: validatePassthroughPost,
 	validateHybridPost: validateHybridPost,
 	validateServicePermissionPut: validateServicePermissionPut,
     validateWebHook: validateWebHook,

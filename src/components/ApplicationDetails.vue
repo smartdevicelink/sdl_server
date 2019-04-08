@@ -107,7 +107,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="app.approval_status !== 'LIMITED'">
+                    <div class="mt-2 mb-2" v-if="app.approval_status !== 'LIMITED'">
                         <label class="switch">
                             <input v-on:click="autoApproveClick" type="checkbox" :checked="app.is_auto_approved_enabled"></input>
                             <span class="slider round"></span>
@@ -116,13 +116,22 @@
                           Automatically approve future updates to this app
                         </label>
                     </div>
-                    <div class="app-table">
+                    <div class="mt-2 mb-2">
                         <label class="switch">
                             <input v-on:click="toggleAdministratorClick" type="checkbox" :checked="app.is_administrator_app"></input>
                             <span class="slider round"></span>
                         </label>
                         <label class="form-check-label switch-label">
                           Grant this app access to "Administrator" Functional Groups<a class="fa fa-exclamation-circle color-primary doc-link" v-b-tooltip.hover title="Manage Administator permissions via the Functional Groups tab"></a>
+                        </label>
+                    </div>
+                    <div class="mt-2 mb-5">
+                        <label class="switch">
+                            <input v-on:click="togglePassthroughClick" type="checkbox" :checked="app.allow_unknown_rpc_passthrough"></input>
+                            <span class="slider round"></span>
+                        </label>
+                        <label class="form-check-label switch-label">
+                          Allow app to send unknown RPCs through App Service RPC passthrough
                         </label>
                     </div>
                 </div>
@@ -532,6 +541,27 @@ export default {
                 }else{
                     // success
                     console.log("App administrator setting changed to: " + this.app.is_administrator_app);
+                    this.getApp();
+                }
+            });
+        },
+        "togglePassthroughClick": function(){
+            this.app.allow_unknown_rpc_passthrough = !this.app.allow_unknown_rpc_passthrough;
+            console.log("Requesting RPC Passthrough change to: " + this.app.allow_unknown_rpc_passthrough);
+
+            this.httpRequest("post", "applications/passthrough", {
+                "body": {
+                    "uuid": this.app.uuid,
+                    "allow_unknown_rpc_passthrough": this.app.allow_unknown_rpc_passthrough
+                }
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error changing RPC Passthrough app setting.");
+                    this.app.allow_unknown_rpc_passthrough = !this.app.allow_unknown_rpc_passthrough;
+                }else{
+                    // success
+                    console.log("RPC Passthrough setting changed to: " + this.app.allow_unknown_rpc_passthrough);
                     this.getApp();
                 }
             });

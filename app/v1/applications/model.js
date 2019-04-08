@@ -30,6 +30,10 @@ function constructFullAppObjs (res, next) {
         location: [elem.app_uuid],
         data: elem.hybrid_preference
     }));
+    const hashedPassthrough = hashify({}, res.appPassthrough, elem => ({
+        location: [elem.app_uuid],
+        data: true
+    }));
     // app services
     const hashedServices = {};
 
@@ -79,6 +83,7 @@ function constructFullAppObjs (res, next) {
             obj.is_blacklisted = !!hashedBlacklist[appInfo.app_uuid]; //coerce to boolean
             obj.is_administrator_app = !!hashedAdministratorApps[appInfo.app_uuid]; //coerce to boolean
             obj.hybrid_app_preference = hashedHybridPreference[appInfo.app_uuid] || "BOTH";
+            obj.allow_unknown_rpc_passthrough = !!hashedPassthrough[appInfo.app_uuid]; //coerce to boolean
             obj.countries = [];
             obj.display_names = [];
             obj.permissions = [];
