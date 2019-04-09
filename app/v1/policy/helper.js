@@ -143,6 +143,7 @@ function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, inc
             serviceTypeNames: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypeNames.idFilter(appObj.id)),
             serviceTypePermissions: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypePermissions.idFilter(appObj.id)),
             hybridPreference: setupSqlCommand.bind(null, sqlApps.getApp.hybridPreference.idFilter(appObj.id)),
+            appPassthrough: setupSqlCommand.bind(null, sqlApps.getApp.passthrough.idFilter(appObj.id)),
             incomingAppPolicy: function(callback){
                 callback(null, incomingAppObjs[(useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)]);
             }

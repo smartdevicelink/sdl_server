@@ -174,6 +174,36 @@ function administratorPost (req, res, next) {
 	});
 }
 
+function passthroughPost (req, res, next) {
+	helper.validatePassthroughPost(req, res);
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+	app.locals.db.sqlCommand(sql.getApp.base['uuidFilter'](req.body.uuid), function(err, results) {
+		if (err) {
+			return res.parcel.setStatus(500).deliver();
+		}
+		if (!results.length) {
+			return res.parcel.setStatus(400).deliver();
+		}
+
+		let chosenCommand;
+		if (req.body.allow_unknown_rpc_passthrough) {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertPassthrough(req.body));
+		} else {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deletePassthrough(req.body.uuid));
+		}
+
+		chosenCommand(function (err, results) {
+			if (err) {
+				return res.parcel.setStatus(500).deliver();
+			}
+			return res.parcel.setStatus(200).deliver();
+		});
+	});
+}
+
 function putServicePermission (req, res, next) {
 	helper.validateServicePermissionPut(req, res);
 	if (res.parcel.message) {
@@ -268,6 +298,7 @@ module.exports = {
 	putServicePermission: putServicePermission,
 	autoPost: autoPost,
 	administratorPost: administratorPost,
+	passthroughPost: passthroughPost,
 	hybridPost: hybridPost,
 	webhook: webhook,
 	queryAndStoreApplicationsFlow: queryAndStoreApplicationsFlow

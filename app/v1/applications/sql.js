@@ -655,6 +655,73 @@ function insertAppAdministrator (obj) {
         .toString();
 }
 
+function getPassthroughFilter (filterObj) {
+    return sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
+        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
+            'ai.app_uuid': 'app_oem_enablements.app_uuid'
+        })
+        .where({
+            'app_oem_enablements.key': 'allow_unknown_rpc_passthrough'
+        })
+        .toString();
+}
+
+function getPassthrough (id) {
+    return sql.select('app_oem_enablements.app_uuid')
+        .from('app_oem_enablements')
+        .join('app_info', {
+            'app_oem_enablements.app_uuid': 'app_info.app_uuid'
+        })
+        .where({
+            'app_info.id': id,
+            'app_oem_enablements.key': 'allow_unknown_rpc_passthrough'
+        })
+        .toString();
+}
+
+function deletePassthrough (uuid) {
+    return sql.delete()
+        .from('app_oem_enablements')
+        .where({
+            'app_uuid': uuid,
+            'key': 'allow_unknown_rpc_passthrough'
+        })
+        .toString();
+}
+
+function insertPassthrough (obj) {
+    return sql.insert('app_oem_enablements', 'app_uuid, key')
+        .select //must have an insert/select in order to include the where statement afterwards
+            (
+            `'${obj.uuid}' AS app_uuid, 'allow_unknown_rpc_passthrough' AS key`
+            )
+        .where(
+            sql.and(
+                sql.not(
+                    sql.exists(
+                        sql.select('*')
+                            .from('app_oem_enablements aaa')
+                            .where({
+                                'aaa.app_uuid': obj.uuid,
+                                'aaa.key': 'allow_unknown_rpc_passthrough'
+                            })
+                    )
+                ),
+                sql.exists(
+                    sql.select('*')
+                        .from('app_info')
+                        .where({
+                            'app_uuid': obj.uuid
+                        })
+                        .limit(1)
+                )
+            )
+        )
+        .returning('*')
+        .toString();
+}
+
 function insertAppAutoApproval (obj) {
     return sql.insert('app_oem_enablements', 'app_uuid, key')
         .select //must have an insert/select in order to include the where statement afterwards
@@ -825,6 +892,10 @@ module.exports = {
             multiFilter: getAppAdministratorFilter,
             idFilter: getAppAdministrator
         },
+        passthrough: {
+            multiFilter: getPassthroughFilter,
+            idFilter: getPassthrough
+        },
         hybridPreference: {
             multiFilter: getAppHybridPreferenceFilter,
             idFilter: getAppHybridPreference
@@ -841,6 +912,8 @@ module.exports = {
     insertAppAutoApproval: insertAppAutoApproval,
     insertAppAdministrator: insertAppAdministrator,
     deleteAppAdministrator: deleteAppAdministrator,
+    insertPassthrough: insertPassthrough,
+    deletePassthrough: deletePassthrough,
     insertHybridPreference: insertHybridPreference,
     deleteHybridPreference: deleteHybridPreference,
     insertAppBlacklist: insertAppBlacklist,
