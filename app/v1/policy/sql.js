@@ -155,7 +155,29 @@ function getAppFunctionalGroups (isProduction, appObj) {
                     'p.type': 'MODULE',
                     'fghl.hmi_level': sql('hlc.hmi_level_enum')
                 })
-        )
+        ),
+        //adds functional groups with is_app_provider_group set to true for an app that is
+        //allowed at least one app service type permission
+        sql.exists(
+            sql.select()
+                .from('app_service_types')
+                //must contain the passed in id at least once
+                //must have is_app_provider_group set to true
+                .where({
+                    'app_id': appObj.id,
+                    'view_function_group_info.is_app_provider_group': true
+                })
+        ),
+        //adds functional groups with is_administrator_group set to true and app flagged
+        sql.exists(
+            sql.select()
+                .from('app_oem_enablements aoe')
+                .where({
+                    'aoe.app_uuid': appObj.app_uuid,
+                    'aoe.key': 'administrator_fg',
+                    'view_function_group_info.is_administrator_group': true
+                })
+        ),
     ];
 
     if(appObj.can_background_alert){

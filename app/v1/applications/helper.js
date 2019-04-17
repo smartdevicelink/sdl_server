@@ -23,9 +23,37 @@ function validateActionPost (req, res) {
 	return;
 }
 
+function validateServicePermissionPut (req, res) {
+	if (!req.body.id || !check.boolean(req.body.is_selected) || !check.string(req.body.service_type_name) || !check.string(req.body.permission_name)) {
+		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name required");
+	}
+    return;
+}
+
+function validateHybridPost (req, res) {
+	if (!check.string(req.body.uuid) || !check.includes(["CLOUD","MOBILE","BOTH"], req.body.hybrid_preference)) {
+		res.parcel.setStatus(400).setMessage("uuid and a valid hybrid_preference are required");
+	}
+    return;
+}
+
 function validateAutoPost (req, res) {
 	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_auto_approved_enabled)) {
 		res.parcel.setStatus(400).setMessage("Uuid and auto approved required");
+	}
+    return;
+}
+
+function validateAdministratorPost (req, res) {
+	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_administrator_app)) {
+		res.parcel.setStatus(400).setMessage("uuid and is_administrator_app required");
+	}
+    return;
+}
+
+function validatePassthroughPost (req, res) {
+	if (!check.string(req.body.uuid) || !check.boolean(req.body.allow_unknown_rpc_passthrough)) {
+		res.parcel.setStatus(400).setMessage("uuid and allow_unknown_rpc_passthrough required");
 	}
     return;
 }
@@ -48,8 +76,14 @@ function createAppInfoFlow (filterTypeFunc, value) {
 		appDisplayNames: setupSql.bind(null, sql.getApp.displayNames[filterTypeFunc](value)),
 		appPermissions: setupSql.bind(null, sql.getApp.permissions[filterTypeFunc](value)),
 		appCategories: setupSql.bind(null, sql.getApp.category[filterTypeFunc](value)),
+		appServiceTypes: setupSql.bind(null, sql.getApp.serviceTypes[filterTypeFunc](value)),
+		appServiceTypeNames: setupSql.bind(null, sql.getApp.serviceTypeNames[filterTypeFunc](value)),
+		appServiceTypePermissions: setupSql.bind(null, sql.getApp.serviceTypePermissions[filterTypeFunc](value)),
 		appAutoApprovals: setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value)),
-		appBlacklist: setupSql.bind(null, sql.getApp.blacklist[filterTypeFunc](value))
+		appBlacklist: setupSql.bind(null, sql.getApp.blacklist[filterTypeFunc](value)),
+		appAdministrators: setupSql.bind(null, sql.getApp.administrators[filterTypeFunc](value)),
+		appHybridPreference: setupSql.bind(null, sql.getApp.hybridPreference[filterTypeFunc](value)),
+		appPassthrough: setupSql.bind(null, sql.getApp.passthrough[filterTypeFunc](value))
 	}, {method: 'parallel', eventLoop: true});
 
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
@@ -233,6 +267,10 @@ function attemptRetry(milliseconds, retryQueue){
 module.exports = {
 	validateActionPost: validateActionPost,
 	validateAutoPost: validateAutoPost,
+	validateAdministratorPost: validateAdministratorPost,
+	validatePassthroughPost: validatePassthroughPost,
+	validateHybridPost: validateHybridPost,
+	validateServicePermissionPut: validateServicePermissionPut,
     validateWebHook: validateWebHook,
 	createAppInfoFlow: createAppInfoFlow,
 	storeApps: storeApps

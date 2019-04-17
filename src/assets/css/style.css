@@ -122,6 +122,10 @@ pre {
     color: #B3B3B3 !important;
 }
 
+.overflow-visible {
+    overflow: visible !important;
+}
+
 div.horizontal-divider {
     display: flex;
     justify-content: space-between;
@@ -595,6 +599,11 @@ div.horizontal-divider .text {
   background-color: #384F61;
   -webkit-transition: .4s;
   transition: .4s;
+}
+
+.slider.disabled {
+    opacity: .6;
+    cursor: default;
 }
 
 

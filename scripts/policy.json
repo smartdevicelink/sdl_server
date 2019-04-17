@@ -958,6 +958,80 @@
                         "hmi_levels": ["FULL"]
                     }
                 }
+            },
+            "AppServiceProviderGroup": {
+                "rpcs": {
+                    "GetAppServiceData": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
+                    "GetFile": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
+                    "OnAppServiceData": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
+                    "OnSystemCapabilityUpdated": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
+                    "PerformAppServiceInteraction": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
+                    "PublishAppService": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    }
+                }
+            },
+            "AppServiceConsumerGroup": {
+                "rpcs": {
+                    "GetAppServiceData": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
+                    "GetFile": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
+                    "OnAppServiceData": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
+                    "OnSystemCapabilityUpdated": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    },
+                    "PerformAppServiceInteraction": {
+                        "hmi_levels": ["BACKGROUND",
+                        "FULL",
+                        "LIMITED",
+                        "NONE"]
+                    }
+                }
             }
         },
         "consumer_friendly_messages": {

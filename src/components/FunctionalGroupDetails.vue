@@ -67,6 +67,20 @@
                             v-bind:disabled="fieldsDisabled">
                             Grant this functional group to all applications after the user has accepted SDL data consent
                         </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_app_provider_group"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to all applications with at least one service provider type
+                        </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_administrator_group"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to applications with "Administrator" privileges
+                        </b-form-checkbox>
                     </div>
 
                     <!-- RPC containers -->
@@ -200,6 +214,8 @@ import { eventBus } from '../main.js';
                     "is_default": false,
                     "is_pre_data_consent": false,
                     "is_device": false,
+                    "is_app_provider_group": false,
+                    "is_administrator_group": false,
                     "rpcs": [
                     ]
                 },

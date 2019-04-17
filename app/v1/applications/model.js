@@ -2,87 +2,117 @@ const app = require('../app');
 const db = app.locals.db;
 const flow = app.locals.flow;
 const flame = app.locals.flame;
+const hashify = app.locals.hashify;
+const arrayify = app.locals.arrayify;
 const log = app.locals.log;
 const sql = require('./sql.js');
 
 //takes SQL data and converts it into a response for the UI to consume
 function constructFullAppObjs (res, next) {
-    const appBase = res.appBase;
-    const appCountries = res.appCountries;
-    const appDisplayNames = res.appDisplayNames;
-    const appPermissions = res.appPermissions;
-    const appCategories = res.appCategories;
-    const appAutoApprovals = res.appAutoApprovals;
-    const appBlacklist = res.appBlacklist;
+    //hash the below data for fast access later
+    const hashedCategories = hashify({}, res.appCategories, elem => ({
+        location: [elem.id],
+        data: elem.display_name
+    }));
+    const hashedAutoApproval = hashify({}, res.appAutoApprovals, elem => ({
+        location: [elem.app_uuid],
+        data: true
+    }));
+    const hashedBlacklist = hashify({}, res.appBlacklist, elem => ({
+        location: [elem.app_uuid],
+        data: true
+    }));
+    const hashedAdministratorApps = hashify({}, res.appAdministrators, elem => ({
+        location: [elem.app_uuid],
+        data: true
+    }));
+    const hashedHybridPreference = hashify({}, res.appHybridPreference, elem => ({
+        location: [elem.app_uuid],
+        data: elem.hybrid_preference
+    }));
+    const hashedPassthrough = hashify({}, res.appPassthrough, elem => ({
+        location: [elem.app_uuid],
+        data: true
+    }));
+    // app services
+    const hashedServices = {};
 
-    //convert appCategories and appAutoApprovals to hash by id
-    const hashedCategories = {};
-    const hashedAutoApproval = {};
-    const hashedBlacklist = {};
-
-    for (let i = 0; i < appCategories.length; i++) {
-        hashedCategories[appCategories[i].id] = appCategories[i].display_name;
-    }
-    for (let i = 0; i < appAutoApprovals.length; i++) {
-        hashedAutoApproval[appAutoApprovals[i].app_uuid] = true;
-    }
-    for (let i = 0; i < appBlacklist.length; i++) {
-        hashedBlacklist[appBlacklist[i].app_uuid] = true;
-    }
-
-    //convert appBase to hash by id for fast assignment of other information
-    const hashedApps = {};
-    for (let i = 0; i < appBase.length; i++) {
-        hashedApps[appBase[i].id] = appBase[i];
-        hashedApps[appBase[i].id].uuid = hashedApps[appBase[i].id].app_uuid;
-        hashedApps[appBase[i].id].short_uuid = hashedApps[appBase[i].id].app_short_uuid;
-        hashedApps[appBase[i].id].version_id = hashedApps[appBase[i].id].version_id;
-        hashedApps[appBase[i].id].created_ts = hashedApps[appBase[i].id].created_ts;
-        hashedApps[appBase[i].id].updated_ts = hashedApps[appBase[i].id].updated_ts;
-        hashedApps[appBase[i].id].vendor_name = hashedApps[appBase[i].id].vendor_name;
-        hashedApps[appBase[i].id].vendor_email = hashedApps[appBase[i].id].vendor_email;
-
-        hashedApps[appBase[i].id].category = {
-            id: appBase[i].category_id,
-            display_name: hashedCategories[appBase[i].category_id]
-        };
-        if (hashedAutoApproval[appBase[i].app_uuid]) {
-            hashedApps[appBase[i].id].is_auto_approved_enabled = true;
+    hashify(hashedServices, res.appServiceTypes, elem => ({
+        location: [elem.app_id, elem.service_type_name],
+        data: obj => {
+            obj.name = elem.service_type_name,
+            obj.display_name = elem.display_name,
+            obj.service_names = [],
+            obj.permissions = []
         }
-        else {
-            hashedApps[appBase[i].id].is_auto_approved_enabled = false;
+    }));
+    hashify(hashedServices, res.appServiceTypeNames, elem => ({
+        location: [elem.app_id, elem.service_type_name, "service_names"],
+        data: arr => arr.push(elem.service_name)
+    }));
+    //filter out appServiceTypePermissions of elements that don't exist in hashedServices
+    const filteredASTP = res.appServiceTypePermissions.filter(astp => {
+        return (hashedServices[astp.app_id] !== undefined &&
+                hashedServices[astp.app_id][astp.service_type_name] !== undefined)
+    });
+
+    hashify(hashedServices, filteredASTP, elem => ({
+        location: [elem.app_id, elem.service_type_name, "permissions"],
+        data: arr => arr.push({
+            "app_id": elem.app_id,
+            "function_id": elem.function_id,
+            "display_name": elem.display_name,
+            "name": elem.name,
+            "is_selected": elem.is_selected
+        })
+    }));
+
+    const hashedApps = hashify({}, res.appBase, appInfo => ({
+        location: [appInfo.id],
+        data: obj => {
+            Object.assign(obj, appInfo) //move properties from appInfo into obj
+            obj.uuid = appInfo.app_uuid;
+            delete obj.app_uuid;
+            obj.short_uuid = appInfo.app_short_uuid;
+            delete obj.app_short_uuid;
+            obj.category = {
+                id: appInfo.category_id,
+                display_name: hashedCategories[appInfo.category_id]
+            }
+            obj.is_auto_approved_enabled = !!hashedAutoApproval[appInfo.app_uuid]; //coerce to boolean
+            obj.is_blacklisted = !!hashedBlacklist[appInfo.app_uuid]; //coerce to boolean
+            obj.is_administrator_app = !!hashedAdministratorApps[appInfo.app_uuid]; //coerce to boolean
+            obj.hybrid_app_preference = hashedHybridPreference[appInfo.app_uuid] || "BOTH";
+            obj.allow_unknown_rpc_passthrough = !!hashedPassthrough[appInfo.app_uuid]; //coerce to boolean
+            obj.countries = [];
+            obj.display_names = [];
+            obj.permissions = [];
+            obj.services = arrayify(hashedServices, [appInfo.id]); //services should be an array
         }
+    }));
 
-        if (hashedBlacklist[appBase[i].app_uuid]) {
-            hashedApps[appBase[i].id].is_blacklisted = true;
-        } else {
-            hashedApps[appBase[i].id].is_blacklisted = false;
-        }
-
-        delete hashedApps[appBase[i].id].app_uuid;
-        delete hashedApps[appBase[i].id].app_short_uuid;
-
-        hashedApps[appBase[i].id].countries = [];
-        hashedApps[appBase[i].id].display_names = [];
-        hashedApps[appBase[i].id].permissions = [];
-    }
-    //iterate through all other info and attach their information to hashedApps
-    for (let i = 0; i < appCountries.length; i++) {
-        hashedApps[appCountries[i].id].countries.push({
-            iso: appCountries[i].country_iso,
-            name: appCountries[i].name
-        });
-    }
-    for (let i = 0; i < appDisplayNames.length; i++) {
-        hashedApps[appDisplayNames[i].id].display_names.push(appDisplayNames[i].display_text);
-    }
-    for (let i = 0; i < appPermissions.length; i++) {
-        hashedApps[appPermissions[i].id].permissions.push({
-            key: appPermissions[i].permission_name,
-            hmi_level: appPermissions[i].hmi_level,
-            type: appPermissions[i].type
-        });
-    }
+    // countries
+    hashify(hashedApps, res.appCountries, elem => ({
+        location: [elem.id, "countries"],
+        data: arr => arr.push({
+            iso: elem.country_iso,
+            name: elem.name
+        })
+    }))
+    // display names
+    hashify(hashedApps, res.appDisplayNames, elem => ({
+        location: [elem.id, "display_names"],
+        data: arr => arr.push(elem.display_text)
+    }))
+    // permissions
+    hashify(hashedApps, res.appPermissions, elem => ({
+        location: [elem.id, "permissions"],
+        data: arr => arr.push({
+            key: elem.permission_name,
+            hmi_level: elem.hmi_level,
+            type: elem.type
+        })
+    }))
 
     //convert the hash back to an array!
     let fullApps = [];
@@ -91,6 +121,7 @@ function constructFullAppObjs (res, next) {
     }
     next(null, fullApps);
 }
+
 
 //store the information using a SQL transaction
 function storeApp (appObj, next) {
@@ -113,6 +144,11 @@ function storeApp (appObj, next) {
                 }
                 if (appObj.permissions.length > 0) {
                     allInserts.push(sql.insertAppPermissions(appObj.permissions, app.id));
+                }
+                if (appObj.services.length > 0) {
+                    allInserts.push(sql.insertAppServices(appObj.services, app.id));
+                    allInserts.push(sql.insertAppServiceNames(appObj.services, app.id));
+                    allInserts.push(sql.insertStandardAppServicePermissions(appObj.services, app.id));
                 }
                 if (appObj.is_auto_approved_enabled) {
                     allInserts.push(sql.insertAppAutoApproval(appObj));

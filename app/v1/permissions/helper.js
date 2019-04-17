@@ -9,18 +9,20 @@ function storePermissions (permissions, next) {
 
     flame.async.map(permissions, function (perm, next) {
         permissionObjs.push({ //add permission
-            name: perm.key,
-            type: perm.type
+            "name": perm.key,
+            "type": perm.type,
+            "function_id": perm.function_id || null,
+            "display_name": perm.name || null
         });
         if (perm.parent_permissions.length > 0) {
             for (let j = 0; j < perm.parent_permissions.length; j++) {
                 permissionRelationObjs.push({ //add permission relation
-                    child_permission_name: perm.key,
-                    parent_permission_name: perm.parent_permissions[j].key
+                    "child_permission_name": perm.key,
+                    "parent_permission_name": perm.parent_permissions[j].key
                 });
             }
-        }    
-        next();    
+        }
+        next();
     }, function () {
         //insert permissions first, then permission relations
         const insertPermissions = app.locals.db.setupSqlCommands(sql.insertPermissions(permissionObjs));

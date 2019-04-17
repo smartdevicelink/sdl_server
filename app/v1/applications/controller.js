@@ -83,6 +83,37 @@ function actionPost (req, res, next) {
 	});
 }
 
+function hybridPost (req, res, next) {
+	helper.validateHybridPost(req, res);
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+	app.locals.db.runAsTransaction(function (client, callback) {
+		async.waterfall([
+			function (callback) {
+				client.getOne(sql.getApp.base['uuidFilter'](req.body.uuid), callback);
+			},
+			function (result, callback) {
+				if (!result) {
+					return callback("Unknown app");
+				}
+				client.getOne(sql.deleteHybridPreference(req.body.uuid), callback);
+			},
+			function(result, callback) {
+				client.getOne(sql.insertHybridPreference(req.body), callback);
+			}
+		], callback);
+	}, function (err, response) {
+		if (err) {
+			app.locals.log.error(err);
+			return res.parcel.setStatus(500).deliver();
+		} else {
+			return res.parcel.setStatus(200).deliver();
+		}
+	});
+}
+
 function autoPost (req, res, next) {
 	helper.validateAutoPost(req, res);
 	if (res.parcel.message) {
@@ -102,6 +133,103 @@ function autoPost (req, res, next) {
 			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppAutoApproval(req.body));
 		} else {
 			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAutoApproval(req.body.uuid));
+		}
+
+		chosenCommand(function (err, results) {
+			if (err) {
+				return res.parcel.setStatus(500).deliver();
+			}
+			return res.parcel.setStatus(200).deliver();
+		});
+	});
+}
+
+function administratorPost (req, res, next) {
+	helper.validateAdministratorPost(req, res);
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+	app.locals.db.sqlCommand(sql.getApp.base['uuidFilter'](req.body.uuid), function(err, results) {
+		if (err) {
+			return res.parcel.setStatus(500).deliver();
+		}
+		if (!results.length) {
+			return res.parcel.setStatus(400).deliver();
+		}
+
+		let chosenCommand;
+		if (req.body.is_administrator_app) {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppAdministrator(req.body));
+		} else {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAppAdministrator(req.body.uuid));
+		}
+
+		chosenCommand(function (err, results) {
+			if (err) {
+				return res.parcel.setStatus(500).deliver();
+			}
+			return res.parcel.setStatus(200).deliver();
+		});
+	});
+}
+
+function passthroughPost (req, res, next) {
+	helper.validatePassthroughPost(req, res);
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+	app.locals.db.sqlCommand(sql.getApp.base['uuidFilter'](req.body.uuid), function(err, results) {
+		if (err) {
+			return res.parcel.setStatus(500).deliver();
+		}
+		if (!results.length) {
+			return res.parcel.setStatus(400).deliver();
+		}
+
+		let chosenCommand;
+		if (req.body.allow_unknown_rpc_passthrough) {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertPassthrough(req.body));
+		} else {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deletePassthrough(req.body.uuid));
+		}
+
+		chosenCommand(function (err, results) {
+			if (err) {
+				return res.parcel.setStatus(500).deliver();
+			}
+			return res.parcel.setStatus(200).deliver();
+		});
+	});
+}
+
+function putServicePermission (req, res, next) {
+	helper.validateServicePermissionPut(req, res);
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+	app.locals.db.sqlCommand(sql.getApp.base['idFilter'](req.body.id), function(err, results) {
+		if (err) {
+			return res.parcel.setStatus(500).deliver();
+		}
+		if (!results.length) {
+			return res.parcel.setStatus(400).deliver();
+		}
+
+		if (results[0].approval_status == "ACCEPTED") {
+			return res.parcel
+				.setStatus(400)
+				.setMessage("You may not modify the app service permissions of a production application.")
+				.deliver();
+		}
+
+		let chosenCommand;
+		if (req.body.is_selected) {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppServicePermission(req.body));
+		} else {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAppServicePermission(req.body));
 		}
 
 		chosenCommand(function (err, results) {
@@ -167,7 +295,11 @@ function queryAndStoreApplicationsFlow (queryObj) {
 module.exports = {
 	get: get,
 	actionPost: actionPost,
+	putServicePermission: putServicePermission,
 	autoPost: autoPost,
+	administratorPost: administratorPost,
+	passthroughPost: passthroughPost,
+	hybridPost: hybridPost,
 	webhook: webhook,
 	queryAndStoreApplicationsFlow: queryAndStoreApplicationsFlow
 };

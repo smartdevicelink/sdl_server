@@ -8,6 +8,8 @@ const config = require('../../settings'); //configuration module
 const log = require(`../../custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
 const flame = require('../../lib/flame-box');
+const hashify = require('../../lib/hashify');
+const arrayify = require('../../lib/arrayify');
 const parcel = require('./helpers/parcel');
 const Cron = require('cron').CronJob;
 
@@ -16,6 +18,8 @@ app.locals.config = config;
 app.locals.log = log;
 app.locals.db = db;
 app.locals.flow = flame.flow;
+app.locals.hashify = hashify;
+app.locals.arrayify = arrayify;
 app.locals.flame = flame;
 app.locals.version = path.basename(__dirname);
 
@@ -33,6 +37,7 @@ const policy = require('./policy/controller.js');
 const permissions = require('./permissions/controller.js');
 const groups = require('./groups/controller.js');
 const messages = require('./messages/controller.js');
+const services = require('./services/controller.js');
 const moduleConfig = require('./module-config/controller.js');
 const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
@@ -50,6 +55,10 @@ function exposeRoutes () {
 	app.get('/applications', auth.validateAuth, applications.get);
 	app.post('/applications/action', auth.validateAuth, applications.actionPost);
 	app.post('/applications/auto', auth.validateAuth, applications.autoPost);
+	app.post('/applications/administrator', auth.validateAuth, applications.administratorPost);
+	app.post('/applications/passthrough', auth.validateAuth, applications.passthroughPost);
+	app.post('/applications/hybrid', auth.validateAuth, applications.hybridPost);
+	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -91,6 +100,13 @@ function updatePermissionsAndGenerateTemplates (next) {
 flame.async.parallel([
 	//get and store permission info from SHAID on startup
 	updatePermissionsAndGenerateTemplates,
+	function (next) {
+		// get and store app service type info from SHAID on startup
+		services.upsertTypes(function () {
+			log.info("App service types updated");
+			next();
+		});
+	},
 	function (next) {
 		//get and store language code info from the GitHub SDL RPC specification on startup
 		messages.updateLanguages(function () {

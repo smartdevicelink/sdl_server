@@ -20,7 +20,9 @@ const functionalGroupAlwaysAllowedObj = {
     "WayPoints": false,
     "BackgroundAPT": false,
     "DialNumberOnlyGroup": true,
-    "HapticGroup": true
+    "HapticGroup": true,
+    "AppServiceProviderGroup": false,
+    "AppServiceConsumerGroup": true,
 };
 
 module.exports = {

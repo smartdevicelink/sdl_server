@@ -129,16 +129,24 @@ function setupAppPolicies (isProduction, useLongUuids = false, reqAppPolicy) {
             callback(null, []);
         });
     }
-    getAppPolicy.push(mapAppBaseInfo.bind(null, isProduction, useLongUuids, uuids));
+    getAppPolicy.push(mapAppBaseInfo.bind(null, isProduction, useLongUuids, uuids, reqAppPolicy));
     return flame.flow(getAppPolicy, {method: 'waterfall'});
 }
 
-function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, appObjs, callback) {
+function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, incomingAppObjs, appObjs, callback) {
     const makeAppPolicyFlow = flame.flow(flame.map(appObjs, function (appObj, next) {
         const getInfoFlow = flame.flow({
             displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
             moduleNames: setupSqlCommand.bind(null, sql.getAppModules(appObj.id)),
             funcGroupNames: setupSqlCommand.bind(null, sql.getAppFunctionalGroups(isProduction, appObj)),
+            serviceTypes: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypes.idFilter(appObj.id)),
+            serviceTypeNames: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypeNames.idFilter(appObj.id)),
+            serviceTypePermissions: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypePermissions.idFilter(appObj.id)),
+            hybridPreference: setupSqlCommand.bind(null, sqlApps.getApp.hybridPreference.idFilter(appObj.id)),
+            appPassthrough: setupSqlCommand.bind(null, sqlApps.getApp.passthrough.idFilter(appObj.id)),
+            incomingAppPolicy: function(callback){
+                callback(null, incomingAppObjs[(useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)]);
+            }
         }, {method: 'parallel'});
 
         flame.flow([
