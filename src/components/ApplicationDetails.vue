@@ -508,6 +508,12 @@ export default {
             this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
             console.log("Requesting auto-approval change to: " + this.app.is_auto_approved_enabled);
 
+            if(this.app.is_auto_approved_enabled && !confirm("Future versions of this app will be granted all of its requested permissions (including App Services). Are you sure you would like to enable auto-approval for this app?")){
+                // user cancelled the confirmation dialog
+                this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
+                return;
+            }
+
             this.httpRequest("post", "applications/auto", {
                 "body": {
                     "uuid": this.app.uuid,
