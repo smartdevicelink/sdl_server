@@ -18,6 +18,22 @@ module.exports = {
     cacheModulePort: process.env.CACHE_PORT,
     cacheModuleHost: process.env.CACHE_HOST,
     cacheModulePassword: process.env.CACHE_PASSWORD,
+    // SMTP email server settings
+    smtp: {
+        host: process.env.SMTP_HOST || null,
+        port: parseInt(process.env.SMTP_PORT) || 25,
+        username: process.env.SMTP_USERNAME || null,
+        password: process.env.SMTP_PASSWORD || null,
+        from: process.env.SMTP_FROM || null
+    },
+    notification: {
+        appsPendingReview: {
+            email: {
+                frequency: (process.env.NOTIFY_APP_REVIEW_FREQUENCY || "DISABLED").toUpperCase(), // enum: "DISABLED", "REALTIME"
+                to: process.env.NOTIFY_APP_REVIEW_EMAILS || "" // e.g. "person1@oem.com,person2@oem.com,person3@oem.com"
+            }
+        }
+    },
     //the fully qualified hostname of this Policy Server (e.g. "policyserver.vehicleoem.com")
     policyServerHost: process.env.POLICY_SERVER_HOST || "localhost",
     //the port this server will be running in

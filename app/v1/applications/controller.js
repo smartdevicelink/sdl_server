@@ -259,7 +259,7 @@ function webhook (req, res, next) {
 
 				switch(req.body.action){
 					case "UPSERT":
-						const queryAndStoreFlow = queryAndStoreApplicationsFlow(query);
+						const queryAndStoreFlow = queryAndStoreApplicationsFlow(query, true);
 				        queryAndStoreFlow(callback);
 						break;
 					case "DELETE":
@@ -285,10 +285,10 @@ function webhook (req, res, next) {
 }
 
 //queries SHAID to get applications and stores them into the database
-function queryAndStoreApplicationsFlow (queryObj) {
+function queryAndStoreApplicationsFlow (queryObj, notifyOEM = true) {
     return flow([
     	app.locals.shaid.getApplications.bind(null, queryObj),
-    	helper.storeApps.bind(null, false)
+    	helper.storeApps.bind(null, false, notifyOEM)
     ], {method: 'waterfall', eventLoop: true});
 }
 

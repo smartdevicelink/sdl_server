@@ -6,6 +6,7 @@ const hashify = app.locals.hashify;
 const arrayify = app.locals.arrayify;
 const log = app.locals.log;
 const sql = require('./sql.js');
+const emails = require('../helpers/emails.js');
 
 //takes SQL data and converts it into a response for the UI to consume
 function constructFullAppObjs (res, next) {
@@ -124,7 +125,7 @@ function constructFullAppObjs (res, next) {
 
 
 //store the information using a SQL transaction
-function storeApp (appObj, next) {
+function storeApp (notifyOEM, appObj, next) {
     var storedApp = null;
     // process message groups synchronously (due to the SQL transaction)
     db.runAsTransaction(function (client, callback) {
@@ -160,12 +161,36 @@ function storeApp (appObj, next) {
             function (res, next) {
                 if(!storedApp.version_id){
                     // skip sync with SHAID if no app version ID is present
-                    next(null, null);
+                    next(null, res);
                     return;
                 }
                 app.locals.shaid.setApplicationApprovalVendor([storedApp], function(err, result){
                     next(err, res);
                 });
+            },
+            //stage 4: notify OEM of pending app?
+            function(res, next) {
+                if(!(
+                    notifyOEM
+                    && app.locals.emailer.isSmtpConfigured()
+                    && storedApp.approval_status == 'PENDING'
+                    && app.locals.config.notification.appsPendingReview.email.frequency == "REALTIME"
+                    && app.locals.config.notification.appsPendingReview.email.to
+                )){
+                    next(null, res);
+                    return;
+                }
+
+                // attempt to send email
+                app.locals.emailer.send({
+                    to: app.locals.config.notification.appsPendingReview.email.to,
+                    subject: "SDL App Pending Review",
+                    html: emails.populate(emails.template.appPendingReview, {
+                        action_url: app.locals.baseUrl + "/applications/" + storedApp.id,
+                        app_name: storedApp.name
+                    })
+                });
+                next(null, res);
             }
         ], function(err, res){
             if(err){
