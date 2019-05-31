@@ -15,7 +15,7 @@
                         <h4 for="name">Version {{ about.current_version }}</h4>
                         <div class="row">
                             <div class="col-sm-12">
-                                <template v-if="!updateAvailable">
+                                <template v-if="!isUpdateAvailable">
                                     <i
                                         class="fa fa-check-circle color-green"
                                         style=""
@@ -158,15 +158,15 @@
     export default {
         data () {
             return {
-                "about": null
+                "about": {}
             }
         },
         computed: {
             fieldsDisabled: function () {
                 return true;
             },
-            updateAvailable: function () {
-                return (this.about && this.about.current_version != this.about.latest_version);
+            isUpdateAvailable: function(){
+                return this.about.is_update_available;
             }
         },
         methods: {
