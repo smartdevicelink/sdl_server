@@ -12,11 +12,7 @@ npm update
 
 Finally, start the server using the typical method:
 ```
-npm run start-pg-staging
-```
-or
-```
-npm run start-pg-production
+npm run start-server
 ```
 
 Verify that it started properly by navigating to <a href="http://localhost:3000/">`http://localhost:3000/`</a>

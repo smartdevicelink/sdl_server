@@ -38,6 +38,19 @@ Here are the environment variables that will most likely be used:
 * `DB_PASSWORD`: String. The password used to log into the database
 * `DB_HOST`: String. The host name or IP address of the database
 * `DB_PORT`: Integer. The port number of the database
+* `CACHE_MODULE`: String. The name of the caching module to use. Currently supports null (no caching, default) or "redis".
+* `CACHE_HOST`: String. The host name or IP address of the cache. Default null.
+* `CACHE_PORT`: Integer. The port number of the cache. Default null.
+* `CACHE_PASSWORD`: String. The password used to log into the cache. Default null.
+* `SMTP_HOST`: String. The host name or IP address of an SMTP server to use for email notifications. A null value implies that outgoing emails are disabled. Default null.
+* `SMTP_PORT`: Integer. The port number of the SMTP server. Default 25.
+* `SMTP_USERNAME`: String. The username of the optional SMTP user. Default null.
+* `SMTP_PASSWORD`: String. The password of the optional SMTP user. Default null.
+* `SMTP_FROM`: String. The email address which emails are sent from. A null value implies that outgoing emails are disabled. Default null.
+* `NOTIFY_APP_REVIEW_FREQUENCY`: String enum (DISABLED, REALTIME). The frequency of which outgoing emails should be sent to notify the OEM of new apps ready for review. Default DISABLED.
+* `NOTIFY_APP_REVIEW_EMAILS`: String. A comma-separated list of email addresses to send an email to when new apps are ready for review. Default empty string.
+* `AUTO_APPROVE_ALL_APPS`: String boolean ("true" or "false"). Whether or not to auto-approve all app versions received by SHAID (except for blacklisted apps). Default "false".
+
 * `STAGING_PG_USER` **DEPRECATED**: String. The name of the user to allow the server access the database (staging mode)
 * `STAGING_PG_DATABASE` **DEPRECATED**: String. The name of the database where policy and app data is stored (staging mode)
 * `STAGING_PG_PASSWORD` **DEPRECATED**: String. The password used to log into the database (staging mode)
@@ -48,11 +61,6 @@ Here are the environment variables that will most likely be used:
 * `PRODUCTION_PG_PASSWORD` **DEPRECATED**: String. The password used to log into the database (production mode)
 * `PRODUCTION_PG_HOST` **DEPRECATED**: String. The host name or IP address of the database (production mode)
 * `PRODUCTION_PG_PORT` **DEPRECATED**: Integer. The port number of the database (production mode)
-* `CACHE_MODULE`: String. The name of the caching module to use. Currently supports null (no caching, default) or "redis".
-* `CACHE_HOST`: String. The host name or IP address of the cache. Default null.
-* `CACHE_PORT`: Integer. The port number of the cache. Default null.
-* `CACHE_PASSWORD`: String. The password used to log into the cache. Default null.
-* `AUTO_APPROVE_ALL_APPS`: String boolean ("true" or "false"). Whether or not to auto-approve all app versions received by SHAID (except for blacklisted apps). Default "false".
 
 Production/Staging environment variables for the database are now deprecated. Please use the corresponding `DB_` values in place of them (ex. `DB_USER` instead of `PRODUCTION_PG_USER` or `STAGING_PG_USER`).
 
@@ -64,11 +72,11 @@ Using the createdb program that comes with the installation of PostgreSQL, for e
 The Policy Server comes with migration scripts that can be run using npm scripts. You can see a list of all the possible scripts by looking in `package.json`, but these are the most important ones:
 
 * `start-server`: Runs the migration up script which initializes data in the database and starts the Policy Server
+* `dev` or `start`: Starts the server with hot reloading so any changes made to the UI are instantly updated in the browser
+* `build`: Generates a new staging/production build using webpack. This command should only be run if you made front-end modifications to the UI.
 * `start-pg-staging` **DEPRECATED**: Runs the migration up script which initializes data in the database, sets the environment to `staging` and starts the Policy Server
 * `start-pg-production` **DEPRECATED**: Runs the migration up script which initializes data in the database, sets the environment to `production` and starts the Policy Server
 * `db-migrate-reset-pg-staging` **DEPRECATED**: Runs the migration down script which drops all the data and tables in the staging database
-* `dev` or `start`: Starts the server with hot reloading so any changes made to the UI are instantly updated in the browser
-* `build`: Generates a new staging/production build using webpack. This command should only be run if you made front-end modifications to the UI.
 
 Production/Staging scripts are now deprecated. Please use `start-server` instead of `start-pg-staging` or `start-pg-production`.
 
