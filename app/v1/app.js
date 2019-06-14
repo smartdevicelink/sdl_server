@@ -1,3 +1,5 @@
+const ReportingController = require('./statistics/ReportingController');
+
 const express = require('express');
 const helmet = require('helmet');
 let app = express();
@@ -42,7 +44,7 @@ const moduleConfig = require('./module-config/controller.js');
 const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
 
-function exposeRoutes () {
+async function  exposeRoutes () {
 	// use helmet middleware for security
 	app.use(helmet());
 	// extend response builder to all routes
@@ -81,6 +83,22 @@ function exposeRoutes () {
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
 	app.get('/about', auth.validateAuth, about.getInfo);
+
+	await (async () => {
+		let d1 = Date.now();
+		let route = '/reporting';
+		let router = express.Router();
+		app.use(route, router);
+
+		await ReportingController.create({
+			parcel,
+			router
+		});
+
+		log.info(`initialized route ${route} in ${d1} (ms)`);
+
+	})();
+
 }
 
 function updatePermissionsAndGenerateTemplates (next) {

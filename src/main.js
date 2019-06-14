@@ -19,6 +19,9 @@ import HmiSelector from './components/common/HmiSelector'
 import MessageItem from './components/common/MessageItem'
 import CardItem from './components/common/CardItem'
 import PatternInput from './components/common/PatternInput'
+import LineChart from './components/common/reporting/LineChart'
+import PolicyTableUpdateReport from './components/common/reporting/reports/PolicyTableUpdateReport'
+import ApplicationReports from './components/common/reporting/reports/ApplicationReports'
 
 Vue.use(BootstrapVue);
 Vue.use(VueSession);
@@ -32,6 +35,12 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 import './assets/css/font-awesome.min.css'
 import './assets/css/style.css'
 import async from 'async';
+import BarChart from "./components/common/reporting/BarChart";
+import DonutChart from "./components/common/reporting/DonutChart";
+import PieChart from "./components/common/reporting/PieChart";
+import Chart from "./components/common/reporting/Chart";
+import PolarChart from "./components/common/reporting/PolarChart";
+import PieChartWithLabels from "./components/common/reporting/PieChartWithLabels";
 Object.defineProperty(Vue.prototype, '$async', { value: async });
 
 Vue.component("vue-ladda", VueLadda);
@@ -47,6 +56,16 @@ Vue.component("message-item", MessageItem);
 Vue.component("card-item", CardItem);
 Vue.component("pattern-input", PatternInput);
 
+Vue.component("line-chart", LineChart);
+Vue.component("bar-chart", BarChart);
+Vue.component("donut-chart", DonutChart);
+Vue.component("pie-chart", PieChart);
+Vue.component("chart", Chart);
+Vue.component("policy-table-update-report", PolicyTableUpdateReport);
+Vue.component("polar-chart", PolarChart);
+Vue.component("pie-chart-with-labels", PieChartWithLabels);
+Vue.component("application-reports", ApplicationReports);
+
 Vue.http.options.root = '/api/v1';
 
 export const eventBus = new Vue();
@@ -55,6 +74,7 @@ export const eventBus = new Vue();
 Vue.mixin({
 	methods: {
 		"httpRequest": function (action, route, options = {}, cb) {
+			console.log(`httpRequest`,action,route);
 			if(!options){
 				options = {};
 			}
@@ -108,11 +128,17 @@ Vue.mixin({
 	}
 })
 
+import 'chartjs-plugin-labels';
+
 
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
   router,
   template: '<App/>',
-  components: { App }
-})
+  components: { App,
+  }
+});
+
+
+console.log(`'vue-environment`,process.env)

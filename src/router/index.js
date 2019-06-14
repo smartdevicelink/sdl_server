@@ -16,6 +16,8 @@ import PolicyTable from '@/components/PolicyTable'
 import User from '@/components/User'
 import Invite from '@/components/Invite'
 import NotFound from '@/components/NotFound'
+import Reporting from "../components/reporting/Reporting";
+import ApplicationReporting from "../components/applications/ApplicationReporting";
 
 var authType = AUTH_TYPE; // defined via webpack build
 
@@ -100,6 +102,15 @@ const router = new Router({
             }
         },
         {
+            path: '/applications/:id/reporting',
+            name: 'ApplicationDetails',
+            component: ApplicationReporting,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Application Reporting'
+            }
+        },
+        {
             path: '/functionalgroups/',
             name: 'FunctionalGroups',
             component: FunctionalGroups,
@@ -169,7 +180,17 @@ const router = new Router({
                 auth: true,
                 title: 'Policy Server - About'
             }
-        },/*
+        },
+        {
+          path: '/reporting',
+          name: 'Reporting',
+          component: Reporting,
+          meta: {
+              auth: true,
+              title: 'Policy Server - Reporting'
+          }
+        },
+        /*
         {
             path: '/user/',
             name: 'User',
