@@ -1,48 +1,4 @@
-/*
- https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0225-update-published-app-services.md
- Add new RPC call.
-
- <enum name="FunctionID" internal_scope="base" since="1.0">
-    ...
-
-    <element name="UnpublishAppServiceID" value="XX" hexvalue="XX" since="X.X" />
-</enum>
-
-<function name="UnpublishAppService" functionID="UnpublishAppServiceID" messagetype="request" since="X.X">
-    <description> Unpublish an existing service published by this application. </description>
-
-    <param name="serviceID" type="String" mandatory="true">
-        <description> The ID of the service to be unpublished. </description>
-    </param>
-</function>
-
-<function name="UnpublishAppService" functionID="UnpublishAppServiceID" messagetype="response" since="X.X">
-    <description> The response to UnpublishAppService </description>
-    <param name="success" type="Boolean" platform="documentation" mandatory="true">
-        <description> true, if successful; false, if failed </description>
-    </param>
-
-    <param name="resultCode" type="Result" platform="documentation" mandatory="true">
-        <description>See Result</description>
-        <element name="SUCCESS"/>
-        <element name="REJECTED"/>
-        <element name="DISALLOWED"/>
-        <element name="INVALID_DATA"/>
-        <element name="INVALID_ID"/>
-        <element name="OUT_OF_MEMORY"/>
-        <element name="TOO_MANY_PENDING_REQUESTS"/>
-        <element name="APPLICATION_NOT_REGISTERED"/>
-        <element name="GENERIC_ERROR"/>
-    </param>
-
-    <param name="info" type="String" maxlength="1000" mandatory="false" platform="documentation">
-        <description>Provides additional human readable info regarding the result.</description>
-    </param>
-</function>
- */
-
-
---  If redis caching is enabled this will break until the cache is cleared.
+--Create a new RPC and add this to the default provider group AppServiceProviderGroup.
 
 
 INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
@@ -72,6 +28,8 @@ WHERE property_name = 'AppServiceProviderGroup'
 
 
 
+--At the time of creating this 5.2 is the next release for the rpc_spec and 56 is the next available function_id.
+-- https://github.com/russjohnson09/rpc_spec/blob/version/5_2_0/MOBILE_API.xml#L2647
 INSERT INTO permissions(name,type,function_id,display_name)
 VALUES ('UnpublishAppService','RPC',56,'Unpublish App Service')
 ON CONFLICT
