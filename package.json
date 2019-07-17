@@ -29,6 +29,7 @@
     "db-migrate-reset": "npm run db-migrate -- reset -e pg-policy"
   },
   "dependencies": {
+    "@statnett/vue-plotly": "^0.3.2",
     "async": "2.5.0",
     "babel-preset-es2015": "6.24.1",
     "body-parser": "1.18.2",
@@ -44,9 +45,12 @@
     "jquery": "3.2.1",
     "lodash.get": "4.4.2",
     "mustache": "^3.0.1",
+    "moment": "^2.24.0",
+    "mongodb": "^3.2.7",
     "needle": "2.1.0",
     "nodemailer": "^6.1.1",
     "pg": "6.4.2",
+    "plotly.js": "^1.48.3",
     "portfinder": "1.0.13",
     "redis": "^2.8.0",
     "request": "^2.88.0",
@@ -94,6 +98,7 @@
     "rimraf": "2.6.0",
     "semver": "^5.3.0",
     "shelljs": "0.7.6",
+    "uglifyjs-webpack-plugin": "v1.2.5",
     "url-loader": "0.5.8",
     "vue-loader": "13.0.4",
     "vue-style-loader": "3.0.1",

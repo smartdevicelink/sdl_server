@@ -8,6 +8,7 @@ const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
 const config = app.locals.config;
+const moment = require('moment');
 
 //validation functions
 
@@ -264,7 +265,14 @@ function attemptRetry(milliseconds, retryQueue){
     }, milliseconds);
 }
 
+async function getAggregateReportByAppId(appId)
+{
+
+  return app.locals.reportingService.getAppUsageReport(appId);
+}
+
 module.exports = {
+    getAggregateReportByAppId: getAggregateReportByAppId,
 	validateActionPost: validateActionPost,
 	validateAutoPost: validateAutoPost,
 	validateAdministratorPost: validateAdministratorPost,

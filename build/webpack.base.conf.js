@@ -31,7 +31,8 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      'AUTH_TYPE': JSON.stringify(settings.authType)
+      'AUTH_TYPE': JSON.stringify(settings.authType),
+      'ENABLE_REPORTING': settings.enableReporting === 'true'
     })
   ],
   module: {

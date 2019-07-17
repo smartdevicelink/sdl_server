@@ -19,6 +19,7 @@ describe('SDL SERVER TESTS', function () {
             importTest('/applications', './api/v1/applications/applications');
             importTest('/applications/action', './api/v1/applications/action');
             importTest('/applications/auto', './api/v1/applications/auto');
+            importTest('/applications/report', './api/v1/applications/report');
             importTest('/staging/policy', './api/v1/policy/staging');
             importTest('/production/policy', './api/v1/policy/production');
             importTest('/policy/preview', './api/v1/policy/preview');
@@ -34,9 +35,17 @@ describe('SDL SERVER TESTS', function () {
             importTest('/messages/names', './api/v1/messages/names');
             importTest('/module', './api/v1/module/module');
             importTest('/module/promote', './api/v1/module/promote');
+            importTest('/module/report', './api/v1/module/report');
+
+
         });
     });
 
     importTest('cache', './cache/cache');
     importTest('basic-auth', './basicAuth/basicAuth');
+
+    describe('unit', function() {
+        importTest('reporting', './unit/reporting/reporting');
+    })
+
 });

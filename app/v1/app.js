@@ -24,6 +24,8 @@ app.locals.arrayify = arrayify;
 app.locals.emailer = emailer;
 app.locals.flame = flame;
 app.locals.version = path.basename(__dirname);
+app.locals.reportingService = new (require('../../lib/reporting/ReportingService'))({db});
+
 
 // construct base URL, e.g. "http://localhost:3000"
 app.locals.baseUrl = "http";
@@ -61,6 +63,7 @@ function exposeRoutes () {
 	//app.post('/register', register.post);
 	app.post('/login', login.validateAuth);
 	app.get('/applications', auth.validateAuth, applications.get);
+	app.get('/applications/report', auth.validateAuth, applications.getReport);
 	app.post('/applications/action', auth.validateAuth, applications.actionPost);
 	app.post('/applications/auto', auth.validateAuth, applications.autoPost);
 	app.post('/applications/administrator', auth.validateAuth, applications.administratorPost);
@@ -88,6 +91,7 @@ function exposeRoutes () {
 	app.get('/module', auth.validateAuth, moduleConfig.get);
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
+	app.get('/module/report', auth.validateAuth, moduleConfig.getReport);
 	app.get('/about', auth.validateAuth, about.getInfo);
 }
 

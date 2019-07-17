@@ -1178,3 +1178,31 @@ input:checked + .slider:before {
         transform:rotate(360deg);
     }
 }
+
+
+
+.report-table table, .report-table th, .report-table td {
+    border: 1px solid #DEE1E6;
+    background-color: #FFFFFF;
+}
+
+.report-table th {
+    width: 125px;
+    height: 40px;
+    color: #A9B3BD;
+    font-family: "Livio Norm";
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    line-height: 13px;	text-align: center;
+}
+
+
+.report-table td {
+    height: 30px;
+    width: 125px;
+    color: #394E60;
+    font-size: 12px;
+    line-height: 14px;
+    text-align: center;
+}

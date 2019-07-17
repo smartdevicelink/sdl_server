@@ -5,6 +5,9 @@ const app = require('../app');
 const flow = app.locals.flow;
 const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
+const moment = require('moment');
+/** @type {ReportingService} **/
+const reportingService = app.locals.reportingService;
 
 //validation functions
 
@@ -96,7 +99,26 @@ function getModuleConfigFlow (property, value) {
     ], {method: 'waterfall', eventLoop: true});
 }
 
+
+async function getAggregateReport () {
+
+    let obj = {
+        report_days: reportingService.expirationDays,
+    }
+
+    let deviceReport = await reportingService.getDeviceReport()
+    let policyTableUpdatesReport = await reportingService.getPolicyTableUpdatesReport()
+
+    Object.assign(obj,
+      deviceReport,
+      policyTableUpdatesReport
+    )
+
+    return obj
+}
+
 module.exports = {
+    getAggregateReport: getAggregateReport,
     validatePost: validatePost,
     getModuleConfigFlow: getModuleConfigFlow
 }

@@ -16,6 +16,7 @@ import PolicyTable from '@/components/PolicyTable'
 import User from '@/components/User'
 import Invite from '@/components/Invite'
 import NotFound from '@/components/NotFound'
+import Reporting from "../components/Reporting";
 
 var authType = AUTH_TYPE; // defined via webpack build
 
@@ -169,7 +170,17 @@ const router = new Router({
                 auth: true,
                 title: 'Policy Server - About'
             }
-        },/*
+        },
+        {
+          path: '/reporting',
+          name: 'Reporting',
+          component: Reporting,
+          meta: {
+              auth: true,
+              title: 'Policy Server - Reporting'
+          }
+        },
+        /*
         {
             path: '/user/',
             name: 'User',

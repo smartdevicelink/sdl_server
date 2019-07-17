@@ -19,6 +19,8 @@ import HmiSelector from './components/common/HmiSelector'
 import MessageItem from './components/common/MessageItem'
 import CardItem from './components/common/CardItem'
 import PatternInput from './components/common/PatternInput'
+import ApplicationReports from './components/common/ApplicationReports'
+import ReportTable from './components/common/ReportTable'
 
 Vue.use(BootstrapVue);
 Vue.use(VueSession);
@@ -31,7 +33,13 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import './assets/css/font-awesome.min.css'
 import './assets/css/style.css'
+
 import async from 'async';
+
+
+import VuePlotly from '@statnett/vue-plotly'
+
+
 Object.defineProperty(Vue.prototype, '$async', { value: async });
 
 Vue.component("vue-ladda", VueLadda);
@@ -46,6 +54,11 @@ Vue.component("hmi-selector", HmiSelector);
 Vue.component("message-item", MessageItem);
 Vue.component("card-item", CardItem);
 Vue.component("pattern-input", PatternInput);
+
+Vue.component("vue-plotly", VuePlotly);
+Vue.component("application-reports", ApplicationReports);
+Vue.component("report-table", ReportTable);
+
 
 Vue.http.options.root = '/api/v1';
 

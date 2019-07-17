@@ -5,6 +5,26 @@ const model = require('./model.js');
 const flow = app.locals.flow;
 const cache = require('../../../custom/cache');
 
+
+async function getReport(req,res)
+{
+    try {
+        let reportData = await helper.getAggregateReport();
+        return res.parcel.setStatus(200)
+            .setData(reportData)
+            .deliver();
+    }
+    catch (err)
+    {
+        app.locals.log.error(err);
+        return res.parcel
+            .setStatus(500)
+            .setMessage("Internal server error")
+            .deliver();
+    }
+
+}
+
 function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
@@ -59,6 +79,7 @@ function post (isProduction, req, res, next) {
 }
 
 module.exports = {
+    getReport: getReport,
 	get: get,
 	post: post.bind(null, false),
 	promote: post.bind(null, true)
