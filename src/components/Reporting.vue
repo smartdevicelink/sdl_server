@@ -10,7 +10,7 @@
 
             <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
 
-                <div v-if="ENABLE_REPORTING">
+                <div v-if="REPORTING_ENABLED">
                     <h3>Reporting</h3>
 
                     <div v-if="aggregateReport">
@@ -125,7 +125,7 @@
     let obj = {
         data() {
             return {
-                ENABLE_REPORTING: ENABLE_REPORTING,
+                REPORTING_ENABLED: REPORTING_ENABLED,
                 "aggregateReport": null,
 
                 ptuChartStacked: null,

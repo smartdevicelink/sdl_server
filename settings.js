@@ -45,7 +45,10 @@ module.exports = {
     policyServerPortSSL: process.env.POLICY_SERVER_PORT_SSL || null, // typically 443
     //what kind of auth to enforce? "basic" or null (no authentication)
     authType: process.env.AUTH_TYPE || null,
-    enableReporting: process.env.ENABLE_REPORTING || null,
+    reporting: {
+        enabled: process.env.REPORTING_ENABLED === 'true',
+        expirationDays: process.env.REPORTING_EXPIRATION_DAYS ? +process.env.REPORTING_EXPIRATION_DAYS : 30
+    },
     //an optional password users must enter to access the Policy Server interface when paired with "basic" authType
     basicAuthPassword: process.env.BASIC_AUTH_PASSWORD || null,
     //whether or not to auto-approve all app versions received by SHAID (unless specifically blacklisted)

@@ -24,7 +24,9 @@ app.locals.arrayify = arrayify;
 app.locals.emailer = emailer;
 app.locals.flame = flame;
 app.locals.version = path.basename(__dirname);
-app.locals.reportingService = new (require('../../lib/reporting/ReportingService'))({db});
+
+app.locals.reportingService = new (require('../../lib/reporting/ReportingService'))({db,expirationDays: config.reporting.expirationDays,trackingEnabled: config.reporting.enabled});
+
 
 
 // construct base URL, e.g. "http://localhost:3000"

@@ -366,7 +366,7 @@ export default {
         };
         return {
             "appReport": null,
-            "ENABLE_REPORTING": ENABLE_REPORTING,
+            "REPORTING_ENABLED": REPORTING_ENABLED,
             "environment": "STAGING",
             "environmentOptions": [
                 {
@@ -705,7 +705,7 @@ export default {
         }
     },
     created: function(){
-        if (this.ENABLE_REPORTING)
+        if (this.REPORTING_ENABLED)
         {
             this.populateAppReport();
 
