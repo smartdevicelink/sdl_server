@@ -37,7 +37,7 @@ import './assets/css/style.css'
 import async from 'async';
 
 
-import VuePlotly from '@statnett/vue-plotly'
+import VuePlotly from '@russjohnson09/vue-plotly';
 
 
 Object.defineProperty(Vue.prototype, '$async', { value: async });
