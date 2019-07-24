@@ -95,6 +95,31 @@ common.get(
   }
 );
 
+
+common.post(
+  '/api/v1/production/policy POST should return production policy table with lock_screen_dismissal_enabled set to true',
+  `/api/v1/production/policy`,
+  {
+      policy_table: {
+          app_policies: {},
+          consumer_friendly_messages: {},
+          device_data: {},
+          functional_groupings: {},
+          module_config: {},
+          usage_and_error_counts: {}
+      }
+  },
+  (err, res, done) => {
+      expect(err).to.be.null;
+      expect(res).to.have.status(200);
+      // console.log(JSON.stringify(res.body,null,4));
+      let policy_table = res.body.data[0].policy_table
+      expect(policy_table.module_config.lock_screen_dismissal_enabled).to.be.equal(true);
+      expect(policy_table.consumer_friendly_messages.messages.LockScreenDismissalWarning.languages['en-us']['textBody']).to.be.equal(`Swipe down to dismiss, acknowledging that you are not the driver`)
+      done();
+  }
+);
+
 common.post(
     'should return 400 with no body specified',
     endpoint,
