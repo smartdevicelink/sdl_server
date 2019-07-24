@@ -31,6 +31,7 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
         "exchange_after_x_days": base.exchange_after_x_days,
         "timeout_after_x_seconds": base.timeout_after_x_seconds,
         "seconds_between_retries": retrySeconds,
+        "lock_screen_dismissal_enabled": base.lock_screen_dismissal_enabled,
         "endpoints": {
             "0x07": {
                 default: [ protocol + settings.policyServerHost + concatPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]
@@ -266,7 +267,7 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         app_services: appServiceObj,
         allow_unknown_rpc_passthrough: res.appPassthrough.length ? true : false
     };
-    
+
     if (appObj.icon_url) appPolicyObj[uuidProp].icon_url = appObj.icon_url;
     if (appObj.cloud_endpoint) appPolicyObj[uuidProp].endpoint = appObj.cloud_endpoint;
     if (appObj.cloud_transport_type) appPolicyObj[uuidProp].cloud_transport_type = appObj.cloud_transport_type;

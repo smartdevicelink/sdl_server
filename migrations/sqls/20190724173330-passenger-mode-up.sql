@@ -70,3 +70,20 @@ FROM ((SELECT max(module_config_1.id) AS id
          JOIN module_config ON ((module_config.id = mc.id)));
 
 
+INSERT INTO message_group (message_category, status)
+VALUES ('LockScreenDismissalWarning', 'PRODUCTION');
+
+
+INSERT INTO message_text (language_id,text_body,
+--                           line1,
+--                           tts,
+                          message_group_id)
+VALUES ('en-us',
+        'Swipe down to dismiss, acknowledging that you are not the driver',
+--         'Swipe down to dismiss, acknowledging that you are not the driver',
+--         'Swipe down to dismiss, acknowledging that you are not the driver',
+        (select max(id) from message_group where message_category = 'LockScreenDismissalWarning'));
+
+
+
+    83	en-gb	This version of %appName% is not supported by SDL.	not supported		This version of %appName% is not supported by SDL.		15
