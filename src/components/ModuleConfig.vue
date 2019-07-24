@@ -129,6 +129,24 @@
 
                             </div>
 
+                            <div class="form-row">
+                                <h4>Lock Screen Dismissal Enabled</h4>
+                                <div class="form-group row">
+                                    <div class="col-sm-10">
+                                        <b-form-checkbox :disabled="fieldsDisabled"
+                                                class="color-bg-gray color-primary"
+                                                v-model="module_config.lock_screen_dismissal_enabled">
+                                            If enabled, the lock screen will be able to be dismissed while connected to SDL, allowing users
+                                            the ability to interact with the app. Dismissals should include a warning to the user and ensure
+                                            that they are not the driver.
+                                        </b-form-checkbox>
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+
                             <!-- notifications -->
                             <div class="form-row">
                                 <h4>Notification Rate Limits by Priority Level</h4>

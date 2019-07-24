@@ -1,6 +1,32 @@
 //Copyright (c) 2018, Livio, Inc.
 const sql = require('sql-bricks-postgres');
 
+
+const productionModuleConfigQuery =
+  `
+    SELECT module_config.*
+    FROM (
+             SELECT max(id) AS id
+             FROM module_config
+             WHERE status='PRODUCTION'
+         ) mc
+             INNER JOIN module_config
+                        ON module_config.id = mc.id
+`;
+
+
+
+const stagingModuleConfigQuery =
+  `
+    SELECT module_config.*
+    FROM (
+             SELECT max(id) AS id
+             FROM module_config
+         ) mc
+             INNER JOIN module_config
+                        ON module_config.id = mc.id
+`;
+
 function moduleConfigById (id) {
     return sql.select('*')
         .from('module_config')
@@ -15,8 +41,10 @@ function retrySecondsById (id) {
 }
 
 function moduleConfigByStatus (isProduction) {
-    const tableName = isProduction ? 'view_module_config_production' : 'view_module_config_staging';
-    return sql.select('*').from(tableName);
+    let query = isProduction ? productionModuleConfigQuery : stagingModuleConfigQuery;
+    let subQuery = `(${query}) sub1`;
+    return sql.select('*').from(subQuery);
+    return sql.select('*').from(subQuery);
 }
 
 function retrySecondsByStatus (isProduction) {
@@ -37,6 +65,7 @@ function insertModuleConfig (moduleConfig) {
         endpoint_0x04: moduleConfig.endpoints["0x04"],
         query_apps_url: moduleConfig.endpoints.queryAppsUrl,
         lock_screen_default_url: moduleConfig.endpoints.lock_screen_icon_url,
+        lock_screen_dismissal_enabled: moduleConfig.lock_screen_dismissal_enabled,
         emergency_notifications: moduleConfig.notifications_per_minute_by_priority.EMERGENCY,
         navigation_notifications: moduleConfig.notifications_per_minute_by_priority.NAVIGATION,
         voicecom_notifications: moduleConfig.notifications_per_minute_by_priority.VOICECOM,
