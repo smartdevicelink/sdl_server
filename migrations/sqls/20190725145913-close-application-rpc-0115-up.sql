@@ -21,12 +21,14 @@ FROM function_group_info
 WHERE property_name = 'Base-4'
   AND NOT EXISTS(SELECT 1 FROM function_group_hmi_levels where permission_name='CloseApplication' and hmi_level='LIMITED');
 
-INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
-SELECT id AS function_group_id, 'CloseApplication' AS permission_name, 'NONE' AS hmi_level
-FROM function_group_info
-WHERE property_name = 'Base-4'
-  AND NOT EXISTS(SELECT 1 FROM function_group_hmi_levels where permission_name='CloseApplication' and hmi_level='NONE')
-;
+--https://github.com/smartdevicelink/sdl_core/pull/2948/files
+--no access to NONE by default it doesn't make sense.
+-- INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
+-- SELECT id AS function_group_id, 'CloseApplication' AS permission_name, 'NONE' AS hmi_level
+-- FROM function_group_info
+-- WHERE property_name = 'Base-4'
+--   AND NOT EXISTS(SELECT 1 FROM function_group_hmi_levels where permission_name='CloseApplication' and hmi_level='NONE')
+-- ;
 
 
 -- Check that the 6.0.0 version has the new rpc before approving to merge into develop.
