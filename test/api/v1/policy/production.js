@@ -26,7 +26,7 @@ common.post(
         expect(Base4).not.to.be.undefined;
         let {ShowAppMenu} = Base4.rpcs;
 
-        expect(ShowAppMenu,`The CloseApplication rpc should be included in Base-4 for production.`).not.to.be.undefined;
+        expect(ShowAppMenu,`The ShowAppMenu rpc should be included in Base-4 for production.`).not.to.be.undefined;
 
 
         expect(ShowAppMenu.hmi_levels).to.have.members(
