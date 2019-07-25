@@ -19,6 +19,9 @@ common.post(
         expect(err).to.be.null;
         expect(res).to.have.status(200);
 
+        let policy_table = res.body.data[0].policy_table;
+        let functional_groupings = policy_table.functional_groupings;
+
         expect(functional_groupings).not.to.be.undefined;
 
 
