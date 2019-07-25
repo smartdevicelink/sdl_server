@@ -22,14 +22,26 @@ common.post(
         let policy_table = res.body.data[0].policy_table;
         let {functional_groupings} = policy_table;
         expect(functional_groupings).not.to.be.undefined;
-        let Base4 = functional_groupings['Base-4']
-        expect(Base4).not.to.be.undefined;
-        let {ShowAppMenu} = Base4.rpcs;
-
-        expect(ShowAppMenu,`The ShowAppMenu rpc should be included in Base-4 for production.`).not.to.be.undefined;
 
 
-        expect(ShowAppMenu.hmi_levels).to.have.members(
+        let functionGroup;
+        //https://github.com/smartdevicelink/sdl_core/blob/develop/src/appMain/sdl_preloaded_pt.json
+        //Should match the preloaded core policy table for the most part.
+        let Base4 = functional_groupings['Base-4'];
+        functionGroup = Base4;
+        expect(functionGroup).not.to.be.undefined;
+        expect(functionGroup.rpcs.ShowAppMenu,`The ShowAppMenu rpc should be included in Base-4 for production.`).not.to.be.undefined;
+        expect(functionGroup.rpcs.ShowAppMenu.hmi_levels).to.have.members(
+          [
+              "FULL"
+          ]
+        );
+
+        let Base6 = functional_groupings['Base-6'];
+        functionGroup = Base6
+        expect(functionGroup).not.to.be.undefined;
+        expect(functionGroup.rpcs.ShowAppMenu,`The ShowAppMenu rpc should be included in Base-6 for production.`).not.to.be.undefined;
+        expect(functionGroup.rpcs.ShowAppMenu.hmi_levels).to.have.members(
           [
               "FULL"
           ]
