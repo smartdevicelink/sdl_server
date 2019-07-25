@@ -18,6 +18,25 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+
+        let policy_table = res.body.data[0].policy_table;
+        let {functional_groupings} = policy_table;
+        expect(functional_groupings).not.to.be.undefined;
+        let Base4 = functional_groupings['Base-4']
+        expect(Base4).not.to.be.undefined;
+        let {CloseApplication} = Base4.rpcs;
+
+        expect(CloseApplication,`The CloseApplication rpc should be included in Base-4 for production.`).not.to.be.undefined;
+
+
+        expect(CloseApplication.hmi_levels,`RPC is accessible to all levels besides NONE`).to.have.members(
+          [
+              "FULL",
+              "LIMITED",
+              "BACKGROUND"
+          ]
+        );
+
         done();
     }
 );
