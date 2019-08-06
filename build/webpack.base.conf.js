@@ -4,7 +4,7 @@ const webpack = require('webpack')
 const utils = require('./utils')
 const config = require('../config')
 const vueLoaderConfig = require('./vue-loader.conf')
-require('dotenv').config();
+require('dotenv').config(); 
 const settings = require('../settings.js')
 
 function resolve (dir) {

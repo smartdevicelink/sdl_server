@@ -1,6 +1,3 @@
-// var common = require('../../../common');
-// var expect = common.expect;
-var endpoint = '/api/v1/applications';
 const config = require('../../../../settings.js');
 
 let defaultUrl = 'http://' + config.policyServerHost + ':' + config.policyServerPort;
@@ -8,7 +5,7 @@ let BASE_URL = process.env.BASE_URL || defaultUrl;
 const request = require('request');
 
 const chai = require('chai');
-const {expect} = chai;
+const { expect } = chai;
 
 /**
  run as a part of the main test suite or with
@@ -26,8 +23,7 @@ let testApp = {
 
 describe(`/api/v1/module/report tests`, function () {
 
-
-    describe(`create and view report for application from policy update request`, function () {
+    describe(`create and view report for module from policy update request`, function () {
         it(`/api/v1/production/policy POST`, function (done) {
 
             let now = Math.floor(Date.now());
@@ -77,47 +73,27 @@ describe(`/api/v1/module/report tests`, function () {
                       },
                   },
                 json: true
-            }
+            };
 
-
-            request(options,function(err,res,body) {
-                // console.log(err,res.statusCode);
-
+            request(options, function (err, res, body) {
                 expect(res.statusCode).to.be.equal(200);
-
                 done();
-            })
+            });
 
-        })
+        });
 
-        //report is generated asynchronously in the background after a response is give.
-        //there is a chance we can request the application report before it has been generated
-        //giving us an out of date response.
-        it(`wait for report`, function(done) {
-            setTimeout(done,1000);
-        })
-
-
-        it(`/api/v1/module/report GET`, function(done) {
-
+        it(`/api/v1/module/report GET`, function (done) {
 
             let options = {
                 method: 'GET',
                 url: BASE_URL + `/api/v1/module/report`,
                 headers:
                   { 'Content-Type': 'application/json' }
-            }
+            };
 
-
-            request(options,function(err,res,body) {
-                console.log(err,res.statusCode,body);
-
+            request(options, function (err, res, body) {
                 expect(res.statusCode).to.be.equal(200);
-
-                let {data,meta} = JSON.parse(body);
-
-                console.log(JSON.stringify(data,null,' '));
-
+                let { data, meta } = JSON.parse(body);
                 expect(data.report_days).not.to.be.undefined;
                 expect(data.total_device_carrier).not.to.be.undefined;
                 expect(data.total_device_model).not.to.be.undefined;
@@ -126,9 +102,8 @@ describe(`/api/v1/module/report tests`, function () {
                 expect(data.total_policy_table_updates_by_trigger).not.to.be.undefined;
 
                 done();
-            })
-        })
+            });
+        });
 
-
-    })
-})
+    });
+});

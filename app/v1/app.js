@@ -7,6 +7,7 @@ const path = require('path');
 const config = require('../../settings'); //configuration module
 const log = require(`../../custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
+const reportingService = require(`../../lib/reporting-service/index.js`)({db,expirationDays: config.reporting.expirationDays,trackingEnabled: config.reporting.enabled}); //pass in the logger module that's loaded
 const flame = require('../../lib/flame-box');
 const hashify = require('../../lib/hashify');
 const arrayify = require('../../lib/arrayify');
@@ -24,10 +25,7 @@ app.locals.arrayify = arrayify;
 app.locals.emailer = emailer;
 app.locals.flame = flame;
 app.locals.version = path.basename(__dirname);
-
-app.locals.reportingService = new (require('../../lib/reporting/ReportingService'))({db,expirationDays: config.reporting.expirationDays,trackingEnabled: config.reporting.enabled});
-
-
+app.locals.reportingService = reportingService;
 
 // construct base URL, e.g. "http://localhost:3000"
 app.locals.baseUrl = "http";

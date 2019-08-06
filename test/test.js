@@ -36,16 +36,10 @@ describe('SDL SERVER TESTS', function () {
             importTest('/module', './api/v1/module/module');
             importTest('/module/promote', './api/v1/module/promote');
             importTest('/module/report', './api/v1/module/report');
-
-
         });
     });
 
     importTest('cache', './cache/cache');
     importTest('basic-auth', './basicAuth/basicAuth');
-
-    describe('unit', function() {
-        importTest('reporting', './unit/reporting/reporting');
-    })
 
 });

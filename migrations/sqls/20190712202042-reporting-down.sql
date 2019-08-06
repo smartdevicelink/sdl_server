@@ -1,4 +1,4 @@
-drop table if exists policy_table_update_request;
-drop table if exists device;
-drop table if exists app_usage;
+DROP TABLE IF EXISTS policy_table_update_request;
+DROP TABLE IF EXISTS device;
+DROP TABLE IF EXISTS app_usage;
 

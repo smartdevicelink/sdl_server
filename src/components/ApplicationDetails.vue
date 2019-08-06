@@ -705,10 +705,8 @@ export default {
         }
     },
     created: function(){
-        if (this.REPORTING_ENABLED)
-        {
+        if (this.REPORTING_ENABLED) {
             this.populateAppReport();
-
         }
         this.getApp();
     },

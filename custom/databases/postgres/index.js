@@ -76,17 +76,6 @@ module.exports = function (log) {
         getMany(query, params, callback){
             pool.getMany(query, params, callback);
         },
-        doQuery: function(query,callback)
-        {
-            pool.query(query, function (err, res) {
-                if (err) {
-                    log.error(err);
-                    log.error(query);
-                }
-                //always return an array
-                callback(err, (res && res.rows) ? res.rows : []);
-            });
-        },
         //exported functions. these are required to implement
         //this function executes the SQL command in <query> and returns a response using the callback function
         //the callback requires an error parameter and a response from the SQL query
@@ -140,10 +129,6 @@ module.exports = function (log) {
             // reserve a client connection ("client") and its associated release callback ("done")
             // callback(err, client, done)
             pool.connect(callback);
-        },
-        end()
-        {
-            return pool.end();
         },
         begin: function (client, callback){
             // begin a SQL transaction

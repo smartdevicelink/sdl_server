@@ -5,24 +5,12 @@ const model = require('./model.js');
 const flow = app.locals.flow;
 const cache = require('../../../custom/cache');
 
-
-async function getReport(req,res)
-{
-    try {
-        let reportData = await helper.getAggregateReport();
+async function getReport (req, res) {
+    helper.getAggregateReport(function (reportData) {
         return res.parcel.setStatus(200)
-            .setData(reportData)
-            .deliver();
-    }
-    catch (err)
-    {
-        app.locals.log.error(err);
-        return res.parcel
-            .setStatus(500)
-            .setMessage("Internal server error")
-            .deliver();
-    }
-
+          .setData(reportData)
+          .deliver();
+    });
 }
 
 function get (req, res, next) {

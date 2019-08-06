@@ -72,12 +72,11 @@
                                     />
 
                                     <report-table v-if="modelChart && modelChart.rawTable"
-                                                :chart="modelChart"
+                                                  :chart="modelChart"
 
                                     />
 
                                 </div>
-
 
 
                                 <div class="col-sm-6" style="width:550px"
@@ -104,7 +103,7 @@
                 </div>
 
 
-                <div v-if="!ENABLE_REPORTING">
+                <div v-if="!REPORTING_ENABLED">
                     <img src="~@/assets/images/black_graphs/reportingdisabled.png" alt="Reporting is disabled."/>
 
                 </div>
@@ -117,16 +116,13 @@
 
 <script>
 
-    //http://demo.vue-chartjs.org/
-
-
-    import Chart from "./common/Chart";
+    import Chart from './common/Chart';
 
     let obj = {
-        data() {
+        data () {
             return {
                 REPORTING_ENABLED: REPORTING_ENABLED,
-                "aggregateReport": null,
+                'aggregateReport': null,
 
                 ptuChartStacked: null,
                 ptuPieChart: null,
@@ -135,8 +131,7 @@
 
                 carrierChart: null,
 
-
-            }
+            };
         },
         computed: {
             fieldsDisabled: function () {
@@ -144,7 +139,7 @@
             }
         },
         methods: {
-            populateCharts() {
+            populateCharts () {
                 let aggregateReport = this.aggregateReport;
                 let {
                     total_policy_table_updates_by_trigger,
@@ -154,7 +149,6 @@
                     policy_table_updates_by_trigger
                 } = this.aggregateReport;
 
-
                 let labelMapping = {
                     'mileage': 'Mileage',
                     'days': 'Days',
@@ -163,17 +157,15 @@
                     // 'ignition_cycle': 'Ignition Cycle'
                 };
 
-                if (policy_table_updates_by_trigger)
-                {
+                if (policy_table_updates_by_trigger) {
                     let ptuTableTitle = 'Policy Table Updates By Trigger';
 
                     this.ptuChartStacked = Chart.getTimeSeriesStackedFromJson(policy_table_updates_by_trigger, {
                         title: ptuTableTitle,
                         labelMapping,
                         yTitle: 'Event Count'
-                    })
+                    });
                 }
-
 
                 if (total_policy_table_updates_by_trigger) {
                     this.ptuPieChart = Chart.getSmartChartFromJson(total_policy_table_updates_by_trigger, {
@@ -182,30 +174,25 @@
                     });
                 }
 
-
                 if (total_device_os) {
 
-                    let pieChart = Chart.getSmartChartFromJson(total_device_os,{
+                    let pieChart = Chart.getSmartChartFromJson(total_device_os, {
                         labelMapping,
                         title: 'Device OS'
                     });
                     this.deviceOsPie = pieChart;
                 }
 
-
                 if (total_device_model) {
 
-                    this.modelChart = Chart.getSmartChartFromJson(total_device_model,{
+                    this.modelChart = Chart.getSmartChartFromJson(total_device_model, {
                         // strategy: 'table', //go to table if to big for pie chart
                         labelMapping,
                         title: 'Device Models'
                     });
 
-
-
                 }
 
-                //https://community.rstudio.com/t/how-can-i-generate-this-kind-of-polar-chart-in-r-studio/2158/5
                 if (total_device_carrier) {
                     this.carrierChart = Chart.getSmartChartFromJson(total_device_carrier, {
                         labelMapping,
@@ -214,15 +201,14 @@
                     });
                 }
 
-
             }
         },
-        created() {
+        created () {
             let self = this;
-            self.httpRequest("get", "module/report", {}, (err, response) => {
+            self.httpRequest('get', 'module/report', {}, (err, response) => {
                 if (err) {
                     // error
-                    console.error("Error receiving about info.");
+                    console.error('Error receiving about info.');
                     console.error(response);
                 } else {
                     // success
@@ -233,12 +219,11 @@
                 }
             });
         },
-        mounted() {
+        mounted () {
         },
-        beforeDestroy() {
+        beforeDestroy () {
         }
     };
-
 
     export default obj;
 

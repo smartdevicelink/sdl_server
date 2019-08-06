@@ -1,40 +1,40 @@
-create table if not exists policy_table_update_request
+CREATE TABLE IF NOT EXISTS policy_table_update_request
 (
-    id serial not null
-        constraint policy_table_update_request_pk
-            primary key,
-    trigger_event varchar(255),
-    created_ts    timestamp not null,
-    updated_ts    timestamp not null
+    id SERIAL NOT NULL
+        CONSTRAINT policy_table_update_request_pk
+            PRIMARY KEY,
+    trigger_event VARCHAR(255),
+    created_ts    TIMESTAMP,
+    updated_ts    TIMESTAMP
 );
 
-create table if not exists device
+CREATE TABLE IF NOT EXISTS device
 (
-    id char(64)
-    constraint device_pk
-    primary key,
-    carrier varchar,
-    connection_type varchar,
-    hardware varchar,
-    os varchar,
-    os_version varchar,
-    created_ts timestamp,
-    updated_ts timestamp
+    id CHAR(64)
+    CONSTRAINT device_pk
+    PRIMARY KEY,
+    carrier VARCHAR(255),
+    connection_type VARCHAR(255),
+    hardware VARCHAR(255),
+    os VARCHAR(255),
+    os_version VARCHAR(255),
+    created_ts TIMESTAMP,
+    updated_ts TIMESTAMP
 );
 
-create table if not exists app_usage
+CREATE TABLE IF NOT EXISTS app_usage
 (
-    id serial not null
-        constraint app_usage_pk
-            primary key,
-    app_id integer,
-    count_of_user_selections integer,
-    count_of_rejected_rpc_calls integer,
-    minutes_in_hmi_background integer,
-    minutes_in_hmi_full integer,
-    minutes_in_hmi_limited integer,
-    minutes_in_hmi_none integer,
-    created_ts timestamp,
-    updated_ts timestamp
+    id SERIAL NOT NULL
+        CONSTRAINT app_usage_pk
+            PRIMARY KEY,
+    app_id INTEGER,
+    count_of_user_selections INTEGER,
+    count_of_rejected_rpc_calls INTEGER,
+    minutes_in_hmi_background INTEGER,
+    minutes_in_hmi_full INTEGER,
+    minutes_in_hmi_limited INTEGER,
+    minutes_in_hmi_none INTEGER,
+    created_ts TIMESTAMP,
+    updated_ts TIMESTAMP
 );
 
