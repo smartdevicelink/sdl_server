@@ -5,7 +5,7 @@ const model = require('./model.js');
 const flow = app.locals.flow;
 const cache = require('../../../custom/cache');
 
-async function getReport (req, res) {
+function getReport (req, res) {
     helper.getAggregateReport(function (reportData) {
         return res.parcel.setStatus(200)
           .setData(reportData)
@@ -68,7 +68,7 @@ function post (isProduction, req, res, next) {
 
 module.exports = {
     getReport: getReport,
-	get: get,
-	post: post.bind(null, false),
-	promote: post.bind(null, true)
+    get: get,
+    post: post.bind(null, false),
+    promote: post.bind(null, true)
 };

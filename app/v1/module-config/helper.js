@@ -97,7 +97,7 @@ function getModuleConfigFlow (property, value) {
     ], {method: 'waterfall', eventLoop: true});
 }
 
-async function getAggregateReport (cb) {
+function getAggregateReport (cb) {
     let obj = {
         report_days: reportingService.expirationDays,
     };
