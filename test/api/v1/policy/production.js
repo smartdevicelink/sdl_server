@@ -18,28 +18,6 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
-
-        let policy_table = res.body.data[0].policy_table;
-        let functional_groupings = policy_table.functional_groupings;
-
-        expect(functional_groupings).not.to.be.undefined;
-
-
-        let functionGroup;
-        //https://github.com/smartdevicelink/sdl_core/blob/develop/src/appMain/sdl_preloaded_pt.json
-        //Should match the preloaded core policy table for the most part.
-        let Base4 = functional_groupings['Base-4'];
-        functionGroup = Base4;
-        expect(functionGroup).not.to.be.undefined;
-        expect(functionGroup.rpcs.CancelInteraction,`The CancelInteraction rpc should be included in Base-4 for production.`).not.to.be.undefined;
-        expect(functionGroup.rpcs.CancelInteraction.hmi_levels).to.have.members(
-          [
-              "FULL",
-              "LIMITED",
-              "BACKGROUND"
-          ]
-        );
-
         done();
     }
 );
