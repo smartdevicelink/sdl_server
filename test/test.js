@@ -41,5 +41,4 @@ describe('SDL SERVER TESTS', function () {
 
     importTest('cache', './cache/cache');
     importTest('basic-auth', './basicAuth/basicAuth');
-
 });

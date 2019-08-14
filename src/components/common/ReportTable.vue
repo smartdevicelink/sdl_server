@@ -3,12 +3,8 @@
     style="margin-top:50px">
         <div class="report-title"
               style="font-family:LivioNorm, Helvetica, sans-serif;font-size:25px;text-align:center"
-
         >
-
-
-        {{chart.layout.title}}
-
+            {{chart.layout.title}}
         </div>
 
         <div >
@@ -42,7 +38,6 @@
         data () {
 
             let obj = {
-                // chart: null,
                 headerRow: null,
                 bodyRows: null,
             };
