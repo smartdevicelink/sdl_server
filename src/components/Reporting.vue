@@ -1,6 +1,5 @@
 <!-- Copyright (c) 2018, Livio, Inc. -->
 
-<!--https://community.rstudio.com/t/how-can-i-generate-this-kind-of-polar-chart-in-r-studio/2158/4-->
 <template>
     <div class="container-fluid color-bg-gray">
         <div class="row">
@@ -15,7 +14,6 @@
 
                     <div v-if="aggregateReport">
 
-                        <!--                         class="form-row mb-0"-->
                         <div>
                             <h4>Policy Table Updates</h4>
 

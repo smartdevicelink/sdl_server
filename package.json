@@ -41,7 +41,7 @@
     "dotenv": "4.0.0",
     "express": "4.16.0",
     "helmet": "^3.15.1",
-    "jquery": "^3.2.1",
+    "jquery": "3.2.1",
     "lodash.get": "4.4.2",
     "moment": "^2.24.0",
     "mustache": "^3.0.1",

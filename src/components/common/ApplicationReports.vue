@@ -77,23 +77,7 @@
 
     let obj = {
         props: [
-            'appReport' //usage aggregates by day for this application.
-            // eg {
-            //     "app": {
-            //         "name": "TEST APP"
-            //     },
-            //     "report_days": 30,
-            //     "aggregate_counts": {
-            //         "usage_time": {
-            //             "minutes_in_hmi_background": 100,
-            //             "minutes_in_hmi_full": 1000,
-            //             "minutes_in_hmi_limited": 20,
-            //             "minutes_in_hmi_none": 2
-            //         },
-            //         "count_of_user_selections": 10,
-            //         "count_of_rejected_rpcs_calls": 100
-            //     }
-            // }
+            'appReport'
         ],
         data () {
             let obj = {

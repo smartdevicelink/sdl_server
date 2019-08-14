@@ -44,72 +44,34 @@
 </template>
 
 <script>
-
-
-    // #SDL Server
-    // ##Statistics Recording & Visualizations - UI Colors
-
     let chartColors = {
         positive: `#76c26a`,
         negative: `#ff5e71`,
         neutral: `#b8c5cf`,
-        // red: '#DD1B16'
-        // green: '#aeb4a9',
-        // red: '#c37d92',
-        // orange: '#e0c1b3',
-        // brown: '#846267'
     };
-    // __Pos__
-    //     `#76c26a`
-    //
-    // __Neg__
-    //     `#ff5e71`
-    //
-    // __Null__
-    //     `#b8c5cf`
 
-    // ####Sequential Hierarchical Datasets
-        let sequential_colors = [
-        `#f68b47`,
-
-        `#43a37b`,
-
-        `#3e566a`,
-
-        `#07151f`,
-
-        `#b8c5cf`,
-
-        `#50bbb8`,
-
-        `#5c93ca`,
-
-        `#ffc45c`,
-
-        `#98c8e8`,
-
-        `#c58dbf`,
-
-        `#f0576b`,
-
-        `#ffa2d3`,
-
-        `#adadad`,
-
-        `#245996`,
-
-        `#a1c9ff`,
-
-        `#ff978a`,
-
-        `#8198aa`,
-
-        `#aba6ff`,
-
-        `#d3b38e`,
-
-        `#007d92`,
-            ];
+    let sequential_colors = [
+            `#f68b47`,
+            `#43a37b`,
+            `#3e566a`,
+            `#07151f`,
+            `#b8c5cf`,
+            `#50bbb8`,
+            `#5c93ca`,
+            `#ffc45c`,
+            `#98c8e8`,
+            `#c58dbf`,
+            `#f0576b`,
+            `#ffa2d3`,
+            `#adadad`,
+            `#245996`,
+            `#a1c9ff`,
+            `#ff978a`,
+            `#8198aa`,
+            `#aba6ff`,
+            `#d3b38e`,
+            `#007d92`,
+    ];
 
     chartColors = Object.assign(chartColors,sequential_colors);
 
@@ -119,7 +81,6 @@
         font: {
             family: 'LivioNorm, Helvetica, sans-serif',
             size: 18,
-            // color: '#7f7f7f'
         },
     }
 
@@ -146,62 +107,6 @@
                     }]
                 }
             }
-    };
-
-    let exampleDataSets = {
-        simpleTimeSeries1: {
-            // stacked: true,
-            label: "Simple 1",
-            data: [{
-                x: '2017-03-01', //can also use date. need to be cautious of timezones
-                y: 1
-            }, {
-                x: '2017-03-02',
-                y: 2
-            }, {
-                x: '2017-03-03',
-                y: 3
-            }, {
-                x: '2017-03-04',
-                y: 4
-            }],
-            backgroundColor: chartColors[1]
-        },
-        simpleTimeSeries2: {
-            label: "Simple 2",
-            data: [{
-                x: '2017-03-01',
-                y: 1
-            }, {
-                x: '2017-03-02',
-                y: 2
-            }, {
-                x: '2017-03-03',
-                y: 3
-            }, {
-                // x: '2017-03-04',
-                x: '2017-03-04',
-                y: 4
-            }],
-            backgroundColor: chartColors[2]
-        },
-        simpleTimeSeries3: {
-            label: "Simple 3",
-            data: [{
-                x: '2017-03-01',
-                y: 1
-            }, {
-                x: '2017-03-02',
-                y: 2
-            }, {
-                x: '2017-03-03',
-                y: 3
-            }, {
-                x: '2017-03-04',
-                y: 4
-            }],
-            backgroundColor: chartColors[3]
-        }
     };
 
     let self;
@@ -272,7 +177,6 @@
 
                     layout: {
 
-                        //font-family: LivioNorm, Helvetica, sans-serif;
                         font: defaultLayout.font,
 
                         plot_bgcolor: options.plot_bgcolor,
@@ -284,10 +188,6 @@
                             title: {
                                 text: options.xTitle
                             }
-                            // title: {
-                            //     text: options.xTitle, //options.isPercent ? '%' : 'Total'
-                            // },
-
                         },
 
                         yaxis: {
@@ -301,7 +201,6 @@
                     },
                     options: {
                         displayModeBar: false,
-                        // modeBarButtonsToRemove
                         yaxis: {
                             fixedrange: true
                         },
@@ -440,15 +339,7 @@
                     }
                 }
 
-
-                //                            family: 'LivioNorm, Helvetica, sans-serif',
-
                 let family = defaultLayout.font.family;
-                //TODO style table
-
-                //https://plot.ly/javascript/table/
-                //https://community.plot.ly/t/cell-padding-in-plotly-table/21725
-                //https://community.plot.ly/t/how-to-change-the-padding-of-a-graph/6784
                 let data = [
                     {
                         rawTable,
@@ -466,7 +357,6 @@
                                 color: "#A9B3BD",
                             weight: "bold"}
                         },
-                        //https://plot.ly/javascript/reference/#table-cells
                         cells: {
                             height: 100,
                             values: (function() {
@@ -487,13 +377,9 @@
                             })() ,
                             align: "center",
                             line: {color: "black", width: 1},
-                            // fill: {color: [sequential_colors[1],'white']},
-                            // fill: {color: ['#25FEFD', 'white']},
                             font: {
                                 family: family,
                                 size: 11,
-                                // color: "#A9B3BD",
-                                // weight: "bold"
                             }
                         }
 
@@ -513,16 +399,9 @@
 
                         autosize: true,
                         margin: {
-                            // l: 80,
-                            // r: 50,
-                            // b: 50,
-                            // t: 150
                         },
 
                         xaxis: {
-                            // title: {
-                            //     text: options.xTitle, //options.isPercent ? '%' : 'Total'
-                            // },
                             automargin: true,
 
                         },
@@ -541,7 +420,6 @@
                     }
                 }
             },
-            //
 
             getTopCategories(obj,limit)
             {
@@ -553,7 +431,7 @@
                     title: '',
                     plot_bgcolor: defaultLayout.plot_bgcolor,
                     paper_bgcolor: defaultLayout.paper_bgcolor,
-                    limitCategories: 10, //limit unique keys to 10 by default. others will be grouped into other.
+                    limitCategories: 10,
                 };
 
 
@@ -577,7 +455,7 @@
                 for (let key in obj)
                 {
 
-                    keyCount++; //original keyCount
+                    keyCount++;
 
                     records.push({
                         key,
@@ -585,7 +463,6 @@
                     });
                 }
 
-                //sort and fetch 10 x.
                 if (options.limitCategories && options.limitCategories < records.length)
                 {
                     records.sort(function(a,b) {
@@ -646,7 +523,6 @@
 
 
 
-                //too large for a pie chart go to another based on strategy given
                 if (keyCount > maxLabelCount)
                 {
                     if (strategy === 'table')
@@ -657,8 +533,8 @@
                     {
                         return self.getBarChartPlotly(obj,options);
                     }
-                    else { //apply default based on size.
-                        if (keyCount > 15) //for vary large number of keys use a table
+                    else {
+                        if (keyCount > 15)
                         {
                             return self.getTableFromJson(obj,options);
                         }
@@ -680,8 +556,6 @@
                     }
                 ];
 
-                //https://github.com/plotly/plotly.js/issues/53
-                //https://github.com/plotly/plotly.js/issues/296
                 let chart = {
                     data,
 
@@ -698,16 +572,10 @@
 
                         autosize: true,
                         margin: {
-                            // l: 80,
-                            // r: 50,
-                            // b: 50,
                             t: 150
                         },
 
                         xaxis: {
-                            // title: {
-                            //     text: options.xTitle, //options.isPercent ? '%' : 'Total'
-                            // },
                             automargin: true,
 
                         },
@@ -734,7 +602,7 @@
             {
                 options = options || {};
                 let defaultOptions = {
-                    sort: false, //already sorted by smart
+                    sort: false,
                     isPercent: true,
                     title: '',
                     plot_bgcolor: defaultLayout.plot_bgcolor,
@@ -758,11 +626,6 @@
                     total += record.value;
                 }
 
-
-
-                // if (options.sort)
-                // {
-                //place other last.
                 dataAry.sort(function(a,b) {
                     let aValue = a.key === 'Other' ? -100 : a.value;
                     let bValue = b.key === 'Other' ? -100 :  b.value;
@@ -782,9 +645,6 @@
                             color: []
                         },
                         textposition: 'auto',
-                        // textposition: 'top',
-                        // textposition: 'outside',
-
                         orientation: 'h',
                         hoverinfo: 'x',
 
@@ -792,8 +652,6 @@
 
                     }
                 ];
-                // let labels = [];
-                // let backgroundColor = [];
 
                 for (let i in dataAry) {
                     let record = dataAry[i];
@@ -826,14 +684,6 @@
 
                 }
 
-                //https://plot.ly/javascript/figure-labels/
-                //https://stackoverflow.com/questions/36596947/long-tick-labels-getting-cut-off-in-plotly-js-chart
-                //https://plot.ly/python/hover-text-and-formatting/
-                //https://codepen.io/etpinard/pen/NaVrZz?editors=0010
-                //https://plot.ly/javascript/setting-graph-size/
-                //https://plot.ly/javascript/reference/#layout-plot_bgcolor
-                //https://community.plot.ly/t/plot-background-how-can-i-setup-it/6617
-                //https://plot.ly/javascript/reference/#layout-xaxis-ticklen
                 let chart = {
                     layout: {
                         font: defaultLayout.font,
@@ -841,14 +691,11 @@
 
                         plot_bgcolor: options.plot_bgcolor,
                         paper_bgcolor: options.plot_bgcolor,
-                        // bgcolor: "#F4F5F7",
 
 
                         title: options.title,
-                        // hovermode: false, //No tooltip is required
                         hovermode: 'closest',
 
-                        // width: 700,
                         height: 700,
                         autosize: true,
                         xaxis: {
@@ -861,9 +708,7 @@
 
                         },
                         yaxis: {
-                            // ticklen: 100,
-                            // tickwidth: 100,
-                            ticksuffix: '  ', //no margin but can add spaces to labels this way.
+                            ticksuffix: '  ',
 
                             automargin: true,
                         }
@@ -903,74 +748,24 @@
                 }
 
                 let plugins = {
-                    labels: { //https://github.com/emn178/chartjs-plugin-labels
-// render 'label', 'value', 'percentage', 'image' or custom function, default is 'percentage'
-//                     render: 'value',
-
+                    labels: {
                         render: function (args) {
-                            // args will be something like:
-                            // { label: 'Label', value: 123, percentage: 50, index: 0, dataset: {...} }
                             return args.label + ' ' + args.percentage + '%';
-
-                            // return object if it is image
-                            // return { src: 'image.png', width: 16, height: 16 };
                         },
-
-                        // render: 'percentage',
-                        // precision for percentage, default is 0
                         precision: 0,
-
-                        // identifies whether or not labels of value 0 are displayed, default is false
                         showZero: true,
-
-                        // font size, default is defaultFontSize
                         fontSize: 15,
-
-                        // font color, can be color array for each data or function for dynamic color, default is defaultFontColor
                         fontColor: '#fff',
-
-                        // font style, default is defaultFontStyle
                         fontStyle: 'bold',
-
-                        // font family, default is defaultFontFamily
                         fontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
-
-                        // draw text shadows under labels, default is false
                         textShadow: true,
-
-                        // text shadow intensity, default is 6
-                        // shadowBlur: 10,
-
-                        // text shadow X offset, default is 3
-                        // shadowOffsetX: -5,
-
-                        // text shadow Y offset, default is 3
-                        // shadowOffsetY: 5,
-
                         shadowBlur: 0,
                         shadowOffsetX: 0,
                         shadowOffsetY: 0,
-
-                        // text shadow color, default is 'rgba(0,0,0,0.3)'
                         shadowColor: 'rgba(0,0,0,1)',
-
-                        // draw label in arc, default is false
-                        // bar chart ignores this
-                        // arc: true,
-
-                        // position to draw label, available value is 'default', 'border' and 'outside'
-                        // bar chart ignores this
-                        // default is 'default'
                         position: 'default',
-
-                        // draw label even it's overlap, default is true
-                        // bar chart ignores this
                         overlap: true,
-
-                        // show the real calculated percentages from the values and don't apply the additional logic to fit the percentages to 100 in total, default is false
                         showActualPercentages: true,
-
-                        // set images when `render` is 'image'
                         images: [
                             {
                                 src: 'image.png',
@@ -978,13 +773,7 @@
                                 height: 16
                             }
                         ],
-
-                        // add padding when position is `outside`
-                        // default is 2
                         outsidePadding: 4,
-
-                        // add margin of text when position is `outside` or `border`
-                        // default is 2
                         textMargin: 4
 
                     }
@@ -1000,16 +789,6 @@
                         plugins,
                         responsive: false,
                         maintainAspectRatio: false
-                        // responsive:true,
-                        // maintainAspectRatio: false,
-                        // maintainAspectRatio: false, //allow resizing
-                        // pieceLabel: {
-                        //     mode: 'percentage',
-                        //     precision: 1
-                        // },
-                        // tooltips: {
-                        //     // enabled: false
-                        // },
                     },
                     data: {
                         datasets: [
@@ -1046,21 +825,6 @@
             },
             defaultOptions,
             chartColors,
-            exampleCharts: {
-                stackedTimeSeries: {
-                    type: 'bar-chart',
-                    options: defaultOptions.stackedTimeSeries,
-                    data: {
-                        datasets: [
-                            exampleDataSets.simpleTimeSeries1,
-                            exampleDataSets.simpleTimeSeries2,
-                            exampleDataSets.simpleTimeSeries3,
-                        ]
-                    },
-
-                },
-
-            }
         };
 
     export default obj;
