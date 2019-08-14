@@ -5,6 +5,9 @@ const flow = app.locals.flow;
 const async = require('async');
 
 function getReport (req, res, next) {
+	if(req.query.id === null || req.query.id === undefined) {
+		return res.parcel.setStatus(400).setMessage('id required').deliver();
+	}
 	helper.getAggregateReportByAppId(req.query.id, function (reportData) {
 		return res.parcel.setStatus(200)
 		.setData(reportData)
