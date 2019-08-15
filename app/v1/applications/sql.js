@@ -397,6 +397,7 @@ function insertAppInfo (obj) {
 
     if (obj.approval_status) { //has a defined approval_status. otherwise leave as default
         insertObj.approval_status = obj.approval_status;
+        insertObj.encryption_required = obj.encryption_required || false;
     }
 
     return sql.insert('app_info', insertObj)
@@ -754,6 +755,18 @@ function insertAppAutoApproval (obj) {
         .toString();
 }
 
+function updateRPCEncryption(obj) {
+    return sql.update('app_info')
+        .set({
+            'encryption_required': obj.encryption_required
+        })
+        .where({
+            'id': obj.id
+        })
+        .returning('*')
+        .toString();
+}
+
 function insertAppBlacklist (obj) {
     return sql.insert('app_oem_enablements', 'app_uuid, key')
         .select(`'${obj.uuid}' AS app_uuid, 'blacklist' AS key`)
@@ -916,6 +929,7 @@ module.exports = {
     deletePassthrough: deletePassthrough,
     insertHybridPreference: insertHybridPreference,
     deleteHybridPreference: deleteHybridPreference,
+    updateRPCEncryption: updateRPCEncryption,
     insertAppBlacklist: insertAppBlacklist,
     deleteAppBlacklist: deleteAppBlacklist,
     getBlacklistedApps: getBlacklistedApps,

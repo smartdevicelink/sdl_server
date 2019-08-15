@@ -110,6 +110,7 @@ function baseTemplate (objOverride) {
         is_device: false,
         is_app_provider_group: false,
         is_administrator_group: false,
+        encryption_required: false,
         is_deleted: false,
         user_consent_prompt: null,
         rpcs: []
@@ -127,6 +128,7 @@ function baseTemplate (objOverride) {
         obj.is_device = objOverride.is_device;
         obj.is_app_provider_group = objOverride.is_app_provider_group;
         obj.is_administrator_group = objOverride.is_administrator_group;
+        obj.encryption_required = objOverride.encryption_required;
         obj.is_deleted = objOverride.is_deleted;
     }
 
@@ -277,6 +279,7 @@ function convertToInsertableFunctionalGroupInfo (functionalGroupObj, statusOverr
         is_device: functionalGroupObj.is_device || false,
         is_app_provider_group: functionalGroupObj.is_app_provider_group || false,
         is_administrator_group: functionalGroupObj.is_administrator_group || false,
+        encryption_required : functionalGroupObj.encryption_required || false,
         description: functionalGroupObj.description || null,
         is_deleted: functionalGroupObj.is_deleted || false
     };

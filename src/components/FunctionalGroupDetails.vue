@@ -83,6 +83,16 @@
                         </b-form-checkbox>
                     </div>
 
+                    <div class="form-row">
+                        <h4 for="is-default">Encryption</h4>
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.encryption_required"
+                            v-bind:disabled="fieldsDisabled">
+                            Require RPCs in this functional group to be encrypted
+                        </b-form-checkbox>
+                    </div>
+
                     <!-- RPC containers -->
                     <div class="form-row">
                         <h4 for="rpcs">RPCs</h4>

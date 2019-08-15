@@ -66,6 +66,7 @@ function exposeRoutes () {
 	app.post('/applications/administrator', auth.validateAuth, applications.administratorPost);
 	app.post('/applications/passthrough', auth.validateAuth, applications.passthroughPost);
 	app.post('/applications/hybrid', auth.validateAuth, applications.hybridPost);
+	app.put('/applications/rpcencryption', auth.validateAuth, applications.rpcEncryptionPut);
 	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes

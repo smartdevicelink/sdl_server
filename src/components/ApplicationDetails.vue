@@ -48,7 +48,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="icon"><img class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" /></td>
+                                    <td class="icon">
+                                        <img v-if="app.icon_url" v-bind:src="app.icon_url" class="rounded" style="width: 40px; height: 40px;" />
+                                        <img v-else class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" />
                                     <td class="title">{{ app.name }}</td>
                                     <td>{{ app.updated_ts }}</td>
                                     <td>{{ app.platform }}</td>
@@ -113,7 +115,7 @@
                             <span class="slider round"></span>
                         </label>
                         <label class="form-check-label switch-label">
-                          Automatically approve future updates to this app
+                          Automatically approve <b>future versions</b> of this app
                         </label>
                     </div>
                     <div class="mt-2 mb-2">
@@ -122,16 +124,25 @@
                             <span class="slider round"></span>
                         </label>
                         <label class="form-check-label switch-label">
-                          Grant this app access to "Administrator" Functional Groups<a class="fa fa-exclamation-circle color-primary doc-link" v-b-tooltip.hover title="Manage Administator permissions via the Functional Groups tab"></a>
+                          Grant <b>all versions of this app</b> access to "Administrator" Functional Groups<a class="fa fa-exclamation-circle color-primary doc-link" v-b-tooltip.hover title="Manage Administator permissions via the Functional Groups tab"></a>
                         </label>
                     </div>
-                    <div class="mt-2 mb-5">
+                    <div class="mt-2 mb-2">
                         <label class="switch">
                             <input v-on:click="togglePassthroughClick" type="checkbox" :checked="app.allow_unknown_rpc_passthrough"></input>
                             <span class="slider round"></span>
                         </label>
                         <label class="form-check-label switch-label">
-                          Allow app to send unknown RPCs through App Service RPC passthrough
+                          Allow <b>all versions of this app</b> to send unknown RPCs through App Service RPC passthrough
+                        </label>
+                    </div>
+                    <div class="mt-2 mb-5">
+                        <label class="switch">
+                            <input v-on:click="toggleRPCEncryptionClick" type="checkbox" :checked="app.encryption_required"></input>
+                            <span class="slider round"></span>
+                        </label>
+                        <label class="form-check-label switch-label">
+                          Require RPC encryption for <b>this version</b> of the app
                         </label>
                     </div>
                 </div>
@@ -568,6 +579,27 @@ export default {
                 }else{
                     // success
                     console.log("RPC Passthrough setting changed to: " + this.app.allow_unknown_rpc_passthrough);
+                    this.getApp();
+                }
+            });
+        },
+        "toggleRPCEncryptionClick": function(){
+            this.app.encryption_required = !this.app.encryption_required;
+            console.log("Requesting RPC Encryption change to: " + this.app.encryption_required);
+
+            this.httpRequest("put", "applications/rpcencryption", {
+                "body": {
+                    "id": this.app.id,
+                    "encryption_required": this.app.encryption_required
+                }
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error changing RPC Encryption app setting.");
+                    this.app.encryption_required = !this.app.encryption_required;
+                }else{
+                    // success
+                    console.log("RPC Encryption setting changed to: " + this.app.encryption_required);
                     this.getApp();
                 }
             });

@@ -44,6 +44,13 @@ function validateAutoPost (req, res) {
     return;
 }
 
+function validateRPCEncryptionPut (req, res) {
+	if (!req.body.id || !check.boolean(req.body.encryption_required)) {
+		res.parcel.setStatus(400).setMessage("id and encryption_required required");
+	}
+    return;
+}
+
 function validateAdministratorPost (req, res) {
 	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_administrator_app)) {
 		res.parcel.setStatus(400).setMessage("uuid and is_administrator_app required");
@@ -190,6 +197,7 @@ function autoApprovalModifier (appObj, next) {
 	// check if auto-approve *all apps* is enabled
 	if(config.autoApproveAllApps){
 		appObj.approval_status = 'ACCEPTED';
+		appObj.encryption_required = config.autoApproveSetRPCEncryption;
 		next(null, appObj);
 		return;
 	}
@@ -200,6 +208,7 @@ function autoApprovalModifier (appObj, next) {
         //change the status of this appObj to ACCEPTED
         if (res.length > 0) {
             appObj.approval_status = 'ACCEPTED';
+			appObj.encryption_required = config.autoApproveSetRPCEncryption;
         }
         next(null, appObj);
     });
@@ -270,6 +279,7 @@ module.exports = {
 	validateAdministratorPost: validateAdministratorPost,
 	validatePassthroughPost: validatePassthroughPost,
 	validateHybridPost: validateHybridPost,
+	validateRPCEncryptionPut: validateRPCEncryptionPut,
 	validateServicePermissionPut: validateServicePermissionPut,
     validateWebHook: validateWebHook,
 	createAppInfoFlow: createAppInfoFlow,

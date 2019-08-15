@@ -119,6 +119,8 @@ function transformFunctionalGroups (isProduction, info, next) {
     for (let i = 0; i < baseInfo.length; i++) {
         groupedData[baseInfo[i].id] = {};
 
+        groupedData[baseInfo[i].id].encryption_required = baseInfo[i].encryption_required;
+
         const selectedPrompt = consentPrompts.find(function (prompt) {
             return prompt.message_category === baseInfo[i].user_consent_prompt;
         });
@@ -266,12 +268,13 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         app_services: appServiceObj,
         allow_unknown_rpc_passthrough: res.appPassthrough.length ? true : false
     };
-    
+
     if (appObj.icon_url) appPolicyObj[uuidProp].icon_url = appObj.icon_url;
     if (appObj.cloud_endpoint) appPolicyObj[uuidProp].endpoint = appObj.cloud_endpoint;
     if (appObj.cloud_transport_type) appPolicyObj[uuidProp].cloud_transport_type = appObj.cloud_transport_type;
     if (appObj.ca_certificate) appPolicyObj[uuidProp].certificate = appObj.ca_certificate;
     if (res.hybridPreference.length) appPolicyObj[uuidProp].hybrid_app_preference = res.hybridPreference[0].hybrid_preference;
+    if (appObj.encryption_required) appPolicyObj[uuidProp].encryption_required = appObj.encryption_required;
 
     if(res.incomingAppPolicy){
         if (res.incomingAppPolicy.enabled !== undefined) appPolicyObj[uuidProp].enabled = res.incomingAppPolicy.enabled;

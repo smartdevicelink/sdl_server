@@ -50,6 +50,7 @@ Here are the environment variables that will most likely be used:
 * `NOTIFY_APP_REVIEW_FREQUENCY`: String enum (DISABLED, REALTIME). The frequency of which outgoing emails should be sent to notify the OEM of new apps ready for review. Default DISABLED.
 * `NOTIFY_APP_REVIEW_EMAILS`: String. A comma-separated list of email addresses to send an email to when new apps are ready for review. Default empty string.
 * `AUTO_APPROVE_ALL_APPS`: String boolean ("true" or "false"). Whether or not to auto-approve all app versions received by SHAID (except for blacklisted apps). Default "false".
+* `ENCRYPTION_REQUIRED`: String boolean ("true" or "false"). Whether or not to require RPC encryption for auto-approved app versions. Default "false".
 
 * `STAGING_PG_USER` **DEPRECATED**: String. The name of the user to allow the server access the database (staging mode)
 * `STAGING_PG_DATABASE` **DEPRECATED**: String. The name of the database where policy and app data is stored (staging mode)

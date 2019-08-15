@@ -182,21 +182,6 @@ function getFuncGroupParametersByIdsStagingFilter (ids) {
         .toString();
 }
 
-function insertFuncGroupInfo (objs) {
-    return objs.map(function (obj) {
-        return sql.insert('function_group_info', {
-            property_name: obj.property_name,
-            user_consent_prompt: obj.user_consent_prompt,
-            status: obj.status,
-            is_default: obj.is_default,
-            description: obj.description,
-            is_deleted: obj.is_deleted
-        })
-        .returning('*')
-        .toString(); //return the results of the inserts
-    });
-}
-
 function insertHmiLevels (hmiLevels) {
     return hmiLevels.map(function (obj) {
         return sql.insert('function_group_hmi_levels', {
@@ -241,7 +226,6 @@ module.exports = {
             ids: getFuncGroupParametersByIdsStagingFilter
         }
     },
-    insertFuncGroupInfo: insertFuncGroupInfo,
     insertHmiLevels: insertHmiLevels,
     insertParameters: insertParameters
 }
