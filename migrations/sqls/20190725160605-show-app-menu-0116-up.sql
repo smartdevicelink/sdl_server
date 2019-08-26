@@ -4,9 +4,9 @@ INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_le
 SELECT id AS function_group_id, 'ShowAppMenu' AS permission_name, 'FULL'::hmi_level AS hmi_level
 FROM function_group_info
 WHERE property_name IN ('Base-4', 'Base-6')
-  AND NOT EXISTS(
+    AND NOT EXISTS(
         SELECT 1
-        FROM function_group_hmi_levels
-        WHERE permission_name='ShowAppMenu'
-          AND hmi_level='FULL'
+            FROM function_group_hmi_levels
+            WHERE permission_name = 'ShowAppMenu'
+            AND hmi_level = 'FULL'
     );
