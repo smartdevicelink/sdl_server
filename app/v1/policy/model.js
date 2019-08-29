@@ -43,6 +43,14 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
             },
             "lock_screen_icon_url": {
                 default: [base.lock_screen_default_url]
+            },
+            "custom_vehicle_data_mapping_url": {
+                default: [base.custom_vehicle_data_mapping_url]
+            }
+        },
+        "endpoint_properties": {
+            "custom_vehicle_data_mapping_url": {
+                "version": base.custom_vehicle_data_mapping_url_version
             }
         },
         "notifications_per_minute_by_priority": {

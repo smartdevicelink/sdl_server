@@ -49,6 +49,7 @@ const services = require('./services/controller.js');
 const moduleConfig = require('./module-config/controller.js');
 const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
+const vehicleData = require('./vehicle-data/controller.js');
 
 function exposeRoutes () {
 	// use helmet middleware for security
@@ -89,6 +90,11 @@ function exposeRoutes () {
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
 	app.get('/about', auth.validateAuth, about.getInfo);
+    //begin vehicle data routes
+    app.post('/vehicle-data', auth.validateAuth, vehicleData.post);
+    app.get('/vehicle-data', auth.validateAuth, vehicleData.get);
+    app.get('/vehicle-data/reserved-params', auth.validateAuth, vehicleData.getVehicleDataReservedParams);
+    app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote);
 }
 
 function updatePermissionsAndGenerateTemplates (next) {
@@ -129,6 +135,18 @@ flame.async.parallel([
 			next();
 		});
 	},
+     function(next) {
+         vehicleData.updateVehicleDataReservedParams(function() {
+             log.info('Reserved Vehicle Data Params Updated');
+             next();
+         });
+     },
+     function(next) {
+         vehicleData.updateVehicleDataEnums(function() {
+             log.info('Vehicle Data Enums Updated');
+             next();
+         });
+     },
 ], function () {
 	log.info("Start up complete. Exposing routes.");
 	exposeRoutes();

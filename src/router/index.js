@@ -16,6 +16,7 @@ import PolicyTable from '@/components/PolicyTable'
 import User from '@/components/User'
 import Invite from '@/components/Invite'
 import NotFound from '@/components/NotFound'
+import VehicleData from '@/components/VehicleData'
 
 var authType = AUTH_TYPE; // defined via webpack build
 
@@ -137,6 +138,15 @@ const router = new Router({
             meta: {
                 auth: true,
                 title: 'Policy Server - Consumer Friendly Messages'
+            }
+        },
+        {
+            path: '/vehicledata/',
+            name: 'VehicleData',
+            component: VehicleData,
+            meta: {
+                auth: true,
+                title: 'Policy Server - Custom Vehicle Data'
             }
         },
         {

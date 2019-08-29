@@ -989,6 +989,9 @@ input:checked + .slider:before {
 .functional-content .rpc-container {
     border-bottom: 1px solid #CCCCCC;
 }
+.functional-content .rpc-container .left-border {
+    border-left: 1px solid #CCCCCC;
+}
 .functional-content .rpc-container label {
     color: #4A5E71;
 }

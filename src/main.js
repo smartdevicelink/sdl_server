@@ -17,6 +17,7 @@ import RpcItem from './components/common/RpcItem'
 import RpcChecklist from './components/common/RpcChecklist'
 import HmiSelector from './components/common/HmiSelector'
 import MessageItem from './components/common/MessageItem'
+import SchemaItem from './components/common/SchemaItem'
 import CardItem from './components/common/CardItem'
 import PatternInput from './components/common/PatternInput'
 
@@ -46,6 +47,7 @@ Vue.component("hmi-selector", HmiSelector);
 Vue.component("message-item", MessageItem);
 Vue.component("card-item", CardItem);
 Vue.component("pattern-input", PatternInput);
+Vue.component("schema-item", SchemaItem);
 
 Vue.http.options.root = '/api/v1';
 

@@ -53,7 +53,8 @@ function createPolicyTableResponse (pieces, encrypt = false) {
                 module_config: pieces.moduleConfig,
                 functional_groupings: pieces.functionalGroups,
                 consumer_friendly_messages: pieces.consumerFriendlyMessages,
-                app_policies: pieces.appPolicies
+                app_policies: pieces.appPolicies,
+                vehicle_data: pieces.vehicleData,
             }
         }
     ];
