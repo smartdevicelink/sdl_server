@@ -8,8 +8,8 @@ CROSS JOIN (
 ) AS v(hmi_level)
 WHERE property_name = 'Base-4'
     AND NOT EXISTS(
-    SELECT 1
-    FROM function_group_hmi_levels
-        WHERE property_name = 'Base-4'
-            AND permission_name = 'CancelInteraction'
+        SELECT 1
+        FROM function_group_hmi_levels
+            WHERE property_name = 'Base-4'
+                AND permission_name = 'CancelInteraction'
     );
