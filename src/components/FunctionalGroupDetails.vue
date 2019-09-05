@@ -81,6 +81,13 @@
                             v-bind:disabled="fieldsDisabled">
                             Grant this functional group to applications with "Administrator" privileges
                         </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_widget_group"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to applications with widget management privileges
+                        </b-form-checkbox>
                     </div>
 
                     <!-- RPC containers -->

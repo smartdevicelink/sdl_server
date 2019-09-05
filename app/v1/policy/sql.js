@@ -188,6 +188,14 @@ function getAppFunctionalGroups (isProduction, appObj) {
         );
     }
 
+    if (appObj.can_manage_widgets) {
+        sqlOr.push(
+            {
+                'view_function_group_info.is_widget_group': true
+            }
+        );
+    }
+
     let statement = funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)
         .where(
             sql.or(sqlOr)
