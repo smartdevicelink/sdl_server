@@ -91,7 +91,7 @@ function createAppInfoFlow (filterTypeFunc, value) {
 
 //application store functions
 
-function storeApps (includeApprovalStatus, apps, callback) {
+function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
     let queue = [];
     function recStore(includeApprovalStatus, theseApps, cb){
         const fullFlow = flow([
@@ -107,7 +107,7 @@ function storeApps (includeApprovalStatus, apps, callback) {
 				flame.async.map(appObjs, autoBlacklistModifier, next);
 			},
             function (appObjs, next) {
-                flame.async.map(appObjs, model.storeApp, next);
+                flame.async.map(appObjs, model.storeApp.bind(null, notifyOEM), next);
             }
         ], {method: "waterfall", eventLoop: true});
 
@@ -243,7 +243,7 @@ function attemptRetry(milliseconds, retryQueue){
 							flame.async.map(appObjs, autoBlacklistModifier, callback);
 						},
                         function (appObjs, callback) {
-                            flame.async.map(appObjs, model.storeApp, callback);
+                            flame.async.map(appObjs, model.storeApp.bind(null, true), callback);
                         }
                     ], {method: "waterfall", eventLoop: true});
                     fullFlow(function (err, res) {

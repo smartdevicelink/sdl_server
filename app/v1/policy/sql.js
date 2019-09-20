@@ -81,34 +81,27 @@ function getDeviceFunctionalGroups (isProduction) {
 
 function getAppFunctionalGroups (isProduction, appObj) {
     let sqlOr = [
+        //adds functional groups marked as default
         {
             'view_function_group_info.is_default': true
         },
+        //adds functional groups which contain an RPC in the HMI level the app is requesting
         sql.exists(
             sql.select()
                 .from('app_permissions ap')
                 .join('hmi_level_conversion hlc', {
                     'hlc.hmi_level_text': 'ap.hmi_level'
                 })
-                .join('function_group_parameters fgp', {
-                    'fgp.rpc_name': 'ap.permission_name'
+                .join('function_group_hmi_levels fghl', {
+                    'fghl.permission_name': 'ap.permission_name',
+                    'fghl.hmi_level': 'hlc.hmi_level_enum'
                 })
                 .where({
                     'ap.app_id': appObj.id,
-                    'fgp.function_group_id': sql('view_function_group_info.id')
+                    'fghl.function_group_id': sql('view_function_group_info.id')
                 })
-                .where(
-                    sql.exists(
-                        sql.select()
-                        .from('function_group_hmi_levels fghl')
-                        .where({
-                            'fghl.permission_name': sql('ap.permission_name'),
-                            'fghl.function_group_id': sql('view_function_group_info.id'),
-                            'fghl.hmi_level': sql('hlc.hmi_level_enum')
-                        })
-                    )
-                )
         ),
+        //adds functional groups which contain a parameter in the HMI level the app is requesting
         sql.exists(
             sql.select()
                 .from('app_permissions ap')
@@ -134,6 +127,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
                     )
                 )
         ),
+        //adds functional groups containing RPCs with the associated MODULES the app is requesting
         sql.exists(
             sql.select()
                 .from('function_group_hmi_levels fghl')
