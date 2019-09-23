@@ -68,6 +68,8 @@ function exposeRoutes () {
 	app.post('/applications/passthrough', auth.validateAuth, applications.passthroughPost);
 	app.post('/applications/hybrid', auth.validateAuth, applications.hybridPost);
 	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
+	app.get('/applications/groups', auth.validateAuth, applications.getFunctionalGroups);
+	app.put('/applications/groups', auth.validateAuth, applications.putFunctionalGroup);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -134,7 +136,7 @@ flame.async.parallel([
 			log.info("App information updated");
 			next();
 		});
-	},
+	},/*
      function(next) {
          vehicleData.updateVehicleDataReservedParams(function() {
              log.info('Reserved Vehicle Data Params Updated');
@@ -146,7 +148,7 @@ flame.async.parallel([
              log.info('Vehicle Data Enums Updated');
              next();
          });
-     },
+     },*/
 ], function () {
 	log.info("Start up complete. Exposing routes.");
 	exposeRoutes();

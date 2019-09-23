@@ -2,7 +2,7 @@
 const app = require('../app');
 const helper = require('./helper.js');
 const encryption = require('../../../customizable/encryption');
-const GET = require('lodash.get');
+const GET = require('lodash').get;
 
 function postFromCore (isProduction) {
 	return function (req, res, next) {

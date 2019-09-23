@@ -172,6 +172,16 @@ function getAppFunctionalGroups (isProduction, appObj) {
                     'view_function_group_info.is_administrator_group': true
                 })
         ),
+        //adds functional groups with is_proprietary_group set to true and app flagged
+        sql.exists(
+            sql.select()
+                .from('app_function_groups afg')
+                .where({
+                    'afg.app_id': appObj.id,
+                    'afg.property_name': sql('view_function_group_info.property_name'),
+                    'view_function_group_info.is_proprietary_group': true
+                })
+        ),
     ];
 
     if(appObj.can_background_alert){
@@ -192,7 +202,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
         .where(
             sql.or(sqlOr)
         );
-
+        
     return statement;
 }
 

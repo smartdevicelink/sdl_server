@@ -19,6 +19,7 @@ describe('SDL SERVER TESTS', function () {
             importTest('/applications', './api/v1/applications/applications');
             importTest('/applications/action', './api/v1/applications/action');
             importTest('/applications/auto', './api/v1/applications/auto');
+            importTest('/applications/groups', './api/v1/applications/groups');
             importTest('/staging/policy', './api/v1/policy/staging');
             importTest('/production/policy', './api/v1/policy/production');
             importTest('/policy/preview', './api/v1/policy/preview');

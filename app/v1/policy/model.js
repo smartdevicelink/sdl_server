@@ -2,6 +2,7 @@ const app = require('../app');
 const flame = app.locals.flame;
 const settings = require('../../../settings.js');
 const sqlApp = require('../applications/sql.js');
+const _ = require('lodash');
 
 //module config
 
@@ -12,6 +13,7 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
     const retrySeconds = info.retrySeconds.map(function (secondObj) {
         return secondObj.seconds;
     });
+    const endpointProperties = info.endpointProperties;
 
     var concatPort = "";
     var protocol = "http://";
@@ -24,7 +26,7 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
         concatPort = ":" + settings.policyServerPort;
     }
 
-    next(null, {
+    var moduleConfig = {
         "full_app_id_supported": useLongUuids,
         "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
         "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
@@ -44,14 +46,9 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
             "lock_screen_icon_url": {
                 default: [base.lock_screen_default_url]
             },
-            "custom_vehicle_data_mapping_url": {
-                default: [base.custom_vehicle_data_mapping_url]
-            }
         },
         "endpoint_properties": {
-            "custom_vehicle_data_mapping_url": {
-                "version": base.custom_vehicle_data_mapping_url_version
-            }
+            // to be populated
         },
         "notifications_per_minute_by_priority": {
             "EMERGENCY": base.emergency_notifications,
@@ -61,7 +58,29 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
             "NORMAL": base.normal_notifications,
             "NONE": base.none_notifications
         }
+    };
+
+    // only have custom_vehicle_data_mapping_url present if set by OEM,
+    // according to evolution proposal
+    if(base.custom_vehicle_data_mapping_url){
+        moduleConfig.endpoints.custom_vehicle_data_mapping_url = {
+            default: [base.custom_vehicle_data_mapping_url]
+        };
+    }
+
+    // initialize known endpoint property objects
+    for (endpoint in moduleConfig.endpoints) {
+        moduleConfig.endpoint_properties[endpoint] = {};
+    }
+
+    // inject endpoint properties we have from the database
+    _.forEach(endpointProperties, function (endProp, index) {
+        if (moduleConfig.endpoint_properties[endProp.endpoint_name] && endProp.property_value) {
+            moduleConfig.endpoint_properties[endProp.endpoint_name][endProp.property_name] = endProp.property_value;
+        }
     });
+
+    next(null, moduleConfig);
 }
 
 //consumer messages
@@ -274,7 +293,7 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         app_services: appServiceObj,
         allow_unknown_rpc_passthrough: res.appPassthrough.length ? true : false
     };
-    
+
     if (appObj.icon_url) appPolicyObj[uuidProp].icon_url = appObj.icon_url;
     if (appObj.cloud_endpoint) appPolicyObj[uuidProp].endpoint = appObj.cloud_endpoint;
     if (appObj.cloud_transport_type) appPolicyObj[uuidProp].cloud_transport_type = appObj.cloud_transport_type;

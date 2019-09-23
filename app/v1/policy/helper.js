@@ -12,7 +12,7 @@ const messages = require('../messages/helper.js');
 const vehicleDataModel = require('../vehicle-data/model.js');
 const cache = require('../../../custom/cache');
 const log = require('../../../custom/loggers/winston');
-const GET = require('lodash.get');
+const GET = require('lodash').get;
 
 //validation functions
 
@@ -69,7 +69,7 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
                 makePolicyTable.moduleConfig = setupModuleConfig(isProduction, useLongUuids);
                 makePolicyTable.functionalGroups = setupFunctionalGroups(isProduction);
                 makePolicyTable.consumerFriendlyMessages = setupConsumerFriendlyMessages(isProduction);
-                makePolicyTable.vehicleData = setupVehicleData(isProduction, schemaVersion);
+                //makePolicyTable.vehicleData = setupVehicleData(isProduction, schemaVersion);
             }
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
@@ -118,7 +118,8 @@ function setupVehicleData(isProduction, schemaVersion) {
 function setupModuleConfig (isProduction, useLongUuids = false) {
     const getModuleConfig = {
         base: setupSqlCommand.bind(null, moduleConfigSql.moduleConfig.status(isProduction)),
-        retrySeconds: setupSqlCommand.bind(null, moduleConfigSql.retrySeconds.status(isProduction))
+        retrySeconds: setupSqlCommand.bind(null, moduleConfigSql.retrySeconds.status(isProduction)),
+        endpointProperties: setupSqlCommand.bind(null, moduleConfigSql.endpointProperties.status(isProduction)),
     };
     const moduleConfigGetFlow = flame.flow(getModuleConfig, {method: 'parallel'});
     const makeModuleConfig = [
