@@ -21,6 +21,16 @@
 
                 <h4>Module Config<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/module-config/" target="_blank"></a></h4>
 
+                
+                <div v-if="(module_config && !module_config.certificate && private_key) || (module_config && module_config.certificate && !private_key)" class="alert color-bg-red color-white d-table" role="alert">
+                    ** Notice: The {{(private_key) ? "certificate" : "private key"}} is not defined but the {{(private_key) ? "private key" : "certificate"}} is. 
+                    They should both be set or both left empty.
+                </div>
+                
+                <div v-if="certificate_error" class="alert color-bg-red color-white d-table" role="alert">
+                    ** Notice: An error occurred when processing the private key and certificate data. If you are providing your own, please be certain of their accuracy and validity.
+                </div>
+
                 <!-- module config data -->
                 <div class="functional-content" v-if="module_config">
 
@@ -144,6 +154,129 @@
                                 </div>
                             </div>
 
+                <div  class="app-table">
+                    <h4>Private Key</h4>
+                    <b-form-textarea
+                        :disabled="fieldsDisabled"
+                        id="textarea"
+                        v-model="private_key"
+                        placeholder="No private key specified"
+                        rows="3"
+                        max-rows="50"
+                        ></b-form-textarea>
+                    <vue-ladda
+                        type="submit"
+                        class="btn btn-card"
+                        data-style="zoom-in"
+                        style="width:225px"
+                        v-if="!fieldsDisabled"
+                        v-b-modal.keyModal>
+                        Generate Private Key
+                    </vue-ladda>
+                </div>
+
+                <b-modal ref="keyModal" title="Private Key Info" hide-footer id="keyModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                    <h4>Key Bit Size</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        :regExp="integerInput.regExp"
+                        :replacement="integerInput.replacement"
+                        v-model="certificate_options.keyBitsize"
+                        ></pattern-input>
+                    <h4>Cipher</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        v-model="certificate_options.cipher"
+                        ></pattern-input>
+                    <!--h4>Password</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        v-model="options.password"
+                        ></pattern-input-->
+                    <vue-ladda
+                        type="button"
+                        class="btn btn-card btn-style-green"
+                        data-style="zoom-in"
+                        v-on:click="generatePrivateKeyClick()"
+                        v-bind:loading="key_button_loading">
+                        Generate Private Key
+                    </vue-ladda>
+                </b-modal>
+
+                <div  class="app-table">
+                    <h4>Certificate</h4>
+                    <b-form-textarea class="form-group"
+                        :disabled="fieldsDisabled"
+                        id="textarea"
+                        v-model="module_config.certificate"
+                        placeholder="No certificate specified"
+                        rows="3"
+                        max-rows="50"
+                        ></b-form-textarea>
+
+                    <!--pre class="mt-3 mb-0">{{ module_config.certificate }}</pre-->
+                    <vue-ladda
+                        type="submit"
+                        class="btn btn-card"
+                        data-style="zoom-in"
+                        style="width:225px"
+                        v-if="!fieldsDisabled"
+                        v-b-modal.certificateModal>
+                        Generate Certificate
+                    </vue-ladda>
+                </div>
+
+                <div class="pull-right">
+                    <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
+                </div>
+
+                <b-modal ref="certificateModal" title="Certificate Info" hide-footer id="certificateModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                    <h4>Country Name (2 Letter Code)</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        v-model="certificate_options.country"
+                        :maxlength="2"
+                        ></pattern-input>
+                    <h4>State or Province Name (Full Name)</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        v-model="certificate_options.state"
+                        ></pattern-input>
+                    <h4>Locality Name (eg, City)</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        v-model="certificate_options.locality"
+                        ></pattern-input>
+                    <h4>Organization Name (eg, Company)</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        v-model="certificate_options.organization"
+                        ></pattern-input>
+                    <h4>Organizational Unit Name (eg, section)</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        v-model="certificate_options.organizationUnit"
+                        ></pattern-input>
+                    <h4>Common Name (eg, fully qualified host name)</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        v-model="certificate_options.commonName"
+                        ></pattern-input>
+                    <h4>Email Address</h4>
+                    <pattern-input class="form-group text-truncate"
+                        id="textarea"
+                        v-model="certificate_options.emailAddress"
+                        ></pattern-input>
+                    <vue-ladda
+                        type="button"
+                        class="btn btn-card btn-style-green"
+                        data-style="zoom-in"
+                        v-on:click="generateCertificateClick()"
+                        v-bind:loading="certificate_button_loading">
+                        Generate Certificate
+                    </vue-ladda>
+                </b-modal>
+
                     <!-- save button -->
                     <div>
                         <vue-ladda
@@ -198,7 +331,22 @@
                 },
                 "save_button_loading": false,
                 "promote_button_loading": false,
-                "module_config": null
+                "key_button_loading": false,
+                "certificate_button_loading": false,
+                "module_config": null,
+                "certificate_options": {
+                    "keyBitsize": "",
+                    "cipher": "",
+                    "country": "",
+                    "state": "",
+                    "locality": "",
+                    "organization": "",
+                    "organizationUnit": "",
+                    "commonName": "",
+                    "emailAddress": "",
+                },
+                "private_key": null,
+                "certificate_error": null
             }
         },
         computed: {
@@ -228,6 +376,9 @@
                             res.json().then(parsed => {
                                 if (parsed.data.module_configs && parsed.data.module_configs.length) {
                                     this.module_config = parsed.data.module_configs[0]; //only one entry
+                                    
+                                    //
+                                    this.private_key = this.module_config.private_key;
                                 }
                                 else {
                                     console.log("No module config data returned");
@@ -238,10 +389,19 @@
                 });
             },
             "saveModuleConfig": function () {
-                this.handleModalClick("save_button_loading", null, "saveConfig");
+                if((this.private_key && !this.module_config.certificate) || (!this.private_key && this.module_config.certificate)){
+                    this.toTop();
+                } else {
+                    this.handleModalClick("save_button_loading", null, "saveConfig");
+                }
             },
             "saveConfig": function (cb) {
+                this.module_config.private_key = this.private_key;
                 this.httpRequest("post", "module", { "body": this.module_config }, (err) => {
+                    if(err){
+                        console.error(err);
+                    }
+                    this.certificate_error = !!err;
                     this.toTop();
                     cb();
                 });
@@ -258,6 +418,54 @@
             },
             "removeRetryUpdateElement": function (key) {
                 this.module_config.seconds_between_retries.splice(key, 1);
+            },
+            "generateCertificateClick": function(){
+                this.handleModalClick("certificate_button_loading", "certificateModal", "generateCertificate");
+            },
+            "generateCertificate": function(cb){
+                let options = this.certificate_options;
+                options.clientKey = this.private_key;
+                this.httpRequest("post", "security/certificate", {"body":{"options": options}}, (err, res) => {
+                    if(err){
+                        console.log("Error occurred creating certificate");
+                        console.log(err);
+                    } else {
+                        res.json().then(parsed => {
+                            if(parsed && parsed.data && parsed.data.certificate){
+                                if(this.private_key != parsed.data.clientKey){
+                                    this.private_key = parsed.data.clientKey;
+                                }
+                                this.module_config.certificate = parsed.data.certificate;
+                                console.log("Everything went ok");
+                            } else {
+                                console.log("No certificate returned");
+                            }
+                        });
+                    }
+                });
+                cb();
+            },
+            "generatePrivateKeyClick": function(){
+                this.handleModalClick("key_button_loading", "keyModal", "generatePrivateKey");
+            },
+            "generatePrivateKey": function(cb){
+                const self = this;
+                this.httpRequest('post', "security/private", { "body": { "options": self.certificate_options}}, (err, res) => {
+                    if(err){
+                        console.log("Error occurred creating private key");
+                        console.log(err);
+                    } else {
+                        res.json().then(parsed => {
+                            if(parsed && parsed.data){
+                                this.private_key = parsed.data;
+                                console.log('Private key returned');
+                            } else {
+                                console.log('No private key returned');
+                            }
+                        })
+                    }
+                })
+                cb();
             }
         },
         mounted: function(){
