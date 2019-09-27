@@ -3,6 +3,8 @@ const helper = require('./helper.js');
 const sql = require('./sql.js');
 const flow = app.locals.flow;
 const async = require('async');
+const pem = require('pem');
+const settings = require('../../../settings.js');
 
 function get (req, res, next) {
 	//prioritize id, uuid, approval status, in that order.
@@ -25,12 +27,49 @@ function get (req, res, next) {
 		if (err) {
 			app.locals.log.error(err);
 			res.parcel.setStatus(500);
-		}else{
-			res.parcel
-				.setStatus(200)
-				.setData({
-					applications: apps
-				});
+		} else {
+			if(apps.length == 1){
+				return forwardAppCertificate(apps[0].uuid, function(sqlErr, results){
+					if(sqlErr){
+						return res.parcel.setStatus(500)
+							.setMessage('Internal Server Error')
+							.deliver();
+					}
+					if(results.length == 0){
+						return res.parcel.setStatus(200)
+							.setData({
+								applications:apps
+							})
+							.deliver();
+					}
+					pem.readPkcs12(Buffer.from(results[0].certificate, 'base64'), 
+						{
+							"p12Password": settings.certificateAuthority.passphrase
+						}, function(certErr, keyBundle){
+							if(certErr){
+								app.locals.log.error(certErr)
+								return res.parcel.setStatus(500)
+									.setMessage("Internal Server Error")
+									.deliver();
+							} else {
+								apps[0].certificate = keyBundle.cert;
+								apps[0].private_key = keyBundle.key;
+								return res.parcel.setStatus(200)
+									.setData({
+										applications: apps
+									})
+									.deliver();
+							}
+						}
+					)
+				})
+			} else {
+				res.parcel
+					.setStatus(200)
+					.setData({
+						applications: apps
+					});
+			}
 		}
 		return res.parcel.deliver();
 	});
@@ -292,6 +331,159 @@ function queryAndStoreApplicationsFlow (queryObj, notifyOEM = true) {
     ], {method: 'waterfall', eventLoop: true});
 }
 
+function forwardAppCertificate(app_uuid, next){
+	app.locals.db.sqlCommand(sql.getApp.certificate(app_uuid), function(err, results){
+		next(err, (err) ? null : results)
+	})
+}
+
+function getAppCertificate(req, res, next){
+	// Ford's Android 	security library uses AppId
+	// The SDL	iOS 	security library uses appId
+	const app_uuid = req.body.app_uuid || 
+					req.body.AppId || 
+					req.body.appId || 
+					req.query.app_uuid || 
+					req.query.AppId || 
+					req.query.appId || 
+					req.query.appID;
+	
+	if(!app_uuid){
+		return res.parcel.setStatus(400)
+			.setMessage('No app id was sent')
+			.deliver();
+	}
+	
+	forwardAppCertificate(app_uuid, function(err, results){
+		if(err){
+			app.locals.log.error(err);
+			return res.parcel.setStatus(400)
+				.setMessage('Could not find app with that id')
+				.deliver();
+		}
+		if(results && results[0] && results[0].certificate){
+			pem.readPkcs12(Buffer.from(results[0].certificate, 'base64'), 
+				{ 
+					p12Password: settings.securityOptions.passphrase 
+				}, function(err, keyBundle){
+					if(err){
+						app.locals.log.error(err);
+						return res.parcel.setStatus(500)
+							.setMessage('Internal Server Error')
+							.deliver();
+					}
+					helper.isCertificateExpired(keyBundle.cert, function(crtErr, isValid){
+						if(crtErr){
+							app.locals.log.error(crtErr);
+						}
+						if(!isValid){
+							return res.parcel.setStatus(500)
+								.setMessage('App certificate is expired')
+								.deliver();
+						}
+						res.parcel.setStatus(200)
+							.setData({"Certificate": results[0].certificate})
+							.deliver();
+					})
+				}
+			)
+		} else {
+			res.parcel.setStatus(400)
+				.setMessage('Could not find certificate for app with that id')
+				.deliver();
+		}
+	})
+}
+
+function updateAppCertificate(req, res, next){
+    pem.createPkcs12(
+		req.body.options.clientKey, 
+		req.body.options.certificate, 
+		settings.certificateAuthority.passphrase, 
+		function(err, pkcs12){
+			if(err){
+				app.locals.log.error(err);
+				return res.parcel.setStatus(400)
+					.setData(err)
+					.deliver();
+			}
+			app.locals.db.sqlCommand(sql.updateAppCertificate(req.body.options.app_uuid, pkcs12.pkcs12.toString('base64')), function(sqlErr, results){
+				if(sqlErr){
+					app.locals.log.error(sqlErr);
+					return res.parcel.setStatus(500)
+						.setMessage("Internal Server Error")
+						.deliver();
+				}
+				return res.parcel.setStatus(200).deliver();
+			});
+		}
+	);
+}
+
+function checkAndUpdateCertificates(cb){
+	app.locals.db.sqlCommand(sql.getApp.allCertificates(), parseAppCerts);
+
+	function parseAppCerts(sqlErr, appIdsAndCerts){
+		if(sqlErr){
+			app.locals.log.error(sqlErr);
+		}
+		async.mapSeries(appIdsAndCerts, function(appObj, next){
+			if(appObj.certificate){
+				pem.readPkcs12(Buffer.from(appObj.certificate, 'base64'), 
+					{
+						p12Password: settings.securityOptions.passphrase
+					},  function(pkcsErr, keyBundle){
+						if(pkcsErr){
+							app.locals.log.error(pkcsErr);
+							next(
+								null, 
+								{ 
+									app_uuid: appObj.app_uuid, 
+									private_key: keyBundle.key 
+								}
+							);
+						}
+						helper.isCertificateExpired(keyBundle.cert, function(crtErr, isValid){
+							if(crtErr){
+								app.locals.log.error(crtErr);
+							}
+							// if the certificate is expired, create a new one with the already existing private key
+							next(
+								null, 
+								(isValid) ? null : { app_uuid: appObj.app_uuid, private_key: keyBundle.key }
+							);
+						});
+					}
+				)
+			} else {
+				// app does not have a certificate, and does not private key, so both must be created
+				next(
+					null, 
+					{ 
+						app_uuid: appObj.app_uuid 
+					}
+				);
+			}
+		}, function(err, failedApps){
+			if(err){
+				app.locals.log.error(err);
+			}
+			//removes all null values to only focus on the app ids that failed
+			failedApps = failedApps.filter(Boolean);
+			async.mapSeries(failedApps, helper.getFailedAppsCert, function(failedAppErr, results){
+				if(failedAppErr){
+					app.locals.log.error(failedAppErr);
+				}
+				helper.storeAppCertificates(results, function(){
+					if(cb){
+						cb();
+					}
+				});
+			});
+		});
+	}
+}
+
 module.exports = {
 	get: get,
 	actionPost: actionPost,
@@ -301,5 +493,8 @@ module.exports = {
 	passthroughPost: passthroughPost,
 	hybridPost: hybridPost,
 	webhook: webhook,
-	queryAndStoreApplicationsFlow: queryAndStoreApplicationsFlow
+	queryAndStoreApplicationsFlow: queryAndStoreApplicationsFlow,
+	getAppCertificate: getAppCertificate,
+	updateAppCertificate: updateAppCertificate,
+	checkAndUpdateCertificates: checkAndUpdateCertificates,
 };

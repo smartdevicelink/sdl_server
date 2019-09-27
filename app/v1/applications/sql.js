@@ -340,6 +340,40 @@ function getAppAutoApproval (id) {
         .toString();
 }
 
+function getAppCertificate(app_uuid){
+    return sql.select('ac.certificate')
+        .from('app_info ai')
+        .join('app_certificates ac', {
+            'ac.app_uuid': 'ai.app_uuid'
+        })
+        .where(
+            sql.or({
+                'ai.app_uuid': app_uuid,
+                'ai.app_short_uuid': app_uuid
+            })
+        )
+        .limit(1)
+        .toString();
+}
+
+function updateAppCertificate(app_uuid, certificate){
+    let insertObj = {
+        app_uuid: app_uuid,
+        certificate: certificate,
+    }
+    return sql.insert('app_certificates', insertObj)
+        .onConflict()
+        .onConstraint('app_certificates_pkey')
+        .doUpdate()
+        .toString();
+}
+
+function getAllAppCertificates(){
+    return sql.select('app_uuid', 'certificate')
+        .from('app_certificates')
+        .toString();
+}
+
 function timestampCheck (tableName, whereObj) {
     return sql.select('max(updated_ts)')
         .from(tableName)
@@ -899,8 +933,11 @@ module.exports = {
         hybridPreference: {
             multiFilter: getAppHybridPreferenceFilter,
             idFilter: getAppHybridPreference
-        }
+        },
+        certificate: getAppCertificate,
+        allCertificates: getAllAppCertificates,
     },
+    updateAppCertificate: updateAppCertificate,
     timestampCheck: timestampCheck,
     versionCheck: versionCheck,
     checkAutoApproval: checkAutoApproval,
