@@ -49,6 +49,7 @@ const services = require('./services/controller.js');
 const moduleConfig = require('./module-config/controller.js');
 const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
+const certificates = require('./certificates/controller.js');
 
 function exposeRoutes () {
 	// use helmet middleware for security
@@ -67,6 +68,9 @@ function exposeRoutes () {
 	app.post('/applications/passthrough', auth.validateAuth, applications.passthroughPost);
 	app.post('/applications/hybrid', auth.validateAuth, applications.hybridPost);
 	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
+	app.post('/applications/certificate/get', applications.getAppCertificate);
+	app.get('/applications/certificate/get', applications.getAppCertificate);
+	app.post('/applications/certificate', applications.updateAppCertificate);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -89,6 +93,8 @@ function exposeRoutes () {
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
 	app.get('/about', auth.validateAuth, about.getInfo);
+	app.post('/security/certificate', certificates.createCertificate);
+	app.post('/security/private', certificates.createPrivateKey);
 }
 
 function updatePermissionsAndGenerateTemplates (next) {
@@ -108,6 +114,7 @@ function updatePermissionsAndGenerateTemplates (next) {
 flame.async.parallel([
 	//get and store permission info from SHAID on startup
 	updatePermissionsAndGenerateTemplates,
+	applications.checkAndUpdateCertificates,
 	function (next) {
 		// get and store app service type info from SHAID on startup
 		services.upsertTypes(function () {
@@ -137,3 +144,4 @@ flame.async.parallel([
 //cron job for running updates. runs once a day at midnight
 new Cron('00 00 00 * * *', updatePermissionsAndGenerateTemplates, null, true);
 new Cron('00 00 00 * * *', messages.updateLanguages, null, true);
+new Cron('00 00 00 * * *', applications.checkAndUpdateCertificates, null, true);

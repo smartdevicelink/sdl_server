@@ -9,7 +9,6 @@ const sql = require('./sql.js');
 function transformModuleConfig (info, next) {
     const base = info.base;
     const retrySeconds = info.retrySeconds;
-
     const hashBase = {};
     //hash up base info
     for (let i = 0; i < base.length; i++) {
@@ -53,7 +52,9 @@ function baseTemplate (objOverride) {
             COMMUNICATION: 0,
             NORMAL: 0,
             NONE: 0
-        }
+        },
+        certificate: "",
+        private_key: ""
     }
 
     if (objOverride) {
@@ -74,6 +75,8 @@ function baseTemplate (objOverride) {
         obj.notifications_per_minute_by_priority.COMMUNICATION = objOverride.communication_notifications;
         obj.notifications_per_minute_by_priority.NORMAL = objOverride.normal_notifications;
         obj.notifications_per_minute_by_priority.NONE = objOverride.none_notifications;
+        obj.certificate = objOverride.certificate;
+        obj.private_key = objOverride.private_key;
     }
 
     return obj;

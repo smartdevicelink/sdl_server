@@ -42,7 +42,9 @@ function insertModuleConfig (moduleConfig) {
         voicecom_notifications: moduleConfig.notifications_per_minute_by_priority.VOICECOM,
         communication_notifications: moduleConfig.notifications_per_minute_by_priority.COMMUNICATION,
         normal_notifications: moduleConfig.notifications_per_minute_by_priority.NORMAL,
-        none_notifications: moduleConfig.notifications_per_minute_by_priority.NONE
+        none_notifications: moduleConfig.notifications_per_minute_by_priority.NONE,
+        certificate: moduleConfig.certificate,
+        private_key: moduleConfig.private_key,
     })
     .returning('*');
 }
@@ -56,7 +58,6 @@ function insertRetrySeconds (secondsArray, id) {
         }
     }));
 }
-
 module.exports = {
     insertModuleConfig: insertModuleConfig,
     insertRetrySeconds: insertRetrySeconds,
