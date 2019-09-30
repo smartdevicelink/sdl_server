@@ -36,53 +36,95 @@ CREATE TABLE IF NOT EXISTS app_function_groups (
 )
 WITH ( OIDS = FALSE );
 
-/*
-CREATE TABLE IF NOT EXISTS vehicle_data (
-    id                    SERIAL                  NOT NULL CONSTRAINT vehicle_data_pk PRIMARY KEY,
-    parent_id             INTEGER,
-    vehicle_data_group_id INTEGER,
-    name                  TEXT,
-    key                   TEXT,
-    type                  TEXT,
-    "array"               BOOLEAN,
-    since                 VARCHAR(255),
-    until                 VARCHAR(255),
-    removed               VARCHAR(255),
-    deprecated            VARCHAR(255),
-    minvalue              VARCHAR(255),
-    maxvalue              VARCHAR(255),
-    minsize               INTEGER,
-    maxsize               INTEGER,
-    minlength             INTEGER,
-    maxlength             INTEGER,
-    created_ts            TIMESTAMP DEFAULT now() NOT NULL,
-    updated_ts            TIMESTAMP DEFAULT now() NOT NULL
+
+-- TABLES FOR RPC SPEC SYNC --
+
+CREATE TABLE IF NOT EXISTS rpc_spec (
+    "id" SERIAL NOT NULL,
+    "version" TEXT NOT NULL,
+    "min_version" TEXT,
+    "date" TEXT,
+    "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+    CONSTRAINT rpc_spec_pk PRIMARY KEY (id),
+    CONSTRAINT rpc_spec_version_unique UNIQUE (version)
 )
 WITH ( OIDS = FALSE );
 
-
-CREATE TABLE IF NOT EXISTS vehicle_data_enums (
-    id VARCHAR(255) NOT NULL CONSTRAINT vehicle_data_enums_pk PRIMARY KEY
+CREATE TABLE IF NOT EXISTS rpc_spec_type (
+    "id" SERIAL NOT NULL,
+    "rpc_spec_id" INTEGER NOT NULL REFERENCES rpc_spec (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "element_type" TEXT NOT NULL, -- ENUM, STRUCT, FUNCTION
+    "name" TEXT NOT NULL,
+    "since" TEXT,
+    "until" TEXT,
+    "deprecated" TEXT,
+    "removed" TEXT,
+    "internal_scope" TEXT,
+    "platform" TEXT,
+    "function_id" TEXT, -- actually functionID
+    "message_type" TEXT, -- actually messagetype
+    CONSTRAINT rpc_spec_type_pk PRIMARY KEY (id),
+    CONSTRAINT rpc_spec_type_unique UNIQUE (rpc_spec_id, element_type, name)
 )
 WITH ( OIDS = FALSE );
 
-CREATE TABLE IF NOT EXISTS vehicle_data_reserved_params (
-    id VARCHAR(255) NOT NULL CONSTRAINT vehicle_data_reserved_params_pk PRIMARY KEY
+-- rpc_spec_param table used to store params of functions, params of structs (includes referencing other structs)
+-- and available enum values
+CREATE TABLE IF NOT EXISTS rpc_spec_param (
+    "id" SERIAL NOT NULL,
+    "rpc_spec_type_id" INTEGER NOT NULL REFERENCES rpc_spec_type (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "name" TEXT NOT NULL,
+    "type" TEXT,
+    "internal_name" TEXT,
+    "root_screen" TEXT, -- actually rootscreen
+    "mandatory" TEXT,
+    "since" TEXT,
+    "until" TEXT,
+    "deprecated" TEXT,
+    "removed" TEXT,
+    "value" TEXT,
+    "hex_value" TEXT, -- actually hexvalue
+    "min_length" TEXT, -- actually minlength
+    "max_length" TEXT, -- actually maxlength
+    "min_size" TEXT, -- actually minsize
+    "max_size" TEXT, -- actually maxsize
+    "min_value" TEXT, -- actually minvalue
+    "max_value" TEXT, -- actually maxvalue
+    "array" TEXT,
+    "platform" TEXT,
+    "def_value" TEXT, -- actually defvalue
+    CONSTRAINT rpc_spec_param_pk PRIMARY KEY (id),
+    CONSTRAINT rpc_spec_param_unique UNIQUE (rpc_spec_type_id, name)
 )
 WITH ( OIDS = FALSE );
 
-CREATE TABLE IF NOT EXISTS vehicle_data_group (
-    id             SERIAL                          NOT NULL CONSTRAINT vehicle_data_group_pk PRIMARY KEY,
-    schema_version TEXT      default '0.0.0'::TEXT NOT NULL,
-    created_ts     TIMESTAMP DEFAULT now(),
-    updated_ts     TIMESTAMP DEFAULT now(),
-    is_deleted     BOOLEAN   DEFAULT FALSE,
-    status         TEXT
+-- END TABLES FOR RPC SPEC SYNC --
+
+
+-- TABLES FOR CUSTOM VEHICLE DATA --
+
+CREATE TABLE IF NOT EXISTS custom_vehicle_data (
+    "id" SERIAL NOT NULL,
+    "parent_id" INTEGER REFERENCES custom_vehicle_data (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "status" edit_status NOT NULL DEFAULT 'STAGING'::edit_status,
+    "name" TEXT NOT NULL,
+    "type" TEXT,
+    "key" TEXT, -- OEM Data Reference string (proprietary)\
+    "mandatory" TEXT,
+    "min_length" TEXT, -- actually minlength
+    "max_length" TEXT, -- actually maxlength
+    "min_size" TEXT, -- actually minsize
+    "max_size" TEXT, -- actually maxsize
+    "min_value" TEXT, -- actually minvalue
+    "max_value" TEXT, -- actually maxvalue
+    "array" TEXT,
+    "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+    "updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+    CONSTRAINT custom_vehicle_data_pk PRIMARY KEY (id)
 )
 WITH ( OIDS = FALSE );
-*/
 
--- END ALTER/CREATE TABLES --
+-- END TABLES FOR CUSTOM VEHICLE DATA --
 
 
 -- RECREATE AFFECTED VIEWS --

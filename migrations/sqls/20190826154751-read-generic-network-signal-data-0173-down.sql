@@ -21,10 +21,10 @@ ALTER TABLE public.function_group_info
 
 DROP TABLE IF EXISTS module_config_endpoint_property;
 DROP TABLE IF EXISTS app_function_groups;
-DROP TABLE IF EXISTS vehicle_data;
-DROP TABLE IF EXISTS vehicle_data_enums;
-DROP TABLE IF EXISTS vehicle_data_reserved_params;
-DROP TABLE IF EXISTS vehicle_data_group;
+DROP TABLE IF EXISTS custom_vehicle_data;
+DROP TABLE IF EXISTS rpc_spec_param;
+DROP TABLE IF EXISTS rpc_spec_type;
+DROP TABLE IF EXISTS rpc_spec;
 
 -- END UNDO TABLE CHANGES --
 
