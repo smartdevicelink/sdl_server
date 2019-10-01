@@ -6,9 +6,6 @@ const request = require('request');
 const async = require('async');
 const _ = require('lodash');
 
-function validatePost(req, res) {
-}
-
 function getRpcSpec(next) {
     request(
         {
@@ -142,8 +139,6 @@ function extractRpcSpecTypes(data, next) {
 
         rpcSpecTypes.push(structData);
 
-        //example struct with no params.
-        // <struct name="MediaServiceManifest" since="5.1"></struct>
         if (!struct['param']) {
             continue;
         }
@@ -180,8 +175,6 @@ function extractRpcSpecTypes(data, next) {
             return next('Struct must have a name defined.');
         }
 
-        //example function with no params.
-        //<function name="UnregisterAppInterface" functionID="UnregisterAppInterfaceID" messagetype="request" since="1.0"></function>
         if (!func['param']) {
             continue;
         }
@@ -222,7 +215,7 @@ function extractRpcSpecTypes(data, next) {
     next(null, data);
 }
 
-function updateRpcSpec(next) {
+function updateRpcSpec(next = function(){}) {
 
     app.locals.db.runAsTransaction(function(client, callback) {
         async.waterfall(
@@ -286,6 +279,7 @@ function updateRpcSpec(next) {
             }
         }
         else {
+
             app.locals.log.info('Rpc spec updated');
         }
         next();
@@ -294,6 +288,5 @@ function updateRpcSpec(next) {
 }
 
 module.exports = {
-    validatePost: validatePost,
     updateRpcSpec: updateRpcSpec,
 };

@@ -19,13 +19,15 @@ function getVehicleDataReservedParams(req, res, next) {
                     .setMessage('Internal server error')
                     .deliver();
             }
+
             return res.parcel
                 .setStatus(200)
                 .setData({
-                             reserved_params: reserved_params
-                         })
+                    reserved_params: reserved_params
+                })
                 .deliver();
-        });
+        }
+    );
 }
 
 function getVehicleDataParamTypes(req, res, next) {
@@ -34,7 +36,8 @@ function getVehicleDataParamTypes(req, res, next) {
             function(cb) {
                 model.getVehicleDataParamTypes(cb);
             },
-        ], function(err, vehicle_data_types) {
+        ],
+        function(err, vehicle_data_types) {
             if (err) {
                 app.locals.log.error(err);
                 return res.parcel
@@ -45,10 +48,11 @@ function getVehicleDataParamTypes(req, res, next) {
             return res.parcel
                 .setStatus(200)
                 .setData({
-                             vehicle_data_types: vehicle_data_types
-                         })
+                    vehicle_data_types: vehicle_data_types
+                })
                 .deliver();
-        });
+        }
+    );
 }
 
 function get(req, res, next) {
@@ -59,8 +63,8 @@ function get(req, res, next) {
             function(cb) {
                 model.getVehicleData(isProduction, cb);
             },
-        ]
-        , function(err, vehicle_data) {
+        ],
+        function(err, vehicle_data) {
             if (err) {
                 app.locals.log.error(err);
                 return res.parcel
@@ -71,11 +75,11 @@ function get(req, res, next) {
             return res.parcel
                 .setStatus(200)
                 .setData({
-                             vehicle_data: vehicle_data
-
-                         })
+                     vehicle_data: vehicle_data
+                 })
                 .deliver();
-        });
+        }
+    );
 }
 
 function post(isProduction, req, res, next) {

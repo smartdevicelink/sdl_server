@@ -23,11 +23,9 @@ function getLatestRpcSpec() {
 function insertRpcSpecParam(rpcSpecParams, rpcSpecTypeByName) {
     let ary = [];
     for (let rpcSpecParam of rpcSpecParams) {
+        rpcSpecParam['rpc_spec_type_id'] = null;
         if (rpcSpecTypeByName[rpcSpecParam.rpc_spec_type_name]) {
             rpcSpecParam['rpc_spec_type_id'] = rpcSpecTypeByName[rpcSpecParam.rpc_spec_type_name].id;
-        }
-        else {
-            rpcSpecParam['rpc_spec_type_id'] = null;
         }
         delete rpcSpecParam['rpc_spec_type_name'];
 
