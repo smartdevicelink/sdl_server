@@ -118,6 +118,7 @@ CREATE TABLE IF NOT EXISTS custom_vehicle_data (
     "min_value" TEXT, -- actually minvalue
     "max_value" TEXT, -- actually maxvalue
     "array" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     "updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     CONSTRAINT custom_vehicle_data_pk PRIMARY KEY (id)
