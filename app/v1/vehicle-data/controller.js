@@ -107,5 +107,6 @@ module.exports = {
     updateVehicleDataReservedParams: helper.updateVehicleDataReservedParams,
     updateVehicleDataEnums: helper.updateVehicleDataEnums,
     getVehicleDataReservedParams: getVehicleDataReservedParams,
-    getVehicleDataParamTypes: getVehicleDataParamTypes
+    getVehicleDataParamTypes: getVehicleDataParamTypes,
+    updateRpcSpec: helper.updateRpcSpec,
 };

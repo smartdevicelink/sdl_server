@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS rpc_spec_type (
     "function_id" TEXT, -- actually functionID
     "message_type" TEXT, -- actually messagetype
     CONSTRAINT rpc_spec_type_pk PRIMARY KEY (id),
-    CONSTRAINT rpc_spec_type_unique UNIQUE (rpc_spec_id, element_type, name)
+    CONSTRAINT rpc_spec_type_unique UNIQUE (rpc_spec_id, element_type, name, message_type)
 )
 WITH ( OIDS = FALSE );
 
@@ -72,7 +72,7 @@ WITH ( OIDS = FALSE );
 -- and available enum values
 CREATE TABLE IF NOT EXISTS rpc_spec_param (
     "id" SERIAL NOT NULL,
-    "rpc_spec_type_id" INTEGER NOT NULL REFERENCES rpc_spec_type (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "rpc_spec_type_id" INTEGER NULL REFERENCES rpc_spec_type (id) ON UPDATE CASCADE ON DELETE CASCADE,
     "name" TEXT NOT NULL,
     "type" TEXT,
     "internal_name" TEXT,

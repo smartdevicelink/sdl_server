@@ -4,7 +4,7 @@ const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 const model = require('./model.js');
 const parseXml = require('xml2js').parseString;
-const needle = require('needle');
+const request = require('request');
 
 //validation functions
 
@@ -174,11 +174,14 @@ function updateLanguages (next) {
     });
 }
 
-function getRpcSpec (next) {
-    //use the url from the settings.js file
-    needle.get(app.locals.config.githubLanguageSourceUrl, function (err, res) {
-        next(err, res.body);
-    });
+function getRpcSpec(next) {
+    request(
+        {
+            method: 'GET',
+            url: app.locals.config.rpcSpecXmlUrl
+        }, function(err, res, body) {
+            next(err, body);
+        });
 }
 
 function extractLanguages (rpcSpec, next) {
