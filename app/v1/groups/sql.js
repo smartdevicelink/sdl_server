@@ -1,14 +1,56 @@
 const sql = require('sql-bricks-postgres');
 
-const permissionRelationsNoModules = sql.select('child_permission_name', 'parent_permission_name')
-    .from('permission_relations')
-    .innerJoin('permissions', {
-        'permissions.name': 'permission_relations.child_permission_name'
-    })
-    .where(
-        sql.notEq('type', 'MODULE')
-    )
-    .toString();
+function permissionRelationsNoModules(isProduction, hideDeleted = false) {
+    let base = sql.select('child_permission_name', 'parent_permission_name')
+        .from('permission_relations')
+        .innerJoin('permissions', {
+            'permissions.name': 'permission_relations.child_permission_name'
+        })
+        .where(
+            sql.notEq('type', 'MODULE')
+        );
+
+    // retrieve root custom vehicle data items applicable only to the production status/environment
+    let customVehicleDataProduction = sql.select('vcvd.name AS child_permission_name, t.parent_permission_name')
+        .from('view_custom_vehicle_data vcvd')
+        .crossJoin(sql(`(VALUES ('GetVehicleData'), ('OnVehicleData'), ('SubscribeVehicleData'), ('UnsubscribeVehicleData')) AS t(parent_permission_name)`))
+        .where({
+            'vcvd.status': 'PRODUCTION',
+            'vcvd.is_deleted': false, // production always hides deleted items
+            'vcvd.parent_id': null
+        });
+
+    // this query gets the most recent custom vehicle data items, regardless of status/environment
+    const customVehicleDataGroup = sql.select('max(id) AS id', 'name', 'parent_id')
+        .from('view_custom_vehicle_data')
+        .groupBy('name, parent_id');
+
+    // retrieve root custom vehicle data items applicable to the staging status/environment
+    let customVehicleDataStaging = sql.select('vcvd.name AS child_permission_name, t.parent_permission_name')
+        .from('(' + customVehicleDataGroup + ') cvdg')
+        .join('view_custom_vehicle_data vcvd', {
+            'vcvd.id': 'cvdg.id'
+        })
+        .crossJoin(sql(`(VALUES ('GetVehicleData'), ('OnVehicleData'), ('SubscribeVehicleData'), ('UnsubscribeVehicleData')) AS t(parent_permission_name)`));
+
+    // hiding deleted applies to staging
+    if (hideDeleted) {
+        customVehicleDataStaging.where({
+            'vcvd.is_deleted': false
+        });
+    } else {
+        customVehicleDataStaging.where(
+            sql.or({
+                'vcvd.is_deleted': false,
+                'vcvd.status': 'STAGING'
+            })
+        );
+    }
+
+    return base.union(isProduction ? customVehicleDataProduction : customVehicleDataStaging)
+        .orderBy('child_permission_name')
+        .toString();
+}
 
 const rpcs = sql.select('*')
     .from('permissions')

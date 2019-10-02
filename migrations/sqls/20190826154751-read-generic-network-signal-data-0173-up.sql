@@ -101,7 +101,7 @@ WITH ( OIDS = FALSE );
 -- END TABLES FOR RPC SPEC SYNC --
 
 
--- TABLES FOR CUSTOM VEHICLE DATA --
+-- TABLES AND VIEWS FOR CUSTOM VEHICLE DATA --
 
 CREATE TABLE IF NOT EXISTS custom_vehicle_data (
     "id" SERIAL NOT NULL,
@@ -125,7 +125,16 @@ CREATE TABLE IF NOT EXISTS custom_vehicle_data (
 )
 WITH ( OIDS = FALSE );
 
--- END TABLES FOR CUSTOM VEHICLE DATA --
+CREATE OR REPLACE VIEW view_custom_vehicle_data AS
+    SELECT custom_vehicle_data.*
+    FROM (
+        SELECT name, parent_id, status, max(id) AS id
+        FROM custom_vehicle_data
+        GROUP BY name, parent_id, status
+    ) AS cvd
+    INNER JOIN custom_vehicle_data ON cvd.id = custom_vehicle_data.id;
+
+-- END TABLES AND VIEWS FOR CUSTOM VEHICLE DATA --
 
 
 -- RECREATE AFFECTED VIEWS --

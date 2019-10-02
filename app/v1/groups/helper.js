@@ -61,7 +61,7 @@ function validateFuncGroup (req, res, callback) {
     flow(flame.map(rpcs, validateRpc), {method: 'parallel', eventLoop: true})(function (err, res) {
         callback();
     });
-    
+
     function validateRpc (rpc, next) {
         //base check
         if (!check.string(rpc.name) || !check.array(rpc.hmi_levels)
@@ -90,9 +90,9 @@ function validateFuncGroup (req, res, callback) {
                     .setMessage("Required for parameter: key, selected");
                 return next(true); //error out early
             }
-        }       
+        }
         next();
-    } 
+    }
 }
 
 //helper functions
@@ -101,7 +101,7 @@ function validateFuncGroup (req, res, callback) {
 function generateFunctionGroupTemplates (callback) {
     const getTemplateInfo = flow({
         rpcs: setupSql.bind(null, sql.rpcs),
-        permissionRelations: setupSql.bind(null, sql.permissionRelationsNoModules),
+        permissionRelations: setupSql.bind(null, sql.permissionRelationsNoModules()),
         hmiValues: setupSql.bind(null, sql.hmiLevels),
     }, {method: 'parallel'});
 

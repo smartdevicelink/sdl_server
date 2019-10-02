@@ -7,6 +7,7 @@ DROP VIEW IF EXISTS view_mapped_permissions_production;
 DROP VIEW IF EXISTS view_mapped_permissions_staging;
 DROP VIEW IF EXISTS view_mapped_permissions;
 DROP VIEW IF EXISTS view_function_group_info;
+DROP VIEW IF EXISTS view_custom_vehicle_data;
 
 -- END DROP OF VIEWS --
 
