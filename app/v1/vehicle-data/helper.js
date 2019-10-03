@@ -6,6 +6,183 @@ const request = require('request');
 const async = require('async');
 const _ = require('lodash');
 
+function validatePost(req, res) {
+    return;
+}
+
+function promoteCustomVehicleData(client, obj, parentIdMapping = {}) {
+    return function(cb) {
+        let originalParentId = obj.parent_id;
+        if (obj.parent_id) {
+            let parent_id = parentIdMapping[obj.parent_id];
+            if (!parent_id) {
+                return cb(`Orphaned record`);
+            }
+            obj.parent_id = parent_id;
+            //assign parent_id based on parentIdMapping.
+        }
+
+        async.waterfall(
+            [
+                function(callback) {
+                    //skip update if status is on production and not a child that has had its parentId changed.
+                    if (obj.status === 'PRODUCTION' && !(obj.parent_id && obj.parent_id != originalParentId)) {
+                        parentIdMapping[obj.id] = obj.id;
+                        return callback(null);
+                    }
+                    client.getOne(sql.insertProductionCustomVehicleData(obj), function(err, result) {
+                        if (!err && result) {
+                            parentIdMapping[obj.id] = result.id;
+                        }
+                        callback(err, result);
+                    });
+                }
+            ], function(err) {
+                if (err) {
+                    return cb(err);
+                }
+
+                //update children.
+                if (obj.params && obj.params.length > 0) {
+                    let functions = [];
+                    for (let param of obj.params) {
+                        functions.push(promoteCustomVehicleData(client, param, parentIdMapping));
+                    }
+                    return async.waterfall(functions, function(err) {
+                        cb(err);
+                    });
+                } else {
+                    cb(err);
+                }
+
+            }
+        );
+    };
+}
+
+/**
+ * Promotes all custom_vehicle_data records in STAGING if they are the
+ * most recent. This means creating new PRODUCTION records and making sure
+ * any parent_id relationships remain unchanged.
+ *
+ * Promoting a parent will cause all new PRODUCTION child records to be created.
+ *
+ * If the child record is in STAGING a new PRODUCTION record will be created using staging and the parent_id.
+ *
+ * This will be done as a single transaction with top level records being created first.
+ *
+ * @param cb
+ */
+function promote(cb) {
+    app.locals.db.runAsTransaction(function(client, callback) {
+        async.waterfall(
+            [
+                function(callback) {
+                    app.locals.db.sqlCommand(sql.getVehicleData(false), function(err, res) {
+                        callback(null, res);
+                    });
+                },
+                //create nested data.
+                function(data, callback) {
+                    let vehicleDataById = {};
+                    for (let customVehicleDataItem of data) {
+                        vehicleDataById[customVehicleDataItem.id] = customVehicleDataItem;
+                        customVehicleDataItem.params = [];
+                    }
+
+                    let result = [];
+                    for (let customVehicleDataItem of data) {
+                        if (customVehicleDataItem.parent_id) {
+                            //old record not included.
+                            if (!vehicleDataById[customVehicleDataItem.parent_id]) {
+                                continue;
+                            } else {
+                                vehicleDataById[customVehicleDataItem.parent_id].params.push(customVehicleDataItem);
+                            }
+                        } else {
+                            result.push(customVehicleDataItem);
+                        }
+                    }
+                    callback(null, result);
+                },
+                //insert data
+                function(data, callback) {
+                    let functions = [];
+                    for (let customVehicleDataItem of data) {
+                        functions.push(promoteCustomVehicleData(client, customVehicleDataItem));
+                    }
+                    async.waterfall(functions, callback);
+                }
+            ], callback
+        );
+    }, cb);
+
+}
+
+function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
+    return isForPolicyTable ? {
+        name: customVehicleDataItem.name,
+        type: customVehicleDataItem.type,
+        key: customVehicleDataItem.key,
+        mandatory: customVehicleDataItem.mandatory,
+        minlength: customVehicleDataItem.min_length,
+        maxlength: customVehicleDataItem.max_length,
+        minsize: customVehicleDataItem.min_size,
+        maxsize: customVehicleDataItem.max_size,
+        maxvalue: customVehicleDataItem.max_value,
+        array: customVehicleDataItem.array,
+    } : customVehicleDataItem;
+}
+
+/**
+ *
+ * @param customVehicleDataItems
+ * @param isForPolicyTable
+ * @param cb
+ */
+function getNestedCustomVehicleData(customVehicleDataItems, isForPolicyTable, cb) {
+    let vehicleDataById = {};
+    for (let customVehicleDataItem of customVehicleDataItems) {
+        vehicleDataById[customVehicleDataItem.id] = customVehicleDataItem;
+        customVehicleDataItem.params = [];
+    }
+
+    let result = [];
+    for (let customVehicleDataItem of customVehicleDataItems) {
+        if (customVehicleDataItem.parent_id) {
+            //if we are filtering by id the parent will not be included.
+            if (vehicleDataById[customVehicleDataItem.parent_id]) {
+                vehicleDataById[customVehicleDataItem.parent_id].params.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
+            }
+            else { //if no parent_id matches, assume this is a top level item.
+                result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
+            }
+        } else {
+            result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
+        }
+    }
+    cb(null, result);
+}
+
+/**
+ * Returns a list of custom vehicle data items filtered by status and optionally by id.
+ * @param isProduction - If true return status = PRODUCTION otherwise status = STAGING
+ * @param id - return only this id and child params.
+ * @param cb
+ */
+function getVehicleData(isProduction, id, cb) {
+    async.waterfall(
+        [
+            app.locals.db.sqlCommand.bind(null, sql.getVehicleData(isProduction, id)),
+            function(data, callback) {
+                getNestedCustomVehicleData(data, false, callback);
+            }
+        ], function(err, response) {
+            cb(err, response);
+        }
+    );
+}
+
 function getRpcSpec(next) {
     request(
         {
@@ -215,7 +392,8 @@ function extractRpcSpecTypes(data, next) {
     next(null, data);
 }
 
-function updateRpcSpec(next = function(){}) {
+function updateRpcSpec(next = function() {
+}) {
 
     app.locals.db.runAsTransaction(function(client, callback) {
         async.waterfall(
@@ -277,8 +455,7 @@ function updateRpcSpec(next = function(){}) {
             } else {
                 app.locals.log.error(err);
             }
-        }
-        else {
+        } else {
 
             app.locals.log.info('Rpc spec updated');
         }
@@ -288,5 +465,9 @@ function updateRpcSpec(next = function(){}) {
 }
 
 module.exports = {
+    getNestedCustomVehicleData: getNestedCustomVehicleData,
+    validatePost: validatePost,
+    promote: promote,
+    getVehicleData: getVehicleData,
     updateRpcSpec: updateRpcSpec,
 };
