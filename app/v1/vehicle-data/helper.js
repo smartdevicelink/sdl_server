@@ -561,7 +561,7 @@ function getValidTypes(cb) {
         },
         {
             name: "Struct",
-            allow_params: false,
+            allow_params: true,
         }
     ];
 
