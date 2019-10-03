@@ -23,15 +23,13 @@ function getLatestRpcSpec() {
  * module.
  * @param isProduction
  */
-function getVehicleData(isProduction) {
-
+function getVehicleData(isProduction, id) {
     let statement;
     //if looking for production just filter on the status.
     if (isProduction) {
         statement = sql.select('view_custom_vehicle_data.*')
             .from('view_custom_vehicle_data')
-            .where({ status: 'PRODUCTION' })
-            .orderBy('view_custom_vehicle_data.id');
+            .where({ status: 'PRODUCTION' });
     } else { //if staging, select the most recently update custom_vehicle_data record regardless of status.
         let sub = sql.select('max(id) AS id')
             .from('view_custom_vehicle_data')
@@ -41,11 +39,25 @@ function getVehicleData(isProduction) {
             .from('(' + sub + ') sub')
             .innerJoin('view_custom_vehicle_data', {
                 'view_custom_vehicle_data.id': 'sub.id'
-            })
-            .orderBy('view_custom_vehicle_data.id');
+            });
     }
 
-    return statement;
+    if (id) {
+        statement.where({ id: id });
+    }
+
+    let unionStatement = sql.select('cvd.*').from('view_custom_vehicle_data cvd')
+        .join('children c').on('c.id', 'cvd.parent_id');
+
+    statement.union(unionStatement);
+
+    let str = `WITH RECURSIVE children AS (
+        ${statement.toString()}
+    ) SELECT * FROM children;
+    `;
+
+    console.log(str);
+    return str;
 }
 
 function insertRpcSpecParam(rpcSpecParams, rpcSpecTypeByName) {

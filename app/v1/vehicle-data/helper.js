@@ -119,6 +119,55 @@ function promote(cb) {
 
 }
 
+function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
+    return isForPolicyTable ? {
+        name: customVehicleDataItem.name,
+        type: customVehicleDataItem.type,
+        key: customVehicleDataItem.key,
+        mandatory: customVehicleDataItem.mandatory,
+        minlength: customVehicleDataItem.min_length,
+        maxlength: customVehicleDataItem.max_length,
+        minsize: customVehicleDataItem.min_size,
+        maxsize: customVehicleDataItem.max_size,
+        maxvalue: customVehicleDataItem.max_value,
+        array: customVehicleDataItem.array,
+    } : customVehicleDataItem;
+}
+
+/**
+ *
+ * @param customVehicleDataItems
+ * @param isForPolicyTable
+ * @param id - top level id
+ * @param cb
+ */
+function getNestedCustomVehicleData(customVehicleDataItems, isForPolicyTable, id, cb) {
+    let vehicleDataById = {};
+    for (let customVehicleDataItem of customVehicleDataItems) {
+        vehicleDataById[customVehicleDataItem.id] = customVehicleDataItem;
+        customVehicleDataItem.params = [];
+    }
+
+    let result = [];
+    for (let customVehicleDataItem of customVehicleDataItems) {
+        if (customVehicleDataItem.parent_id) {
+            //if we are filtering by id the parent will not be included.
+            if (vehicleDataById[customVehicleDataItem.parent_id]) {
+                vehicleDataById[customVehicleDataItem.parent_id].params.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
+            }
+
+            if (id && id == customVehicleDataItem.id) {
+                result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
+            }
+        } else {
+            if (!id || id == customVehicleDataItem.id) {
+                result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
+            }
+        }
+    }
+    cb(null, result);
+}
+
 /**
  * Returns a list of custom vehicle data items filtered by status and optionally by id.
  * @param isProduction - If true return status = PRODUCTION otherwise status = STAGING
@@ -128,39 +177,8 @@ function promote(cb) {
 function getVehicleData(isProduction, id, cb) {
     async.waterfall(
         [
-            function(callback) {
-                app.locals.db.sqlCommand(sql.getVehicleData(isProduction), function(err, res) {
-                    callback(null, res);
-                });
-            },
-            function(data, callback) {
-                let vehicleDataById = {};
-                for (let customVehicleDataItem of data) {
-                    vehicleDataById[customVehicleDataItem.id] = customVehicleDataItem;
-                    customVehicleDataItem.params = [];
-                }
-
-                let result = [];
-                for (let customVehicleDataItem of data) {
-                    if (customVehicleDataItem.parent_id) {
-                        //if we are filtering by id the parent will not be included.
-                        if (vehicleDataById[customVehicleDataItem.parent_id]) {
-                            vehicleDataById[customVehicleDataItem.parent_id].params.push(customVehicleDataItem);
-                        }
-
-                        if (id && id == customVehicleDataItem.id) {
-                            result.push(customVehicleDataItem);
-                        }
-                    } else {
-                        if (!id || id == customVehicleDataItem.id) {
-                            result.push(customVehicleDataItem);
-                        }
-
-                    }
-
-                }
-                callback(null, result);
-            }
+            app.locals.db.sqlCommand.bind(null, sql.getVehicleData(isProduction, id)),
+            getNestedCustomVehicleData.bind(null, data, false, id)
         ], function(err, response) {
             cb(err, response);
         }
@@ -449,6 +467,7 @@ function updateRpcSpec(next = function() {
 }
 
 module.exports = {
+    getNestedCustomVehicleData: getNestedCustomVehicleData,
     validatePost: validatePost,
     promote: promote,
     getVehicleData: getVehicleData,
