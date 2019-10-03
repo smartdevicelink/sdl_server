@@ -1,7 +1,7 @@
 const sql = require('sql-bricks-postgres');
 
 function permissionRelationsNoModules(isProduction, hideDeleted = false) {
-    let base = sql.select('child_permission_name', 'parent_permission_name')
+    let base = sql.select('child_permission_name, parent_permission_name, false::BOOLEAN AS is_custom')
         .from('permission_relations')
         .innerJoin('permissions', {
             'permissions.name': 'permission_relations.child_permission_name'
@@ -11,7 +11,7 @@ function permissionRelationsNoModules(isProduction, hideDeleted = false) {
         );
 
     // retrieve root custom vehicle data items applicable only to the production status/environment
-    let customVehicleDataProduction = sql.select('vcvd.name AS child_permission_name, t.parent_permission_name')
+    let customVehicleDataProduction = sql.select('vcvd.name AS child_permission_name, t.parent_permission_name, true::BOOLEAN AS is_custom')
         .from('view_custom_vehicle_data vcvd')
         .crossJoin(sql(`(VALUES ('GetVehicleData'), ('OnVehicleData'), ('SubscribeVehicleData'), ('UnsubscribeVehicleData')) AS t(parent_permission_name)`))
         .where({
@@ -26,7 +26,7 @@ function permissionRelationsNoModules(isProduction, hideDeleted = false) {
         .groupBy('name, parent_id');
 
     // retrieve root custom vehicle data items applicable to the staging status/environment
-    let customVehicleDataStaging = sql.select('vcvd.name AS child_permission_name, t.parent_permission_name')
+    let customVehicleDataStaging = sql.select('vcvd.name AS child_permission_name, t.parent_permission_name, true::BOOLEAN AS is_custom')
         .from('(' + customVehicleDataGroup + ') cvdg')
         .join('view_custom_vehicle_data vcvd', {
             'vcvd.id': 'cvdg.id'
@@ -48,7 +48,7 @@ function permissionRelationsNoModules(isProduction, hideDeleted = false) {
     }
 
     return base.union(isProduction ? customVehicleDataProduction : customVehicleDataStaging)
-        .orderBy('child_permission_name')
+        .orderBy('is_custom ASC')
         .toString();
 }
 

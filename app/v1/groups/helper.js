@@ -98,10 +98,10 @@ function validateFuncGroup (req, res, callback) {
 //helper functions
 
 //only needs to be generated once, because the RPC list and permission relations cannot be changed after server start up
-function generateFunctionGroupTemplates (callback) {
+function generateFunctionGroupTemplates (isProduction = false, callback) {
     const getTemplateInfo = flow({
         rpcs: setupSql.bind(null, sql.rpcs),
-        permissionRelations: setupSql.bind(null, sql.permissionRelationsNoModules()),
+        permissionRelations: setupSql.bind(null, sql.permissionRelationsNoModules(isProduction)),
         hmiValues: setupSql.bind(null, sql.hmiLevels),
     }, {method: 'parallel'});
 
@@ -124,7 +124,7 @@ function createFuncGroupFlow (filterTypeProp, value, includeRpcs, isProduction) 
 
     return flow([
         getAllInfoFlow,
-        model.makeFunctionGroups.bind(null, includeRpcs)
+        model.makeFunctionGroups.bind(null, includeRpcs, isProduction)
     ], {method: 'waterfall', eventLoop: true});
 }
 

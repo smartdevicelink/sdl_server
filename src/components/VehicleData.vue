@@ -8,132 +8,89 @@
 
             <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
                 <b-form-radio-group id="selectEnvironment"
-                                    buttons
-                                    button-variant="toggle"
-                                    v-on:change="environmentClick"
-                                    v-model="environment"
-                                    :options="environmentOptions"
-                                    name="chooseEnvironment"/>
+                    buttons
+                    button-variant="toggle"
+                    v-on:change="environmentClick"
+                    v-model="environment"
+                    :options="environmentOptions"
+                    name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-if="environment == 'STAGING' && canPromote" v-b-modal.promoteModal
-                           class="btn btn-style-green btn-sm align-middle">Promote changes to production
-                    </b-btn>
+                    <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
                 </div>
 
+                <h4>Custom Vehicle Data Mapping</h4>
 
-                <div class="form-row">
-                    <h4>Custom Vehicle Data Preview</h4>
-                </div>
-                <div v-if="vehicle_data">
-                    <vue-json-pretty :data="vehicleDataPreview"
-                                     :deep="2"
-                                     :showLine="showLine"
-                                     :showLength="showLength"
-                    ></vue-json-pretty>
+                <div>
+                    Define custom vehicle parameters supported by the manufacturer's HMI.
                 </div>
 
-
-                <div class="form-row">
-                    <h4>Reserved Vehicle Data Params</h4>
-                </div>
-                <p>
-                    The following keys are the default vehicle data params defined by the Mobile API and cannot
-                    be used for custom vehicle data.
-                </p>
-
-                <ul>
-                    <li v-for="(param, index) in reserved_params">{{ param }}</li>
-                </ul>
-
-
-                <div class="form-row">
-                    <h4>Custom Vehicle Data Mapping</h4>
-                </div>
-
-                <div class="form-row">
-                    <div>
-                        Define custom vehicle params supported by the manufacturer's HMI.
-                    </div>
-                </div>
-
-
-                <div class="functional-content" v-if="vehicle_data">
-
-                    <div class="form-row">
-                        <h4 for="name">Schema Version</h4>
-                        <input v-model="vehicle_data.schema_version" :disabled="fieldsDisabled" class="form-control">
-                    </div>
-
-                    <div class="form-row">
-                        <h4 for="name">Mapping</h4>
-
-                    </div>
-
-
-                    <div class="form-row">
-                        <div>
-                            <div v-for="(item, index) in vehicle_data.schema_items">
-                                <div>
-                                    <schema-item
-                                            v-if="!item.deleted"
-
-                                            :item="item"
-                                            :fieldsDisabled="fieldsDisabled"
-                                            :index="index"
-                                            :items="vehicle_data.schema_items"
-                                    ></schema-item>
-                                </div>
+                <section class="tiles">
+                    <card-item
+                        v-for="(item, index) in custom_vehicle_data"
+                        v-bind:item="{
+                            title: item.name,
+                            count: getParameterCount(item),
+                            id: item.id,
+                            parent_id: item.parent_id,
+                            status: item.status,
+                            name: item.name,
+                            type: item.type,
+                            key: item.key,
+                            mandatory: item.mandatory,
+                            min_length: item.min_length,
+                            max_length: item.max_length,
+                            min_size: item.min_size,
+                            max_size: item.max_size,
+                            min_value: item.min_value,
+                            max_value: item.max_value,
+                            array: item.array,
+                            is_deleted: item.is_deleted,
+                            created_ts: item.created_ts,
+                            updated_ts: item.updated_ts,
+                            params: item.params
+                        }"
+                        v-bind:environment="environment"
+                        v-bind:link="{
+                            path: 'vehicledata/manage',
+                            query: {
+                                id: item.id,
+                                environment: environment
+                            }
+                        }"
+                        v-bind:count_label_plural="'sub-parameters'"
+                        v-bind:count_label_singular="'sub-parameter'"
+                        v-bind:index="index"
+                        v-bind:key="item.id"
+                        >
+                    </card-item>
+                    <router-link
+                        v-bind:to="{ path: 'vehicledata/manage', query: { environment: environment } }"
+                        v-if="environment == 'STAGING'"
+                        class="tile-plus"
+                        >
+                            <div class="tile-plus-container content-middle">
+                                +
                             </div>
-                            <!-- save button -->
-                            <div>
-
-                                <div id="add" class="another-rpc pointer"
-                                     v-on:click="addSchemaItem()"
-                                >
-                                    Add Schema Item
-                                    <i class="fa fa-plus middle-middle"></i></div>
-
-
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- save button -->
-                    <div>
-                        <vue-ladda
-                                type="submit"
-                                class="btn btn-card btn-style-green"
-                                data-style="zoom-in"
-                                v-if="!fieldsDisabled"
-                                v-on:click="saveVehicleData()"
-                                v-bind:loading="save_button_loading">
-                            Save vehicle data config
-                        </vue-ladda>
-                    </div>
-                </div>
-
-
-                <b-modal ref="promoteModal" title="Promote Custom Vehicle Data to Production" hide-footer
-                         id="promoteModal"
-                         tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-                    <small class="form-text text-muted">
-                        This will promote the custom vehicle data mappings to production, immediately updating the
-                        production policy
-                        table. Are you sure you want to do this?
-                    </small>
-                    <vue-ladda
-                            type="button"
-                            class="btn btn-card btn-style-green"
-                            data-style="zoom-in"
-                            v-on:click="promoteVehicleDataClick()"
-                            v-bind:loading="promote_button_loading">
-                        Yes, promote to production!
-                    </vue-ladda>
-                </b-modal>
+                    </router-link>
+                </section>
 
             </main>
+
+            <!-- PROMOTE GROUP MODAL -->
+            <b-modal ref="promoteModal" title="Promote Functional Groups to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                <small class="form-text">
+                    <p>This will promote all modified Functional Groups to production, immediately updating the production policy table. Are you sure you want to do this?</p>
+                </small>
+                <vue-ladda
+                    type="button"
+                    class="btn btn-card btn-style-green"
+                    data-style="zoom-in"
+                    v-on:click="promoteVehicleDataClick()"
+                    v-bind:loading="promote_button_loading">
+                    Yes, promote to production!
+                </vue-ladda>
+            </b-modal>
         </div>
     </div>
 </template>
@@ -145,11 +102,8 @@
         components: {
             VueJsonPretty
         },
-        data() {
+        data () {
             return {
-                'showLine': false,
-                'showLength': true,
-                'deep': 0,
                 'environment': 'STAGING',
                 'environmentOptions': [
                     {
@@ -161,141 +115,86 @@
                         'value': 'PRODUCTION'
                     }
                 ],
-                'integerInput': {
-                    'regExp': /^[\D]*|\D*/g, // Match any character that doesn't belong to the positive integer
-                    'replacement': ''
-                },
-                'save_button_loading': false,
                 'promote_button_loading': false,
-                'module_config': null,
-                'vehicle_data': {
-                    'schema_items': []
-                },
-                'reserved_params': []
-            };
+                'selected_vehicle_data_id': null,
+                'custom_vehicle_data': [],
+                'schema_version': '',
+            }
         },
         computed: {
-            vehicleDataPreview: function() {
-                let vehicle_data = this.vehicle_data;
+            can_promote: function() {
+                let show_button = false;
+                for (let i = 0; i < this.custom_vehicle_data.length; i++){
+                    if(this.custom_vehicle_data[i].status == "STAGING") show_button = true;
+                }
+                return show_button;
+            },
+            vehicleDataPreview: function () {
                 return {
-                    vehicle_data: {
-                        schema_version: vehicle_data.schema_version,
-                        schema_items: vehicle_data.schema_items,
+                    custom_vehicle_data: {
+                        schema_version: this.schema_version,
+                        schema_items: this.custom_vehicle_data,
                     }
                 };
             },
-            canPromote: function() {
-                return this.vehicle_data && this.vehicle_data.status === 'STAGING';
-            },
-            fieldsDisabled: function() {
-                return this.environment != 'STAGING';
-            }
         },
         methods: {
-            'parseVehicleData': function(vehicle_data) {
-                function updateItem(item) {
-                    item.minvalue = item.minvalue || '';
-                    item.maxvalue = item.maxvalue || '';
-                    item.minsize = item.minsize || '';
-                    item.maxsize = item.maxsize || '';
-                    item.minlength = item.minlength || '';
-                    item.maxlength = item.maxlength || '';
-                    if (item.params) {
-                        for (let param of item.params) {
-                            updateItem(param);
-                        }
-                    }
+            getParameterCount: function (obj) {
+                if (!obj.params) 
+                    return 0;
+
+                let subParamCount = 0;
+                for (let i = 0; i < obj.params.length; i++) {
+                    subParamCount += this.getParameterCount(obj.params[i])
                 }
-
-                for (let schema_item of vehicle_data.schema_items) {
-                    updateItem(schema_item);
-                }
-                this.vehicle_data = vehicle_data;
+                return obj.params.length + subParamCount;
             },
-            'addSchemaItem': function() {
-                this.vehicle_data.schema_items.push(
-                    {
-                        name: '',
-                        key: '',
-                        type: '',
-                        array: false,
-                        since: '',
-                        until: '',
-                        removed: false,
-                        deprecated: false,
-                        minvalue: '',
-                        maxvalue: '',
-                        minsize: '',
-                        maxsize: '',
-                        minlength: '',
-                        maxlength: '',
-                        params: []
-                    }
-                );
-
-            },
-            'toTop': function() {
-                this.$scrollTo('body', 500);
-            },
-            'environmentClick': function() {
-                this.$nextTick(function() {
-                    this.httpRequest('get', 'vehicle-data', {
-                        'params': {
-                            'environment': this.environment
-                        }
-                    }, (err, res) => {
-                        if (err) {
-                            console.log('Error fetching vehicle data: ');
-                            console.log(err);
-                        } else {
-                            res.json().then(parsed => {
-                                if (parsed.data.vehicle_data) {
-                                    this.parseVehicleData(parsed.data.vehicle_data);
-                                } else {
-                                    console.log('No vehicle data returned');
-                                }
-                            });
-                        }
-                    });
-
-                    this.httpRequest('get', 'vehicle-data/reserved-params', {}, (err, res) => {
-                        if (err) {
-                            console.log('Error fetching reserved params: ');
-                            console.log(err);
-                        } else {
-                            res.json().then(parsed => {
-                                if (parsed.data.reserved_params) {
-                                    this.reserved_params = parsed.data.reserved_params;
-                                } else {
-                                    console.log('No reserved params returned');
-                                }
-                            });
-                        }
-                    });
+            environmentClick: function () {
+                this.$nextTick(function () {
+                    this.custom_vehicle_data = [];
+                    //get high level custom vehicle data
+                    this.getCustomVehicleData();
                 });
             },
-            'saveVehicleData': function() {
-                this.handleModalClick('save_button_loading', null, 'saveData');
-            },
-            'saveData': function(cb) {
-                this.httpRequest('post', 'vehicle-data', { 'body': this.vehicle_data }, (err) => {
-                    this.toTop();
-                    cb();
+            getCustomVehicleData: function () {
+                this.httpRequest("get", "vehicle-data", {
+                    "params": {
+                        "environment": this.environment
+                    }
+                }, (err, response) => {
+                    if (err) {
+                        console.log("Error fetching custom vehicle data: ");
+                        console.log(err);
+                    } else {
+                        response.json().then(parsed => {
+                            if (parsed.data.custom_vehicle_data && parsed.data.custom_vehicle_data.length) {
+                                this.custom_vehicle_data = parsed.data.custom_vehicle_data;
+                            } else {
+                                console.log("No custom vehicle data returned");
+                            }
+                        });
+                    }
                 });
             },
-            'promoteVehicleDataClick': function() {
-                this.handleModalClick('promote_button_loading', 'promoteModal', 'promoteVehicleData');
+            promoteVehicleDataClick: function () {
+                this.handleModalClick("promote_button_loading", "promoteModal", "promoteAllVehicleData");
             },
-            'promoteVehicleData': function(cb) {
-                this.httpRequest('post', 'vehicle-data/promote', { 'body': this.vehicle_data }, cb);
+            promoteAllVehicleData: function (cb) { //the back end will find the staging ids for the front end
+                this.httpRequest("post", "vehicle-data/promote", { "body": {} }, cb);
             },
+            getVehicleDataInfo: function (id, cb) {
+                this.httpRequest("get", "vehicle-data?id=" + id, {}, cb);
+            },
+            saveVehicleDataInfo: function (vehicleData, cb) {
+                this.httpRequest("post", "vehicle-data", { "body": vehicleData }, cb);
+            }
         },
-        mounted: function() {
+        mounted: function (){
             this.environmentClick();
         },
-        beforeDestroy() {
+        beforeDestroy () {
             // ensure closing of all modals
             this.$refs.promoteModal.onAfterLeave();
         }
-    };
+    }
 </script>
