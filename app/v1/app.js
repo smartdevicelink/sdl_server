@@ -99,23 +99,15 @@ function exposeRoutes () {
     app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote);
 }
 
-function updatePermissionsAndGenerateTemplates (next) {
-	permissions.update(function () {
-		//generate functional group templates for fast responding to the UI for function group info
-		//requires that permission information has updated
-		groups.generateFunctionGroupTemplates(function () {
-			log.info("Functional groups generated");
-			if (next) {
-				next();
-			}
-		});
-	});
-}
-
 //do not allow routes to be exposed until these async functions are completed
 flame.async.parallel([
 	//get and store permission info from SHAID on startup
-	updatePermissionsAndGenerateTemplates,
+	function (next) {
+		permissions.update(function () {
+			log.info("Permissions updated");
+			next();
+		});
+	},
 	function (next) {
 		// get and store app service type info from SHAID on startup
 		services.upsertTypes(function () {
@@ -148,7 +140,7 @@ flame.async.parallel([
 });
 
 //cron job for running updates. runs once a day at midnight
-new Cron('00 00 00 * * *', updatePermissionsAndGenerateTemplates, null, true);
+new Cron('00 00 00 * * *', permissions.update, null, true);
 new Cron('00 05 00 * * *', messages.updateLanguages, null, true);
 new Cron('00 10 00 * * *', services.upsertTypes, null, true);
 new Cron('00 15 00 * * *', vehicleData.updateRpcSpec, null, true);
