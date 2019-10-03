@@ -178,7 +178,10 @@ function getVehicleData(isProduction, id, cb) {
     async.waterfall(
         [
             app.locals.db.sqlCommand.bind(null, sql.getVehicleData(isProduction, id)),
-            getNestedCustomVehicleData.bind(null, data, false, id)
+            function(data,callback)
+            {
+                getNestedCustomVehicleData( data, false, id,callback)
+            }
         ], function(err, response) {
             cb(err, response);
         }
