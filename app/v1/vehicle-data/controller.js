@@ -158,7 +158,7 @@ function getTemplate(req, res) {
                 helper.getTemplate(cb);
             },
         ],
-        function(err, data) {
+        function(err, templateData) {
             if (err) {
                 app.locals.log.error(err);
                 return res.parcel
@@ -166,7 +166,7 @@ function getTemplate(req, res) {
                     .setMessage('Internal server error')
                     .deliver();
             }
-            const responseData = { custom_vehicle_data: data };
+            const responseData = { custom_vehicle_data: [ templateData ] };
             return res.parcel
                 .setData(responseData)
                 .setStatus(200)
