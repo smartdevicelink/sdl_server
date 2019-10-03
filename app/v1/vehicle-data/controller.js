@@ -68,6 +68,28 @@ function post(req, res, next) {
         return res.parcel.deliver();
     }
 
+    //
+    // async.waterfall(
+    //     [
+    //         function(cb) {
+    //             helper.insertCustomVehicleDataItem(req.body,cb);
+    //         },
+    //     ],
+    //     function(err) {
+    //         if (err) {
+    //             app.locals.log.error(err);
+    //             return res.parcel
+    //                 .setStatus(500)
+    //                 .setMessage('Internal server error')
+    //                 .deliver();
+    //         }
+    //         return res.parcel
+    //             .setStatus(200)
+    //             .deliver();
+    //     }
+    // );
+
+    //if an id is given also create new STAGING records for all children.
     model.insertVehicleData(req.body, function(err, result) {
         if (err) {
             app.locals.log.error(err);

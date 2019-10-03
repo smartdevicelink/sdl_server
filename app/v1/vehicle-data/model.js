@@ -5,6 +5,9 @@ const sql = require('./sql.js');
 /**
  * Create a new staging record on every update even when the existing
  * record is in STAGING.
+ *
+ * If this record has children, new children will be created.
+ *
  * @param obj
  * @param cb
  */

@@ -119,6 +119,72 @@ function promote(cb) {
 
 }
 
+
+function insertCustomVehicleDataItem(data,cb) {
+    let newParentId;
+    let oldParentId = data.id;
+    let children = [];
+    app.locals.db.runAsTransaction(function(client, callback) {
+        async.waterfall(
+            [
+                function(callback) {
+                    app.locals.db.sqlCommand(sql.insertStagingCustomVehicleData(data), function(err, res) {
+                        if (err)
+                        {
+                            return cb(err,res);
+                        }
+                        if (oldParentId)
+                        {
+                            newParentId = res.id;
+                        }
+                        cb(err, res);
+                    });
+                },
+                function(res, callback) {
+                    if (!oldParentId) //new record no children.
+                    {
+                        return callback(null,res);
+                    }
+                    newParentId = res.id;
+                    getVehicleData(false,oldParentId,callback);
+                },
+                //create nested data.
+                function(res, callback) {
+                    let vehicleDataById = {};
+                    for (let customVehicleDataItem of customVehicleDataItems) {
+                        vehicleDataById[customVehicleDataItem.id] = customVehicleDataItem;
+                        customVehicleDataItem.params = [];
+                    }
+
+                    let result = [];
+                    for (let customVehicleDataItem of data) {
+                        if (customVehicleDataItem.parent_id) {
+                            //old record not included.
+                            if (!vehicleDataById[customVehicleDataItem.parent_id]) {
+                                continue;
+                            } else {
+                                vehicleDataById[customVehicleDataItem.parent_id].params.push(customVehicleDataItem);
+                            }
+                        } else {
+                            result.push(customVehicleDataItem);
+                        }
+                    }
+                    callback(null, result);
+                },
+                //insert data
+                function(data, callback) {
+                    let functions = [];
+                    for (let customVehicleDataItem of data) {
+                        functions.push(promoteCustomVehicleData(client, customVehicleDataItem));
+                    }
+                    async.waterfall(functions, callback);
+                }
+            ], callback
+        );
+    }, cb);
+
+}
+
 function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
     return isForPolicyTable ? {
         name: customVehicleDataItem.name,
