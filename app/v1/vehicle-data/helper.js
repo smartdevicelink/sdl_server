@@ -138,10 +138,9 @@ function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
  *
  * @param customVehicleDataItems
  * @param isForPolicyTable
- * @param id - top level id
  * @param cb
  */
-function getNestedCustomVehicleData(customVehicleDataItems, isForPolicyTable, id, cb) {
+function getNestedCustomVehicleData(customVehicleDataItems, isForPolicyTable, cb) {
     let vehicleDataById = {};
     for (let customVehicleDataItem of customVehicleDataItems) {
         vehicleDataById[customVehicleDataItem.id] = customVehicleDataItem;
@@ -155,14 +154,11 @@ function getNestedCustomVehicleData(customVehicleDataItems, isForPolicyTable, id
             if (vehicleDataById[customVehicleDataItem.parent_id]) {
                 vehicleDataById[customVehicleDataItem.parent_id].params.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
             }
-
-            if (id && id == customVehicleDataItem.id) {
+            else { //if no parent_id matches, assume this is a top level item.
                 result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
             }
         } else {
-            if (!id || id == customVehicleDataItem.id) {
-                result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
-            }
+            result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
         }
     }
     cb(null, result);
@@ -178,9 +174,8 @@ function getVehicleData(isProduction, id, cb) {
     async.waterfall(
         [
             app.locals.db.sqlCommand.bind(null, sql.getVehicleData(isProduction, id)),
-            function(data,callback)
-            {
-                getNestedCustomVehicleData( data, false, id,callback)
+            function(data, callback) {
+                getNestedCustomVehicleData(data, false, callback);
             }
         ], function(err, response) {
             cb(err, response);
