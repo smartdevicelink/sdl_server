@@ -95,8 +95,8 @@ function exposeRoutes () {
     //begin vehicle data routes
     app.post('/vehicle-data', auth.validateAuth, vehicleData.post);
     app.get('/vehicle-data', auth.validateAuth, vehicleData.get);
-    app.get('/vehicle-data/reserved-params', auth.validateAuth, vehicleData.getVehicleDataReservedParams);
     app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote);
+
 }
 
 //do not allow routes to be exposed until these async functions are completed
