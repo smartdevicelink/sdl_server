@@ -31,7 +31,7 @@ function getVehicleData(isProduction, id) {
             .from('view_custom_vehicle_data')
             .where({ status: 'PRODUCTION' });
     } else { //if staging, select the most recently update custom_vehicle_data record regardless of status.
-        let sub = sql.select('max(id) AS id')
+        let sub = sql.select('max(view_custom_vehicle_data.id) AS id')
             .from('view_custom_vehicle_data')
             .groupBy(['view_custom_vehicle_data.name', 'view_custom_vehicle_data.parent_id']);
 
@@ -43,7 +43,7 @@ function getVehicleData(isProduction, id) {
     }
 
     if (id) {
-        statement.where({ id: id });
+        statement.where({ "view_custom_vehicle_data.id": id });
     }
 
     let unionStatement = sql.select('cvd.*').from('view_custom_vehicle_data cvd')
