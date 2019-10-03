@@ -68,42 +68,30 @@ function post(req, res, next) {
         return res.parcel.deliver();
     }
 
-    //
-    // async.waterfall(
-    //     [
-    //         function(cb) {
-    //             helper.insertCustomVehicleDataItem(req.body,cb);
-    //         },
-    //     ],
-    //     function(err) {
-    //         if (err) {
-    //             app.locals.log.error(err);
-    //             return res.parcel
-    //                 .setStatus(500)
-    //                 .setMessage('Internal server error')
-    //                 .deliver();
-    //         }
-    //         return res.parcel
-    //             .setStatus(200)
-    //             .deliver();
-    //     }
-    // );
+    async.waterfall(
+        [
+            function(cb) {
+                app.locals.db.runAsTransaction(function(client, callback) {
+                    helper.insertCustomVehicleDataItem(client, req.body, callback);
+                }, cb);
+            },
+        ],
+        function(err, result) {
+            if (err) {
+                app.locals.log.error(err);
+                return res.parcel
+                    .setStatus(500)
+                    .setMessage('Internal server error')
+                    .deliver();
+            }
+            const responseData = { custom_vehicle_data: [result] };
 
-    //if an id is given also create new STAGING records for all children.
-    model.insertVehicleData(req.body, function(err, result) {
-        if (err) {
-            app.locals.log.error(err);
-            res.parcel
-                .setMessage('Internal server error')
-                .setStatus(500);
-        } else {
-            const responseData = { custom_vehicle_data: result };
-            res.parcel
+            return res.parcel
                 .setData(responseData)
-                .setStatus(200);
+                .setStatus(200)
+                .deliver();
         }
-        res.parcel.deliver();
-    });
+    );
 
 }
 
@@ -138,6 +126,55 @@ function promote(req, res, next) {
 
 }
 
+function getValidTypes(req, res) {
+    async.waterfall(
+        [
+            function(cb) {
+                helper.getValidTypes(cb);
+            },
+        ],
+        function(err, data) {
+            if (err) {
+                app.locals.log.error(err);
+                return res.parcel
+                    .setStatus(500)
+                    .setMessage('Internal server error')
+                    .deliver();
+            }
+            const responseData = { type: data };
+            return res.parcel
+                .setData(responseData)
+                .setStatus(200)
+                .deliver();
+        }
+    );
+}
+
+
+function getTemplate(req, res) {
+    async.waterfall(
+        [
+            function(cb) {
+                helper.getTemplate(cb);
+            },
+        ],
+        function(err, data) {
+            if (err) {
+                app.locals.log.error(err);
+                return res.parcel
+                    .setStatus(500)
+                    .setMessage('Internal server error')
+                    .deliver();
+            }
+            const responseData = { custom_vehicle_data: data };
+            return res.parcel
+                .setData(responseData)
+                .setStatus(200)
+                .deliver();
+        }
+    );
+}
+
 module.exports = {
     get: get,
     post: post,
@@ -145,4 +182,6 @@ module.exports = {
     updateVehicleDataEnums: helper.updateVehicleDataEnums,
     getVehicleDataParamTypes: getVehicleDataParamTypes,
     updateRpcSpec: helper.updateRpcSpec,
+    getValidTypes: getValidTypes,
+    getTemplate: getTemplate,
 };

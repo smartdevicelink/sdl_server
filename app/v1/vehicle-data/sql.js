@@ -17,6 +17,25 @@ function getLatestRpcSpec() {
         .limit(1);
 }
 
+function getEnums() {
+    return sql.select('rpc_spec_type.name')
+        .from('rpc_spec_type')
+        .groupBy(['rpc_spec_type.name'])
+        .where({ element_type: 'ENUM' });
+}
+
+
+function getDirectChildren(parent_id)
+{
+    let statement;
+    //if looking for production just filter on the status.
+    statement = sql.select('view_custom_vehicle_data.*')
+        .from('view_custom_vehicle_data')
+        .where({ parent_id: parent_id });
+
+    return statement;
+}
+
 /**
  * Returns a postgres sql query object to run against
  * using the postgres sdl_server/custom/databases/postgres/index.js
@@ -141,6 +160,8 @@ function insertProductionCustomVehicleData(obj) {
 }
 
 module.exports = {
+    getEnums: getEnums,
+    getDirectChildren: getDirectChildren,
     getVehicleData: getVehicleData,
     insertRpcSpec: insertRpcSpec,
     insertRpcSpecType: insertRpcSpecType,
