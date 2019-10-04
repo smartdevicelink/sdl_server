@@ -256,7 +256,7 @@
                         }
                     }
                 }
-                
+
                 return false; //no issues
             },
             //modal-related methods
@@ -274,10 +274,10 @@
                 });
             },
             deleteVehicleData: function () {
-                this.handleModalClick("delete_button_loading", "deleteModal", "deleteVehicleData");
+                this.handleModalClick("delete_button_loading", "deleteModal", "deleteVehicleDataItem");
             },
             undeleteVehicleData: function() {
-                this.handleModalClick("undelete_button_loading", "undeleteModal", "undeleteVehicleData");
+                this.handleModalClick("undelete_button_loading", "undeleteModal", "undeleteVehicleDataItem");
             },
             showDeleteModal: function() {
                 this.$refs.deleteModal.show();
@@ -285,11 +285,11 @@
             showUndeleteModal: function() {
                 this.$refs.undeleteModal.show();
             },
-            deleteVehicleData: function (cb) {
+            deleteVehicleDataItem: function (cb) {
                 this.vehicle_data.is_deleted = true;
                 this.httpRequest("post", "vehicle-data", { "body": this.vehicle_data }, cb);
             },
-            undeleteVehicleData: function (cb) {
+            undeleteVehicleDataItem: function (cb) {
                 this.vehicle_data.is_deleted = false;
                 this.httpRequest("post", "vehicle-data", { "body": this.vehicle_data }, cb);
             }
