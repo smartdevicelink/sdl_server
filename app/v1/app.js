@@ -96,6 +96,8 @@ function exposeRoutes () {
     app.post('/vehicle-data', auth.validateAuth, vehicleData.post);
     app.get('/vehicle-data', auth.validateAuth, vehicleData.get);
     app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote);
+    app.get('/vehicle-data/type', auth.validateAuth, vehicleData.getValidTypes);
+
 
 }
 

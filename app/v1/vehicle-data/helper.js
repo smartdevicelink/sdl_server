@@ -119,6 +119,75 @@ function promote(cb) {
 
 }
 
+function insertCustomVehicleDataItem(client, data, cb) {
+    let newParentId;
+    let oldParentId = data.id;
+    let insertResult;
+
+    async.waterfall(
+        [
+            function(callback) {
+                client.getOne(sql.insertStagingCustomVehicleData(data), function(err, res) {
+                    if (err) {
+                        return cb(err, res);
+                    }
+                    if (oldParentId) {
+                        newParentId = res.id;
+                    }
+                    insertResult = res;
+                    callback(err, res);
+                });
+            },
+            function(res, callback) { //insert new children
+                if (data.params) { //params are being passed in so all new children are created.
+                    let functions = [];
+                    for (let child of data.params) {
+                        child.status = 'STAGING';
+                        child.parent_id = res.id;
+                        functions.push(function(cb) {
+                            insertCustomVehicleDataItem(client, child, cb);
+                        });
+                    }
+                    async.parallel(functions, function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        return callback(err);
+                    });
+                } else {
+                    if (!oldParentId) //new record no children.
+                    {
+                        return callback(null, res);
+                    }
+                    newParentId = res.id;
+
+                    client.getMany(sql.getDirectChildren(oldParentId), function(err, res) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        let functions = [];
+                        for (let child of res) {
+                            child.parent_id = newParentId;
+                            child.status = 'STAGING';
+                            functions.push(function(cb) {
+                                insertCustomVehicleDataItem(client, child, cb);
+                            });
+                        }
+                        async.parallel(functions, function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            return callback(err);
+                        });
+                    });
+                }
+            },
+        ], cb
+    );
+
+}
+
 function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
     return isForPolicyTable ? {
         name: customVehicleDataItem.name,
@@ -153,8 +222,7 @@ function getNestedCustomVehicleData(customVehicleDataItems, isForPolicyTable, cb
             //if we are filtering by id the parent will not be included.
             if (vehicleDataById[customVehicleDataItem.parent_id]) {
                 vehicleDataById[customVehicleDataItem.parent_id].params.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
-            }
-            else { //if no parent_id matches, assume this is a top level item.
+            } else { //if no parent_id matches, assume this is a top level item.
                 result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
             }
         } else {
@@ -464,10 +532,80 @@ function updateRpcSpec(next = function() {
 
 }
 
+function getTemplate(cb) {
+    return cb(
+        null,
+        {
+            'id': null,
+            'parent_id': null,
+            'status': 'STAGING',
+            'name': null,
+            'type': null,
+            'key': null,
+            'mandatory': false,
+            'min_length': null,
+            'max_length': null,
+            'min_size': null,
+            'max_size': null,
+            'min_value': null,
+            'max_value': null,
+            'array': false,
+            'params': [],
+            'is_deleted': false
+        }
+    );
+}
+
+function getValidTypes(cb) {
+
+    //primitive types and struct
+    let types = [
+        {
+            name: 'Float',
+            allow_params: false,
+        },
+        {
+            name: 'String',
+            allow_params: false,
+        },
+        {
+            name: 'Boolean',
+            allow_params: false,
+        },
+        {
+            name: 'Integer',
+            allow_params: false,
+        },
+        {
+            name: 'Struct',
+            allow_params: true,
+        }
+    ];
+
+    app.locals.db.sqlCommand(sql.getEnums(), function(err, enums) {
+        if (err) {
+            return cb(err);
+        }
+        for (let item of enums) {
+            types.push(
+                {
+                    name: item.name,
+                    allow_params: false
+                }
+            );
+        }
+
+        return cb(null, types);
+    });
+}
+
 module.exports = {
+    getTemplate: getTemplate,
+    insertCustomVehicleDataItem: insertCustomVehicleDataItem,
     getNestedCustomVehicleData: getNestedCustomVehicleData,
     validatePost: validatePost,
     promote: promote,
     getVehicleData: getVehicleData,
+    getValidTypes: getValidTypes,
     updateRpcSpec: updateRpcSpec,
 };

@@ -17,13 +17,26 @@ function getLatestRpcSpec() {
         .limit(1);
 }
 
+function getEnums() {
+    return sql.select('rpc_spec_type.name')
+        .from('rpc_spec_type')
+        .groupBy(['rpc_spec_type.name'])
+        .where({ element_type: 'ENUM' });
+}
+
+function getDirectChildren(parent_id) {
+    return sql.select('view_custom_vehicle_data.*')
+        .from('view_custom_vehicle_data')
+        .where({ parent_id: parent_id });
+}
+
 /**
  * Returns a postgres sql query object to run against
  * using the postgres sdl_server/custom/databases/postgres/index.js
  * module.
  * @param isProduction
  */
-function getVehicleData(isProduction, id) {
+function getVehicleData(isProduction, id, hideDeleted = false) {
     let statement;
     //if looking for production just filter on the status.
     if (isProduction) {
@@ -37,19 +50,32 @@ function getVehicleData(isProduction, id) {
 
         statement = sql.select('view_custom_vehicle_data.*')
             .from('(' + sub + ') sub')
-            .innerJoin('view_custom_vehicle_data', {
-                'view_custom_vehicle_data.id': 'sub.id'
-            });
+            .innerJoin('view_custom_vehicle_data', { 'view_custom_vehicle_data.id': 'sub.id' });
     }
 
     if (id) {
-        statement.where({ "view_custom_vehicle_data.id": id });
+        statement.where({ 'view_custom_vehicle_data.id': id });
+    } else { //remove any old staging custom_vehicle_data records.
+        statement.where({ 'view_custom_vehicle_data.parent_id': null });
     }
 
     let unionStatement = sql.select('cvd.*').from('view_custom_vehicle_data cvd')
         .join('children c').on('c.id', 'cvd.parent_id');
 
     statement.union(unionStatement);
+
+    if (hideDeleted) {
+        statement.where({ 'view_custom_vehicle_data.is_deleted': false });
+    } else {
+        statement.where(
+            sql.or(
+                {
+                    'view_custom_vehicle_data.is_deleted': false,
+                    'view_custom_vehicle_data.status': 'STAGING'
+                }
+            )
+        );
+    }
 
     let str = `WITH RECURSIVE children AS (
         ${statement.toString()}
@@ -98,7 +124,8 @@ function insertStagingCustomVehicleData(obj) {
         min_size: obj.min_size,
         max_size: obj.max_size,
         max_value: obj.max_value,
-        array: obj.array,
+        array: obj.array === true,
+        is_deleted: obj.is_deleted === true
     };
     return sql.insert('custom_vehicle_data', data).returning('*');
 }
@@ -117,11 +144,14 @@ function insertProductionCustomVehicleData(obj) {
         max_size: obj.max_size,
         max_value: obj.max_value,
         array: obj.array,
+        is_deleted: obj.is_deleted
     };
     return sql.insert('custom_vehicle_data', data).returning('*');
 }
 
 module.exports = {
+    getEnums: getEnums,
+    getDirectChildren: getDirectChildren,
     getVehicleData: getVehicleData,
     insertRpcSpec: insertRpcSpec,
     insertRpcSpecType: insertRpcSpecType,

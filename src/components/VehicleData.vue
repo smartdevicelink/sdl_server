@@ -118,24 +118,15 @@
                 'promote_button_loading': false,
                 'selected_vehicle_data_id': null,
                 'custom_vehicle_data': [],
-                'schema_version': '',
             }
         },
         computed: {
-            can_promote: function() {
+            can_promote: function () {
                 let show_button = false;
                 for (let i = 0; i < this.custom_vehicle_data.length; i++){
                     if(this.custom_vehicle_data[i].status == "STAGING") show_button = true;
                 }
                 return show_button;
-            },
-            vehicleDataPreview: function () {
-                return {
-                    custom_vehicle_data: {
-                        schema_version: this.schema_version,
-                        schema_items: this.custom_vehicle_data,
-                    }
-                };
             },
         },
         methods: {

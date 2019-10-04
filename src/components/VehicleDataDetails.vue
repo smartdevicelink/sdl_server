@@ -33,6 +33,11 @@
                             <schema-item
                                 :item="vehicle_data"
                                 :fieldsDisabled="fieldsDisabled"
+                                :vehicleParams="vehicleParams"
+                                :topLevelVehicleNames="topLevelVehicleNames"
+                                :pardonedName="vehicleNameCopy"
+                                :vehicleDataTypes="vehicleDataTypes"
+                                :topLevel="true"
                             ></schema-item>
                         </div>
                     </div>
@@ -43,7 +48,7 @@
                             type="submit"
                             class="btn btn-card btn-style-green"
                             data-style="zoom-in"
-                            v-if="!fieldsDisabled"
+                            v-if="!fieldsDisabled && !namingConflictWithNativeParams(vehicle_data)"
                             v-on:click="saveVehicleData()"
                             v-bind:loading="save_button_loading">
                             Save vehicle data config
@@ -122,6 +127,10 @@
                 "delete_button_loading": false,
                 "undelete_button_loading": false,
                 'vehicle_data': {},
+                'vehicleNameCopy': '',
+                'vehicleParams': [],
+                'topLevelVehicleNames': [],
+                'vehicleDataTypes': [],
             };
         },
         computed: {
@@ -150,6 +159,7 @@
                         response.json().then(parsed => {
                             if (parsed.data.custom_vehicle_data && parsed.data.custom_vehicle_data[0]) {
                                 this.vehicle_data = parsed.data.custom_vehicle_data[0];
+                                this.vehicleNameCopy = this.vehicle_data.name;
                             } else {
                                 console.log("No vehicle data returned");
                             }
@@ -175,30 +185,121 @@
             promoteVehicleData: function (cb) {
                 this.httpRequest('post', 'vehicle-data/promote', { 'body': this.vehicle_data }, cb);
             },
+            getFunctionalGroupTemplate: function (cb) {
+                this.httpRequest("get", "groups?template=true&environment=staging", {}, (err, response) => {
+                    if (response) {
+                        response.json().then(parsed => {
+                            if (parsed.data.groups && parsed.data.groups[0]) {
+                                //expect the template functional group to return, having an rpc named GetVehicleData
+                                //which should return all possible parameters
+                                this.vehicleParams = parsed.data.groups[0].rpcs.find(rpc => rpc.name === "GetVehicleData").parameters;
+                            } else {
+                                console.log("No functional group data returned");
+                            }
+                            if (cb) {
+                                cb(); //done
+                            }
+                        });
+                    }
+                });
+            },
+            getTopLevelVehicleNames: function () {
+                this.httpRequest("get", "vehicle-data", {
+                    "params": {
+                        "environment": 'STAGING'
+                    }
+                }, (err, response) => {
+                    if (err) {
+                        console.log("Error fetching custom vehicle data: ");
+                        console.log(err);
+                    } else {
+                        response.json().then(parsed => {
+                            if (parsed.data.custom_vehicle_data && parsed.data.custom_vehicle_data.length) {
+                                this.topLevelVehicleNames = parsed.data.custom_vehicle_data.map(cvd => cvd.name);
+                            } else {
+                                console.log("No custom vehicle data returned");
+                            }
+                        });
+                    }
+                });
+            },
+            getVehicleDataTypes: function () {
+                this.httpRequest("get", "vehicle-data/type", {}, 
+                    (err, response) => {
+                    if (err) {
+                        console.log("Error fetching custom vehicle data: ");
+                        console.log(err); 
+                    } else {
+                        response.json().then(parsed => {
+                            if (parsed.data.type && parsed.data.type.length) {
+                                this.vehicleDataTypes = parsed.data.type;
+                            } else {
+                                console.log("No custom vehicle data returned");
+                            }
+                        });
+                    }
+                });
+            },
+            namingConflictWithNativeParams: function (obj) {
+                //check that none of the nested names match any of the native vehicle parameters found in functional group info
+                let foundName = this.vehicleParams.find(vp => vp.name === obj.name);
+
+                if (foundName && // found a name match
+                    !foundName.is_custom && //it's a native parameter 
+                    (foundName.name !== this.vehicleNameCopy)) { //it's not the same name as the one we're looking at
+                    return true; //found a match. stop now
+                }
+                //check all the sub parameters if they exist
+                if (obj.params && obj.params.length > 0) {
+                    for (let i = 0; i < obj.params.length; i++) {
+                        if (this.namingConflictWithNativeParams(obj.params[i])) {
+                            return true; //found a match. stop now
+                        }
+                    }
+                }
+
+                return false; //no issues
+            },
             //modal-related methods
-            "deleteVehicleData": function () {
-                this.handleModalClick("delete_button_loading", "deleteModal", "deleteVehicleData");
+            handleModalClick: function (loadingProp, modalName, methodName) {
+                //show a loading icon for the modal, and call the methodName passed in
+                //when finished, turn off the loading icon, hide the modal, and push the
+                //user back to the functional groups page
+                this[loadingProp] = true;
+                this[methodName](() => {
+                    this[loadingProp] = false;
+                    if (modalName) {
+                        this.$refs[modalName].hide();
+                    }
+                    this.$router.push("/vehicledata");
+                });
             },
-            "undeleteVehicleData": function() {
-                this.handleModalClick("undelete_button_loading", "undeleteModal", "undeleteVehicleData");
+            deleteVehicleData: function () {
+                this.handleModalClick("delete_button_loading", "deleteModal", "deleteVehicleDataItem");
             },
-            "showDeleteModal": function() {
+            undeleteVehicleData: function() {
+                this.handleModalClick("undelete_button_loading", "undeleteModal", "undeleteVehicleDataItem");
+            },
+            showDeleteModal: function() {
                 this.$refs.deleteModal.show();
             },
-            "showUndeleteModal": function() {
+            showUndeleteModal: function() {
                 this.$refs.undeleteModal.show();
             },
-            "deleteVehicleData": function (cb) {
+            deleteVehicleDataItem: function (cb) {
                 this.vehicle_data.is_deleted = true;
                 this.httpRequest("post", "vehicle-data", { "body": this.vehicle_data }, cb);
             },
-            "undeleteVehicleData": function (cb) {
+            undeleteVehicleDataItem: function (cb) {
                 this.vehicle_data.is_deleted = false;
                 this.httpRequest("post", "vehicle-data", { "body": this.vehicle_data }, cb);
-            },
+            }
         },
         mounted: function () {
             this.environmentClick();
+            this.getFunctionalGroupTemplate();
+            this.getTopLevelVehicleNames();
+            this.getVehicleDataTypes();
         },
         beforeDestroy() {
             // ensure closing of all modals
