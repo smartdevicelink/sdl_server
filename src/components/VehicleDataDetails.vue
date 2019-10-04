@@ -151,6 +151,7 @@
                 } else {
                     queryInfo = "vehicle-data?id=" + this.id;
                 }
+                queryInfo += "&environment=" + this.environment.toLowerCase();
 
                 this.httpRequest("get", queryInfo, {}, (err, response) => {
                     if (response) {
