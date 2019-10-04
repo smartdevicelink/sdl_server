@@ -533,6 +533,7 @@ function getTemplate(cb) {
             'min_value': null,
             'max_value': null,
             'array': false,
+            'params': [],
             'is_deleted': false
         }
     );
