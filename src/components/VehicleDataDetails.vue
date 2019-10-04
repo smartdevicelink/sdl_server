@@ -145,11 +145,11 @@
                 this.$scrollTo('body', 500);
             },
             environmentClick: function (cb) {
-                let queryInfo = "";
+                let queryInfo = "vehicle-data";
                 if (!this.id) {
-                    queryInfo = "vehicle-data/template";
+                    queryInfo += "?template=true";
                 } else {
-                    queryInfo = "vehicle-data?id=" + this.id;
+                    queryInfo += "?id=" + this.id;
                 }
                 queryInfo += "&environment=" + this.environment.toLowerCase();
 
