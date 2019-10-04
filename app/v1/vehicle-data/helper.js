@@ -139,21 +139,11 @@ function insertCustomVehicleDataItem(client, data, cb) {
                 });
             },
             function(res, callback) { //insert new children
-                if (!oldParentId) //new record no children.
-                {
-                    return callback(null, res);
-                }
-                newParentId = res.id;
-
-                client.getMany(sql.getDirectChildren(oldParentId), function(err, res) {
-                    if (err) {
-                        return callback(err);
-                    }
-
+                if (data.params) { //params are being passed in so all new children are created.
                     let functions = [];
-                    for (let child of res) {
-                        child.parent_id = newParentId;
+                    for (let child of data.params) {
                         child.status = 'STAGING';
+                        child.parent_id = res.id;
                         functions.push(function(cb) {
                             insertCustomVehicleDataItem(client, child, cb);
                         });
@@ -164,7 +154,36 @@ function insertCustomVehicleDataItem(client, data, cb) {
                         }
                         return callback(err);
                     });
-                });
+                } else {
+                    if (!oldParentId) //new record no children.
+                    {
+                        return callback(null, res);
+                    }
+                    newParentId = res.id;
+
+
+
+                    client.getMany(sql.getDirectChildren(oldParentId), function(err, res) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        let functions = [];
+                        for (let child of res) {
+                            child.parent_id = newParentId;
+                            child.status = 'STAGING';
+                            functions.push(function(cb) {
+                                insertCustomVehicleDataItem(client, child, cb);
+                            });
+                        }
+                        async.parallel(functions, function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            return callback(err);
+                        });
+                    });
+                }
             },
         ], cb
     );
