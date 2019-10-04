@@ -30,6 +30,11 @@ function getVehicleDataParamTypes(req, res, next) {
 
 function get(req, res, next) {
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
+    const returnTemplate = !!req.query.template; //coerce to boolean
+
+    if (returnTemplate) {
+        return getTemplate(req,res);
+    }
 
     async.waterfall(
         [
