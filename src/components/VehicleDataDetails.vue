@@ -242,7 +242,10 @@
             namingConflictWithNativeParams: function (obj) {
                 //check that none of the nested names match any of the native vehicle parameters found in functional group info
                 let foundName = this.vehicleParams.find(vp => vp.name === obj.name);
-                if (foundName) {
+
+                if (foundName && // found a name match
+                    !foundName.is_custom && //it's a native parameter 
+                    (foundName.name !== this.vehicleNameCopy)) { //it's not the same name as the one we're looking at
                     return true; //found a match. stop now
                 }
                 //check all the sub parameters if they exist
@@ -253,7 +256,7 @@
                         }
                     }
                 }
-
+                
                 return false; //no issues
             },
             //modal-related methods

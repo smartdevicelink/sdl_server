@@ -198,7 +198,9 @@
             findCommonParams: function (name) {
                 //first phase: check vehicle parameters found in functional group info
                 let foundName = this.vehicleParams.find(vp => vp.name === name);
-                if (foundName) {
+
+                //ignore pardoned name
+                if (foundName && (foundName.name !== this.pardonedName)) {
                     if (foundName.is_custom) 
                         return "CUSTOM"; //match found, but its a name the user has created
                     if (!foundName.is_custom) 
@@ -206,9 +208,10 @@
                 }
 
                 //second phase: check for the top level vehicle names created in Custom Vehicle Data
-                foundName = this.topLevelVehicleNames.find(vn => vn === name);
+                let foundVehicleName = this.topLevelVehicleNames.find(vn => vn === name);
 
-                if (foundName && (foundName !== this.pardonedName)) {
+                //ignore pardoned name
+                if (foundVehicleName && (foundVehicleName !== this.pardonedName)) {
                     return "CUSTOM"; //match found, but its a name the user has created
                 }
 
