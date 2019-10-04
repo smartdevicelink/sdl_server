@@ -151,7 +151,6 @@
                 } else {
                     queryInfo = "vehicle-data?id=" + this.id;
                 }
-                queryInfo += "&environment=" + this.environment.toLowerCase();
 
                 this.httpRequest("get", queryInfo, {}, (err, response) => {
                     if (response) {
@@ -230,8 +229,8 @@
                         console.log(err); 
                     } else {
                         response.json().then(parsed => {
-                            if (parsed.data.types && parsed.data.types.length) {
-                                this.vehicleDataTypes = parsed.data.types;
+                            if (parsed.data.type && parsed.data.type.length) {
+                                this.vehicleDataTypes = parsed.data.type;
                             } else {
                                 console.log("No custom vehicle data returned");
                             }
@@ -257,6 +256,19 @@
                 return false; //no issues
             },
             //modal-related methods
+            handleModalClick: function (loadingProp, modalName, methodName) {
+                //show a loading icon for the modal, and call the methodName passed in
+                //when finished, turn off the loading icon, hide the modal, and push the
+                //user back to the functional groups page
+                this[loadingProp] = true;
+                this[methodName](() => {
+                    this[loadingProp] = false;
+                    if (modalName) {
+                        this.$refs[modalName].hide();
+                    }
+                    this.$router.push("/vehicledata");
+                });
+            },
             deleteVehicleData: function () {
                 this.handleModalClick("delete_button_loading", "deleteModal", "deleteVehicleData");
             },
@@ -282,7 +294,7 @@
             this.environmentClick();
             this.getFunctionalGroupTemplate();
             this.getTopLevelVehicleNames();
-            //TODO: REMOVE COMMENT OF this.getVehicleDataTypes();
+            this.getVehicleDataTypes();
         },
         beforeDestroy() {
             // ensure closing of all modals
