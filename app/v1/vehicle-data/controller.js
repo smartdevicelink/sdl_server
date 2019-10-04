@@ -60,7 +60,6 @@ function get(req, res, next) {
 }
 
 /**
- * TODO validate parent_id is valid if given. Should be the most recent version.
  * @param req
  * @param res
  * @param next

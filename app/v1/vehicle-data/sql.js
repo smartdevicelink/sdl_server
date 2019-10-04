@@ -65,11 +65,7 @@ function getVehicleData(isProduction, id, hideDeleted = false) {
     statement.union(unionStatement);
 
     if (hideDeleted) {
-        statement.where(
-            {
-                'view_custom_vehicle_data.is_deleted': false
-            }
-        );
+        statement.where({ 'view_custom_vehicle_data.is_deleted': false });
     } else {
         statement.where(
             sql.or(
