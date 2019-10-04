@@ -3,6 +3,7 @@ const flame = app.locals.flame;
 const settings = require('../../../settings.js');
 const sqlApp = require('../applications/sql.js');
 const _ = require('lodash');
+const vehicleDataHelper = require('../vehicle-data/helper.js');
 
 //module config
 
@@ -247,6 +248,37 @@ function transformFunctionalGroups (isProduction, info, next) {
     constructFunctionalGroupFlow(next); //run it
 }
 
+function transformVehicleData (isProduction, info, next) {
+    console.log(info);
+    let vehicleData = {
+        "schema_version": info.schemaVersion[0].version,
+        "schema_items": [] // to be populated
+    };
+
+    // TODO: merge and transform the schema_items
+    flame.async.parallel({
+        "customVehicleData": function(callback){
+            vehicleDataHelper.getNestedCustomVehicleData(info.rawCustomVehicleData, true, callback);
+        },
+        "rpcVehicleData": function(callback){
+            // TODO: recursively loop through the RPC Spec data to build the nested objects
+            console.log(info.rawRpcSpecParams);
+            console.log(info.rawRpcSpecTypes);
+            callback(null, []);
+        }
+    }, function(err, transformations){
+        if(!err){
+            vehicleData.schema_items = _.uniqBy(
+                _.concat(transformations.rpcVehicleData, transformations.customVehicleData),
+                function(item){
+                    return item.name;
+                }
+            );
+        }
+        next(err, vehicleData);
+    });
+}
+
 //application policies
 
 function constructAppPolicy (appObj, useLongUuids = false, res, next) {
@@ -376,6 +408,7 @@ module.exports = {
     transformModuleConfig: transformModuleConfig,
     transformMessages: transformMessages,
     transformFunctionalGroups: transformFunctionalGroups,
+    transformVehicleData: transformVehicleData,
     constructAppPolicy: constructAppPolicy,
     aggregateResults: aggregateResults
 }

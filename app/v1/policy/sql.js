@@ -58,6 +58,75 @@ function getAppModules (appId) {
         .toString();
 }
 
+function getVehicleDataSchemaVersion (isProduction) {
+    let rpc_spec = sql.select('MAX(rs.created_ts) AS created_ts')
+        .from('rpc_spec rs');
+
+    let cvd = sql.select('MAX(vcvd.created_ts) AS created_ts')
+        .from('view_custom_vehicle_data vcvd');
+
+    if(isProduction){
+        cvd.where({
+            'vcvd.status': 'PRODUCTION'
+        });
+    }
+
+    return sql.select('EXTRACT(epoch FROM MAX(COALESCE(created_ts, now()))::timestamp)::text AS version')
+        .from('(' + rpc_spec.union(cvd) + ') grouped');
+}
+
+function getLatestRpcSpecId() {
+    return sql.select('id')
+        .from('rpc_spec')
+        .orderBy('created_ts DESC')
+        .limit(1);
+}
+
+function getRpcSpecTypes (types) {
+    let query = sql.select('rst.*')
+        .from('rpc_spec_type rst')
+        .where({
+            'rst.rpc_spec_id': getLatestRpcSpecId()
+        });
+
+    if(Array.isArray(types) && types.length > 0){
+        query.where(
+            sql.in('rst.element_type', types)
+        );
+    }
+
+    return query;
+}
+
+function getRpcSpecParams (onlyVehicleData = false) {
+    let query = sql.select('rsp.*')
+        .from('rpc_spec_param rsp')
+        .join('rpc_spec_type rst', {
+            'rst.id': 'rsp.rpc_spec_type_id'
+        })
+        .where({
+            'rst.rpc_spec_id': getLatestRpcSpecId()
+        })
+        .where(
+            sql.or(
+                sql.notEq('rsp.platform', 'documentation'),
+                sql.isNull('rsp.platform')
+            )
+        );
+
+    if(onlyVehicleData){
+        query.where({
+            'rst.element_type': 'FUNCTION',
+            'rst.name': 'GetVehicleData',
+            'rst.message_type': 'response'
+        });
+    }
+
+    console.log(query.toString());
+
+    return query;
+}
+
 function getDefaultFunctionalGroups (isProduction) {
     let statement = funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)
         .where({'view_function_group_info.is_default': true});
@@ -202,7 +271,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
         .where(
             sql.or(sqlOr)
         );
-        
+
     return statement;
 }
 
@@ -214,6 +283,10 @@ module.exports = {
     getAppFunctionalGroups: getAppFunctionalGroups,
     getDefaultFunctionalGroups: getDefaultFunctionalGroups,
     getPreDataConsentFunctionalGroups: getPreDataConsentFunctionalGroups,
-    getDeviceFunctionalGroups: getDeviceFunctionalGroups
+    getDeviceFunctionalGroups: getDeviceFunctionalGroups,
+    getVehicleDataSchemaVersion: getVehicleDataSchemaVersion,
+    getLatestRpcSpecId: getLatestRpcSpecId,
+    getRpcSpecTypes: getRpcSpecTypes,
+    getRpcSpecParams: getRpcSpecParams
 }
 
