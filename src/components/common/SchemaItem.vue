@@ -23,7 +23,7 @@
                         <input v-model="item[propName]" :disabled="fieldsDisabled" class="form-control">
                     </div>
                     <p v-if="findCommonParams(item[propName]) === 'CUSTOM'">
-                        <br>A parent or top level vehicle data item with this name already exists!
+                        <br>A parent or top level vehicle data item with this name already exists! By saving, you will overwrite the previously existing vehicle data.
                     </p>
                     <div v-if="findCommonParams(item[propName]) === 'NATIVE'">
                         <br>
@@ -109,6 +109,7 @@
                 :vehicleParams="vehicleParams"
                 :topLevelVehicleNames="topLevelVehicleNames"
                 :vehicleDataTypes="vehicleDataTypes"
+                :topLevel="false"
             ></schema-item>
         </div>
 
@@ -126,7 +127,8 @@
 
 <script>
     export default {
-        props: ['item', 'index', 'fieldsDisabled', 'removeFromParent', 'vehicleParams', 'topLevelVehicleNames', 'pardonedName', 'vehicleDataTypes'],
+        props: ['item', 'index', 'fieldsDisabled', 'removeFromParent', 'vehicleParams', 'topLevelVehicleNames', 
+            'pardonedName', 'vehicleDataTypes', 'topLevel'],
         data() {
             return {
                 'integerInputIncludingNegative': {
@@ -163,8 +165,9 @@
                 const selectedType = this.item.type;
 
                 const foundType = this.vehicleDataTypes.find(vdt => vdt.name === selectedType);
-                if (!foundType) 
+                if (!foundType) {
                     return false;
+                }
 
                 return foundType.allow_params;
             }
@@ -196,22 +199,21 @@
             },
             //will check multiple sources for duplicate names
             findCommonParams: function (name) {
-                //first phase: check vehicle parameters found in functional group info
+                //first phase: check vehicle parameters for native matches, found in functional group info
                 let foundName = this.vehicleParams.find(vp => vp.name === name);
 
                 //ignore pardoned name
                 if (foundName && (foundName.name !== this.pardonedName)) {
-                    if (foundName.is_custom) 
-                        return "CUSTOM"; //match found, but its a name the user has created
-                    if (!foundName.is_custom) 
+                    if (!foundName.is_custom) {//only care about native params in the vehicleParams list
                         return "NATIVE"; //match found, and its a native vehicle parameter!
+                    }
                 }
 
                 //second phase: check for the top level vehicle names created in Custom Vehicle Data
                 let foundVehicleName = this.topLevelVehicleNames.find(vn => vn === name);
 
-                //ignore pardoned name
-                if (foundVehicleName && (foundVehicleName !== this.pardonedName)) {
+                //ignore pardoned name and if this schema item isn't the top level schema item
+                if (foundVehicleName && (foundVehicleName !== this.pardonedName) && this.topLevel) {
                     return "CUSTOM"; //match found, but its a name the user has created
                 }
 

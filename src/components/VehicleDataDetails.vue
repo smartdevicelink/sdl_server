@@ -37,6 +37,7 @@
                                 :topLevelVehicleNames="topLevelVehicleNames"
                                 :pardonedName="vehicleNameCopy"
                                 :vehicleDataTypes="vehicleDataTypes"
+                                :topLevel="true"
                             ></schema-item>
                         </div>
                     </div>
