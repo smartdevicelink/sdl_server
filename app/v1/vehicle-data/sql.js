@@ -24,9 +24,7 @@ function getEnums() {
         .where({ element_type: 'ENUM' });
 }
 
-
-function getDirectChildren(parent_id)
-{
+function getDirectChildren(parent_id) {
     let statement;
     //if looking for production just filter on the status.
     statement = sql.select('view_custom_vehicle_data.*')

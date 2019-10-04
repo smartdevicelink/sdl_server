@@ -161,8 +161,6 @@ function insertCustomVehicleDataItem(client, data, cb) {
                     }
                     newParentId = res.id;
 
-
-
                     client.getMany(sql.getDirectChildren(oldParentId), function(err, res) {
                         if (err) {
                             return callback(err);
@@ -560,27 +558,26 @@ function getTemplate(cb) {
 
 function getValidTypes(cb) {
 
-
     //primitive types and struct
     let types = [
         {
-            name: "Float",
+            name: 'Float',
             allow_params: false,
         },
         {
-            name: "String",
+            name: 'String',
             allow_params: false,
         },
         {
-            name: "Boolean",
+            name: 'Boolean',
             allow_params: false,
         },
         {
-            name: "Integer",
+            name: 'Integer',
             allow_params: false,
         },
         {
-            name: "Struct",
+            name: 'Struct',
             allow_params: true,
         }
     ];
@@ -598,7 +595,7 @@ function getValidTypes(cb) {
             );
         }
 
-        return cb(null,types)
+        return cb(null, types);
     });
 }
 

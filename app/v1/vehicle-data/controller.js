@@ -33,7 +33,7 @@ function get(req, res, next) {
     const returnTemplate = !!req.query.template; //coerce to boolean
 
     if (returnTemplate) {
-        return getTemplate(req,res);
+        return getTemplate(req, res);
     }
 
     async.waterfall(
@@ -155,7 +155,6 @@ function getValidTypes(req, res) {
     );
 }
 
-
 function getTemplate(req, res) {
     async.waterfall(
         [
@@ -171,7 +170,7 @@ function getTemplate(req, res) {
                     .setMessage('Internal server error')
                     .deliver();
             }
-            const responseData = { custom_vehicle_data: [ templateData ] };
+            const responseData = { custom_vehicle_data: [templateData] };
             return res.parcel
                 .setData(responseData)
                 .setStatus(200)

@@ -2,5 +2,4 @@
 const app = require('../app');
 const sql = require('./sql.js');
 
-module.exports = {
-};
+module.exports = {};
