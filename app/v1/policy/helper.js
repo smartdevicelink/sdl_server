@@ -9,9 +9,7 @@ const funcGroupSql = require('../groups/sql.js');
 const messagesSql = require('../messages/sql.js');
 const moduleConfigSql = require('../module-config/sql.js');
 const messages = require('../messages/helper.js');
-const vehicleDataModel = require('../vehicle-data/model.js');
 const cache = require('../../../custom/cache');
-const log = require('../../../custom/loggers/winston');
 const GET = require('lodash').get;
 
 //validation functions
@@ -78,41 +76,6 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
             });
         }
     });
-}
-
-/**
- * https://github.com/smartdevicelink/sdl_evolution/blob/master/proposals/0173-Read-Generic-Network-Signal-data.md#versioning-and-endpoint-for-oem-network-mapping-table-and-to-provide-hmi-a-way-to-read-oem-network-mapping-table-version
- * SDL core would need to include schema_version in sdl_snapshot while requesting the policy update.
- * SDL server would use this to decide whether schema_items schema needs to be pushed in PTU response.
- * schema_version would only be included in vehicle_data only if schema_items schema is included.
- * @param isProduction
- * @param schemaVersion
- * @returns {Function}
- */
-function setupVehicleData(isProduction, schemaVersion) {
-    console.log(`setupVehicleData`, { isProduction, schemaVersion });
-    return function(cb) {
-        vehicleDataModel.getVehicleData(isProduction, function(error, vehicleData) {
-            if (error) {
-                return cb(error);
-            }
-
-            //If schema_versions match there is no schema_version or schema_items in response.
-            if (vehicleData.schema_version === schemaVersion) {
-                let data = {
-                };
-                return cb(null, data);
-            } else {
-                //If not a match give the full response.
-                let data = {
-                    schema_items: vehicleData.schema_items,
-                    schema_version: vehicleData.schema_version,
-                };
-                return cb(null, data);
-            }
-
-        });
-    };
 }
 
 function setupModuleConfig (isProduction, useLongUuids = false) {

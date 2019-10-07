@@ -5,21 +5,49 @@ const parseXml = require('xml2js').parseString;
 const request = require('request');
 const async = require('async');
 const _ = require('lodash');
+const check = require('check-types');
+const getRpcSpec = require('./../messages/helper').getRpcSpec;
 
+/**
+ * Required fields are name, type, and key. All other fields are
+ * optional.
+ *
+ * @param req
+ * @param res
+ */
 function validatePost(req, res) {
+    if (!check.string(req.body.name) || req.body.name.length < 1) {
+        res.parcel
+            .setStatus(400)
+            .setMessage('Required: name (string)');
+        return;
+    }
+    if (!check.string(req.body.key) || req.body.key.length < 1) {
+        res.parcel
+            .setStatus(400)
+            .setMessage('Required: key (string)');
+        return;
+    }
+    if (!check.string(req.body.type) || req.body.type.length < 1) {
+        res.parcel
+            .setStatus(400)
+            .setMessage('Required: type (string)');
+        return;
+    }
     return;
 }
 
-function promoteCustomVehicleData(client, obj, parentIdMapping = {}) {
+function promoteCustomVehicleData(client, obj, parentObjectMapping = {}) {
     return function(cb) {
         let originalParentId = obj.parent_id;
         if (obj.parent_id) {
-            let parent_id = parentIdMapping[obj.parent_id];
-            if (!parent_id) {
+            let parent = parentObjectMapping[obj.parent_id];
+            if (!parent.id) {
                 return cb(`Orphaned record`);
             }
-            obj.parent_id = parent_id;
             //assign parent_id based on parentIdMapping.
+            obj.parent_id = parent.id;
+            obj.is_deleted = parent.is_deleted === true;
         }
 
         async.waterfall(
@@ -27,12 +55,12 @@ function promoteCustomVehicleData(client, obj, parentIdMapping = {}) {
                 function(callback) {
                     //skip update if status is on production and not a child that has had its parentId changed.
                     if (obj.status === 'PRODUCTION' && !(obj.parent_id && obj.parent_id != originalParentId)) {
-                        parentIdMapping[obj.id] = obj.id;
+                        parentObjectMapping[obj.id] = obj;
                         return callback(null);
                     }
-                    client.getOne(sql.insertProductionCustomVehicleData(obj), function(err, result) {
+                    client.getOne(sql.insertCustomVehicleData(obj, true), function(err, result) {
                         if (!err && result) {
-                            parentIdMapping[obj.id] = result.id;
+                            parentObjectMapping[obj.id] = result;
                         }
                         callback(err, result);
                     });
@@ -46,7 +74,7 @@ function promoteCustomVehicleData(client, obj, parentIdMapping = {}) {
                 if (obj.params && obj.params.length > 0) {
                     let functions = [];
                     for (let param of obj.params) {
-                        functions.push(promoteCustomVehicleData(client, param, parentIdMapping));
+                        functions.push(promoteCustomVehicleData(client, param, parentObjectMapping));
                     }
                     return async.waterfall(functions, function(err) {
                         cb(err);
@@ -71,6 +99,7 @@ function promoteCustomVehicleData(client, obj, parentIdMapping = {}) {
  *
  * This will be done as a single transaction with top level records being created first.
  *
+ *
  * @param cb
  */
 function promote(cb) {
@@ -84,26 +113,7 @@ function promote(cb) {
                 },
                 //create nested data.
                 function(data, callback) {
-                    let vehicleDataById = {};
-                    for (let customVehicleDataItem of data) {
-                        vehicleDataById[customVehicleDataItem.id] = customVehicleDataItem;
-                        customVehicleDataItem.params = [];
-                    }
-
-                    let result = [];
-                    for (let customVehicleDataItem of data) {
-                        if (customVehicleDataItem.parent_id) {
-                            //old record not included.
-                            if (!vehicleDataById[customVehicleDataItem.parent_id]) {
-                                continue;
-                            } else {
-                                vehicleDataById[customVehicleDataItem.parent_id].params.push(customVehicleDataItem);
-                            }
-                        } else {
-                            result.push(customVehicleDataItem);
-                        }
-                    }
-                    callback(null, result);
+                    return getNestedCustomVehicleData(data, false, callback);
                 },
                 //insert data
                 function(data, callback) {
@@ -120,27 +130,19 @@ function promote(cb) {
 }
 
 function insertCustomVehicleDataItem(client, data, cb) {
-    let newParentId;
-    let oldParentId = data.id;
-    let insertResult;
-
     async.waterfall(
         [
             function(callback) {
-                client.getOne(sql.insertStagingCustomVehicleData(data), function(err, res) {
+                client.getOne(sql.insertCustomVehicleData(data, false), function(err, res) {
                     if (err) {
                         return cb(err, res);
                     }
-                    if (oldParentId) {
-                        newParentId = res.id;
-                    }
-                    insertResult = res;
                     callback(err, res);
                 });
             },
             function(res, callback) { //insert new children
-                if (data.params) { //params are being passed in so all new children are created.
-                    let functions = [];
+                let functions = [];
+                if (data.params) {
                     for (let child of data.params) {
                         child.status = 'STAGING';
                         child.parent_id = res.id;
@@ -148,40 +150,14 @@ function insertCustomVehicleDataItem(client, data, cb) {
                             insertCustomVehicleDataItem(client, child, cb);
                         });
                     }
-                    async.parallel(functions, function(err) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        return callback(err);
-                    });
-                } else {
-                    if (!oldParentId) //new record no children.
-                    {
-                        return callback(null, res);
-                    }
-                    newParentId = res.id;
-
-                    client.getMany(sql.getDirectChildren(oldParentId), function(err, res) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        let functions = [];
-                        for (let child of res) {
-                            child.parent_id = newParentId;
-                            child.status = 'STAGING';
-                            functions.push(function(cb) {
-                                insertCustomVehicleDataItem(client, child, cb);
-                            });
-                        }
-                        async.parallel(functions, function(err) {
-                            if (err) {
-                                return callback(err);
-                            }
-                            return callback(err);
-                        });
-                    });
                 }
+
+                async.parallel(functions, function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    return callback(err);
+                });
             },
         ], cb
     );
@@ -189,18 +165,79 @@ function insertCustomVehicleDataItem(client, data, cb) {
 }
 
 function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
-    return isForPolicyTable ? {
-        name: customVehicleDataItem.name,
-        type: customVehicleDataItem.type,
-        key: customVehicleDataItem.key,
-        mandatory: customVehicleDataItem.mandatory,
-        minlength: customVehicleDataItem.min_length,
-        maxlength: customVehicleDataItem.max_length,
-        minsize: customVehicleDataItem.min_size,
-        maxsize: customVehicleDataItem.max_size,
-        maxvalue: customVehicleDataItem.max_value,
-        array: customVehicleDataItem.array,
-    } : customVehicleDataItem;
+    if (!isForPolicyTable) {
+        return customVehicleDataItem;
+    }
+
+    let mapping = {
+        name: {
+            dbKey: 'name',
+            type: 'String'
+        },
+        type: {
+            dbKey: 'type',
+            type: 'String'
+        },
+        key: {
+            dbKey: 'key',
+            type: 'String'
+        },
+        mandatory: {
+            dbKey: 'mandatory',
+            type: 'Boolean'
+        },
+        minlength: {
+            dbKey: 'min_length',
+            type: 'Number'
+        },
+        maxlength: {
+            dbKey: 'max_length',
+            type: 'Number'
+        },
+        minsize: {
+            dbKey: 'min_size',
+            type: 'Number'
+        },
+        maxsize: {
+            dbKey: 'max_size',
+            type: 'Number'
+        },
+        mindbKeyue: {
+            dbKey: 'min_value',
+            type: 'Number'
+        },
+        maxdbKeyue: {
+            dbKey: 'max_value',
+            type: 'Number'
+        },
+        array: {
+            dbKey: 'array',
+            type: 'Boolean'
+        }
+    };
+
+    let result = {};
+    for (let key in mapping) {
+        let dbSchema = mapping[key];
+        let type = dbSchema.type;
+        let dbKey = dbSchema.dbKey;
+
+        let val = customVehicleDataItem[dbKey];
+
+        if (val === null || val === undefined) {
+            continue;
+        }
+        if (type === 'Boolean') {
+            val = val === 'true' || val === true;
+        } else if (type === 'Number') {
+            val = +val;
+        }
+        result[key] = val;
+    }
+
+    result.params = customVehicleDataItem.params;
+
+    return result;
 }
 
 /**
@@ -247,18 +284,6 @@ function getVehicleData(isProduction, id, cb) {
             }
         ], function(err, response) {
             cb(err, response);
-        }
-    );
-}
-
-function getRpcSpec(next) {
-    request(
-        {
-            method: 'GET',
-            url: app.locals.config.rpcSpecXmlUrl
-        },
-        function(err, res, body) {
-            next(err, body);
         }
     );
 }

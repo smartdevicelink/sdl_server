@@ -200,6 +200,7 @@ function getMessageNamesStaging (callback) {
 }
 
 module.exports = {
+    getRpcSpec: getRpcSpec,
     getMessageGroups: getMessageGroups,
     getMessageDetailsFlow: getMessageDetailsFlow,
     makeCategoryTemplateFlow: makeCategoryTemplateFlow,
