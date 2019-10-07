@@ -9,10 +9,8 @@ const funcGroupSql = require('../groups/sql.js');
 const messagesSql = require('../messages/sql.js');
 const moduleConfigSql = require('../module-config/sql.js');
 const messages = require('../messages/helper.js');
-const vehicleDataModel = require('../vehicle-data/model.js');
 const vehicleDataSql = require('../vehicle-data/sql.js');
 const cache = require('../../../custom/cache');
-const log = require('../../../custom/loggers/winston');
 const GET = require('lodash').get;
 
 //validation functions

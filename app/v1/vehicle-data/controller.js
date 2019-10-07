@@ -1,8 +1,8 @@
 //Copyright (c) 2019, Livio, Inc.
 const app = require('../app');
 const helper = require('./helper.js');
-const model = require('./model.js');
 const async = require('async');
+const cache = require('../../../custom/cache');
 
 function getVehicleDataParamTypes(req, res, next) {
     async.waterfall(
@@ -19,7 +19,9 @@ function getVehicleDataParamTypes(req, res, next) {
                     .setMessage('Internal server error')
                     .deliver();
             }
-            const responseData = { vehicle_data_types: vehicle_data_types };
+            const responseData = {
+                vehicle_data_types: vehicle_data_types
+            };
             return res.parcel
                 .setStatus(200)
                 .setData(responseData)
@@ -50,7 +52,9 @@ function get(req, res, next) {
                     .setMessage('Internal server error')
                     .deliver();
             }
-            const responseData = { custom_vehicle_data: custom_vehicle_data };
+            const responseData = {
+                custom_vehicle_data: custom_vehicle_data
+            };
             return res.parcel
                 .setStatus(200)
                 .setData(responseData)
@@ -88,7 +92,10 @@ function post(req, res, next) {
                     .setMessage('Internal server error')
                     .deliver();
             }
-            const responseData = { custom_vehicle_data: [result] };
+            cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
+            const responseData = {
+                custom_vehicle_data: [result]
+            };
 
             return res.parcel
                 .setData(responseData)
@@ -100,7 +107,6 @@ function post(req, res, next) {
 }
 
 /**
- * Promoting ids means.
  * @param req
  * @param res
  * @param next
@@ -122,6 +128,7 @@ function promote(req, res, next) {
                     .setMessage('Internal server error')
                     .deliver();
             }
+            cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
             return res.parcel
                 .setStatus(200)
                 .deliver();
@@ -145,7 +152,9 @@ function getValidTypes(req, res) {
                     .setMessage('Internal server error')
                     .deliver();
             }
-            const responseData = { type: data };
+            const responseData = {
+                type: data
+            };
             return res.parcel
                 .setData(responseData)
                 .setStatus(200)
@@ -169,7 +178,9 @@ function getTemplate(req, res) {
                     .setMessage('Internal server error')
                     .deliver();
             }
-            const responseData = { custom_vehicle_data: [templateData] };
+            const responseData = {
+                custom_vehicle_data: [templateData]
+            };
             return res.parcel
                 .setData(responseData)
                 .setStatus(200)

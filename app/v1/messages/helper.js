@@ -181,7 +181,8 @@ function getRpcSpec(next) {
             url: app.locals.config.rpcSpecXmlUrl
         }, function(err, res, body) {
             next(err, body);
-        });
+        }
+    );
 }
 
 function extractLanguages (rpcSpec, next) {
@@ -200,6 +201,7 @@ function getMessageNamesStaging (callback) {
 }
 
 module.exports = {
+    getRpcSpec: getRpcSpec,
     getMessageGroups: getMessageGroups,
     getMessageDetailsFlow: getMessageDetailsFlow,
     makeCategoryTemplateFlow: makeCategoryTemplateFlow,
