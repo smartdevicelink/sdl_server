@@ -2,6 +2,7 @@
 const app = require('../app');
 const helper = require('./helper.js');
 const async = require('async');
+const cache = require('../../../custom/cache');
 
 function getVehicleDataParamTypes(req, res, next) {
     async.waterfall(
@@ -91,6 +92,7 @@ function post(req, res, next) {
                     .setMessage('Internal server error')
                     .deliver();
             }
+            cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
             const responseData = {
                 custom_vehicle_data: [result]
             };
@@ -105,7 +107,6 @@ function post(req, res, next) {
 }
 
 /**
- * Promoting ids means.
  * @param req
  * @param res
  * @param next
@@ -127,6 +128,7 @@ function promote(req, res, next) {
                     .setMessage('Internal server error')
                     .deliver();
             }
+            cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
             return res.parcel
                 .setStatus(200)
                 .deliver();
