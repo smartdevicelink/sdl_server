@@ -9,6 +9,7 @@ const funcGroupSql = require('../groups/sql.js');
 const messagesSql = require('../messages/sql.js');
 const moduleConfigSql = require('../module-config/sql.js');
 const messages = require('../messages/helper.js');
+const vehicleDataSql = require('../vehicle-data/sql.js');
 const cache = require('../../../custom/cache');
 const GET = require('lodash').get;
 
@@ -44,16 +45,15 @@ function validateAppPolicyOnlyPost (req, res) {
 
 function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, returnPreview, cb) {
     let makePolicyTable = {};
-    let schemaVersion = null;
     if (appPolicyObj) { //existence of appPolicyObj implies to return the app policy object
-        schemaVersion = appPolicyObj.vehicle_data ? appPolicyObj.vehicle_data.schema_version : null;
         makePolicyTable.appPolicies = setupAppPolicies(isProduction, useLongUuids, appPolicyObj);
     }
 
     cache.getCacheData(isProduction, app.locals.version, cache.policyTableKey, function (err, cacheData) {
         if (GET(cacheData, "moduleConfig")
         && GET(cacheData, "functionalGroups")
-        && GET(cacheData, "consumerFriendlyMessages")) {
+        && GET(cacheData, "consumerFriendlyMessages")
+        && GET(cacheData, "vehicleData")) {
             if(cacheData.moduleConfig){
                 cacheData.moduleConfig.full_app_id_supported = useLongUuids;
             }
@@ -67,7 +67,7 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
                 makePolicyTable.moduleConfig = setupModuleConfig(isProduction, useLongUuids);
                 makePolicyTable.functionalGroups = setupFunctionalGroups(isProduction);
                 makePolicyTable.consumerFriendlyMessages = setupConsumerFriendlyMessages(isProduction);
-                //makePolicyTable.vehicleData = setupVehicleData(isProduction, schemaVersion);
+                makePolicyTable.vehicleData = setupVehicleData(isProduction);
             }
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
@@ -76,6 +76,30 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
             });
         }
     });
+}
+
+function setupVehicleData (isProduction) {
+    const dataFlow = flame.flow(
+        {
+            schemaVersion: setupSqlCommand.bind(null, sql.getVehicleDataSchemaVersion(isProduction)),
+            rawCustomVehicleData: setupSqlCommand.bind(null, vehicleDataSql.getVehicleData(isProduction)),
+            rawRpcSpecParams: setupSqlCommand.bind(null, sql.getRpcSpecParams(true)),
+            rawRpcSpecTypes: setupSqlCommand.bind(null, sql.getRpcSpecTypes(['ENUM','STRUCT'])),
+        },
+        {
+            method: 'parallel'
+        }
+    );
+
+    return flame.flow(
+        [
+            dataFlow,
+            model.transformVehicleData.bind(null, isProduction)
+        ],
+        {
+            method: 'waterfall'
+        }
+    );
 }
 
 function setupModuleConfig (isProduction, useLongUuids = false) {

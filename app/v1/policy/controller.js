@@ -51,10 +51,10 @@ function createPolicyTableResponse (pieces, encrypt = false) {
         {
             policy_table: {
                 module_config: pieces.moduleConfig,
+				vehicle_data: pieces.vehicleData,
                 functional_groupings: pieces.functionalGroups,
                 consumer_friendly_messages: pieces.consumerFriendlyMessages,
                 app_policies: pieces.appPolicies,
-                vehicle_data: pieces.vehicleData,
             }
         }
     ];
