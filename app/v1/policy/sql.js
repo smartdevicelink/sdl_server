@@ -98,7 +98,7 @@ function getRpcSpecTypes (types) {
     return query;
 }
 
-function getRpcSpecParams (onlyVehicleData = false) {
+function getRpcSpecParams () {
     let query = sql.select('rsp.*')
         .from('rpc_spec_param rsp')
         .join('rpc_spec_type rst', {
@@ -113,16 +113,6 @@ function getRpcSpecParams (onlyVehicleData = false) {
                 sql.isNull('rsp.platform')
             )
         );
-
-    if(onlyVehicleData){
-        query.where({
-            'rst.element_type': 'FUNCTION',
-            'rst.name': 'GetVehicleData',
-            'rst.message_type': 'response'
-        });
-    }
-
-    console.log(query.toString());
 
     return query;
 }

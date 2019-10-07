@@ -85,8 +85,8 @@ function setupVehicleData (isProduction) {
         {
             schemaVersion: setupSqlCommand.bind(null, sql.getVehicleDataSchemaVersion(isProduction)),
             rawCustomVehicleData: setupSqlCommand.bind(null, vehicleDataSql.getVehicleData(isProduction)),
-            rawRpcSpecParams: setupSqlCommand.bind(null, sql.getRpcSpecParams(true)),
-            rawRpcSpecTypes: setupSqlCommand.bind(null, sql.getRpcSpecTypes(['ENUM','STRUCT'])),
+            rawRpcSpecParams: setupSqlCommand.bind(null, sql.getRpcSpecParams()),
+            rawRpcSpecTypes: setupSqlCommand.bind(null, sql.getRpcSpecTypes()),
         },
         {
             method: 'parallel'

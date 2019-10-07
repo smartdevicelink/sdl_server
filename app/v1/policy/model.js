@@ -248,23 +248,75 @@ function transformFunctionalGroups (isProduction, info, next) {
     constructFunctionalGroupFlow(next); //run it
 }
 
+function transformRpcVehicleData (rpcTypes = [], rpcParams = [], isForPolicyTable = false, cb) {
+    let result = [];
+    let typeByName = {};
+    let typeById = {};
+    let paramsByTypeId = {};
+    let vehicleDataParams = [];
+
+    // build dictionaries of types
+    for (let type of rpcTypes) {
+        typeByName[type.name] = type;
+        typeById[type.id] = type;
+    }
+
+    // build dictionary of params associated to types
+    // and array of vehicle data params
+    for (let param of rpcParams) {
+        if (!paramsByTypeId[param.rpc_spec_type_id]) {
+            paramsByTypeId[param.rpc_spec_type_id] = [];
+        }
+        paramsByTypeId[param.rpc_spec_type_id].push(param);
+
+        if (
+            param.platform != "documentation"
+            && _.get(typeById[param.rpc_spec_type_id], "element_type") == "FUNCTION"
+            && _.get(typeById[param.rpc_spec_type_id], "name") == "GetVehicleData"
+            && _.get(typeById[param.rpc_spec_type_id], "message_type") == "response"
+        ) {
+            vehicleDataParams.push(param);
+        }
+    }
+
+    function paramBuilder (params) {
+        let results = [];
+
+        for (let param of params) {
+            let vehicleDataItem = vehicleDataHelper.getCustomVehicleDataItem(param, true);
+            vehicleDataItem.params = [];
+
+            let paramType = typeByName[vehicleDataItem.type];
+            if (paramType && paramType.element_type == "STRUCT") {
+                // recursive struct
+                vehicleDataItem.type = "Struct";
+                vehicleDataItem.params = paramBuilder(paramsByTypeId[paramType.id]);
+            }
+
+            results.push(vehicleDataItem);
+        }
+
+        return results;
+    }
+
+    result = paramBuilder(vehicleDataParams);
+
+    cb(null, result);
+}
+
 function transformVehicleData (isProduction, info, next) {
-    console.log(info);
     let vehicleData = {
         "schema_version": info.schemaVersion[0].version,
         "schema_items": [] // to be populated
     };
 
-    // TODO: merge and transform the schema_items
     flame.async.parallel({
         "customVehicleData": function(callback){
             vehicleDataHelper.getNestedCustomVehicleData(info.rawCustomVehicleData, true, callback);
         },
         "rpcVehicleData": function(callback){
-            // TODO: recursively loop through the RPC Spec data to build the nested objects
-            console.log(info.rawRpcSpecParams);
-            console.log(info.rawRpcSpecTypes);
-            callback(null, []);
+            // recursively loop through the RPC Spec data to build the nested objects
+            transformRpcVehicleData(info.rawRpcSpecTypes, info.rawRpcSpecParams, true, callback);
         }
     }, function(err, transformations){
         if(!err){

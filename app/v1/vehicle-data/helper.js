@@ -603,6 +603,7 @@ module.exports = {
     getTemplate: getTemplate,
     insertCustomVehicleDataItem: insertCustomVehicleDataItem,
     getNestedCustomVehicleData: getNestedCustomVehicleData,
+    getCustomVehicleDataItem: getCustomVehicleDataItem,
     validatePost: validatePost,
     promote: promote,
     getVehicleData: getVehicleData,
