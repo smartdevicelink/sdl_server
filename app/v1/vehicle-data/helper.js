@@ -202,11 +202,11 @@ function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
             dbKey: 'max_size',
             type: 'Number'
         },
-        mindbKeyue: {
+        minvalue: {
             dbKey: 'min_value',
             type: 'Number'
         },
-        maxdbKeyue: {
+        maxvalue: {
             dbKey: 'max_value',
             type: 'Number'
         },
@@ -235,7 +235,10 @@ function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
         result[key] = val;
     }
 
-    result.params = customVehicleDataItem.params;
+    if (customVehicleDataItem.type === 'Struct')
+    {
+        result.params = customVehicleDataItem.params;
+    }
 
     return result;
 }
