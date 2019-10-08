@@ -569,7 +569,7 @@ function updateRpcSpec(next) {
             }
         } else {
 
-            app.locals.log.info('Rpc spec updated');
+            app.locals.log.info('New RPC Spec saved');
         }
 
         if (typeof next == 'function') {
