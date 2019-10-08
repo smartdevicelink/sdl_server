@@ -505,8 +505,7 @@ function extractRpcSpecTypes(data, next) {
     next(null, data);
 }
 
-function updateRpcSpec(next = function() {
-}) {
+function updateRpcSpec(next) {
 
     app.locals.db.runAsTransaction(function(client, callback) {
         async.waterfall(
@@ -572,7 +571,10 @@ function updateRpcSpec(next = function() {
 
             app.locals.log.info('Rpc spec updated');
         }
-        next();
+
+        if (typeof next == 'function') {
+            next();
+        }
     });
 
 }
