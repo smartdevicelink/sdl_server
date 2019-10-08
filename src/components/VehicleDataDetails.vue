@@ -37,7 +37,7 @@
                                 :topLevelVehicleNames="topLevelVehicleNames"
                                 :pardonedName="vehicleNameCopy"
                                 :vehicleDataTypes="vehicleDataTypes"
-                                :topLevel="true"
+                                :level="1"
                             ></schema-item>
                         </div>
                     </div>
@@ -48,10 +48,12 @@
                             type="submit"
                             class="btn btn-card btn-style-green"
                             data-style="zoom-in"
-                            v-if="!fieldsDisabled && !namingConflictWithNativeParams(vehicle_data)"
+                            v-if="!fieldsDisabled 
+                                && !namingConflictWithNativeParams(vehicle_data) 
+                                && isNameTypeAndKeyDefined(vehicle_data)"
                             v-on:click="saveVehicleData()"
                             v-bind:loading="save_button_loading">
-                            Save vehicle data config
+                            Save custom vehicle data item
                         </vue-ladda>
                     </div>
                 </div>
@@ -259,6 +261,22 @@
                 }
 
                 return false; //no issues
+            },
+            isNameTypeAndKeyDefined: function (obj) {
+                if (!obj.name || !obj.type || !obj.key) {
+                    return false; //no name, type, or key defined
+                }
+
+                //check all the sub parameters if they exist
+                if (obj.params && obj.params.length > 0) {
+                    for (let i = 0; i < obj.params.length; i++) {
+                        if (!this.isNameTypeAndKeyDefined(obj.params[i])) {
+                            return false; //no name, type, or key defined in a sub param
+                        }
+                    }
+                }
+
+                return true; //no issues
             },
             //modal-related methods
             handleModalClick: function (loadingProp, modalName, methodName) {

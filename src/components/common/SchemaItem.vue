@@ -1,9 +1,10 @@
 <!-- Copyright (c) 2019, Livio, Inc. -->
 <template>
 
-    <div class="rpc-container white-box left-border">
+    <div class="rpc-container white-box left-border"
+        v-bind:class="{ 'alt-color': level % 2 === 0 }"> <!-- alternate background colors on every level deeper -->
         <h5>
-            {{ item.name || '???' }}
+            {{ item.name || '&nbsp;' }}
             <!-- delete this item -->
             <i
                 v-if="!fieldsDisabled && index !== undefined"
@@ -38,12 +39,14 @@
             <template v-if="getPropType(propName) === 'VehicleType'">
                 <div class="form-group row">
                     <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
-                    <b-form-select
-                        v-model="item[propName]"
-                        :options="vehicleDataTypeOptions"
-                        :disabled="fieldsDisabled"
-                        class="custom-select w-100">
-                    </b-form-select>
+                    <div class="col-sm-10">
+                        <b-form-select
+                            v-model="item[propName]"
+                            :options="vehicleDataTypeOptions"
+                            :disabled="fieldsDisabled"
+                            class="custom-select">
+                        </b-form-select>
+                    </div>
                 </div>
             </template>
 
@@ -73,11 +76,11 @@
             <template v-if="getPropType(propName) === 'ZeroNatural'">
                 <div class="form-group row">
                     <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
-                    <div class="col-sm-2">
-                        <pattern-input class="form-control text-truncate"
-                           :regExp="integerInputZeroOrPositive.regExp"
+                    <div class="col-sm-4">
+                        <input class="form-control text-truncate"
                            :disabled="fieldsDisabled"
-                           v-model.number="item[propName]"></pattern-input>
+                           @input="updateZeroNaturalNumber(propName, $event.target.value)"
+                           v-model="item[propName]"></input>
                     </div>
                 </div>
 
@@ -87,11 +90,11 @@
             <template v-if="getPropType(propName) === 'Integer'">
                 <div class="form-group row">
                     <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
-                    <div class="col-sm-2">
-                        <pattern-input class="form-control text-truncate"
-                           :regExp="integerInputIncludingNegative.regExp"
+                    <div class="col-sm-4">
+                        <input class="form-control text-truncate"
                            :disabled="fieldsDisabled"
-                           v-model.number="item[propName]"></pattern-input>
+                           @input="updateIntegerNumber(propName, $event.target.value)"
+                           v-model="item[propName]"></input>
                     </div>
                 </div>
             </template>
@@ -109,12 +112,12 @@
                 :vehicleParams="vehicleParams"
                 :topLevelVehicleNames="topLevelVehicleNames"
                 :vehicleDataTypes="vehicleDataTypes"
-                :topLevel="false"
+                :level="level + 1"
             ></schema-item>
         </div>
 
         <!-- Allows adding nested parameters under certain conditions -->
-        <template v-if="!fieldsDisabled && (item.name && allowNestedParams)">
+        <template v-if="!fieldsDisabled && allowNestedParams">
             <!-- divider line -->
             <div class="rpc-container"></div>
             <div class="another-rpc pointer" v-on:click="addParam()">
@@ -128,7 +131,7 @@
 <script>
     export default {
         props: ['item', 'index', 'fieldsDisabled', 'removeFromParent', 'vehicleParams', 'topLevelVehicleNames', 
-            'pardonedName', 'vehicleDataTypes', 'topLevel'],
+            'pardonedName', 'vehicleDataTypes', 'level'],
         data() {
             return {
                 'integerInputIncludingNegative': {
@@ -173,6 +176,21 @@
             }
         },
         methods: {
+            updateZeroNaturalNumber: function (propName, val) {
+                if (isNaN(val) || val === "") {
+                    return this.item[propName] = null;
+                }
+                this.item[propName] = Math.max(0, Math.round(parseInt(val)));
+            },
+            updateIntegerNumber: function (propName, val) {
+                if (val === "-") {
+                    return val;
+                }
+                if (isNaN(val) || val === "") {
+                    return this.item[propName] = null;
+                }
+                this.item[propName] = Math.round(val);
+            },
             removeItem: function (index) {
                 this.item.params.splice(index, 1); //remove the specific element from the array
             },
@@ -187,11 +205,15 @@
 
                 for (let prop in this.propsDisplay) {
                     //make a new object using propsDisplay and its default values
-                    if (this.propsDisplay[prop].type === 'Struct') {
-                        newItem[prop] = []; //make a new array object reference for structs
-                    }
-                    else {
-                        newItem[prop] = ''; //just use empty string for all other cases
+                    switch (this.propsDisplay[prop].type) {
+                        case 'Struct':
+                            newItem[prop] = []; //make a new array object reference for structs
+                            break;
+                        case 'Boolean':
+                            newItem[prop] = false;
+                            break;
+                        default:
+                            newItem[prop] = null; //just use null for all other cases
                     }
                 }
 
@@ -213,7 +235,7 @@
                 let foundVehicleName = this.topLevelVehicleNames.find(vn => vn === name);
 
                 //ignore pardoned name and if this schema item isn't the top level schema item
-                if (foundVehicleName && (foundVehicleName !== this.pardonedName) && this.topLevel) {
+                if (foundVehicleName && (foundVehicleName !== this.pardonedName) && this.level === 1) {
                     return "CUSTOM"; //match found, but its a name the user has created
                 }
 
@@ -225,3 +247,9 @@
         },
     };
 </script>
+
+<style scoped>
+    .alt-color {
+        background-color: #e9ecef
+    }
+</style>
