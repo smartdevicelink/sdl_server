@@ -133,7 +133,8 @@ flame.async.parallel([
 	},
 	function(next) {
 	 	vehicleData.updateRpcSpec(function() {
-		 	next();
+            log.info("RPC Spec updated");
+            next();
 	 	});
 	},
 ], function () {
