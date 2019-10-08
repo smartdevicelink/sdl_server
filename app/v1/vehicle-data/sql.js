@@ -83,7 +83,8 @@ function getVehicleData(isProduction, id, hideDeleted = false) {
         );
     }
 
-    let unionStatement = sql.select('cvd.*').from('view_custom_vehicle_data cvd')
+    let unionStatement = sql.select('cvd.*')
+        .from('view_custom_vehicle_data cvd')
         .join('children c',
               {
                   'c.id': 'cvd.parent_id'
