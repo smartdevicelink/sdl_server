@@ -283,7 +283,7 @@ function transformRpcVehicleData (rpcTypes = [], rpcParams = [], isForPolicyTabl
         let results = [];
 
         for (let param of params) {
-            let vehicleDataItem = vehicleDataHelper.getCustomVehicleDataItem(param, true);
+            let vehicleDataItem = vehicleDataHelper.transformVehicleDataItem(param, true);
             vehicleDataItem.params = [];
 
             let paramType = typeByName[vehicleDataItem.type];

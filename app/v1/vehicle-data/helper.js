@@ -164,7 +164,7 @@ function insertCustomVehicleDataItem(client, data, cb) {
 
 }
 
-function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
+function transformVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
     if (!isForPolicyTable) {
         return customVehicleDataItem;
     }
@@ -177,6 +177,22 @@ function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
         type: {
             dbKey: 'type',
             type: 'String'
+        },
+        since: {
+            dbKey: 'since',
+            type: 'String'
+        },
+        until: {
+            dbKey: 'until',
+            type: 'String'
+        },
+        deprecated: {
+            dbKey: 'deprecated',
+            type: 'Boolean'
+        },
+        removed: {
+            dbKey: 'removed',
+            type: 'Boolean'
         },
         key: {
             dbKey: 'key',
@@ -213,7 +229,8 @@ function getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
         array: {
             dbKey: 'array',
             type: 'Boolean'
-        }
+        },
+
     };
 
     let result = {};
@@ -261,12 +278,12 @@ function getNestedCustomVehicleData(customVehicleDataItems, isForPolicyTable, cb
         if (customVehicleDataItem.parent_id) {
             //if we are filtering by id the parent will not be included.
             if (vehicleDataById[customVehicleDataItem.parent_id]) {
-                vehicleDataById[customVehicleDataItem.parent_id].params.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
+                vehicleDataById[customVehicleDataItem.parent_id].params.push(transformVehicleDataItem(customVehicleDataItem, isForPolicyTable));
             } else { //if no parent_id matches, assume this is a top level item.
-                result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
+                result.push(transformVehicleDataItem(customVehicleDataItem, isForPolicyTable));
             }
         } else {
-            result.push(getCustomVehicleDataItem(customVehicleDataItem, isForPolicyTable));
+            result.push(transformVehicleDataItem(customVehicleDataItem, isForPolicyTable));
         }
     }
     cb(null, result);
@@ -631,7 +648,7 @@ module.exports = {
     getTemplate: getTemplate,
     insertCustomVehicleDataItem: insertCustomVehicleDataItem,
     getNestedCustomVehicleData: getNestedCustomVehicleData,
-    getCustomVehicleDataItem: getCustomVehicleDataItem,
+    transformVehicleDataItem: transformVehicleDataItem,
     validatePost: validatePost,
     promote: promote,
     getVehicleData: getVehicleData,
