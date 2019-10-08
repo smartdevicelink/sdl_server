@@ -152,6 +152,7 @@ function insertCustomVehicleData(obj, isProduction = true) {
         max_length: obj.max_length,
         min_size: obj.min_size,
         max_size: obj.max_size,
+        min_value: obj.min_value,
         max_value: obj.max_value,
         array: obj.array === true,
         is_deleted: obj.is_deleted === true
