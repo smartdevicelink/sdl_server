@@ -253,7 +253,7 @@ function transformVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
     }
 
     if (customVehicleDataItem.type === 'Struct')
-    {
+    if (customVehicleDataItem.type === 'Struct') {
         result.params = customVehicleDataItem.params;
     }
 
