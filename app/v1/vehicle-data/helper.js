@@ -241,7 +241,7 @@ function transformVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
 
         let val = customVehicleDataItem[dbKey];
 
-        if (val === null || val === undefined) {
+        if (val === null || val === undefined || val === '') {
             continue;
         }
         if (type === 'Boolean') {
