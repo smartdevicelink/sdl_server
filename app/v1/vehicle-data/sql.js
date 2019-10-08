@@ -26,7 +26,7 @@ function getEnums() {
         .innerJoin(
             '(' + sub + ') sub',
             {
-                'max_spec_id': 'rpc_spec_id'
+                'sub.max_spec_id': 'rpc_spec_type.rpc_spec_id'
             }
         )
         .groupBy(['rpc_spec_type.name'])
