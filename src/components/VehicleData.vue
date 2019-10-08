@@ -80,7 +80,7 @@
             <!-- PROMOTE GROUP MODAL -->
             <b-modal ref="promoteModal" title="Promote Custom Vehicle Data to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                 <small class="form-text">
-                    <p>This will promote all modified Functional Groups to production, immediately updating the production policy table. Are you sure you want to do this?</p>
+                    <p>This will promote all modified Custom Vehicle Data to production, immediately updating the production policy table. Are you sure you want to do this?</p>
                 </small>
                 <vue-ladda
                     type="button"
