@@ -1,5 +1,12 @@
 const sql = require('sql-bricks-postgres');
 
+function getLatestRpcSpecId() {
+    return sql.select('id')
+        .from('rpc_spec')
+        .orderBy('created_ts DESC')
+        .limit(1);
+}
+
 function permissionRelationsNoModules(isProduction, hideDeleted = false) {
     let base = sql.select('child_permission_name, parent_permission_name, false::BOOLEAN AS is_custom')
         .from('permission_relations')
@@ -23,6 +30,9 @@ function permissionRelationsNoModules(isProduction, hideDeleted = false) {
     // this query gets the most recent custom vehicle data items, regardless of status/environment
     const customVehicleDataGroup = sql.select('max(id) AS id', 'name', 'parent_id')
         .from('view_custom_vehicle_data')
+        .where({
+            'parent_id': null
+        })
         .groupBy('name, parent_id');
 
     // retrieve root custom vehicle data items applicable to the staging status/environment
@@ -88,13 +98,68 @@ function getFuncGroupHmiLevelsId (id) {
         .toString();
 }
 
+let funcGroupParamOr = function() {
+    return sql.or(
+        // is a native Vehicle Data param
+        sql.exists(
+            sql.select()
+            .from('rpc_spec_param rsp')
+            .join('rpc_spec_type rst', {
+                'rst.id': 'rsp.rpc_spec_type_id'
+            })
+            .where({
+                'rst.rpc_spec_id': getLatestRpcSpecId(),
+                'rst.element_type': 'FUNCTION',
+                'rst.name': sql('fgp.rpc_name'),
+                'rsp.name': sql('fgp.parameter')
+            })
+            .where(
+                sql.in('rst.message_type', [
+                    'response',
+                    'notification'
+                ])
+            )
+        ),
+        // is a custom vehicle data param in the given environment
+        sql.exists(
+            sql.select()
+            .from('view_custom_vehicle_data vcvd')
+            .where({
+                'vcvd.parent_id': null,
+                'vcvd.is_deleted': false,
+                'vcvd.name': sql('fgp.parameter')
+            })
+            .where(
+                sql.or(
+                    {
+                        'vcvd.status': 'PRODUCTION'
+                    },
+                    {
+                        'vcvd.status': sql('CASE WHEN fgi.status=\'STAGING\' THEN \'STAGING\'::edit_status ELSE \'PRODUCTION\'::edit_status END')
+                    }
+                )
+            )
+        )
+    );
+}
+
 function getFuncGroupParametersId (id) {
-    return sql.select('function_group_id', 'rpc_name', 'parameter')
-        .from('function_group_parameters')
-        .where({
-            function_group_id: id
+    let query = sql.select('fgp.function_group_id', 'fgp.rpc_name', 'fgp.parameter')
+        .from('function_group_parameters fgp')
+        .join('function_group_info fgi', {
+            'fgi.id': 'fgp.function_group_id'
         })
+        .where(
+            sql.and(
+                {
+                    'fgp.function_group_id': id
+                },
+                funcGroupParamOr()
+            )
+        )
         .toString();
+
+    return query.toString();
 }
 
 function getFuncGroupStatus (isProduction, hideDeleted = false) {
@@ -167,11 +232,17 @@ function getFuncGroupHmiLevelsStatus (isProduction, hideDeleted = false) {
 }
 
 function getFuncGroupParametersStatus (isProduction, hideDeleted = false) {
-    return sql.select('function_group_id', 'rpc_name', 'parameter')
-        .from('(' + getFuncGroupStatus(isProduction, hideDeleted) + ') fgi')
-        .innerJoin('function_group_parameters', {
-            'fgi.id': 'function_group_parameters.function_group_id'
+    return sql.select('fgp.function_group_id', 'fgp.rpc_name', 'fgp.parameter')
+        .from('(' + getFuncGroupStatus(isProduction, hideDeleted) + ') fgiv')
+        .join('function_group_info fgi', {
+            'fgi.id': 'fgiv.id'
         })
+        .join('function_group_parameters fgp', {
+            'fgiv.id': 'fgp.function_group_id'
+        })
+        .where(
+            funcGroupParamOr()
+        )
         .toString();
 }
 
@@ -208,17 +279,18 @@ function getFuncGroupHmiLevelsByIdsStagingFilter (ids) {
 }
 
 function getFuncGroupParametersByIdsStagingFilter (ids) {
-    return sql.select('function_group_parameters.*')
-        .from('function_group_parameters')
-        .innerJoin('function_group_info', {
-            'function_group_info.id': 'function_group_parameters.function_group_id'
+    return sql.select('fgp.*')
+        .from('function_group_parameters fgp')
+        .innerJoin('function_group_info fgi', {
+            'fgi.id': 'fgp.function_group_id'
         })
         .where(
             sql.and(
                 sql.in('id', ids),
                 {
-                    status: 'STAGING'
-                }
+                    'fgi.status': 'STAGING'
+                },
+                funcGroupParamOr()
             )
         )
         .toString();

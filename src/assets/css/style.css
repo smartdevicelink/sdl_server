@@ -1161,6 +1161,12 @@ input:checked + .slider:before {
     background-color: #222C37;
 }
 
+/*
+* Alternate Background Color
+*/
+.alt-bg-color {
+    background-color: #E9ECEF !important;
+}
 
 /*
 * Make things spin

@@ -17,14 +17,10 @@
 
                 <div class="functional-content" v-if="vehicle_data">
 
-                    <h4>Custom Vehicle Data Mapping</h4>
+                    <h4>Custom Vehicle Data Item</h4>
 
                     <div>
-                        Define custom vehicle params supported by the manufacturer's HMI.
-                    </div>
-
-                    <div class="form-row">
-                        <h4 for="name">Mapping</h4>
+                        Define custom vehicle data params supported by the HMI.
                     </div>
 
                     <!-- vehicle data loaded here --> 
@@ -44,38 +40,41 @@
 
                     <!-- save button -->
                     <div>
+                        <div v-if="namingConflictWithNativeParams(vehicle_data) ">
+                            <br>
+                            <p class="alert color-bg-red color-white d-table" role="alert">
+                                Each name cannot be the same as any parameter name in the RPC spec.
+                            </p>
+                        </div>
+
+                        <div v-if="!isNameTypeAndKeyDefined(vehicle_data)">
+                            <br>
+                            <p class="alert color-bg-red color-white d-table" role="alert">
+                                All name, type, and key fields must be defined.
+                            </p>
+                        </div>
+
+                        <div v-if="!noDuplicatesInSameArray(vehicle_data)">
+                            <br>
+                            <p class="alert color-bg-red color-white d-table" role="alert">
+                                Two custom vehicle items cannot have the same name within the same array.
+                            </p>
+                        </div>
+                        
                         <vue-ladda
                             type="submit"
                             class="btn btn-card btn-style-green"
                             data-style="zoom-in"
-                            v-if="!fieldsDisabled 
+                            v-if="!fieldsDisabled
                                 && !namingConflictWithNativeParams(vehicle_data) 
-                                && isNameTypeAndKeyDefined(vehicle_data)"
+                                && isNameTypeAndKeyDefined(vehicle_data)
+                                && noDuplicatesInSameArray(vehicle_data)"
                             v-on:click="saveVehicleData()"
                             v-bind:loading="save_button_loading">
                             Save custom vehicle data item
                         </vue-ladda>
                     </div>
                 </div>
-
-                <!-- PROMOTE GROUP MODAL -->
-                <b-modal ref="promoteModal" title="Promote Custom Vehicle Data to Production" hide-footer
-                    id="promoteModal"
-                    tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-                    <small class="form-text text-muted">
-                        This will promote the custom vehicle data mappings to production, immediately updating the
-                        production policy
-                        table. Are you sure you want to do this?
-                    </small>
-                    <vue-ladda
-                        type="button"
-                        class="btn btn-card btn-style-green"
-                        data-style="zoom-in"
-                        v-on:click="promoteVehicleDataClick()"
-                        v-bind:loading="promote_button_loading">
-                        Yes, promote to production!
-                    </vue-ladda>
-                </b-modal>
 
                 <!-- DELETE VEHICLE DATA MODAL -->
                 <b-modal ref="deleteModal" title="Delete Vehicle Data" hide-footer id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
@@ -125,7 +124,6 @@
                     'replacement': ''
                 },
                 'save_button_loading': false,
-                'promote_button_loading': false,
                 "delete_button_loading": false,
                 "undelete_button_loading": false,
                 'vehicle_data': {},
@@ -136,9 +134,6 @@
             };
         },
         computed: {
-            canPromote: function () {
-                return this.vehicle_data && this.vehicle_data.status === 'STAGING';
-            },
             fieldsDisabled: function () {
                 return this.environment !== 'STAGING';
             }
@@ -180,12 +175,6 @@
                     this.toTop();
                     cb();
                 });
-            },
-            promoteVehicleDataClick: function () {
-                this.handleModalClick('promote_button_loading', 'promoteModal', 'promoteVehicleData');
-            },
-            promoteVehicleData: function (cb) {
-                this.httpRequest('post', 'vehicle-data/promote', { 'body': this.vehicle_data }, cb);
             },
             getFunctionalGroupTemplate: function (cb) {
                 this.httpRequest("get", "groups?template=true&environment=staging", {}, (err, response) => {
@@ -246,9 +235,10 @@
                 //check that none of the nested names match any of the native vehicle parameters found in functional group info
                 let foundName = this.vehicleParams.find(vp => vp.name === obj.name);
 
-                if (foundName && // found a name match
-                    !foundName.is_custom && //it's a native parameter 
-                    (foundName.name !== this.vehicleNameCopy)) { //it's not the same name as the one we're looking at
+                if (foundName // found a name match
+                    && !foundName.is_custom //it's a native parameter 
+                    && (foundName.name !== this.vehicleNameCopy)
+                ) { //it's not the same name as the one we're looking at
                     return true; //found a match. stop now
                 }
                 //check all the sub parameters if they exist
@@ -277,6 +267,24 @@
                 }
 
                 return true; //no issues
+            },
+            noDuplicatesInSameArray: function (obj) {
+                if (!obj.params) {
+                    return true;
+                }
+                //check for duplicate names
+                const hash = {};
+                for (let i = 0; i < obj.params.length; i++) {
+                    if (hash[obj.params[i].name]) {
+                        return false;
+                    }
+                    hash[obj.params[i].name] = true;
+                    //check all the sub parameters if they exist
+                    if (!this.noDuplicatesInSameArray(obj.params[i])) {
+                        return false;
+                    }
+                }
+                return true;
             },
             //modal-related methods
             handleModalClick: function (loadingProp, modalName, methodName) {
@@ -321,7 +329,6 @@
         },
         beforeDestroy() {
             // ensure closing of all modals
-            this.$refs.promoteModal.onAfterLeave();
             this.$refs.deleteModal.onAfterLeave();
             this.$refs.undeleteModal.onAfterLeave();
         }
