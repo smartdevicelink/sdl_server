@@ -605,7 +605,7 @@ function getTemplate(cb) {
 
 function getValidTypes(cb) {
 
-    //primitive types and struct
+    //primitive types and structgetVehicleDataParamTypes
     let types = [
         {
             name: 'Float',

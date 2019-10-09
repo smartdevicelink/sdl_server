@@ -35,6 +35,9 @@ describe('SDL SERVER TESTS', function () {
             importTest('/messages/names', './api/v1/messages/names');
             importTest('/module', './api/v1/module/module');
             importTest('/module/promote', './api/v1/module/promote');
+            importTest('/vehicle-data', './api/v1/vehicle-data/vehicle-data');
+            importTest('/vehicle-data/type', './api/v1/vehicle-data/type');
+
         });
     });
 

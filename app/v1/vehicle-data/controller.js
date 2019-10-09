@@ -4,32 +4,6 @@ const helper = require('./helper.js');
 const async = require('async');
 const cache = require('../../../custom/cache');
 
-function getVehicleDataParamTypes(req, res, next) {
-    async.waterfall(
-        [
-            function(cb) {
-                helper.getVehicleDataParamTypes(cb);
-            },
-        ],
-        function(err, vehicle_data_types) {
-            if (err) {
-                app.locals.log.error(err);
-                return res.parcel
-                    .setStatus(500)
-                    .setMessage('Internal server error')
-                    .deliver();
-            }
-            const responseData = {
-                vehicle_data_types: vehicle_data_types
-            };
-            return res.parcel
-                .setStatus(200)
-                .setData(responseData)
-                .deliver();
-        }
-    );
-}
-
 function get(req, res, next) {
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
     const returnTemplate = !!req.query.template; //coerce to boolean
@@ -194,7 +168,6 @@ module.exports = {
     post: post,
     promote: promote,
     updateVehicleDataEnums: helper.updateVehicleDataEnums,
-    getVehicleDataParamTypes: getVehicleDataParamTypes,
     updateRpcSpec: helper.updateRpcSpec,
     getValidTypes: getValidTypes,
     getTemplate: getTemplate,
