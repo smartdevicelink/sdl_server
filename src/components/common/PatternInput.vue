@@ -15,6 +15,7 @@
         props: {
             value: {
                 required: true,
+                type: [Number, String],
             },
             // Using for: String.prototype.replace(regexp, replacement)
             regExp: {
@@ -35,8 +36,6 @@
         methods: {
             // format the value of input
             formatValue(val) {
-                if (val === null) return '';
-                
                 const formattedValue = val.toString().replace(this.regExp, this.replacement);
 
                 return formattedValue;

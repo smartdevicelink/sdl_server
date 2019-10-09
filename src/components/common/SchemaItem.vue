@@ -2,7 +2,7 @@
 <template>
 
     <div class="rpc-container white-box left-border"
-        v-bind:class="{ 'alt-color': level % 2 === 0 }"> <!-- alternate background colors on every level deeper -->
+        v-bind:class="{ 'alt-bg-color': level % 2 === 0 }"> <!-- alternate background colors on every level deeper -->
         <h5>
             {{ item.name || '&nbsp;' }}
             <!-- delete this item -->
@@ -66,34 +66,28 @@
                     <b-form-checkbox
                         class="color-primary"
                         v-model="item[propName]"
-                        v-bind:disabled="fieldsDisabled">
+                        v-bind:disabled="fieldsDisabled || isTopLevelMandatory(propName)">
                         {{ propsDisplay[propName].display }}
                     </b-form-checkbox>
+                    <p v-if="isTopLevelMandatory(propName)"
+                        class="form-group">
+                        Must be false for the root level
+                    </p>
                 </div>
             </template>
 
-            <!-- Natural + Zero Number type -->
-            <template v-if="getPropType(propName) === 'ZeroNatural'">
+            <!-- Natural + Zero Number type, or Integer type --> 
+            <template v-if="getPropType(propName) === 'ZeroNatural' 
+                || getPropType(propName) === 'Integer'">
                 <div class="form-group row">
                     <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
                     <div class="col-sm-4">
                         <input class="form-control text-truncate"
+                            v-if=""
                            :disabled="fieldsDisabled"
-                           @input="updateZeroNaturalNumber(propName, $event.target.value)"
-                           v-model="item[propName]"></input>
-                    </div>
-                </div>
-
-            </template>
-
-            <!-- Integer type -->
-            <template v-if="getPropType(propName) === 'Integer'">
-                <div class="form-group row">
-                    <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
-                    <div class="col-sm-4">
-                        <input class="form-control text-truncate"
-                           :disabled="fieldsDisabled"
-                           @input="updateIntegerNumber(propName, $event.target.value)"
+                           @input="getPropType(propName) === 'ZeroNatural' ? 
+                                updateZeroNaturalNumber(propName, $event.target.value)
+                                : updateIntegerNumber(propName, $event.target.value)"
                            v-model="item[propName]"></input>
                     </div>
                 </div>
@@ -134,19 +128,11 @@
             'pardonedName', 'vehicleDataTypes', 'level'],
         data() {
             return {
-                'integerInputIncludingNegative': {
-                    'regExp': /[^-0-9]/g,
-                    'replacement': ''
-                },
-                'integerInputZeroOrPositive': {
-                    'regExp': /^[\D]*|\D*/g, // Match any character that doesn't belong to the positive integer
-                    'replacement': ''
-                },
                 'propsDisplay': {
-                    'name': { 'display': 'Name', 'type': 'VehicleString' },
-                    'type': { 'display': 'Type', 'type': 'VehicleType' },
-                    'key': { 'display': 'Key', 'type': 'String' },
-                    'mandatory': { 'display': 'Mandatory', 'type': 'Boolean' },
+                    'name': { 'display': '* Name', 'type': 'VehicleString' },
+                    'type': { 'display': '* Type', 'type': 'VehicleType' },
+                    'key': { 'display': '* Key', 'type': 'String' },
+                    'mandatory': { 'display': 'Is Mandatory', 'type': 'Boolean' },
                     'min_length': { 'display': 'Min Length', 'type': 'ZeroNatural' },
                     'max_length': { 'display': 'Max Length', 'type': 'ZeroNatural' },
                     'min_size': { 'display': 'Min Size', 'type': 'ZeroNatural' },
@@ -176,11 +162,14 @@
             }
         },
         methods: {
+            isTopLevelMandatory: function (propName) {
+                return propName === "mandatory" && this.level === 1;
+            },
             updateZeroNaturalNumber: function (propName, val) {
                 if (isNaN(val) || val === "") {
                     return this.item[propName] = null;
                 }
-                this.item[propName] = Math.max(0, Math.round(parseInt(val)));
+                this.item[propName] = Math.max(0, Math.round(val));
             },
             updateIntegerNumber: function (propName, val) {
                 if (val === "-") {
@@ -239,17 +228,8 @@
                     return "CUSTOM"; //match found, but its a name the user has created
                 }
 
-                //TODO: needed?
-                //third phase: check the parent object's other parameters for a match within the same array
-
                 return "NONE"; //no match!
             }
         },
     };
 </script>
-
-<style scoped>
-    .alt-color {
-        background-color: #e9ecef
-    }
-</style>
