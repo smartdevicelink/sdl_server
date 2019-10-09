@@ -131,9 +131,12 @@ let funcGroupParamOr = function() {
             })
             .where(
                 sql.or(
+                    // always get PRODUCTION records if they are the most recent version
                     {
                         'vcvd.status': 'PRODUCTION'
                     },
+                    // if the function group we're in context of is in STAGING, then allow STAGING custom vehicle data
+                    // otherwise restrict the custom vehicle data to PRODUCTION records
                     {
                         'vcvd.status': sql('CASE WHEN fgi.status=\'STAGING\' THEN \'STAGING\'::edit_status ELSE \'PRODUCTION\'::edit_status END')
                     }
