@@ -2,11 +2,11 @@
 const app = require('../app');
 const sql = require('./sql.js');
 const parseXml = require('xml2js').parseString;
-const request = require('request');
 const async = require('async');
 const _ = require('lodash');
 const check = require('check-types');
 const getRpcSpec = require('./../messages/helper').getRpcSpec;
+const cache = require('../../../custom/cache');
 
 /**
  * Required fields are name, type, and key. All other fields are
@@ -252,7 +252,6 @@ function transformVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
         result[key] = val;
     }
 
-    if (customVehicleDataItem.type === 'Struct')
     if (customVehicleDataItem.type === 'Struct') {
         result.params = customVehicleDataItem.params;
     }
@@ -568,7 +567,8 @@ function updateRpcSpec(next) {
                 app.locals.log.error(err);
             }
         } else {
-
+            cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
+            cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
             app.locals.log.info('New RPC Spec saved');
         }
 
