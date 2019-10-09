@@ -26,7 +26,7 @@ function getEnums() {
         .innerJoin(
             '(' + sub + ') sub',
             {
-                'max_spec_id': 'rpc_spec_id'
+                'sub.max_spec_id': 'rpc_spec_type.rpc_spec_id'
             }
         )
         .groupBy(['rpc_spec_type.name'])
@@ -83,7 +83,8 @@ function getVehicleData(isProduction, id, hideDeleted = false) {
         );
     }
 
-    let unionStatement = sql.select('cvd.*').from('view_custom_vehicle_data cvd')
+    let unionStatement = sql.select('cvd.*')
+        .from('view_custom_vehicle_data cvd')
         .join('children c',
               {
                   'c.id': 'cvd.parent_id'
@@ -152,6 +153,7 @@ function insertCustomVehicleData(obj, isProduction = true) {
         max_length: obj.max_length,
         min_size: obj.min_size,
         max_size: obj.max_size,
+        min_value: obj.min_value,
         max_value: obj.max_value,
         array: obj.array === true,
         is_deleted: obj.is_deleted === true

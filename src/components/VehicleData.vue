@@ -28,28 +28,11 @@
                 <section class="tiles">
                     <card-item
                         v-for="(item, index) in custom_vehicle_data"
-                        v-bind:item="{
+                        v-bind:item="Object.assign(item, {
                             title: item.name,
                             count: getParameterCount(item),
-                            id: item.id,
-                            parent_id: item.parent_id,
-                            status: item.status,
-                            name: item.name,
-                            type: item.type,
-                            key: item.key,
-                            mandatory: item.mandatory,
-                            min_length: item.min_length,
-                            max_length: item.max_length,
-                            min_size: item.min_size,
-                            max_size: item.max_size,
-                            min_value: item.min_value,
-                            max_value: item.max_value,
-                            array: item.array,
-                            is_deleted: item.is_deleted,
-                            created_ts: item.created_ts,
-                            updated_ts: item.updated_ts,
                             params: item.params
-                        }"
+                        })"
                         v-bind:environment="environment"
                         v-bind:link="{
                             path: 'vehicledata/manage',
@@ -78,9 +61,9 @@
             </main>
 
             <!-- PROMOTE GROUP MODAL -->
-            <b-modal ref="promoteModal" title="Promote Functional Groups to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+            <b-modal ref="promoteModal" title="Promote Custom Vehicle Data to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                 <small class="form-text">
-                    <p>This will promote all modified Functional Groups to production, immediately updating the production policy table. Are you sure you want to do this?</p>
+                    <p>This will promote all modified Custom Vehicle Data to production, immediately updating the production policy table. Are you sure you want to do this?</p>
                 </small>
                 <vue-ladda
                     type="button"
@@ -96,11 +79,8 @@
 </template>
 
 <script>
-    import VueJsonPretty from 'vue-json-pretty';
-
     export default {
         components: {
-            VueJsonPretty
         },
         data () {
             return {
@@ -173,12 +153,6 @@
             promoteAllVehicleData: function (cb) { //the back end will find the staging ids for the front end
                 this.httpRequest("post", "vehicle-data/promote", { "body": {} }, cb);
             },
-            getVehicleDataInfo: function (id, cb) {
-                this.httpRequest("get", "vehicle-data?id=" + id, {}, cb);
-            },
-            saveVehicleDataInfo: function (vehicleData, cb) {
-                this.httpRequest("post", "vehicle-data", { "body": vehicleData }, cb);
-            }
         },
         mounted: function (){
             this.environmentClick();

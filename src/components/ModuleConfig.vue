@@ -242,7 +242,6 @@
                                 else {
                                     console.log("No module config data returned");
                                 }
-                                console.log(this.module_config);
                             });
                         }
                     });
