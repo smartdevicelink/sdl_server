@@ -69,13 +69,11 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
         };
     }
 
-    // initialize known endpoint property objects
-    for (endpoint in moduleConfig.endpoints) {
-        moduleConfig.endpoint_properties[endpoint] = {};
-    }
-
     // inject endpoint properties we have from the database
     _.forEach(endpointProperties, function (endProp, index) {
+        if (!moduleConfig.endpoint_properties[endProp.endpoint_name] && moduleConfig.endpoints[endProp.endpoint_name]) {
+            moduleConfig.endpoint_properties[endProp.endpoint_name] = {};
+        }
         if (moduleConfig.endpoint_properties[endProp.endpoint_name] && endProp.property_value) {
             moduleConfig.endpoint_properties[endProp.endpoint_name][endProp.property_name] = endProp.property_value;
         }
