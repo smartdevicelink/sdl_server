@@ -158,7 +158,14 @@
     export default {
         data () {
             return {
-                "about": {}
+                "about": {
+                    "notification": {
+                        "appsPendingReview": {
+                            "email": {
+                            }
+                        }
+                    }
+                }
             }
         },
         computed: {
