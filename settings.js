@@ -53,5 +53,5 @@ module.exports = {
     shaidPublicKey: process.env.SHAID_PUBLIC_KEY,
     shaidSecretKey: process.env.SHAID_SECRET_KEY,
     //the location of the RPC specification in order to retrieve an up-to-date language list
-    githubLanguageSourceUrl: 'https://raw.githubusercontent.com/smartdevicelink/rpc_spec/master/MOBILE_API.xml'
+    rpcSpecXmlUrl: 'https://raw.githubusercontent.com/smartdevicelink/rpc_spec/master/MOBILE_API.xml'
 }

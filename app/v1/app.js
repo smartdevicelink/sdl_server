@@ -49,6 +49,7 @@ const services = require('./services/controller.js');
 const moduleConfig = require('./module-config/controller.js');
 const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
+const vehicleData = require('./vehicle-data/controller.js');
 
 function exposeRoutes () {
 	// use helmet middleware for security
@@ -67,6 +68,8 @@ function exposeRoutes () {
 	app.post('/applications/passthrough', auth.validateAuth, applications.passthroughPost);
 	app.post('/applications/hybrid', auth.validateAuth, applications.hybridPost);
 	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
+	app.get('/applications/groups', auth.validateAuth, applications.getFunctionalGroups);
+	app.put('/applications/groups', auth.validateAuth, applications.putFunctionalGroup);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -89,25 +92,24 @@ function exposeRoutes () {
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
 	app.get('/about', auth.validateAuth, about.getInfo);
-}
+    //begin vehicle data routes
+    app.post('/vehicle-data', auth.validateAuth, vehicleData.post);
+    app.get('/vehicle-data', auth.validateAuth, vehicleData.get);
+    app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote);
+    app.get('/vehicle-data/type', auth.validateAuth, vehicleData.getValidTypes);
 
-function updatePermissionsAndGenerateTemplates (next) {
-	permissions.update(function () {
-		//generate functional group templates for fast responding to the UI for function group info
-		//requires that permission information has updated
-		groups.generateFunctionGroupTemplates(function () {
-			log.info("Functional groups generated");
-			if (next) {
-				next();
-			}
-		});
-	});
+
 }
 
 //do not allow routes to be exposed until these async functions are completed
 flame.async.parallel([
 	//get and store permission info from SHAID on startup
-	updatePermissionsAndGenerateTemplates,
+	function (next) {
+		permissions.update(function () {
+			log.info("Permissions updated");
+			next();
+		});
+	},
 	function (next) {
 		// get and store app service type info from SHAID on startup
 		services.upsertTypes(function () {
@@ -129,11 +131,19 @@ flame.async.parallel([
 			next();
 		});
 	},
+	function(next) {
+	 	vehicleData.updateRpcSpec(function() {
+            log.info("RPC Spec updated");
+            next();
+	 	});
+	},
 ], function () {
 	log.info("Start up complete. Exposing routes.");
 	exposeRoutes();
 });
 
 //cron job for running updates. runs once a day at midnight
-new Cron('00 00 00 * * *', updatePermissionsAndGenerateTemplates, null, true);
-new Cron('00 00 00 * * *', messages.updateLanguages, null, true);
+new Cron('00 00 00 * * *', permissions.update, null, true);
+new Cron('00 05 00 * * *', messages.updateLanguages, null, true);
+new Cron('00 10 00 * * *', services.upsertTypes, null, true);
+new Cron('00 15 00 * * *', vehicleData.updateRpcSpec, null, true);

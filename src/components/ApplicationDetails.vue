@@ -217,6 +217,38 @@
                 </div>
 
                 <div class="app-table">
+                    <h4>Grant Proprietary Functional Groups <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Optionally grant this app version access to select proprietary production functional groups"></a></h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm table-w-33">
+                            <thead>
+                                <tr>
+                                    <th>Functional Group Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-if="proprietary_functional_groups == null">
+                                    <td>
+                                        <label class="switch">
+                                        </label>
+                                        <label class="form-check-label switch-label">
+                                          No production propriety groups defined.
+                                        </label>
+                                    </td>
+                                </tr>
+                                <app-functional-group-row
+                                    v-for="(item, index) in proprietary_functional_groups"
+                                    v-bind:item="item"
+                                    v-bind:index="index"
+                                    v-bind:key="item.id"
+                                    v-bind:app_id="app.id"
+                                    v-bind:approval_status="app.approval_status"
+                                    v-bind:updatePolicyTablesHandler="getPolicy"/>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="app-table">
                     <h4>Developer Contact Info</h4>
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -378,6 +410,7 @@ export default {
             "app": null,
             "policytableStaging": null,
             "policytableProduction": null,
+            "proprietary_functional_groups": null,
             "options": {
                 "PENDING": pending_opt,
                 "STAGING": staging_opt,
@@ -658,7 +691,29 @@ export default {
                     });
                 }
             });
-        }
+        },
+        "getFunctionalGroupData": function () {
+            this.httpRequest("get", "applications/groups", {
+                "params": {
+                    "environment": "PRODUCTION",
+                    "is_proprietary_group": true,
+                    "app_id": this.$route.params.id
+                }
+            }, (err, response) => {
+                if (err) {
+                    console.log("Error fetching functional group data: ");
+                    console.log(err);
+                } else {
+                    response.json().then(parsed => {
+                        if(parsed.data.groups && parsed.data.groups.length){
+                            this.proprietary_functional_groups = parsed.data.groups;
+                        }else{
+                            console.log("No functional data returned");
+                        }
+                    });
+                }
+            });
+        },
     },
     computed: {
         classStatusDot: function(){
@@ -685,6 +740,7 @@ export default {
     },
     created: function(){
         this.getApp();
+        this.getFunctionalGroupData();
     },
     beforeDestroy () {
         // ensure closing of all modals
