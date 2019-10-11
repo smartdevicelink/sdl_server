@@ -167,6 +167,7 @@ function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, inc
         defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
         preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
         deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction)),
+        certificates: setupSqlCommand.bind(null, sqlApps.getApp.allCertificates()),
         blacklistedApps: function (callback) {
             if (requestedUuids.length > 0) {
                 setupSqlCommand(sqlApps.getBlacklistedApps(requestedUuids, useLongUuids), callback);

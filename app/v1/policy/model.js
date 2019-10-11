@@ -301,6 +301,11 @@ function aggregateResults (res, next) {
     });
     const blacklistedApps = res.blacklistedApps;
 
+    const appCertificates = {};
+    for (let i = 0; i < res.certificates.length; i++) {
+        appCertificates[res.certificates[i].app_uuid] = res.certificates[i].certificate;
+    }
+
     const appPolicy = {};
 
     // set all requested apps to default permissions
@@ -312,6 +317,10 @@ function aggregateResults (res, next) {
     for (let i = 0; i < policyObjs.length; i++) {
         const key = Object.keys(policyObjs[i])[0];
         appPolicy[key] = policyObjs[i][key];
+        // attach certificates to apps if both exist
+        if (appCertificates[key]) {
+            appPolicy[key].certificate = appCertificates[key];
+        }
     }
 
     // Set app policy object to null if it is blacklisted
