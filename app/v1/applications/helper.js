@@ -25,7 +25,14 @@ function validateActionPost (req, res) {
 
 function validateServicePermissionPut (req, res) {
 	if (!req.body.id || !check.boolean(req.body.is_selected) || !check.string(req.body.service_type_name) || !check.string(req.body.permission_name)) {
-		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name required");
+		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name are required");
+	}
+    return;
+}
+
+function validateFunctionalGroupPut (req, res) {
+	if (!req.body.app_id || !check.boolean(req.body.is_selected) || !check.string(req.body.property_name)) {
+		res.parcel.setStatus(400).setMessage("app_id, is_selected, and property_name are required");
 	}
     return;
 }
@@ -294,6 +301,7 @@ module.exports = {
     validatePassthroughPost: validatePassthroughPost,
     validateHybridPost: validateHybridPost,
     validateServicePermissionPut: validateServicePermissionPut,
+	validateFunctionalGroupPut: validateFunctionalGroupPut,
     validateWebHook: validateWebHook,
     createAppInfoFlow: createAppInfoFlow,
     storeApps: storeApps,

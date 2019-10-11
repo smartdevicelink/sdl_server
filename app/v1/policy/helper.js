@@ -9,9 +9,9 @@ const funcGroupSql = require('../groups/sql.js');
 const messagesSql = require('../messages/sql.js');
 const moduleConfigSql = require('../module-config/sql.js');
 const messages = require('../messages/helper.js');
+const vehicleDataSql = require('../vehicle-data/sql.js');
 const cache = require('../../../custom/cache');
-const log = require('../../../custom/loggers/winston');
-const GET = require('lodash.get');
+const GET = require('lodash').get;
 
 //validation functions
 
@@ -52,7 +52,8 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
     cache.getCacheData(isProduction, app.locals.version, cache.policyTableKey, function (err, cacheData) {
         if (GET(cacheData, "moduleConfig")
         && GET(cacheData, "functionalGroups")
-        && GET(cacheData, "consumerFriendlyMessages")) {
+        && GET(cacheData, "consumerFriendlyMessages")
+        && GET(cacheData, "vehicleData")) {
             if(cacheData.moduleConfig){
                 cacheData.moduleConfig.full_app_id_supported = useLongUuids;
             }
@@ -66,6 +67,7 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
                 makePolicyTable.moduleConfig = setupModuleConfig(isProduction, useLongUuids);
                 makePolicyTable.functionalGroups = setupFunctionalGroups(isProduction);
                 makePolicyTable.consumerFriendlyMessages = setupConsumerFriendlyMessages(isProduction);
+                makePolicyTable.vehicleData = setupVehicleData(isProduction);
             }
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
@@ -76,10 +78,35 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
     });
 }
 
+function setupVehicleData (isProduction) {
+    const dataFlow = flame.flow(
+        {
+            schemaVersion: setupSqlCommand.bind(null, sql.getVehicleDataSchemaVersion(isProduction)),
+            rawCustomVehicleData: setupSqlCommand.bind(null, vehicleDataSql.getVehicleData(isProduction)),
+            rawRpcSpecParams: setupSqlCommand.bind(null, sql.getRpcSpecParams()),
+            rawRpcSpecTypes: setupSqlCommand.bind(null, sql.getRpcSpecTypes()),
+        },
+        {
+            method: 'parallel'
+        }
+    );
+
+    return flame.flow(
+        [
+            dataFlow,
+            model.transformVehicleData.bind(null, isProduction)
+        ],
+        {
+            method: 'waterfall'
+        }
+    );
+}
+
 function setupModuleConfig (isProduction, useLongUuids = false) {
     const getModuleConfig = {
         base: setupSqlCommand.bind(null, moduleConfigSql.moduleConfig.status(isProduction)),
-        retrySeconds: setupSqlCommand.bind(null, moduleConfigSql.retrySeconds.status(isProduction))
+        retrySeconds: setupSqlCommand.bind(null, moduleConfigSql.retrySeconds.status(isProduction)),
+        endpointProperties: setupSqlCommand.bind(null, moduleConfigSql.endpointProperties.status(isProduction)),
     };
     const moduleConfigGetFlow = flame.flow(getModuleConfig, {method: 'parallel'});
     const makeModuleConfig = [
