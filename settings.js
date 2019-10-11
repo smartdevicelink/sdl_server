@@ -67,7 +67,7 @@ module.exports = {
             emailAddress: process.env.CERTIFICATE_EMAIL_ADDRESS || null,
             hash: process.env.CERTIFICATE_HASH || null,
             days: process.env.CERTIFICATE_DAYS || 7,
-            csrConfigFile: (process.env.CSR_CONFIG_FILE) ? __dirname + process.env.CSR_CONFIG_FILE : null,
+            csrConfigFile: process.env.CSR_CONFIG_FILE || null,
         }
     },
     //what kind of auth to enforce? "basic" or null (no authentication)

@@ -5,20 +5,20 @@ const logger = require('../../../custom/loggers/winston/index');
 const settings = require('../../../settings.js');
 const tmp = require('tmp');
 const { spawnSync } = require('child_process');
-const forge = require('node-forge');
+const SSL_DIR_PREFIX = __dirname + '/../../../customizable/ssl/';
 
-const authorityKey = (fs.existsSync(__dirname + '/../../../customizable/ssl/' + settings.certificateAuthority.authorityKeyFileName)) ? 
+const authorityKey = (fs.existsSync(SSL_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName)) ? 
     //file exists
-    fs.readFileSync(__dirname + '/../../../customizable/ssl/' + settings.certificateAuthority.authorityKeyFileName).toString() : 
+    fs.readFileSync(SSL_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName).toString() : 
     //file does not exist
     null;
-const authorityCertificate = (fs.existsSync(__dirname + '/../../../customizable/ssl/' + settings.certificateAuthority.authorityCertFileName)) ? 
+const authorityCertificate = (fs.existsSync(SSL_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName)) ? 
     //file exists
-    fs.readFileSync(__dirname + '/../../../customizable/ssl/' + settings.certificateAuthority.authorityCertFileName).toString() : 
+    fs.readFileSync(SSL_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName).toString() : 
     //file does not exist
     null;
 
-const csrConfigIsValid = fs.existsSync(settings.securityOptions.certificate.csrConfigFile);
+const csrConfigIsValid = fs.existsSync(SSL_DIR_PREFIX + settings.securityOptions.certificate.csrConfigFile);
 
 const openSSLEnabled = authorityKey && authorityCertificate && csrConfigIsValid && settings.securityOptions.passphrase;
 
