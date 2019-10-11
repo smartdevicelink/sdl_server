@@ -31,10 +31,11 @@ If you are attempting to use encrypted RPCs with SDL Core, you will need to have
 OpenSSL version 1.1.0+ must be installed. The source files can be found [here](https://www.openssl.org/source/) along with instructions for installation.
 
 Once OpenSSL is properly installed, you'll need to take the necessary steps to establish a certificate authority. The CA will be responsible for signing all certificates created by the policy server. This can be done by simply entering the following two commands into any terminal:
+
 | Command | Explanation|
 |---------|------------|
 |openssl genrsa -out CA.key 2048| This creates a 2048 bit RSA private key and saves it in the file "CA.key". It will later be used for signing certificates.|
-|openssl req -x509 -new -nodes -key CA.key -sa256 -days 3650 -out CA.pem| This creates a certificate in the file name "CA.pem" that will be used in the creation of additional certificates. It is set to expire after 10 years. OpenSSL will then prompt you for further information.|
+|openssl req -x509 -new -nodes -key CA.key -sha256 -days 3650 -out CA.pem| This creates a certificate in the file name "CA.pem" that will be used in the creation of additional certificates. It is set to expire after 10 years. OpenSSL will then prompt you for further information.|
 
 The CA files will then need to be relocated to the `./customizable/ssl` folder and their file names will need to be specified in the `.env` file.
 To know if this process was successful and if your policy server is now capable of generating keys and certificates, check the About page to see if certificate generation is enabled.
