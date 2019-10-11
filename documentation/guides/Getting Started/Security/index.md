@@ -23,3 +23,23 @@ You may wish to encrypt your Policy Table when in transit to/from SDL Core. To a
 The customizable Policy Table skeleton `encryptPolicyTable` and `decryptPolicyTable` methods are located in the Policy Server project at the following file path: `./customizable/encryption/index.js`
 
 If you modify this skeleton method to implement Policy Table encryption on your Policy Server, you will also need to implement corresponding cryptography logic via the `crypt` and `decrypt` methods in your build of SDL Core. These methods are available in the `sample_policy_manager.py` [file](https://github.com/smartdevicelink/sdl_core/blob/master/src/appMain/sample_policy_manager.py#L45) of SDL Core.
+
+### Configurable SSL Key and Certificate Creation
+If you are attempting to use encrypted RPCs with SDL Core, you will need to have certificates for both Core and the Mobile Proxy. Generating these certificates can be done on your own or via the Policy Server UI. The Policy Server uses a wrapper for OpenSSL to provide the same options that would normally be provided when directly dealing with OpenSSL.
+
+## Prerequisites
+OpenSSL version 1.1.0+ must be installed. The source files can be found [here](https://www.openssl.org/source/) along with instructions for installation.
+
+Once OpenSSL is properly installed, you'll need to take the necessary steps to establish a certificate authority. The CA will be responsible for signing all certificates created by the policy server. This can be done by simply entering the following two commands into any terminal:
+| Command | Explanation|
+|---------|------------|
+|openssl genrsa -out CA.key 2048| This creates a 2048 bit RSA private key and saves it in the file "CA.key". It will later be used for signing certificates.|
+|openssl req -x509 -new -nodes -key CA.key -sa256 -days 3650 -out CA.pem| This creates a certificate in the file name "CA.pem" that will be used in the creation of additional certificates. It is set to expire after 10 years. OpenSSL will then prompt you for further information.|
+
+The CA files will then need to be relocated to the `./customizable/ssl` folder and their file names will need to be specified in the `.env` file.
+To know if this process was successful and if your policy server is now capable of generating keys and certificates, check the About page to see if certificate generation is enabled.
+
+There is an empty `csr.cfg` in the `./customizable/ssl` folder. The contents of this folder don't matter as the file will be filled by the policy server with each certificate that is generated.
+
+## Retrieving the Certificates
+SDL_Core's certificate is stored in the module_config of the policy table and is updated via a Policy Table Update. For an app to update its certificate, it must make either a `GET` or `POST` request to the `/applications/certificate/get` endpoint. See the API documentation for more details.

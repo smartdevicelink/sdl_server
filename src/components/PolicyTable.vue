@@ -14,7 +14,7 @@
                     :options="environmentOptions"
                     name="chooseEnvironment" />
 
-                <h4>Policy Table<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/view-policy-table/" target="_blank"></a></h4>
+                <div><h4>Policy Table<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/view-policy-table/" target="_blank"></a></h4><!--input type="checkbox" id="checkbox" v-model="checked"><!--label for="checkbox">{{(checked) ? "Encrypted" : "Decrypted"}}</label></input--></div>
                 <b-input-group style="margin-bottom:0.5em;">
                     <b-input-group-addon>POST</b-input-group-addon>
                     <b-form-input type="text" v-bind:value="policyTablePostUrl"></b-form-input>
@@ -50,7 +50,8 @@ export default {
                 }
             ],
             "policytable": null,
-            "at_top": true
+            "at_top": true,
+            "checked": false,
         };
     },
     computed: {
