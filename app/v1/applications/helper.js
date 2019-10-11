@@ -89,6 +89,29 @@ function createAppInfoFlow (filterTypeFunc, value) {
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
 }
 
+function checkCategoryNeedsInsertion(category, callback) {
+    db.sqlCommand(sql.getCategoryByName(category.name), function(err, data) {
+        //no category found insert
+        if (!err && data.length === 0) {
+            db.sqlCommand(sql.insertCategory(category), function(err, data) {
+                callback(err);
+            });
+        } else {
+            callback(null);
+        }
+    });
+}
+
+function storeCategories(categories, callback) {
+    let flowAry = [];
+
+    for (let category of categories) {
+        flowAry.push(checkCategoryNeedsInsertion.bind(null, category));
+    }
+    const fullFlow = flow(flowAry, { method: 'parallel' });
+    fullFlow(callback);
+}
+
 //application store functions
 
 function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
@@ -265,13 +288,14 @@ function attemptRetry(milliseconds, retryQueue){
 }
 
 module.exports = {
-	validateActionPost: validateActionPost,
-	validateAutoPost: validateAutoPost,
-	validateAdministratorPost: validateAdministratorPost,
-	validatePassthroughPost: validatePassthroughPost,
-	validateHybridPost: validateHybridPost,
-	validateServicePermissionPut: validateServicePermissionPut,
+    validateActionPost: validateActionPost,
+    validateAutoPost: validateAutoPost,
+    validateAdministratorPost: validateAdministratorPost,
+    validatePassthroughPost: validatePassthroughPost,
+    validateHybridPost: validateHybridPost,
+    validateServicePermissionPut: validateServicePermissionPut,
     validateWebHook: validateWebHook,
-	createAppInfoFlow: createAppInfoFlow,
-	storeApps: storeApps
-}
+    createAppInfoFlow: createAppInfoFlow,
+    storeApps: storeApps,
+    storeCategories: storeCategories,
+};

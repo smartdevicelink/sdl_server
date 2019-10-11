@@ -129,6 +129,13 @@ flame.async.parallel([
 			next();
 		});
 	},
+	function(next) {
+		//get and store app categories from SHAID on startup
+		applications.queryAndStoreNewCategories(function() {
+			log.info('App categories updated');
+			next();
+		});
+	},
 ], function () {
 	log.info("Start up complete. Exposing routes.");
 	exposeRoutes();
@@ -137,3 +144,4 @@ flame.async.parallel([
 //cron job for running updates. runs once a day at midnight
 new Cron('00 00 00 * * *', updatePermissionsAndGenerateTemplates, null, true);
 new Cron('00 00 00 * * *', messages.updateLanguages, null, true);
+new Cron('00 01 00 * * *', messages.queryAndStoreNewCategories, null, true);

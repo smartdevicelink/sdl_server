@@ -245,8 +245,19 @@ function getAppPermissionsId (id) {
         }).toString();
 }
 
+function getCategoryByName(name) {
+    return sql.select('id', 'name', 'display_name')
+        .from('categories')
+        .where(
+            {
+                'name': name
+            }
+        )
+        .toString();
+}
+
 function getAppCategory (id) {
-    return sql.select('categories.id', 'display_name')
+    return sql.select('categories.id','display_name')
         .from('categories')
         .join('app_info', {
             'app_info.category_id': 'categories.id'
@@ -537,6 +548,18 @@ function insertAppServicePermission (obj) {
         "service_type_name": obj.service_type_name,
         "permission_name": obj.permission_name
     }).toString();
+}
+
+function insertCategory(obj) {
+    let insertObj = {
+        id: obj.id,
+        name: obj.name,
+        display_name: obj.display_name
+    };
+
+    return sql.insert('categories', insertObj)
+        .returning('*')
+        .toString();
 }
 
 function deleteAppServicePermission (obj) {
@@ -926,5 +949,7 @@ module.exports = {
     deleteAppServicePermission: deleteAppServicePermission,
     deleteAppServicePermissions: deleteAppServicePermissions,
     insertAppServicePermissions: insertAppServicePermissions,
-    insertStandardAppServicePermissions: insertStandardAppServicePermissions
+    insertStandardAppServicePermissions: insertStandardAppServicePermissions,
+    getCategoryByName: getCategoryByName,
+    insertCategory: insertCategory,
 }
