@@ -253,7 +253,6 @@
                 <div  class="app-table">
                     <h4>Private Key</h4>
                     <b-form-textarea
-                        :disabled="fieldsDisabled"
                         id="textarea"
                         v-model="private_key"
                         placeholder="No private key specified"
@@ -266,46 +265,15 @@
                         class="btn btn-card"
                         data-style="zoom-in"
                         style="width:225px"
-                        v-if="!fieldsDisabled"
+                        v-bind:loading="false"
                         v-b-modal.keyModal>
                         Generate Private Key
                     </vue-ladda>
                 </div>
 
-                <b-modal ref="keyModal" title="Private Key Info" hide-footer id="keyModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-                    <h4 style="text-decoration: none">Key Bit Size</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        :regExp="integerInput.regExp"
-                        :replacement="integerInput.replacement"
-                        v-model="certificate_options.keyBitsize"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <h4 style="text-decoration: none">Cipher</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        v-model="certificate_options.cipher"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <!--h4>Password</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        v-model="options.password"
-                        ></pattern-input-->
-                    <vue-ladda
-                        type="button"
-                        class="btn btn-card btn-style-green"
-                        data-style="zoom-in"
-                        v-on:click="generatePrivateKeyClick()"
-                        v-bind:loading="key_button_loading">
-                        Generate Private Key
-                    </vue-ladda>
-                </b-modal>
-
-                <div  class="app-table">
+                <div class="app-table">
                     <h4>Certificate</h4>
                     <b-form-textarea class="form-group"
-                        :disabled="fieldsDisabled"
                         id="textarea"
                         v-model="certificate"
                         placeholder="No certificate specified"
@@ -320,7 +288,7 @@
                         class="btn btn-card"
                         data-style="zoom-in"
                         style="width:225px"
-                        v-if="!fieldsDisabled"
+                        v-bind:loading="false"
                         v-b-modal.certificateModal>
                         Generate Certificate
                     </vue-ladda>
@@ -332,79 +300,11 @@
                         class="btn btn-card btn-style-green"
                         data-style="zoom-in"
                         style="width:225px"
-                        v-if="!fieldsDisabled"
+                        v-bind:loading="false"
                         v-on:click="saveCertificate()">
                         Save Certificate
                     </vue-ladda>
                 </div>
-
-                <div class="pull-right">
-                    <b-btn v-if="environment == 'STAGING' && can_promote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
-                </div>
-
-                <b-modal ref="certificateModal" title="Certificate Info" hide-footer id="certificateModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-                    <!--small class="form-text text-muted">
-                        This will promote all staging Consumer Messages and their associated languages to production, modifying the production policy table. Are you sure you want to do this?
-                    </small-->
-                    <h4 style="text-decoration: none">Country Name (2 Letter Code)</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        v-model="certificate_options.country"
-                        :maxlength="2"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <h4 style="text-decoration: none">State or Province Name (Full Name)</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        mx
-                        v-model="certificate_options.state"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <h4 style="text-decoration: none">Locality Name (eg, City)</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        v-model="certificate_options.locality"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <h4 style="text-decoration: none">Organization Name (eg, Company)</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        v-model="certificate_options.organization"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <h4 style="text-decoration: none">Organizational Unit Name (eg, section)</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        v-model="certificate_options.organizationUnit"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <h4 style="text-decoration: none">Common Name (eg, fully qualified host name)</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        v-model="certificate_options.commonName"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <h4 style="text-decoration: none">Email Address</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        v-model="certificate_options.emailAddress"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <h4 style="text-decoration: none">Days</h4>
-                    <pattern-input class="form-group text-truncate"
-                        id="textarea"
-                        v-model="certificate_options.days"
-                        style="padding: 15px;width: 100%"
-                        ></pattern-input>
-                    <vue-ladda
-                        type="button"
-                        class="btn btn-card btn-style-green"
-                        data-style="zoom-in"
-                        v-on:click="generateCertificateClick()"
-                        v-bind:loading="certificate_button_loading">
-                        Generate Certificate
-                    </vue-ladda>
-                </b-modal>
 
                 <div class="app-table">
                     <h4>Policy Table Preview</h4>
@@ -476,6 +376,24 @@
                         </vue-ladda>
                     </form>
                 </b-modal>
+
+                <!-- PRIVATE KEY GENERATOR MODAL -->
+                <private-key-modal
+                    :environmentClick="() => {}"
+                    :actionCallback="gotPrivateKey"
+                    :certificate_options="certificate_options"
+                    name="keyModal">
+                </private-key-modal>
+
+                <!-- CERTIFICATE GENERATOR MODAL -->
+                <certificate-modal
+                    :private_key="private_key"
+                    :environmentClick="() => {}"
+                    :actionCallback="gotCertificateKeyData"
+                    :certificate_options="certificate_options"
+                    name="certificateModal">
+                </certificate-modal>
+
             </main>
         </div>
     </div>
@@ -598,7 +516,7 @@ export default {
                 "value": "BOTH"
             },
             "key_button_loading": false,
-            "certificate_button_loading": false,
+            "certificate_save_loading": false,
             "certificate_error": false,
             "certificate_options": {
                 "keyBitsize": "",
@@ -611,6 +529,7 @@ export default {
                 "commonName": "",
                 "emailAddress": "",
                 "days": "",
+                "private_key": null,
             },
             "private_key": null,
             "certificate": null,
@@ -784,53 +703,13 @@ export default {
                 }
             });
         },
-        "generateCertificateClick": function(){
-            this.handleCertModalClick("certificate_button_loading", "certificateModal", "generateCertificate");
+        "gotPrivateKey": function (private_key) {
+            this.private_key = private_key;
+            this.certificate_options.clientKey = this.private_key;
         },
-        "generateCertificate": function(cb){
-            let options = this.certificate_options;
-            options.clientKey = this.private_key;
-            options.app_uuid = this.app.short_uuid;
-            this.httpRequest("post", "security/certificate", {"body":{"options": options}}, (err, res) =>{
-                if(err){
-                    console.log("Error occurred creating certificate");
-                    console.log(err);
-                } else {
-                    res.json().then(parsed => {
-                        if(parsed && parsed.data && parsed.data.certificate){
-                            this.private_key = parsed.data.clientKey;
-                            this.certificate = parsed.data.certificate;
-                            console.log("Everything went ok", self.certificate);
-                        } else {
-                            console.log("No certificate returned");
-                            console.log(parsed);
-                        }
-                    });
-                }
-            });
-            cb();
-        },
-        "generatePrivateKeyClick": function(){
-            this.handleCertModalClick("key_button_loading", "keyModal", "generatePrivateKey");
-        },
-        "generatePrivateKey": function(cb){
-            let options = this.certificate_options;
-            this.httpRequest('post', "security/private", { "body": { "options": options}}, (err, res) => {
-                if(err){
-                    console.log("Error occurred creating private key");
-                    console.log(err);
-                } else {
-                    res.json().then(parsed => {
-                        if(parsed && parsed.data){
-                            this.private_key = parsed.data;
-                            console.log('Private key returned', parsed.data);
-                        } else {
-                            console.log('No private key returned');
-                        }
-                    })
-                }
-            })
-            cb();
+        "gotCertificateKeyData": function (data) {
+            this.private_key = data.clientKey;
+            this.certificate = data.certificate;
         },
 		"handleCertModalClick": function (loadingProp, modalName, methodName) {
 			//show a loading icon for the modal, and call the methodName passed in
@@ -846,8 +725,6 @@ export default {
 			});
         },
         "saveCertificate": function (){
-            console.log(this.certificate);
-            console.log(this.private_key);
             if(!((this.certificate && !this.private_key) || (!this.certificate && this.private_key))
                 || (this.certificate.length == 0 && this.private_key.length == 0)){
                 let options = {
