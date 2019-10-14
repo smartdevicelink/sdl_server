@@ -5,6 +5,7 @@ const flow = app.locals.flow;
 const async = require('async');
 const pem = require('pem');
 const settings = require('../../../settings.js');
+const certUtil = require('../helpers/certificates.js');
 
 function get (req, res, next) {
 	//prioritize id, uuid, approval status, in that order.
@@ -395,29 +396,19 @@ function getAppCertificate(req, res, next){
 	})
 }
 
-function updateAppCertificate(req, res, next){
-    pem.createPkcs12(
-		req.body.options.clientKey, 
-		req.body.options.certificate, 
-		settings.certificateAuthority.passphrase, 
-		function(err, pkcs12){
-			if(err){
-				app.locals.log.error(err);
-				return res.parcel.setStatus(400)
-					.setData(err)
-					.deliver();
-			}
-			app.locals.db.sqlCommand(sql.updateAppCertificate(req.body.options.app_uuid, pkcs12.pkcs12.toString('base64')), function(sqlErr, results){
-				if(sqlErr){
-					app.locals.log.error(sqlErr);
+function updateAppCertificate (req, res, next) {
+	certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
+		.then(keyCertBundle => {
+			helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
+				if (err) {
+					app.locals.log.error(err);
 					return res.parcel.setStatus(500)
-						.setMessage("Internal Server Error")
+						.setMessage('Internal Server Error')
 						.deliver();
 				}
-				return res.parcel.setStatus(200).deliver();
+				return res.parcel.setStatus(200).deliver()
 			});
-		}
-	);
+		});
 }
 
 function checkAndUpdateCertificates(cb){

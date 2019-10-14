@@ -15,6 +15,7 @@ const certificates = require('../certificates/controller.js');
 const tmp = require('tmp');
 const fs = require('fs');
 const { spawnSync } = require('child_process');
+const certUtil = require('../helpers/certificates.js');
 
 //validation functions
 
@@ -340,13 +341,13 @@ function attemptRetry(milliseconds, retryQueue){
     }, milliseconds);
 }
 
-function storeAppCertificates(insertObjs, next){
-	app.locals.db.runAsTransaction(function(client, callback){
-		async.mapSeries(insertObjs, function(insertObj, cb){
+function storeAppCertificates (insertObjs, next) {    
+	app.locals.db.runAsTransaction(function (client, callback) {
+		async.mapSeries(insertObjs, function (insertObj, cb) {
 			app.locals.log.info("Updating certificate of " + insertObj.app_uuid);
-			client.getOne(sql.updateAppCertificate(insertObj.app_uuid, insertObj.certificate), cb);
+            updateAppCertificate(insertObj.app_uuid, insertObj.certificate, cb);
 		}, callback);
-	}, function(err, response){
+	}, function (err, response) {
 		if(err){
 			app.locals.log.error(err);
 		}
@@ -378,39 +379,22 @@ function getFailedAppsCert(failedApp, next){
 	});
 }
 
-function isCertificateExpired(certificate, cb){
-	//				ex:	 Not Before: Sep 14 18:23:43 2019 GMT
-	//const notBefore = "Not Before: MMM DD HH:MM:SS YYYY GMT";
-	//				ex:	 Not After : Sep 15 18:23:43 2019 GMT
-	const notAfter = 	"Not After : MMM DD HH:MM:SS YYYY GMT";
+//checks if the passed in certificate's expiration date is before now
+function isCertificateExpired (certificate, cb) {
+    certUtil.parseCertificate(certificate)
+        .then(certInfo => {
+            const expirationDate = certInfo.validity.end;
+            const now = Date.now();
+            cb(null, (expirationDate - now) > 0)
+        })
+        .catch(err => {
+            return cb(err);
+        });
+}
 
-	// Always make sure that cleanup is called, otherwise it will remain on the system
-	tmp.file(function(err, path, fileDescriptor, cleanup){
-		if(err){
-			cleanup();
-			cb(err, false);
-		} else {
-			fs.writeFile(path, certificate, function(fileErr){
-				if(!fileErr){
-					const openssl = spawnSync('openssl', ['x509', '-text', '-noout', '-in', path]);
-					cleanup();
-					if(openssl.error){
-						cb(openssl.error, false);
-					} else {
-						const stdout = openssl.stdout.toString();
-						const pos = stdout.search("Not After")
-						const sub = stdout.substring(pos + 12, pos + notAfter.length)
-						const dat = new Date(sub);
-						const now = Date.now();
-						cb(null, (dat - now) > 0);
-					}
-				} else {
-					cleanup();
-					cb(fileErr, false);
-				}
-			})
-		}
-	});
+//given an app uuid and pkcs12 bundle, stores their relation in the database
+function updateAppCertificate (app_uuid, keyCertBundle, callback) {
+    db.sqlCommand(sql.updateAppCertificate(app_uuid, keyCertBundle.pkcs12.toString('base64')), callback);
 }
 
 module.exports = {
@@ -426,4 +410,5 @@ module.exports = {
     storeAppCertificates: storeAppCertificates,
     getFailedAppsCert: getFailedAppsCert,
     isCertificateExpired: isCertificateExpired,
+    updateAppCertificate: updateAppCertificate,
 }
