@@ -379,11 +379,11 @@ function getAppCertificate(req, res, next){
 		certUtil.readKeyCertBundle(Buffer.from(certificate, 'base64'))
 			.then(keyBundle => {
 				return new Promise((resolve, reject) => {
-					helper.isCertificateExpired(keyBundle.cert, function (err, isValid) {
+					certUtil.isCertificateExpired(keyBundle.cert, function (err, isExpired) {
 						if (err) {
 							return reject(err);
 						}
-						resolve(isValid);
+						resolve(!isExpired);
 					});
 				});
 			})
@@ -434,33 +434,33 @@ function checkAndUpdateCertificates(cb){
 			if (appObj.certificate) {
 				certUtil.readKeyCertBundle(Buffer.from(appObj.certificate, 'base64'))
 					.then(keyBundle => {
-						helper.isCertificateExpired(keyBundle.cert, function (crtErr, isValid) {
+						certUtil.isCertificateExpired(keyBundle.cert, function (crtErr, isExpired) {
 							if (crtErr) {
 								app.locals.log.error(crtErr);
 							}
 							// if the certificate is expired, create a new one with the already existing private key
 							return next(
-								null, 
-								(isValid) ? null : { app_uuid: appObj.app_uuid, private_key: keyBundle.key }
+								null,
+								(!isExpired) ? null : { app_uuid: appObj.app_uuid, private_key: keyBundle.key }
 							);
 						});
 					})
 					.catch(pkcsErr => {
 						app.locals.log.error(pkcsErr);
 						next(
-							null, 
-							{ 
-								app_uuid: appObj.app_uuid, 
-								private_key: keyBundle.key 
+							null,
+							{
+								app_uuid: appObj.app_uuid,
+								private_key: keyBundle.key
 							}
 						);
 					});
 			} else {
 				// app does not have a certificate nor a private key, so both must be created
 				next(
-					null, 
-					{ 
-						app_uuid: appObj.app_uuid 
+					null,
+					{
+						app_uuid: appObj.app_uuid
 					}
 				);
 			}
