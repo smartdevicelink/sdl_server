@@ -41,7 +41,6 @@ function getAppInfoFilter (filterObj) {
 }
 
 function changeAppApprovalStatus (id, statusName, reason) {
-    console.log(reason);
     return sql.update('app_info')
         .set({
             approval_status: statusName,
