@@ -59,7 +59,8 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
                 cacheData.appPolicies = data.appPolicies;
-                cb(err, cacheData);
+                const certificateMatch = cacheData.moduleConfig && module_config && (cacheData.moduleConfig.certificate == module_config.certificate);
+                cb(err, certificateMatch, cacheData);
             });
         } else {
             if (returnPreview) {

@@ -179,8 +179,8 @@ function appCerts(apps, callback){
                 //app has a cert, check if it's expired
                 certUtil.readKeyCertBundle(Buffer.from(data[0].certificate, 'base64'))
                     .then(keyBundle => {
-                        isCertificateExpired(keyBundle.cert, function (expErr, isValid) {
-                            if(expErr || !isValid){
+                        certUtil.isCertificateExpired(keyBundle.cert, function (expErr, isExpired) {
+                            if(expErr || isExpired){
                                 return badCert(next);
                             }
                             // certificate is valid, nothing needs to be done
@@ -374,19 +374,6 @@ function getFailedAppsCert(failedApp, next){
 	});
 }
 
-//checks if the passed in certificate's expiration date is before now
-function isCertificateExpired (certificate, cb) {
-    certUtil.parseCertificate(certificate)
-        .then(certInfo => {
-            const expirationDate = certInfo.validity.end;
-            const now = Date.now();
-            cb(null, (expirationDate - now) > 0)
-        })
-        .catch(err => {
-            return cb(err);
-        });
-}
-
 //given an app uuid and pkcs12 bundle, stores their relation in the database
 function updateAppCertificate (app_uuid, keyCertBundle, callback) {
     db.sqlCommand(sql.updateAppCertificate(app_uuid, keyCertBundle.pkcs12.toString('base64')), callback);
@@ -404,6 +391,5 @@ module.exports = {
     storeApps: storeApps,
     storeAppCertificates: storeAppCertificates,
     getFailedAppsCert: getFailedAppsCert,
-    isCertificateExpired: isCertificateExpired,
     updateAppCertificate: updateAppCertificate,
 }
