@@ -1,6 +1,3 @@
-ALTER TABLE app_info
-DROP COLUMN IF EXISTS certificate;
-
 ALTER TABLE module_config
 DROP COLUMN IF EXISTS certificate CASCADE,
 DROP COLUMN IF EXISTS private_key CASCADE;
