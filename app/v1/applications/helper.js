@@ -96,6 +96,16 @@ function createAppInfoFlow (filterTypeFunc, value) {
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
 }
 
+function storeCategories(categories, callback) {
+    const upsertCats = app.locals.db.setupSqlCommands(sql.upsertCategories(categories));
+
+    const insertFlow = app.locals.flow([
+        app.locals.flow(upsertCats, {method: 'parallel'})
+    ], {method: 'series'});
+
+    insertFlow(callback);
+}
+
 //application store functions
 
 function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
@@ -272,14 +282,15 @@ function attemptRetry(milliseconds, retryQueue){
 }
 
 module.exports = {
-	validateActionPost: validateActionPost,
-	validateAutoPost: validateAutoPost,
-	validateAdministratorPost: validateAdministratorPost,
-	validatePassthroughPost: validatePassthroughPost,
-	validateHybridPost: validateHybridPost,
-	validateServicePermissionPut: validateServicePermissionPut,
+    validateActionPost: validateActionPost,
+    validateAutoPost: validateAutoPost,
+    validateAdministratorPost: validateAdministratorPost,
+    validatePassthroughPost: validatePassthroughPost,
+    validateHybridPost: validateHybridPost,
+    validateServicePermissionPut: validateServicePermissionPut,
 	validateFunctionalGroupPut: validateFunctionalGroupPut,
     validateWebHook: validateWebHook,
-	createAppInfoFlow: createAppInfoFlow,
-	storeApps: storeApps
-}
+    createAppInfoFlow: createAppInfoFlow,
+    storeApps: storeApps,
+    storeCategories: storeCategories,
+};

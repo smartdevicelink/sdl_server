@@ -539,6 +539,21 @@ function insertAppServicePermission (obj) {
     }).toString();
 }
 
+function upsertCategories (categories) {
+    return categories.map(function (category) {
+        return sql.insert("categories", {
+            "id": category.id,
+            "display_name": category.display_name,
+            "name": category.name
+        })
+        .onConflict()
+        .onConstraint("categories_pkey")
+        .doUpdate()
+        .returning("*")
+        .toString();
+    });
+}
+
 function deleteAppServicePermission (obj) {
     return sql.delete()
         .from('app_service_type_permissions')
@@ -989,6 +1004,7 @@ module.exports = {
     deleteAppServicePermissions: deleteAppServicePermissions,
     insertAppServicePermissions: insertAppServicePermissions,
     insertStandardAppServicePermissions: insertStandardAppServicePermissions,
+    upsertCategories: upsertCategories,
     getAppFunctionalGroups: getAppFunctionalGroups,
     insertAppFunctionalGroup: insertAppFunctionalGroup,
     deleteAppFunctionalGroup: deleteAppFunctionalGroup

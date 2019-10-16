@@ -117,6 +117,13 @@ flame.async.parallel([
 			next();
 		});
 	},
+    function (next) {
+		//get and store app categories from SHAID on startup
+		applications.queryAndStoreCategories(function() {
+			log.info('App categories updated');
+			next();
+		});
+	},
 	function (next) {
 		//get and store language code info from the GitHub SDL RPC specification on startup
 		messages.updateLanguages(function () {
@@ -145,5 +152,5 @@ flame.async.parallel([
 //cron job for running updates. runs once a day at midnight
 new Cron('00 00 00 * * *', permissions.update, null, true);
 new Cron('00 05 00 * * *', messages.updateLanguages, null, true);
-new Cron('00 10 00 * * *', services.upsertTypes, null, true);
+new Cron('00 10 00 * * *', applications.queryAndStoreCategories, null, true);
 new Cron('00 15 00 * * *', vehicleData.updateRpcSpec, null, true);
