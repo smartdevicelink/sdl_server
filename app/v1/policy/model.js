@@ -15,15 +15,21 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
 
     var concatPort = "";
     var protocol = "http://";
-    if(settings.policyServerPortSSL){
+    if(settings.ssl.policyServerPort){
         protocol = "https://";
-        if(settings.policyServerPortSSL != 443){
-            concatPort = ":" + settings.policyServerPortSSL;
+        if(settings.ssl.policyServerPort != 443){
+            concatPort = ":" + settings.ssl.policyServerPort;
         }
-    }else if(!settings.policyServerPortSSL && settings.policyServerPort != 80){
+    }else if(!settings.ssl.policyServerPort && settings.policyServerPort != 80){
         concatPort = ":" + settings.policyServerPort;
     }
 
+    if(base.certificate && base.private_key){
+        base.certificate += '\n' + base.private_key;
+    } else {
+        base.certificate = null;
+    }
+    
     next(null, {
         "full_app_id_supported": useLongUuids,
         "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
@@ -52,7 +58,8 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
             "COMMUNICATION": base.communication_notifications,
             "NORMAL": base.normal_notifications,
             "NONE": base.none_notifications
-        }
+        },
+        "certificate": base.certificate,
     });
 }
 
@@ -294,6 +301,11 @@ function aggregateResults (res, next) {
     });
     const blacklistedApps = res.blacklistedApps;
 
+    const appCertificates = {};
+    for (let i = 0; i < res.certificates.length; i++) {
+        appCertificates[res.certificates[i].app_uuid] = res.certificates[i].certificate;
+    }
+
     const appPolicy = {};
 
     // set all requested apps to default permissions
@@ -305,6 +317,10 @@ function aggregateResults (res, next) {
     for (let i = 0; i < policyObjs.length; i++) {
         const key = Object.keys(policyObjs[i])[0];
         appPolicy[key] = policyObjs[i][key];
+        // attach certificates to apps if both exist
+        if (appCertificates[key]) {
+            appPolicy[key].certificate = appCertificates[key];
+        }
     }
 
     // Set app policy object to null if it is blacklisted

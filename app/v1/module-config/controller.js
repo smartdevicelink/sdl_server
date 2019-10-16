@@ -4,6 +4,7 @@ const helper = require('./helper.js');
 const model = require('./model.js');
 const flow = app.locals.flow;
 const cache = require('../../../custom/cache');
+const certificates = require('../certificates/controller');
 
 function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
@@ -40,20 +41,28 @@ function post (isProduction, req, res, next) {
 	if (res.parcel.message) {
 		app.locals.log.error(res.parcel.message);
 		return res.parcel.deliver();
-	}
-
-    model.insertModuleConfig(isProduction, req.body, function (err) {
-        if (err) {
-            app.locals.log.error(err);
-            res.parcel
-                .setMessage("Interal server error")
-                .setStatus(500);
+    }
+    // While the pkcs12 is not used, this is necessary to check that the private key and certificate match
+    certificates.createPkcs12(req.body.private_key, req.body.certificate, function(pkcsErr, pkcs12){
+        if(pkcsErr){
+            app.locals.log.error(pkcsErr);
+            return res.parcel.setStatus(500)
+                .setMessage("An error occurred in creating the certificate")
+                .deliver();
         }
-        else {
-            cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
-            res.parcel.setStatus(200);
-        }
-        res.parcel.deliver();
+        model.insertModuleConfig(isProduction, req.body, function (err) {
+            if (err) {
+                app.locals.log.error(err);
+                res.parcel
+                    .setMessage("Interal server error")
+                    .setStatus(500);
+            }
+            else {
+                cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
+                res.parcel.setStatus(200);
+            }
+            res.parcel.deliver();
+        });
     });
 
 }

@@ -35,6 +35,16 @@
 
                 <div class="app-table">
                     <h4>General App Info<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/applications/" target="_blank"></a></h4>
+                                    
+                    <div v-if="(!certificate && private_key) || (certificate && !private_key)" class="alert color-bg-red color-white d-table" role="alert">
+                        ** Notice: The {{(private_key) ? "certificate" : "private key"}} is not defined but the {{(private_key) ? "private key" : "certificate"}} is. 
+                        They should both be set or both left empty.
+                    </div>
+                    
+                    <div v-if="certificate_error" class="alert color-bg-red color-white d-table" role="alert">
+                        ** Notice: An error occurred when processing the private key and certificate data. If you are providing your own, please be certain of their accuracy and validity.
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -240,6 +250,62 @@
                     </div>
                 </div>
 
+                <div  class="app-table">
+                    <h4>Private Key</h4>
+                    <b-form-textarea
+                        id="textarea"
+                        v-model="private_key"
+                        placeholder="No private key specified"
+                        style="width:605px"
+                        rows="3"
+                        max-rows="50"
+                        ></b-form-textarea>
+                    <vue-ladda
+                        type="submit"
+                        class="btn btn-card"
+                        data-style="zoom-in"
+                        style="width:225px"
+                        v-bind:loading="false"
+                        v-b-modal.keyModal>
+                        Generate Private Key
+                    </vue-ladda>
+                </div>
+
+                <div class="app-table">
+                    <h4>Certificate</h4>
+                    <b-form-textarea class="form-group"
+                        id="textarea"
+                        v-model="certificate"
+                        placeholder="No certificate specified"
+                        style="width:605px"
+                        rows="3"
+                        max-rows="50"
+                        ></b-form-textarea>
+
+                    <!--pre class="mt-3 mb-0">{{ module_config.certificate }}</pre-->
+                    <vue-ladda
+                        type="submit"
+                        class="btn btn-card"
+                        data-style="zoom-in"
+                        style="width:225px"
+                        v-bind:loading="false"
+                        v-b-modal.certificateModal>
+                        Generate Certificate
+                    </vue-ladda>
+                </div>
+
+                <div>
+                    <vue-ladda
+                        type="submit"
+                        class="btn btn-card btn-style-green"
+                        data-style="zoom-in"
+                        style="width:225px"
+                        v-bind:loading="false"
+                        v-on:click="saveCertificate()">
+                        Save Certificate
+                    </vue-ladda>
+                </div>
+
                 <div class="app-table">
                     <h4>Policy Table Preview</h4>
 
@@ -310,6 +376,24 @@
                         </vue-ladda>
                     </form>
                 </b-modal>
+
+                <!-- PRIVATE KEY GENERATOR MODAL -->
+                <private-key-modal
+                    :environmentClick="() => {}"
+                    :actionCallback="gotPrivateKey"
+                    :certificate_options="certificate_options"
+                    name="keyModal">
+                </private-key-modal>
+
+                <!-- CERTIFICATE GENERATOR MODAL -->
+                <certificate-modal
+                    :private_key="private_key"
+                    :environmentClick="() => {}"
+                    :actionCallback="gotCertificateKeyData"
+                    :certificate_options="certificate_options"
+                    name="certificateModal">
+                </certificate-modal>
+
             </main>
         </div>
     </div>
@@ -430,10 +514,35 @@ export default {
             "selected_hybrid_app_preference": {
                 "text": "Both",
                 "value": "BOTH"
-            }
+            },
+            "key_button_loading": false,
+            "certificate_save_loading": false,
+            "certificate_error": false,
+            "certificate_options": {
+                "keyBitsize": "",
+                "cipher": "",
+                "country": "",
+                "state": "",
+                "locality": "",
+                "organization": "",
+                "organizationUnit": "",
+                "commonName": "",
+                "emailAddress": "",
+                "days": "",
+                "private_key": null,
+            },
+            "private_key": null,
+            "certificate": null,
+            "integerInput": {
+                "regExp": /^[\D]*|\D*/g, // Match any character that doesn't belong to the positive integer
+                "replacement": ""
+            },
         };
     },
     methods: {
+        "toTop": function(){
+            this.$scrollTo("body", 500);
+        },
         "handleAppState": function (changedState) {
             if (this.app) {
                 const isProduction = this.app.approval_status === "ACCEPTED";
@@ -594,6 +703,48 @@ export default {
                 }
             });
         },
+        "gotPrivateKey": function (private_key) {
+            this.private_key = private_key;
+            this.certificate_options.clientKey = this.private_key;
+        },
+        "gotCertificateKeyData": function (data) {
+            this.private_key = data.clientKey;
+            this.certificate = data.certificate;
+        },
+		"handleCertModalClick": function (loadingProp, modalName, methodName) {
+			//show a loading icon for the modal, and call the methodName passed in
+			//when finished, turn off the loading icon, hide the modal, and reload the info
+            this[loadingProp] = true;
+            //const self = this;
+			this[methodName](() => {
+				this[loadingProp] = false;
+				if (modalName) {
+					this.$refs[modalName].hide();
+				}
+				//self.environmentClick();
+			});
+        },
+        "saveCertificate": function (){
+            if(!((this.certificate && !this.private_key) || (!this.certificate && this.private_key))
+                || (this.certificate.length == 0 && this.private_key.length == 0)){
+                let options = {
+                    app_uuid: this.app.uuid,
+                    clientKey: this.private_key,
+                    certificate: this.certificate
+                }
+                this.httpRequest('post', 'applications/certificate', { "body": {"options": options}}, (err) => {
+                    if(err){
+                        console.log("Error occurred saving certificate data");
+                        console.log(err);
+                    }
+                    this.certificate_error = !!err;
+                    this.toTop();
+                })
+            } else {
+                console.log('failed to save certificate')
+                this.toTop();
+            }
+        },
         getPolicy: function (isProduction, modelName) {
             const envName = isProduction ? "production" : "staging";
             this.httpRequest("post", "policy/apps?environment=" + envName, {
@@ -643,6 +794,9 @@ export default {
                     response.json().then(parsed => {
                         if(parsed.data.applications.length){
                             this.app = parsed.data.applications[0];
+                            console.log(parsed.data.applications)
+                            this.private_key = this.app.private_key;
+                            this.certificate = this.app.certificate;
                             this.selected_hybrid_app_preference = this.hybrid_dropdown_options[this.app.hybrid_app_preference || "BOTH"];
                             if (this.app.is_blacklisted) {
                                 this.selected_option = this.options["BLACKLISTED"];

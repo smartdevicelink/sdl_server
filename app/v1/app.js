@@ -10,6 +10,7 @@ const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); /
 const flame = require('../../lib/flame-box');
 const hashify = require('../../lib/hashify');
 const arrayify = require('../../lib/arrayify');
+const emailer = require('../../lib/emailer');
 const parcel = require('./helpers/parcel');
 const Cron = require('cron').CronJob;
 
@@ -20,8 +21,15 @@ app.locals.db = db;
 app.locals.flow = flame.flow;
 app.locals.hashify = hashify;
 app.locals.arrayify = arrayify;
+app.locals.emailer = emailer;
 app.locals.flame = flame;
 app.locals.version = path.basename(__dirname);
+
+// construct base URL, e.g. "http://localhost:3000"
+app.locals.baseUrl = "http";
+if(app.locals.config.policyServerPort == 443) app.locals.baseUrl += "s";
+app.locals.baseUrl += "://" + app.locals.config.policyServerHost;
+if(![80,443].includes(app.locals.config.policyServerPort)) app.locals.baseUrl += ":" + app.locals.config.policyServerPort;
 
 //export app before requiring dependent modules to avoid circular dependency issues
 module.exports = app;
@@ -41,6 +49,7 @@ const services = require('./services/controller.js');
 const moduleConfig = require('./module-config/controller.js');
 const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
+const certificates = require('./certificates/controller.js');
 
 function exposeRoutes () {
 	// use helmet middleware for security
@@ -59,6 +68,9 @@ function exposeRoutes () {
 	app.post('/applications/passthrough', auth.validateAuth, applications.passthroughPost);
 	app.post('/applications/hybrid', auth.validateAuth, applications.hybridPost);
 	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
+	app.post('/applications/certificate/get', applications.getAppCertificate);
+	app.get('/applications/certificate/get', applications.getAppCertificate);
+	app.post('/applications/certificate', applications.updateAppCertificate);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -81,6 +93,8 @@ function exposeRoutes () {
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
 	app.get('/about', auth.validateAuth, about.getInfo);
+	app.post('/security/certificate', certificates.createCertificate);
+	app.post('/security/private', certificates.createPrivateKey);
 }
 
 function updatePermissionsAndGenerateTemplates (next) {
@@ -100,6 +114,7 @@ function updatePermissionsAndGenerateTemplates (next) {
 flame.async.parallel([
 	//get and store permission info from SHAID on startup
 	updatePermissionsAndGenerateTemplates,
+	applications.checkAndUpdateCertificates,
 	function (next) {
 		// get and store app service type info from SHAID on startup
 		services.upsertTypes(function () {
@@ -116,7 +131,7 @@ flame.async.parallel([
 	},
 	function (next) {
 		//get and store app info from SHAID on startup
-		applications.queryAndStoreApplicationsFlow({})(function () {
+		applications.queryAndStoreApplicationsFlow({}, false)(function () {
 			log.info("App information updated");
 			next();
 		});
@@ -129,3 +144,4 @@ flame.async.parallel([
 //cron job for running updates. runs once a day at midnight
 new Cron('00 00 00 * * *', updatePermissionsAndGenerateTemplates, null, true);
 new Cron('00 00 00 * * *', messages.updateLanguages, null, true);
+new Cron('00 00 00 * * *', applications.checkAndUpdateCertificates, null, true);

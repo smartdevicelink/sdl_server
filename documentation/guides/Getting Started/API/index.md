@@ -37,6 +37,15 @@ These routes are hit by the Policy Server UI to promote a functional group or co
 ### `POST /messages/update`
 This route updates the Policy Server's list of languages.
 
+### `POST /applications/certificate`
+This route updates an app's private key and certificate.
+
+### `POST & GET /applications/certificate/get`
+This route queries the Policy Server database for an app's certificate and returns it, unless it's expired.
+
+### `POST /security/private` & `POST /security/certificate`
+These routes are hit by the Policy Server UI to create private keys and certificates with the options specified in the UI modals or in the environment variables.
+
 ## UI endpoints
 These are API routes that are accessed by the Policy Server user interface.
 

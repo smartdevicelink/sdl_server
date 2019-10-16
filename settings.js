@@ -18,15 +18,58 @@ module.exports = {
     cacheModulePort: process.env.CACHE_PORT,
     cacheModuleHost: process.env.CACHE_HOST,
     cacheModulePassword: process.env.CACHE_PASSWORD,
+    // SMTP email server settings
+    smtp: {
+        host: process.env.SMTP_HOST || null,
+        port: parseInt(process.env.SMTP_PORT) || 25,
+        username: process.env.SMTP_USERNAME || null,
+        password: process.env.SMTP_PASSWORD || null,
+        from: process.env.SMTP_FROM || null
+    },
+    notification: {
+        appsPendingReview: {
+            email: {
+                frequency: (process.env.NOTIFY_APP_REVIEW_FREQUENCY || "DISABLED").toUpperCase(), // enum: "DISABLED", "REALTIME"
+                to: process.env.NOTIFY_APP_REVIEW_EMAILS || "" // e.g. "person1@oem.com,person2@oem.com,person3@oem.com"
+            }
+        }
+    },
     //the fully qualified hostname of this Policy Server (e.g. "policyserver.vehicleoem.com")
     policyServerHost: process.env.POLICY_SERVER_HOST || "localhost",
     //the port this server will be running in
     policyServerPort: process.env.POLICY_SERVER_PORT || 3000,
     //the SSL certificate files and secure port to listen for secure connections with
     //files should be stored in ./customizable/ssl
-    sslPrivateKeyFilename: process.env.SSL_PRIVATE_KEY_FILENAME || null,
-    sslCertificateFilename: process.env.SSL_CERTIFICATE_FILENAME || null,
-    policyServerPortSSL: process.env.POLICY_SERVER_PORT_SSL || null, // typically 443
+    ssl: {
+        privateKeyFilename: process.env.SSL_PRIVATE_KEY_FILENAME || null,
+        certificateFilename: process.env.SSL_CERTIFICATE_FILENAME || null,
+        policyServerPort: process.env.POLICY_SERVER_PORT_SSL || null, // typically 443
+    },
+    certificateAuthority: {
+        authorityKeyFileName: process.env.CA_PRIVATE_KEY_FILENAME || null,
+        authorityCertFileName: process.env.CA_CERTIFICATE_FILENAME || null,
+        passphrase: process.env.CA_PASSPHRASE || null,
+        cipher: process.env.CA_CIPHER || '',
+    },
+    securityOptions: {
+        passphrase: process.env.CERTIFICATE_PASSPHRASE || null,
+        privateKey: {
+            keyBitsize: process.env.PRIVATE_KEY_BITSIZE || 2048,
+            cipher: process.env.PRIVATE_KEY_CIPHER || "des3",
+        },
+        certificate: {
+            country: process.env.CERTIFICATE_COUNTRY || null,
+            state: process.env.CERTIFICATE_STATE || null,
+            locality: process.env.CERTIFICATE_LOCALITY || null,
+            organization: process.env.CERTIFICATE_ORGANIZATION || null,
+            organizationUnit: process.env.CERTIFICATE_ORGANIZATION_UNIT || null,
+            commonName: process.env.CERTIFICATE_COMMON_NAME || null,
+            emailAddress: process.env.CERTIFICATE_EMAIL_ADDRESS || null,
+            hash: process.env.CERTIFICATE_HASH || null,
+            days: process.env.CERTIFICATE_DAYS || 7,
+            csrConfigFile: process.env.CSR_CONFIG_FILE || null,
+        }
+    },
     //what kind of auth to enforce? "basic" or null (no authentication)
     authType: process.env.AUTH_TYPE || null,
     //an optional password users must enter to access the Policy Server interface when paired with "basic" authType

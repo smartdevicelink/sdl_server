@@ -43,7 +43,7 @@ function validateAppPolicyOnlyPost (req, res) {
 
 //helper functions
 
-function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, returnPreview, cb) {
+function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, returnPreview, module_config, cb) {
     let makePolicyTable = {};
     if (appPolicyObj) { //existence of appPolicyObj implies to return the app policy object
         makePolicyTable.appPolicies = setupAppPolicies(isProduction, useLongUuids, appPolicyObj);
@@ -70,7 +70,8 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
                 cache.setCacheData(isProduction, app.locals.version, cache.policyTableKey, data);
-                cb(err, data);
+                const certificateMatch = data.moduleConfig && module_config && (data.moduleConfig.certificate == module_config.certificate);
+                cb(err, certificateMatch, data);
             });
         }
     });
@@ -166,6 +167,7 @@ function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, inc
         defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
         preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
         deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction)),
+        certificates: setupSqlCommand.bind(null, sqlApps.getApp.allCertificates()),
         blacklistedApps: function (callback) {
             if (requestedUuids.length > 0) {
                 setupSqlCommand(sqlApps.getBlacklistedApps(requestedUuids, useLongUuids), callback);

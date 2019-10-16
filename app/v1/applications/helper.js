@@ -8,6 +8,14 @@ const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
 const config = app.locals.config;
+const async = require('async');
+const pem = require('pem');
+const settings = require('../../../settings.js');
+const certificates = require('../certificates/controller.js');
+const tmp = require('tmp');
+const fs = require('fs');
+const { spawnSync } = require('child_process');
+const certUtil = require('../helpers/certificates.js');
 
 //validation functions
 
@@ -91,7 +99,7 @@ function createAppInfoFlow (filterTypeFunc, value) {
 
 //application store functions
 
-function storeApps (includeApprovalStatus, apps, callback) {
+function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
     let queue = [];
     function recStore(includeApprovalStatus, theseApps, cb){
         const fullFlow = flow([
@@ -107,7 +115,7 @@ function storeApps (includeApprovalStatus, apps, callback) {
 				flame.async.map(appObjs, autoBlacklistModifier, next);
 			},
             function (appObjs, next) {
-                flame.async.map(appObjs, model.storeApp, next);
+                flame.async.map(appObjs, model.storeApp.bind(null, notifyOEM), next);
             }
         ], {method: "waterfall", eventLoop: true});
 
@@ -129,11 +137,80 @@ function storeApps (includeApprovalStatus, apps, callback) {
         });
     }
     recStore(includeApprovalStatus, apps, function(){
-        callback();
+        if(certificates.openSSLEnabled){
+            appCerts(apps, callback);
+        } else {
+            callback();
+        }
         if(queue.length > 0){
             attemptRetry(300000, queue);
         }
     });
+}
+
+function appCerts(apps, callback){
+    async.mapSeries(apps, function(app, next){
+        db.sqlCommand(sql.getApp.certificate(app.uuid), function(err, data){
+            if(err){
+                log.error(err);
+                return;
+            }
+            function badCert(cb){
+                certificates.createCertificateFlow({}, function(crtErr, cert){
+                    if(crtErr){
+                        // issues arose in creating certificate
+                        return cb(crtErr, null);
+                    }
+                    //console.log(cert)
+                    certificates.createPkcs12(
+                        cert.clientKey, 
+                        cert.certificate, 
+                        function(pkcsErr, pkcs12){
+                            //console.log(pkcs12)
+                            cb(pkcsErr, (pkcsErr) ? null : {
+                                app_uuid: app.uuid,
+                                certificate: pkcs12,
+                            });
+                        }
+                    );
+                });
+            }
+            if(data.length != 0){
+                //app has a cert, check if it's expired
+                pem.readPkcs12(
+                    Buffer.from(data[0].certificate, 'base64'), 
+                    {
+                        p12Password: settings.securityOptions.passphrase
+                    }, 
+                    function(crtErr, keyBundle){
+                        if(crtErr){
+                            return badCert(next);
+                        }
+                        isCertificateExpired(keyBundle.cert, function(expErr, isValid){
+                            if(expErr || !isValid){
+                                return badCert(next);
+                            }
+                            // certificate is valid, nothing needs to be done
+                            next();
+                        });
+                    }
+                );
+            } else {
+                badCert(next);
+            }
+        })
+    }, function(err, results){
+        if(err){
+            log.error(err);
+        }
+        if(results.filter(Boolean).length){
+            log.info('App certificates generated, store them with a transaction');
+            //log.info(results.filter(Boolean));
+            storeAppCertificates(results.filter(Boolean), callback);
+        } else {
+            callback();
+        }
+    })
 }
 
 //determine whether the object needs to be deleted or stored in the database
@@ -243,7 +320,7 @@ function attemptRetry(milliseconds, retryQueue){
 							flame.async.map(appObjs, autoBlacklistModifier, callback);
 						},
                         function (appObjs, callback) {
-                            flame.async.map(appObjs, model.storeApp, callback);
+                            flame.async.map(appObjs, model.storeApp.bind(null, true), callback);
                         }
                     ], {method: "waterfall", eventLoop: true});
                     fullFlow(function (err, res) {
@@ -264,6 +341,62 @@ function attemptRetry(milliseconds, retryQueue){
     }, milliseconds);
 }
 
+function storeAppCertificates (insertObjs, next) {    
+	app.locals.db.runAsTransaction(function (client, callback) {
+		async.mapSeries(insertObjs, function (insertObj, cb) {
+			app.locals.log.info("Updating certificate of " + insertObj.app_uuid);
+            updateAppCertificate(insertObj.app_uuid, insertObj.certificate, cb);
+		}, callback);
+	}, function (err, response) {
+		if(err){
+			app.locals.log.error(err);
+		}
+		app.locals.log.info("App certificates updated");
+		next();
+	});
+}
+
+function getFailedAppsCert(failedApp, next){
+	let options = certificates.getCertificateOptions({
+		app_uuid: failedApp.app_short_uuid,
+		clientKey: failedApp.private_key
+	});
+	certificates.createCertificateFlow(options, function(err, keyBundle){
+		if(err){
+			return next(err, {});
+		}
+		certificate.createPkcs12(
+            keyBundle.key, 
+            keyBundle.cert, 
+            settings.securityOptions.passphrase, 
+            function(pkcsErr, pkcs){
+                next(pkcsErr, {
+                    app_uuid: failedApp.app_uuid,
+                    certificate: pkcs.pkcs12.toString('base64')
+                });
+            }
+        );
+	});
+}
+
+//checks if the passed in certificate's expiration date is before now
+function isCertificateExpired (certificate, cb) {
+    certUtil.parseCertificate(certificate)
+        .then(certInfo => {
+            const expirationDate = certInfo.validity.end;
+            const now = Date.now();
+            cb(null, (expirationDate - now) > 0)
+        })
+        .catch(err => {
+            return cb(err);
+        });
+}
+
+//given an app uuid and pkcs12 bundle, stores their relation in the database
+function updateAppCertificate (app_uuid, keyCertBundle, callback) {
+    db.sqlCommand(sql.updateAppCertificate(app_uuid, keyCertBundle.pkcs12.toString('base64')), callback);
+}
+
 module.exports = {
 	validateActionPost: validateActionPost,
 	validateAutoPost: validateAutoPost,
@@ -273,5 +406,9 @@ module.exports = {
 	validateServicePermissionPut: validateServicePermissionPut,
     validateWebHook: validateWebHook,
 	createAppInfoFlow: createAppInfoFlow,
-	storeApps: storeApps
+    storeApps: storeApps,
+    storeAppCertificates: storeAppCertificates,
+    getFailedAppsCert: getFailedAppsCert,
+    isCertificateExpired: isCertificateExpired,
+    updateAppCertificate: updateAppCertificate,
 }

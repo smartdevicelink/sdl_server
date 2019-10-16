@@ -19,6 +19,8 @@ import HmiSelector from './components/common/HmiSelector'
 import MessageItem from './components/common/MessageItem'
 import CardItem from './components/common/CardItem'
 import PatternInput from './components/common/PatternInput'
+import PrivateKeyModal from './components/common/PrivateKeyModal'
+import CertificateModal from './components/common/CertificateModal'
 
 Vue.use(BootstrapVue);
 Vue.use(VueSession);
@@ -46,6 +48,8 @@ Vue.component("hmi-selector", HmiSelector);
 Vue.component("message-item", MessageItem);
 Vue.component("card-item", CardItem);
 Vue.component("pattern-input", PatternInput);
+Vue.component("private-key-modal", PrivateKeyModal);
+Vue.component("certificate-modal", CertificateModal);
 
 Vue.http.options.root = '/api/v1';
 
