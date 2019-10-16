@@ -1,3 +1,4 @@
+
 # Security
 For your convenience, we have implemented the following security features into the Policy Server.
 
@@ -38,6 +39,28 @@ Once OpenSSL is properly installed, you'll need to take the necessary steps to e
 |openssl req -x509 -new -nodes -key CA.key -sha256 -days 3650 -out CA.pem| This creates a certificate in the file name "CA.pem" that will be used in the creation of additional certificates. It is set to expire after 10 years. OpenSSL will then prompt you for further information.|
 
 The CA files will then need to be relocated to the `./customizable/ssl` folder and their file names will need to be specified in the `.env` file.
+
+The following environment variables are the most relevant for getting the policy server set up to start creating certificates on its own:
+
+| Variable | Is Mandatory | Description|
+|---------|------------|-----------|
+|CA_PRIVATE_KEY_FILENAME| true|The filename of your .key file generated, to be placed in customizable/ssl/|
+|CA_CERTIFICATE_FILENAME| true|The filename of your .pem file generated, to be placed in customizable/ssl/
+|CERTIFICATE_PASSPHRASE| true|A secret password used for every certificate generated.
+|CSR_CONFIG_FILE|false|The filename of the csr.cfg file. By default it points to the existing one in customizable/ssl/
+|PRIVATE_KEY_BITSIZE|false|The size of the private keys generated. Defaults to 2048.
+|PRIVATE_KEY_CIPHER|false|The type of cipher to use for encryption/decryption. Defaults to "des3".
+|CERTIFICATE_COUNTRY|false|Default information of the issuer's country (two-letter ISO code).
+|CERTIFICATE_STATE|false|Default information of the issuer's state.
+|CERTIFICATE_LOCALITY|false|Default information of the issuer's city.
+|CERTIFICATE_ORGANIZATION|false|Default information of the issuer's legal company name.
+|CERTIFICATE_ORGANIZATION_UNIT|false|Default information of the issuer's company's branch.
+|CERTIFICATE_COMMON_NAME|false|Default information of the issuer's fully qualified domain name to secure
+|CERTIFICATE_EMAIL_ADDRESS|false|Default information of the issuer's email address
+|CERTIFICATE_HASH|false|The cryptographic hash function to use. Defaults to sha256.
+|CERTIFICATE_DAYS|false|The number of days until the certificate expires.
+
+
 To know if this process was successful and if your policy server is now capable of generating keys and certificates, check the About page to see if certificate generation is enabled.
 
 There is an empty `csr.cfg` in the `./customizable/ssl` folder. The contents of this folder don't matter as the file will be filled by the policy server with each certificate that is generated.

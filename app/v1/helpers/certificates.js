@@ -6,7 +6,7 @@ function createKeyCertBundle (clientKey, certificate) {
         pem.createPkcs12(
             clientKey,
             certificate,
-            settings.certificateAuthority.passphrase,
+            settings.securityOptions.passphrase,
             function (err, pkcs12) {
                 if (err) {
                     return reject(err);

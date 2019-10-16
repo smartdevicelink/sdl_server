@@ -26,10 +26,10 @@ function checkAuthorityValidity(cb){
     pem.createPkcs12(
         authorityKey, 
         authorityCertificate, 
-        settings.certificateAuthority.passphrase, 
+        settings.securityOptions.passphrase, 
         {
             cipher: 'aes128',
-            clientKeyPassword: settings.certificateAuthority.passphrase
+            clientKeyPassword: settings.securityOptions.passphrase
         }, 
         function(err, pkcs12){
             cb((err) ? false : true);
