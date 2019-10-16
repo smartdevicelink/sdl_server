@@ -572,6 +572,21 @@ function insertAppServicePermission (obj) {
     }).toString();
 }
 
+function upsertCategories (categories) {
+    return categories.map(function (category) {
+        return sql.insert("categories", {
+            "id": category.id,
+            "display_name": category.display_name,
+            "name": category.name
+        })
+        .onConflict()
+        .onConstraint("categories_pkey")
+        .doUpdate()
+        .returning("*")
+        .toString();
+    });
+}
+
 function deleteAppServicePermission (obj) {
     return sql.delete()
         .from('app_service_type_permissions')
@@ -579,6 +594,68 @@ function deleteAppServicePermission (obj) {
             "app_id": obj.id,
             "service_type_name": obj.service_type_name,
             "permission_name": obj.permission_name
+        })
+        .toString();
+}
+
+function getAppFunctionalGroups (obj = {}) {
+    let query = null;
+
+    // set up base query
+    if (obj.environment && obj.environment.toLowerCase() == "production") {
+        query = sql.select('view_function_group_info.*')
+            .from('view_function_group_info')
+            .where({
+                'view_function_group_info.status': 'PRODUCTION'
+            });
+    } else {
+        const funcGroupsGroup = sql.select('max(id) AS id', 'property_name')
+            .from('view_function_group_info')
+            .groupBy('view_function_group_info.property_name');
+
+        query = sql.select('view_function_group_info.*')
+            .from('(' + funcGroupsGroup + ') vfgi')
+            .innerJoin('view_function_group_info', {
+                'view_function_group_info.id': 'vfgi.id'
+            });
+    }
+
+    if (obj.is_proprietary_group === "true" || obj.is_proprietary_group === true) {
+        query.where({
+            'view_function_group_info.is_proprietary_group': true
+        });
+    } else if (obj.is_proprietary_group === "false" || obj.is_proprietary_group === false) {
+        query.where({
+            'view_function_group_info.is_proprietary_group': false
+        });
+    }
+
+    query.leftJoin('app_function_groups afg', {
+        'afg.app_id': sql.val(obj.app_id ||  null),
+        'afg.property_name': 'view_function_group_info.property_name'
+    })
+    .select('CASE WHEN afg.app_id IS NOT NULL THEN TRUE ELSE FALSE END AS is_selected')
+    .where({
+        'view_function_group_info.is_deleted': false
+    })
+    .orderBy('LOWER(view_function_group_info.property_name)');
+
+    return query;
+}
+
+function insertAppFunctionalGroup (obj) {
+    return sql.insert('app_function_groups', {
+        "app_id": obj.app_id,
+        "property_name": obj.property_name
+    }).toString();
+}
+
+function deleteAppFunctionalGroup (obj) {
+    return sql.delete()
+        .from('app_function_groups')
+        .where({
+            "app_id": obj.app_id,
+            "property_name": obj.property_name
         })
         .toString();
 }
@@ -962,5 +1039,9 @@ module.exports = {
     deleteAppServicePermission: deleteAppServicePermission,
     deleteAppServicePermissions: deleteAppServicePermissions,
     insertAppServicePermissions: insertAppServicePermissions,
-    insertStandardAppServicePermissions: insertStandardAppServicePermissions
+    insertStandardAppServicePermissions: insertStandardAppServicePermissions,
+    upsertCategories: upsertCategories,
+    getAppFunctionalGroups: getAppFunctionalGroups,
+    insertAppFunctionalGroup: insertAppFunctionalGroup,
+    deleteAppFunctionalGroup: deleteAppFunctionalGroup
 }

@@ -273,6 +273,66 @@ function putServicePermission (req, res, next) {
 	});
 }
 
+function getFunctionalGroups (req, res, next) {
+	app.locals.db.getMany(sql.getAppFunctionalGroups(req.query), function(err, results) {
+		if (err) {
+			req.app.locals.log.error(err);
+			return res.parcel
+				.setStatus(500)
+				.deliver();
+		}
+		return res.parcel
+			.setStatus(200)
+			.setData({
+				"groups": results
+			})
+			.deliver();
+	});
+}
+
+function putFunctionalGroup (req, res, next) {
+	helper.validateFunctionalGroupPut(req, res);
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+	app.locals.db.sqlCommand(sql.getApp.base['idFilter'](req.body.app_id), function(err, results) {
+		if (err) {
+			return res.parcel
+				.setStatus(500)
+				.setMessage("Internal service error.")
+				.deliver();
+		}
+		if (!results.length) {
+			return res.parcel
+				.setStatus(400)
+				.setMessage("Invalid app.")
+				.deliver();
+		}
+
+		if (results[0].approval_status == "ACCEPTED") {
+			return res.parcel
+				.setStatus(400)
+				.setMessage("You may not modify the functional group grants of a production application.")
+				.deliver();
+		}
+
+		let chosenCommand;
+		if (req.body.is_selected) {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.insertAppFunctionalGroup(req.body));
+		} else {
+			chosenCommand = app.locals.db.sqlCommand.bind(null, sql.deleteAppFunctionalGroup(req.body));
+		}
+
+		chosenCommand(function (err, results) {
+			if (err) {
+				return res.parcel.setStatus(500).deliver();
+			}
+			return res.parcel.setStatus(200).deliver();
+		});
+	});
+}
+
 //expects a POST from SHAID
 function webhook (req, res, next) {
     helper.validateWebHook(req, res);
@@ -484,6 +544,19 @@ function checkAndUpdateCertificates(cb){
 	}
 }
 
+/**
+ * queries SHAID to get new categories and stores them into the database
+ */
+function queryAndStoreCategories(callback) {
+    return flow(
+        [
+            app.locals.shaid.getCategories.bind(null, {}),
+            helper.storeCategories
+        ],
+        { method: 'waterfall', eventLoop: true }
+    )(callback);
+}
+
 module.exports = {
 	get: get,
 	actionPost: actionPost,
@@ -492,8 +565,11 @@ module.exports = {
 	administratorPost: administratorPost,
 	passthroughPost: passthroughPost,
 	hybridPost: hybridPost,
+	getFunctionalGroups: getFunctionalGroups,
+	putFunctionalGroup: putFunctionalGroup,
 	webhook: webhook,
 	queryAndStoreApplicationsFlow: queryAndStoreApplicationsFlow,
+  queryAndStoreCategories: queryAndStoreCategories,
 	getAppCertificate: getAppCertificate,
 	updateAppCertificate: updateAppCertificate,
 	checkAndUpdateCertificates: checkAndUpdateCertificates,

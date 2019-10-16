@@ -197,6 +197,31 @@
                             Generate Certificate
                         </vue-ladda>
                     </div>
+                    
+                            <div class="form-row">
+                                <h4>Custom Vehicle Data Mapping URL</h4>
+                                <input v-model="module_config.endpoints['custom_vehicle_data_mapping_url']" :disabled="fieldsDisabled" class="form-control">
+                            </div>
+
+                            <div class="form-row padding-left-col-1">
+                                <h4>Custom Vehicle Data Mapping Version</h4>
+                                <input v-model="module_config.endpoint_properties.custom_vehicle_data_mapping_url.version" :disabled="fieldsDisabled" class="form-control">
+                            </div>
+
+                            <!-- notifications -->
+                            <div class="form-row">
+                                <h4>Notification Rate Limits by Priority Level</h4>
+                                <div class="form-group row" v-for="(value, key) in module_config.notifications_per_minute_by_priority">
+                                    <div class="col-sm-2">
+                                        <pattern-input class="form-control text-truncate"
+                                           :regExp="integerInput.regExp"
+                                           :replacement="integerInput.replacement"
+                                           :disabled="fieldsDisabled"
+                                           v-model.number="module_config.notifications_per_minute_by_priority[key]"></pattern-input>
+                                    </div>
+                                    <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ key }} {{ Math.abs(module_config.notifications_per_minute_by_priority[key]) == 1 ? "notification" : "notifications" }} per minute</label>
+                                </div>
+                            </div>
 
                     <!-- save button -->
                     <div>

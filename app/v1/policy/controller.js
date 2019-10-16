@@ -2,7 +2,7 @@
 const app = require('../app');
 const helper = require('./helper.js');
 const encryption = require('../../../customizable/encryption');
-const GET = require('lodash.get');
+const GET = require('lodash').get;
 
 function postFromCore (isProduction) {
 	return function (req, res, next) {
@@ -51,9 +51,10 @@ function createPolicyTableResponse (res, isProduction, pieces, encrypt = false) 
         {
             policy_table: {
                 module_config: pieces.moduleConfig,
+                vehicle_data: pieces.vehicleData,
                 functional_groupings: pieces.functionalGroups,
                 consumer_friendly_messages: pieces.consumerFriendlyMessages,
-                app_policies: pieces.appPolicies
+                app_policies: pieces.appPolicies,
             }
         }
     ];
