@@ -9,7 +9,6 @@ const log = app.locals.log;
 const db = app.locals.db;
 const config = app.locals.config;
 const async = require('async');
-const pem = require('pem');
 const settings = require('../../../settings.js');
 const certificates = require('../certificates/controller.js');
 const tmp = require('tmp');
@@ -156,45 +155,41 @@ function appCerts(apps, callback){
                 return;
             }
             function badCert(cb){
-                certificates.createCertificateFlow({}, function(crtErr, cert){
+                certificates.createCertificateFlow({
+                    serialNumber: app.uuid
+                }, function(crtErr, cert){
                     if(crtErr){
                         // issues arose in creating certificate
                         return cb(crtErr, null);
                     }
                     //console.log(cert)
-                    certificates.createPkcs12(
-                        cert.clientKey, 
-                        cert.certificate, 
-                        function(pkcsErr, pkcs12){
-                            //console.log(pkcs12)
-                            cb(pkcsErr, (pkcsErr) ? null : {
+                    certUtil.createKeyCertBundle(cert.clientKey, cert.certificate)
+                        .then(keyCertBundle => {
+                            cb(null, {
                                 app_uuid: app.uuid,
-                                certificate: pkcs12,
+                                certificate: keyCertBundle
                             });
-                        }
-                    );
+                        })
+                        .catch(err => {
+                            cb(err)
+                        });
                 });
             }
             if(data.length != 0){
                 //app has a cert, check if it's expired
-                pem.readPkcs12(
-                    Buffer.from(data[0].certificate, 'base64'), 
-                    {
-                        p12Password: settings.securityOptions.passphrase
-                    }, 
-                    function(crtErr, keyBundle){
-                        if(crtErr){
-                            return badCert(next);
-                        }
-                        isCertificateExpired(keyBundle.cert, function(expErr, isValid){
+                certUtil.readKeyCertBundle(Buffer.from(data[0].certificate, 'base64'))
+                    .then(keyBundle => {
+                        isCertificateExpired(keyBundle.cert, function (expErr, isValid) {
                             if(expErr || !isValid){
                                 return badCert(next);
                             }
                             // certificate is valid, nothing needs to be done
                             next();
                         });
-                    }
-                );
+                    })
+                    .catch(err => {
+                        return badCert(next);
+                    })
             } else {
                 badCert(next);
             }
@@ -358,24 +353,24 @@ function storeAppCertificates (insertObjs, next) {
 
 function getFailedAppsCert(failedApp, next){
 	let options = certificates.getCertificateOptions({
-		app_uuid: failedApp.app_short_uuid,
+		serialNumber: failedApp.app_uuid,
 		clientKey: failedApp.private_key
 	});
+
 	certificates.createCertificateFlow(options, function(err, keyBundle){
 		if(err){
 			return next(err, {});
 		}
-		certificate.createPkcs12(
-            keyBundle.key, 
-            keyBundle.cert, 
-            settings.securityOptions.passphrase, 
-            function(pkcsErr, pkcs){
-                next(pkcsErr, {
+        certUtil.createKeyCertBundle(keyBundle.clientKey, keyBundle.certificate)
+            .then(keyCertBundle => {
+                next(null, {
                     app_uuid: failedApp.app_uuid,
-                    certificate: pkcs.pkcs12.toString('base64')
+                    certificate: keyCertBundle
                 });
-            }
-        );
+            })
+            .catch(err => {
+                next(err)
+            });
 	});
 }
 

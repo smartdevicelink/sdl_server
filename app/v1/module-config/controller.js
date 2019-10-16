@@ -5,6 +5,7 @@ const model = require('./model.js');
 const flow = app.locals.flow;
 const cache = require('../../../custom/cache');
 const certificates = require('../certificates/controller');
+const certUtil = require('../helpers/certificates.js');
 
 function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
@@ -43,28 +44,29 @@ function post (isProduction, req, res, next) {
 		return res.parcel.deliver();
     }
     // While the pkcs12 is not used, this is necessary to check that the private key and certificate match
-    certificates.createPkcs12(req.body.private_key, req.body.certificate, function(pkcsErr, pkcs12){
-        if(pkcsErr){
-            app.locals.log.error(pkcsErr);
+
+    certUtil.createKeyCertBundle(req.body.private_key, req.body.certificate)
+        .then(keyCertBundle => {
+            model.insertModuleConfig(isProduction, req.body, function (err) {
+                if (err) {
+                    app.locals.log.error(err);
+                    res.parcel
+                        .setMessage("Interal server error")
+                        .setStatus(500);
+                }
+                else {
+                    cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
+                    res.parcel.setStatus(200);
+                }
+                res.parcel.deliver();
+            });
+        })
+        .catch(err => {
+            app.locals.log.error(err);
             return res.parcel.setStatus(500)
                 .setMessage("An error occurred in creating the certificate")
                 .deliver();
-        }
-        model.insertModuleConfig(isProduction, req.body, function (err) {
-            if (err) {
-                app.locals.log.error(err);
-                res.parcel
-                    .setMessage("Interal server error")
-                    .setStatus(500);
-            }
-            else {
-                cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
-                res.parcel.setStatus(200);
-            }
-            res.parcel.deliver();
         });
-    });
-
 }
 
 module.exports = {

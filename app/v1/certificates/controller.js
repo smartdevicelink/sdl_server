@@ -84,8 +84,8 @@ function getCertificateOptions(options = {}){
         emailAddress: options.emailAddress || settings.securityOptions.certificate.emailAddress,
         hash: settings.securityOptions.certificate.hash,
         days: options.days || settings.securityOptions.certificate.days,
-        csrConfigFile: settings.securityOptions.certificate.csrConfigFile,
-        serialNumber: options.app_uuid,
+        csrConfigFile: SSL_DIR_PREFIX + settings.securityOptions.certificate.csrConfigFile,
+        serialNumber: options.serialNumber,
     };
 }
 
@@ -157,27 +157,6 @@ function createCertificateFlow(options, next){
     }
 }
 
-function createPkcs12(clientKey, certificate, cb){
-    if(openSSLEnabled){
-        if((!clientKey || clientKey.length == 0) &&
-            (!certificate || certificate.length == 0)){
-            cb(null, null);
-            return;
-        }
-        pem.createPkcs12(clientKey, 
-            certificate, 
-            settings.securityOptions.passphrase, 
-            function(err, pkcs12){
-                return cb(err, err ? null : pkcs12.pkcs12.toString('base64'));
-            }
-        );
-    } else {
-        res.parcel.setStatus(400)
-            .setMessage('Security options have not been properly configured')
-            .deliver();
-    }
-}
-
 function writeCSRConfigFile(options, cb){
     let csrConfig = '# OpenSSL configuration file for creating a CSR for an app certificate\n' +
         '[req]\n' +
@@ -211,8 +190,9 @@ function writeCSRConfigFile(options, cb){
     if(options.serialNumber){
         csrConfig += 'serialNumber = ' + options.serialNumber;
     }
+
     fs.writeFile(
-        settings.securityOptions.certificate.csrConfigFile, 
+        SSL_DIR_PREFIX + settings.securityOptions.certificate.csrConfigFile, 
         csrConfig, 
         function(err){
             cb(err, options);
@@ -227,7 +207,6 @@ module.exports = {
     createPrivateKey: createPrivateKey,
     createCertificate: createCertificate,
     createCertificateFlow: createCertificateFlow,
-    createPkcs12: createPkcs12,
     checkAuthorityValidity: checkAuthorityValidity,
     getKeyOptions: getKeyOptions,
     getCertificateOptions: getCertificateOptions,
