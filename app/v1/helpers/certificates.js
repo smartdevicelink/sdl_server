@@ -18,9 +18,9 @@ function createKeyCertBundle (clientKey, certificate) {
 }
 
 //given a bundled key and cert, unpacks it back into its components
-function readKeyCertBundle (pkcs12) {
+function readKeyCertBundle (certBuffer) {
     return new Promise((resolve, reject) => {
-        pem.readPkcs12(pkcs12.pkcs12, { //unlock it with the settings password
+        pem.readPkcs12(certBuffer, { //unlock it with the settings password
             p12Password: settings.securityOptions.passphrase
         }, function (err, res) {
             if (err) {

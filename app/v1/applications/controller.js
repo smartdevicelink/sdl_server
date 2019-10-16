@@ -3,7 +3,6 @@ const helper = require('./helper.js');
 const sql = require('./sql.js');
 const flow = app.locals.flow;
 const async = require('async');
-const pem = require('pem');
 const settings = require('../../../settings.js');
 const certUtil = require('../helpers/certificates.js');
 
@@ -24,56 +23,49 @@ function get (req, res, next) {
 	else { //get all applications whose information are the latest versions
 		chosenFlow = helper.createAppInfoFlow('multiFilter');
 	}
-	chosenFlow(function (err, apps) {
-		if (err) {
-			app.locals.log.error(err);
-			res.parcel.setStatus(500);
-		} else {
-			if(apps.length == 1){
-				return forwardAppCertificate(apps[0].uuid, function(sqlErr, results){
-					if(sqlErr){
-						return res.parcel.setStatus(500)
-							.setMessage('Internal Server Error')
-							.deliver();
-					}
-					if(results.length == 0){
-						return res.parcel.setStatus(200)
-							.setData({
-								applications:apps
-							})
-							.deliver();
-					}
-					pem.readPkcs12(Buffer.from(results[0].certificate, 'base64'), 
-						{
-							"p12Password": settings.certificateAuthority.passphrase
-						}, function(certErr, keyBundle){
-							if(certErr){
-								app.locals.log.error(certErr)
-								return res.parcel.setStatus(500)
-									.setMessage("Internal Server Error")
-									.deliver();
-							} else {
+
+	const finalFlow = flow([
+		chosenFlow,
+		//include extra certificate information if just one app is returned and if the info exists
+		function (apps, next) {
+			if (apps.length === 1) {
+				const certInsertionFlow = flow([
+					getAppCertificateByUuid.bind(null, apps[0].uuid),
+					function (certificate, next) {
+						if (!certificate) {
+							return next(null, apps);
+						}
+						certUtil.readKeyCertBundle(Buffer.from(certificate, 'base64'))
+							.then(keyBundle => {
 								apps[0].certificate = keyBundle.cert;
 								apps[0].private_key = keyBundle.key;
-								return res.parcel.setStatus(200)
-									.setData({
-										applications: apps
-									})
-									.deliver();
-							}
-						}
-					)
-				})
-			} else {
-				res.parcel
-					.setStatus(200)
-					.setData({
-						applications: apps
-					});
+								next(null, apps);
+							})
+							.catch(next);
+					}
+				], { method: "waterfall" });
+				return certInsertionFlow(next);
 			}
+			else {
+				return next(null, apps);
+			}
+		},
+	], { method: 'waterfall' });
+
+	finalFlow(function (err, apps) {
+		if (err) {
+			app.locals.log.error(err)
+			return res.parcel.setStatus(500)
+				.setMessage("Internal Server Error")
+				.deliver();
 		}
-		return res.parcel.deliver();
+		return res.parcel.setStatus(200)
+			.setData({
+				applications: apps
+			})
+			.deliver();
 	});
+
 }
 
 //TODO: emailing system for messaging the developer about the approval status change
@@ -338,6 +330,22 @@ function forwardAppCertificate(app_uuid, next){
 	})
 }
 
+//helper function that attempts to find the associated certificate bundle in the database
+function getAppCertificateByUuid (app_uuid, callback) {
+	forwardAppCertificate(app_uuid, function (err, results) {
+		if (err) {
+			return callback(err);
+		}
+
+		if (results && results[0] && results[0].certificate) {
+			callback(null, results[0].certificate); 
+		}
+		else {
+			callback(null, null); //none found
+		}
+	});
+}
+
 function getAppCertificate(req, res, next){
 	// Ford's Android 	security library uses AppId
 	// The SDL	iOS 	security library uses appId
@@ -349,51 +357,55 @@ function getAppCertificate(req, res, next){
 					req.query.appId || 
 					req.query.appID;
 	
-	if(!app_uuid){
+	if (!app_uuid) {
 		return res.parcel.setStatus(400)
 			.setMessage('No app id was sent')
 			.deliver();
 	}
-	
-	forwardAppCertificate(app_uuid, function(err, results){
-		if(err){
+
+	getAppCertificateByUuid(app_uuid, function (err, certificate) {
+		if (err) {
 			app.locals.log.error(err);
-			return res.parcel.setStatus(400)
-				.setMessage('Could not find app with that id')
+			return res.parcel.setStatus(500)
+				.setMessage('Internal Server Error')
 				.deliver();
 		}
-		if(results && results[0] && results[0].certificate){
-			pem.readPkcs12(Buffer.from(results[0].certificate, 'base64'), 
-				{ 
-					p12Password: settings.securityOptions.passphrase 
-				}, function(err, keyBundle){
-					if(err){
-						app.locals.log.error(err);
-						return res.parcel.setStatus(500)
-							.setMessage('Internal Server Error')
-							.deliver();
-					}
-					helper.isCertificateExpired(keyBundle.cert, function(crtErr, isValid){
-						if(crtErr){
-							app.locals.log.error(crtErr);
-						}
-						if(!isValid){
-							return res.parcel.setStatus(500)
-								.setMessage('App certificate is expired')
-								.deliver();
-						}
-						res.parcel.setStatus(200)
-							.setData({"Certificate": results[0].certificate})
-							.deliver();
-					})
-				}
-			)
-		} else {
-			res.parcel.setStatus(400)
+		if (!certificate) {
+			return res.parcel.setStatus(400)
 				.setMessage('Could not find certificate for app with that id')
 				.deliver();
 		}
-	})
+
+		certUtil.readKeyCertBundle(Buffer.from(certificate, 'base64'))
+			.then(keyBundle => {
+				return new Promise((resolve, reject) => {
+					helper.isCertificateExpired(keyBundle.cert, function (err, isValid) {
+						if (err) {
+							return reject(err);
+						}
+						resolve(isValid);
+					});
+				});
+			})
+			.then(isValid => {
+				if (!isValid) {
+					return res.parcel.setStatus(500)
+						.setMessage('App certificate is expired')
+						.deliver();
+				}
+				else {
+					res.parcel.setStatus(200)
+						.setData({"Certificate": certificate})
+						.deliver();
+				}
+			})
+			.reject(err => {
+				app.locals.log.error(err);
+					return res.parcel.setStatus(500)
+						.setMessage('Internal Server Error')
+						.deliver();
+			});
+	});
 }
 
 function updateAppCertificate (req, res, next) {
@@ -418,36 +430,33 @@ function checkAndUpdateCertificates(cb){
 		if(sqlErr){
 			app.locals.log.error(sqlErr);
 		}
-		async.mapSeries(appIdsAndCerts, function(appObj, next){
-			if(appObj.certificate){
-				pem.readPkcs12(Buffer.from(appObj.certificate, 'base64'), 
-					{
-						p12Password: settings.securityOptions.passphrase
-					},  function(pkcsErr, keyBundle){
-						if(pkcsErr){
-							app.locals.log.error(pkcsErr);
-							next(
-								null, 
-								{ 
-									app_uuid: appObj.app_uuid, 
-									private_key: keyBundle.key 
-								}
-							);
-						}
-						helper.isCertificateExpired(keyBundle.cert, function(crtErr, isValid){
-							if(crtErr){
+		async.mapSeries(appIdsAndCerts, function (appObj, next) {
+			if (appObj.certificate) {
+				certUtil.readKeyCertBundle(Buffer.from(appObj.certificate, 'base64'))
+					.then(keyBundle => {
+						helper.isCertificateExpired(keyBundle.cert, function (crtErr, isValid) {
+							if (crtErr) {
 								app.locals.log.error(crtErr);
 							}
 							// if the certificate is expired, create a new one with the already existing private key
-							next(
+							return next(
 								null, 
 								(isValid) ? null : { app_uuid: appObj.app_uuid, private_key: keyBundle.key }
 							);
 						});
-					}
-				)
+					})
+					.catch(pkcsErr => {
+						app.locals.log.error(pkcsErr);
+						next(
+							null, 
+							{ 
+								app_uuid: appObj.app_uuid, 
+								private_key: keyBundle.key 
+							}
+						);
+					});
 			} else {
-				// app does not have a certificate, and does not private key, so both must be created
+				// app does not have a certificate nor a private key, so both must be created
 				next(
 					null, 
 					{ 
@@ -455,18 +464,18 @@ function checkAndUpdateCertificates(cb){
 					}
 				);
 			}
-		}, function(err, failedApps){
-			if(err){
+		}, function (err, failedApps) {
+			if (err) {
 				app.locals.log.error(err);
 			}
 			//removes all null values to only focus on the app ids that failed
 			failedApps = failedApps.filter(Boolean);
-			async.mapSeries(failedApps, helper.getFailedAppsCert, function(failedAppErr, results){
-				if(failedAppErr){
+			async.mapSeries(failedApps, helper.getFailedAppsCert, function (failedAppErr, results) {
+				if (failedAppErr) {
 					app.locals.log.error(failedAppErr);
 				}
-				helper.storeAppCertificates(results, function(){
-					if(cb){
+				helper.storeAppCertificates(results, function () {
+					if (cb) {
 						cb();
 					}
 				});
