@@ -5,7 +5,6 @@ const packageJson = require('../../../package.json'); //configuration module
 const requestjs = require('request');
 const semver = require('semver');
 const checkAuthorityValidity = require('../certificates/controller.js').checkAuthorityValidity;
-const csrConfigIsValid = require('../certificates/controller').csrConfigIsValid;
 const openSSLEnabled = require('../certificates/controller').openSSLEnabled;
 
 exports.getInfo = function (req, res, next) {
@@ -33,7 +32,7 @@ exports.getInfo = function (req, res, next) {
 			}
 		},
 		"certificate_authority": (
-			openSSLEnabled && csrConfigIsValid
+			openSSLEnabled
 		)
 	};
 

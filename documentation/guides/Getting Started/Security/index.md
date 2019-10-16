@@ -47,7 +47,6 @@ The following environment variables are the most relevant for getting the policy
 |CA_PRIVATE_KEY_FILENAME| true|The filename of your .key file generated, to be placed in customizable/ssl/|
 |CA_CERTIFICATE_FILENAME| true|The filename of your .pem file generated, to be placed in customizable/ssl/
 |CERTIFICATE_PASSPHRASE| true|A secret password used for every certificate generated.
-|CSR_CONFIG_FILE|false|The filename of the csr.cfg file. By default it points to the existing one in customizable/ssl/
 |PRIVATE_KEY_BITSIZE|false|The size of the private keys generated. Defaults to 2048.
 |PRIVATE_KEY_CIPHER|false|The type of cipher to use for encryption/decryption. Defaults to "des3".
 |CERTIFICATE_COUNTRY|false|Default information of the issuer's country (two-letter ISO code).
@@ -62,8 +61,6 @@ The following environment variables are the most relevant for getting the policy
 
 
 To know if this process was successful and if your policy server is now capable of generating keys and certificates, check the About page to see if certificate generation is enabled.
-
-There is an empty `csr.cfg` in the `./customizable/ssl` folder. The contents of this folder don't matter as the file will be filled by the policy server with each certificate that is generated.
 
 ## Retrieving the Certificates
 SDL_Core's certificate is stored in the module_config of the policy table and is updated via a Policy Table Update. For an app to update its certificate, it must make either a `GET` or `POST` request to the `/applications/certificate/get` endpoint. See the API documentation for more details.

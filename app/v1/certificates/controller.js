@@ -3,7 +3,6 @@ const pem = require('pem');
 const fs = require('fs');
 const logger = require('../../../custom/loggers/winston/index');
 const settings = require('../../../settings.js');
-const tmp = require('tmp');
 const { spawnSync } = require('child_process');
 const SSL_DIR_PREFIX = __dirname + '/../../../customizable/ssl/';
 
@@ -18,9 +17,7 @@ const authorityCertificate = (fs.existsSync(SSL_DIR_PREFIX + settings.certificat
     //file does not exist
     null;
 
-const csrConfigIsValid = fs.existsSync(SSL_DIR_PREFIX + settings.securityOptions.certificate.csrConfigFile);
-
-const openSSLEnabled = authorityKey && authorityCertificate && csrConfigIsValid && settings.securityOptions.passphrase;
+const openSSLEnabled = authorityKey && authorityCertificate && settings.securityOptions.passphrase;
 
 function checkAuthorityValidity(cb){
     pem.createPkcs12(
@@ -84,7 +81,6 @@ function getCertificateOptions(options = {}){
         emailAddress: options.emailAddress || settings.securityOptions.certificate.emailAddress,
         hash: settings.securityOptions.certificate.hash,
         days: options.days || settings.securityOptions.certificate.days,
-        csrConfigFile: SSL_DIR_PREFIX + settings.securityOptions.certificate.csrConfigFile,
         serialNumber: options.serialNumber,
     };
 }
@@ -116,36 +112,32 @@ function createCertificateFlow(options, next){
         options.serviceCertificate = authorityCertificate;
         options.serviceKeyPassword = settings.securityOptions.passphrase;
         let tasks = [];
-        if(csrConfigIsValid){
-            logger.info("using csr config file");
-            tasks.push(function(cb){
-                writeCSRConfigFile(getCertificateOptions(options), cb);
-            });
-        }
+
+        let csrOptions = getCertificateOptions(options);
 
         //private key exists
         if(options.clientKey){
-            tasks.push(function(csrOptions, cb){
+            tasks.push(function(cb){
                 pem.createCSR(csrOptions, function(err, csr){
-                    cb(err, csrOptions, csr);
+                    cb(err, csr);
                 });
             });
         //private key does not exist
         } else {
-            tasks.push(function(csrOptions, cb){
+            tasks.push(function(cb){
                 options = getKeyOptions(options);
                 pem.createPrivateKey(options.keyBitsize, options, function(err, key){
-                    cb(err, csrOptions, key);
+                    cb(err, key);
                 });
             });
-            tasks.push(function(csrOptions, privateKey, cb){
+            tasks.push(function(privateKey, cb){
                 csrOptions.clientKey = privateKey.key;
                 pem.createCSR(csrOptions, function(err, csr){
-                    cb(err, csrOptions, csr);
+                    cb(err, csr);
                 });
             });
         }
-        tasks.push(function(csrOptions, csr, cb){
+        tasks.push(function(csr, cb){
             csrOptions.csr = csr.csr;
             pem.createCertificate(csrOptions, function(err, certificate){
                 cb(err, certificate);
@@ -157,53 +149,9 @@ function createCertificateFlow(options, next){
     }
 }
 
-function writeCSRConfigFile(options, cb){
-    let csrConfig = '# OpenSSL configuration file for creating a CSR for an app certificate\n' +
-        '[req]\n' +
-        'distinguished_name = req_distinguished_name\n' +
-        'prompt = no\n' +
-        '[ req_distinguished_name ]\n';
-    
-    if(options.country){
-        csrConfig += 'C = ' + options.country + '\n';
-    }
-    if(options.state){
-        csrConfig += 'ST = ' + options.state + '\n';
-    }
-    if(options.locality){
-        csrConfig += 'L = ' + options.locality + '\n';
-    }
-    if(options.organization){
-        csrConfig += 'O = ' + options.organization + '\n';
-    }
-    if(options.organizationUnit){
-        csrConfig += 'OU = ' + options.organizationUnit + '\n';
-    }
-    if(options.commonName){
-        csrConfig += 'CN = ' + options.commonName + '\n';
-    }
-    if(options.emailAddress){
-        csrConfig += 'emailAddress = ' + options.emailAddress + '\n';
-    }
-
-    // all app certificates MUST have the SUBJECT serial number equal to its app_uuid that core will recognize it as
-    if(options.serialNumber){
-        csrConfig += 'serialNumber = ' + options.serialNumber;
-    }
-
-    fs.writeFile(
-        SSL_DIR_PREFIX + settings.securityOptions.certificate.csrConfigFile, 
-        csrConfig, 
-        function(err){
-            cb(err, options);
-        }
-    );
-}
-
 module.exports = {
     authorityKey: authorityKey,
     authorityCertificate: authorityCertificate,
-    csrConfigIsValid: csrConfigIsValid,
     createPrivateKey: createPrivateKey,
     createCertificate: createCertificate,
     createCertificateFlow: createCertificateFlow,
