@@ -355,11 +355,11 @@ function queryAndStoreApplicationsFlow (queryObj, notifyOEM = true) {
 /**
  * queries SHAID to get new categories and stores them into the database
  */
-function queryAndStoreNewCategories(callback) {
+function queryAndStoreCategories(callback) {
     return flow(
         [
             app.locals.shaid.getCategories.bind(null, {}),
-            helper.storeCategories.bind(null)
+            helper.storeCategories
         ],
         { method: 'waterfall', eventLoop: true }
     )(callback);
@@ -377,5 +377,5 @@ module.exports = {
 	putFunctionalGroup: putFunctionalGroup,
 	webhook: webhook,
 	queryAndStoreApplicationsFlow: queryAndStoreApplicationsFlow,
-	queryAndStoreNewCategories: queryAndStoreNewCategories,
+	queryAndStoreCategories: queryAndStoreCategories,
 };

@@ -96,27 +96,14 @@ function createAppInfoFlow (filterTypeFunc, value) {
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
 }
 
-function checkCategoryNeedsInsertion(category, callback) {
-    db.sqlCommand(sql.getCategoryByName(category.name), function(err, data) {
-        //no category found insert
-        if (!err && data.length === 0) {
-            db.sqlCommand(sql.insertCategory(category), function(err, data) {
-                callback(err);
-            });
-        } else {
-            callback(null);
-        }
-    });
-}
-
 function storeCategories(categories, callback) {
-    let flowAry = [];
+    const upsertCats = app.locals.db.setupSqlCommands(sql.upsertCategories(categories));
 
-    for (let category of categories) {
-        flowAry.push(checkCategoryNeedsInsertion.bind(null, category));
-    }
-    const fullFlow = flow(flowAry, { method: 'parallel' });
-    fullFlow(callback);
+    const insertFlow = app.locals.flow([
+        app.locals.flow(upsertCats, {method: 'parallel'})
+    ], {method: 'series'});
+
+    insertFlow(callback);
 }
 
 //application store functions
