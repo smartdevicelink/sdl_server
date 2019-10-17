@@ -38,7 +38,7 @@
                 style="padding: 15px; width: 100%">
             </pattern-input>
 
-            <h4>* Common Name (eg, fully qualified host name)</h4>
+            <h4>Common Name (eg, fully qualified host name)</h4>
             <pattern-input class="form-group text-truncate"
                 id="textarea"
                 v-model="certificate_options.commonName"
@@ -61,12 +61,7 @@
                 style="padding: 15px; width: 100%">
             </pattern-input>
 
-            <div v-if="certificate_options.commonName === ''" class="alert color-bg-red color-white d-table" role="alert">
-                Common Name is a required field.
-            </div>
-
             <vue-ladda
-                v-else
                 type="button"
                 class="btn btn-card btn-style-green"
                 data-style="zoom-in"

@@ -4,22 +4,26 @@ const fs = require('fs');
 const logger = require('../../../custom/loggers/winston/index');
 const settings = require('../../../settings.js');
 const { spawnSync } = require('child_process');
-const SSL_DIR_PREFIX = __dirname + '/../../../customizable/ssl/';
+const CA_DIR_PREFIX = __dirname + '/../../../customizable/ca/';
 
-const authorityKey = (fs.existsSync(SSL_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName)) ? 
+const authorityKey = (fs.existsSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName)) ? 
     //file exists
-    fs.readFileSync(SSL_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName).toString() : 
+    fs.readFileSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName).toString() : 
     //file does not exist
     null;
-const authorityCertificate = (fs.existsSync(SSL_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName)) ? 
+const authorityCertificate = (fs.existsSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName)) ? 
     //file exists
-    fs.readFileSync(SSL_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName).toString() : 
+    fs.readFileSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName).toString() : 
     //file does not exist
     null;
 
-const openSSLEnabled = authorityKey && authorityCertificate && settings.securityOptions.passphrase;
+const openSSLEnabled = authorityKey && authorityCertificate 
+    && settings.securityOptions.passphrase && settings.securityOptions.certificate.commonName;
 
-function checkAuthorityValidity(cb){
+function checkAuthorityValidity (cb){
+    if (!openSSLEnabled) {
+        return cb(false);
+    }
     pem.createPkcs12(
         authorityKey, 
         authorityCertificate, 
@@ -31,11 +35,11 @@ function checkAuthorityValidity(cb){
         function(err, pkcs12){
             cb((err) ? false : true);
         }
-    );
+    ); 
 }
 
 function createPrivateKey(req, res, next){
-    if(openSSLEnabled){
+    if (openSSLEnabled) {
         let options = getKeyOptions(req.body.options);
         pem.createPrivateKey(
             options.keyBitsize, 
@@ -86,7 +90,7 @@ function getCertificateOptions(options = {}){
 }
 
 function createCertificate(req, res, next){
-    if(openSSLEnabled){
+    if (openSSLEnabled) {
         let options = req.body.options || {};
         createCertificateFlow(options, function(err, results){
             if(err){
@@ -107,7 +111,7 @@ function createCertificate(req, res, next){
 }
 
 function createCertificateFlow(options, next){
-    if(openSSLEnabled){
+    if (openSSLEnabled) {
         options.serviceKey = authorityKey;
         options.serviceCertificate = authorityCertificate;
         options.serviceKeyPassword = settings.securityOptions.passphrase;

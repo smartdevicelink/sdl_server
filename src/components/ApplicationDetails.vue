@@ -282,48 +282,42 @@
                     </div>
                 </div>
 
-                <div  class="app-table">
-                    <h4>Private Key</h4>
-                    <b-form-textarea
-                        id="textarea"
-                        v-model="private_key"
-                        placeholder="No private key specified"
-                        style="width:605px"
-                        rows="3"
-                        max-rows="50"
-                        ></b-form-textarea>
-                    <vue-ladda
-                        type="submit"
-                        class="btn btn-card"
-                        data-style="zoom-in"
-                        style="width:225px"
-                        v-bind:loading="false"
-                        v-b-modal.keyModal>
-                        Generate Private Key
-                    </vue-ladda>
-                </div>
 
-                <div class="app-table">
-                    <h4>Certificate</h4>
-                    <b-form-textarea class="form-group"
-                        id="textarea"
-                        v-model="certificate"
-                        placeholder="No certificate specified"
-                        style="width:605px"
-                        rows="3"
-                        max-rows="50"
-                        ></b-form-textarea>
+                <div v-if="about.is_authority_valid">
+                    <div  class="app-table">
+                        <h4>Private Key</h4>
+                        <b-form-textarea
+                            id="textarea"
+                            v-model="private_key"
+                            placeholder="No private key specified"
+                            style="width:605px"
+                            rows="3"
+                            max-rows="50"
+                            ></b-form-textarea>
+                    </div>
 
-                    <!--pre class="mt-3 mb-0">{{ module_config.certificate }}</pre-->
-                    <vue-ladda
-                        type="submit"
-                        class="btn btn-card"
-                        data-style="zoom-in"
-                        style="width:225px"
-                        v-bind:loading="false"
-                        v-b-modal.certificateModal>
-                        Generate Certificate
-                    </vue-ladda>
+                    <div class="app-table">
+                        <h4>Certificate</h4>
+                        <b-form-textarea class="form-group"
+                            id="textarea"
+                            v-model="certificate"
+                            placeholder="No certificate specified"
+                            style="width:605px"
+                            rows="3"
+                            max-rows="50"
+                            ></b-form-textarea>
+
+                        <!--pre class="mt-3 mb-0">{{ module_config.certificate }}</pre-->
+                        <vue-ladda
+                            type="submit"
+                            class="btn btn-card"
+                            data-style="zoom-in"
+                            style="width:300px"
+                            v-bind:loading="false"
+                            v-b-modal.certificateModal>
+                            Generate Key and Certificate
+                        </vue-ladda>
+                    </div>
                 </div>
 
                 <div>
@@ -331,10 +325,10 @@
                         type="submit"
                         class="btn btn-card btn-style-green"
                         data-style="zoom-in"
-                        style="width:225px"
+                        style="width:300px"
                         v-bind:loading="false"
                         v-on:click="saveCertificate()">
-                        Save Certificate
+                        Save Key and Certificate
                     </vue-ladda>
                 </div>
 
@@ -408,14 +402,6 @@
                         </vue-ladda>
                     </form>
                 </b-modal>
-
-                <!-- PRIVATE KEY GENERATOR MODAL -->
-                <private-key-modal
-                    :environmentClick="() => {}"
-                    :actionCallback="gotPrivateKey"
-                    :certificate_options="certificate_options"
-                    name="keyModal">
-                </private-key-modal>
 
                 <!-- CERTIFICATE GENERATOR MODAL -->
                 <certificate-modal
@@ -570,6 +556,7 @@ export default {
                 "regExp": /^[\D]*|\D*/g, // Match any character that doesn't belong to the positive integer
                 "replacement": ""
             },
+            "about": {},
         };
     },
     methods: {
@@ -868,6 +855,20 @@ export default {
                 }
             });
         },
+        "getAbout": function () {
+            this.httpRequest("get", "about", {}, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error receiving about info.");
+                    console.log(response);
+                }else{
+                    // success
+                    response.json().then(parsed => {
+                        this.about = parsed.data;
+                    });
+                }
+            });
+        }
     },
     computed: {
         classStatusDot: function(){
@@ -895,6 +896,7 @@ export default {
     created: function(){
         this.getApp();
         this.getFunctionalGroupData();
+        this.getAbout();
     },
     beforeDestroy () {
         // ensure closing of all modals

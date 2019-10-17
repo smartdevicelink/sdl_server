@@ -37,16 +37,16 @@ function postAppPolicy (req, res, next) {
     helper.generatePolicyTable(isProduction, useLongUuids, req.body.policy_table.app_policies, false, null, handlePolicyTableFlow.bind(null, res, isProduction));
 }
 
-function handlePolicyTableFlow (res, isProduction, err, encrypt = false, pieces) {
+function handlePolicyTableFlow (res, isProduction, err, returnPreview = false, pieces) {
     if (err) {
         app.locals.log.error(err);
         return res.parcel.setStatus(500).deliver();
     }
     //convert from this point down to asynchronous to make use of certificate library
-    createPolicyTableResponse(res, isProduction, pieces, encrypt);
+    createPolicyTableResponse(res, isProduction, pieces, returnPreview);
 }
 
-function createPolicyTableResponse (res, isProduction, pieces, encrypt = false) {
+function createPolicyTableResponse (res, isProduction, pieces, returnPreview = false) {
 	const policy_table = [
         {
             policy_table: {
@@ -58,7 +58,7 @@ function createPolicyTableResponse (res, isProduction, pieces, encrypt = false) 
             }
         }
     ];
-    return (encrypt ? encryption.encryptPolicyTable(isProduction, policy_table, 
+    return (!returnPreview ? encryption.encryptPolicyTable(isProduction, policy_table, 
         function(policy_table){
             res.parcel.setStatus(200)
                 .setData(policy_table)

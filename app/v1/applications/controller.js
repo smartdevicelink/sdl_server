@@ -5,6 +5,7 @@ const flow = app.locals.flow;
 const async = require('async');
 const settings = require('../../../settings.js');
 const certUtil = require('../helpers/certificates.js');
+const certificates = require('../certificates/controller.js');
 
 function get (req, res, next) {
 	//prioritize id, uuid, approval status, in that order.
@@ -27,8 +28,9 @@ function get (req, res, next) {
 	const finalFlow = flow([
 		chosenFlow,
 		//include extra certificate information if just one app is returned and if the info exists
-		function (apps, next) {
-			if (apps.length === 1) {
+		function (apps, next) { 
+			//only if looking at a specific app and cert generation is enabled
+			if (apps.length === 1 && certificates.openSSLEnabled) {
 				const certInsertionFlow = flow([
 					getAppCertificateByUuid.bind(null, apps[0].uuid),
 					function (certificate, next) {
@@ -407,6 +409,11 @@ function getAppCertificateByUuid (app_uuid, callback) {
 }
 
 function getAppCertificate(req, res, next){
+	if (!certificates.openSSLEnabled) {
+		return res.parcel.setStatus(400)
+            .setMessage('Security options have not been properly configured')
+            .deliver();
+	}
 	// Ford's Android 	security library uses AppId
 	// The SDL	iOS 	security library uses appId
 	const app_uuid = req.body.app_uuid || 
@@ -455,7 +462,7 @@ function getAppCertificate(req, res, next){
 				}
 				else {
 					res.parcel.setStatus(200)
-						.setData({"Certificate": certificate})
+						.setData({"certificate": certificate})
 						.deliver();
 				}
 			})
@@ -469,6 +476,12 @@ function getAppCertificate(req, res, next){
 }
 
 function updateAppCertificate (req, res, next) {
+	if (!certificates.openSSLEnabled) {
+		return res.parcel.setStatus(400)
+            .setMessage('Security options have not been properly configured')
+            .deliver();
+	}	
+
 	certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
 		.then(keyCertBundle => {
 			helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
@@ -484,6 +497,10 @@ function updateAppCertificate (req, res, next) {
 }
 
 function checkAndUpdateCertificates(cb){
+	if (!certificates.openSSLEnabled) {
+		return cb();
+	}
+
 	app.locals.db.sqlCommand(sql.getApp.allCertificates(), parseAppCerts);
 
 	function parseAppCerts(sqlErr, appIdsAndCerts){
@@ -569,7 +586,7 @@ module.exports = {
 	putFunctionalGroup: putFunctionalGroup,
 	webhook: webhook,
 	queryAndStoreApplicationsFlow: queryAndStoreApplicationsFlow,
-  queryAndStoreCategories: queryAndStoreCategories,
+  	queryAndStoreCategories: queryAndStoreCategories,
 	getAppCertificate: getAppCertificate,
 	updateAppCertificate: updateAppCertificate,
 	checkAndUpdateCertificates: checkAndUpdateCertificates,

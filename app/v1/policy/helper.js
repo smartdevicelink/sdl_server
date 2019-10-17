@@ -60,8 +60,7 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
                 cacheData.appPolicies = data.appPolicies;
-                const certificateMatch = cacheData.moduleConfig && module_config && (cacheData.moduleConfig.certificate == module_config.certificate);
-                cb(err, certificateMatch, cacheData);
+                cb(err, returnPreview, cacheData);
             });
         } else {
             if (returnPreview) {
@@ -73,8 +72,7 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
                 cache.setCacheData(isProduction, app.locals.version, cache.policyTableKey, data);
-                const certificateMatch = data.moduleConfig && module_config && (data.moduleConfig.certificate == module_config.certificate);
-                cb(err, certificateMatch, data);
+                cb(err, returnPreview, data);
             });
         }
     });
@@ -195,7 +193,6 @@ function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, inc
         defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
         preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
         deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction)),
-        certificates: setupSqlCommand.bind(null, sqlApps.getApp.allCertificates()),
         blacklistedApps: function (callback) {
             if (requestedUuids.length > 0) {
                 setupSqlCommand(sqlApps.getBlacklistedApps(requestedUuids, useLongUuids), callback);
