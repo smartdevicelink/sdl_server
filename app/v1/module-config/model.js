@@ -126,7 +126,16 @@ function insertModuleConfig (isProduction, moduleConfig, next) {
             },
             //stage 3: insert module config endpoint properties
             function (newModConf, next) {
-                if (Object.keys(moduleConfig.endpoint_properties).length > 0) {
+                //ensure that there is at least one value inside the properties
+                let foundPropertyValue = false;
+
+                for (let key in moduleConfig.endpoint_properties) {
+                    for (propKey in moduleConfig.endpoint_properties[key]) {
+                        foundPropertyValue = true;
+                    }
+                }
+
+                if (foundPropertyValue) {
                     client.getOne(sql.insertEndpointProperties(moduleConfig.endpoint_properties, newModConf.id), next);
                 } else {
                     next();

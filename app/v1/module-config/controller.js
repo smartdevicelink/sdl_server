@@ -44,46 +44,54 @@ function post(isProduction, req, res, next) {
         app.locals.log.error(res.parcel.message);
         return res.parcel.deliver();
     }
-    // While the pkcs12 is not used, this is necessary to check that the private key and certificate match
 
-    certUtil.isCertificateExpired(req.body.certificate, function(err, isExpired) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.parcel
-                .setMessage('Interal server error')
-                .setStatus(500)
-                .deliver();
-        }
-        if (isExpired) {
-            return res.parcel
-                .setMessage('Certificate is expired')
-                .setStatus(400)
-                .deliver();
-        }
-
-        certUtil.createKeyCertBundle(req.body.private_key, req.body.certificate)
-            .then(keyCertBundle => {
-                model.insertModuleConfig(isProduction, req.body, function(err) {
-                    if (err) {
-                        app.locals.log.error(err);
-                        res.parcel
-                            .setMessage('Interal server error')
-                            .setStatus(500);
-                    } else {
-                        cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
-                        res.parcel.setStatus(200);
-                    }
-                    res.parcel.deliver();
-                });
-            })
-            .catch(err => {
+    if (req.body.private_key && req.body.certificate) {
+        // while the pkcs12 is not used, this is necessary to check that the private key and certificate match
+        certUtil.isCertificateExpired(req.body.certificate, function(err, isExpired) {
+            if (err) {
                 app.locals.log.error(err);
-                return res.parcel.setStatus(500)
-                    .setMessage('An error occurred in creating the certificate')
+                return res.parcel
+                    .setMessage('An error occurred when processing the private key and certificate data. If you are providing your own, please be certain of their accuracy and validity.')
+                    .setStatus(500)
                     .deliver();
-            });
-    });
+            }
+            if (isExpired) {
+                return res.parcel
+                    .setMessage('Certificate is expired')
+                    .setStatus(400)
+                    .deliver();
+            }
 
+            certUtil.createKeyCertBundle(req.body.private_key, req.body.certificate)
+                .then(keyCertBundle => {
+                    saveModuleConfig(); //save here
+                })
+                .catch(err => {
+                    app.locals.log.error(err);
+                    return res.parcel.setStatus(500)
+                        .setMessage('An error occurred in creating the certificate')
+                        .deliver();
+                });
+        });
+    }
+    else {
+        saveModuleConfig(); //save here
+    }
+
+    function saveModuleConfig () {
+        model.insertModuleConfig(isProduction, req.body, function (err) {
+            if (err) {
+                app.locals.log.error(err);
+                res.parcel
+                    .setMessage('Interal server error')
+                    .setStatus(500);
+            } else {
+                cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
+                res.parcel.setStatus(200);
+            }
+            res.parcel.deliver();
+        });
+    }
 }
 
 module.exports = {

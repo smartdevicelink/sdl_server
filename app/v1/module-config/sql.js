@@ -78,7 +78,7 @@ function insertRetrySeconds (secondsArray, id) {
 function insertEndpointProperties (endpointPropertiesObject, id) {
     // flatten endpoint properties into an array of simple objects
     let inserts = [];
-    for (key in endpointPropertiesObject) {
+    for (let key in endpointPropertiesObject) {
         for (propKey in endpointPropertiesObject[key]) {
             let insertObj = {
                 module_config_id: id,
