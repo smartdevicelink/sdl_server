@@ -28,7 +28,7 @@
                 </div>
                 
                 <div v-if="certificate_error" class="alert color-bg-red color-white d-table" role="alert">
-                    ** Notice: An error occurred when processing the private key and certificate data. If you are providing your own, please be certain of their accuracy and validity.
+                    ** Notice: {{ certificate_error }}
                 </div>
 
                 <!-- module config data -->
@@ -369,8 +369,11 @@ export default {
             this.httpRequest("post", "module", { "body": this.module_config }, (err) => {
                 if(err){
                     console.error(err);
+                    this.certificate_error = err.body.meta.message
                 }
-                this.certificate_error = !!err;
+                else {
+                    this.certificate_error = null;
+                }
                 this.toTop();
                 cb();
             });
