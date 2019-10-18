@@ -129,7 +129,7 @@
 
                             </div>
 
-                            <div class="form-row">
+                            <div class="form-row padding-left-col-1">
                                 <h4>Lock Screen Dismissal Enabled</h4>
                                 <div class="form-group row">
                                     <div class="col-sm-10">
@@ -141,10 +141,17 @@
                                             that they are not the driver.
                                         </b-form-checkbox>
                                     </div>
-
                                 </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <h4>Custom Vehicle Data Mapping URL</h4>
+                                <input v-model="module_config.endpoints['custom_vehicle_data_mapping_url']" :disabled="fieldsDisabled" class="form-control">
+                            </div>
 
-
+                            <div class="form-row padding-left-col-1">
+                                <h4>Custom Vehicle Data Mapping Version</h4>
+                                <input v-model="module_config.endpoint_properties.custom_vehicle_data_mapping_url.version" :disabled="fieldsDisabled" class="form-control">
                             </div>
 
                             <!-- notifications -->
