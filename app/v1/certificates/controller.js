@@ -91,7 +91,7 @@ function getCertificateOptions(options = {}){
 function createCertificate(req, res, next){
     if (openSSLEnabled) {
         let options = req.body.options || {};
-        createCertificateFlow(options, function(err, results){
+        createCertificateFlow(options, function(err, certificate){
             if(err){
                 logger.error(err);
                 return res.parcel.setStatus(400)
@@ -99,7 +99,7 @@ function createCertificate(req, res, next){
                     .deliver();
             }
             return res.parcel.setStatus(200)
-                .setData(results)
+                .setData(certificate)
                 .deliver();
         });
     } else {
@@ -117,35 +117,35 @@ function createCertificateFlow(options, next){
         let tasks = [];
 
         let csrOptions = getCertificateOptions(options);
+        let keyOptions = getKeyOptions(options);
 
-        //private key exists
-        if(options.clientKey){
+        //no client key so create one first
+        if (!csrOptions.clientKey)
+        {
             tasks.push(function(cb){
-                pem.createCSR(csrOptions, function(err, csr){
-                    cb(err, csr);
-                });
-            });
-        //private key does not exist
-        } else {
-            tasks.push(function(cb){
-                options = getKeyOptions(options);
-                pem.createPrivateKey(options.keyBitsize, options, function(err, key){
-                    cb(err, key);
-                });
-            });
-            tasks.push(function(privateKey, cb){
-                csrOptions.clientKey = privateKey.key;
-                pem.createCSR(csrOptions, function(err, csr){
-                    cb(err, csr);
+                pem.createPrivateKey(keyOptions.keyBitsize, keyOptions, function(err, key){
+                    csrOptions.clientKey = key.key;
+                    cb(err);
                 });
             });
         }
+
+        //create new csr using passed in key or newly generated one.
+        tasks.push(function(cb){
+            pem.createCSR(csrOptions, function(err, csr){
+                cb(err, csr);
+            });
+        });
+
+        //finally add the csr and create the certificate.
         tasks.push(function(csr, cb){
             csrOptions.csr = csr.csr;
             pem.createCertificate(csrOptions, function(err, certificate){
                 cb(err, certificate);
             });
         });
+
+        //returns err,certificate
         async.waterfall(tasks, next);
     } else {
         next('Security options have not been properly configured');

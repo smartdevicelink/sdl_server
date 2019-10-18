@@ -385,26 +385,18 @@ function queryAndStoreApplicationsFlow (queryObj, notifyOEM = true) {
     ], {method: 'waterfall', eventLoop: true});
 }
 
-function forwardAppCertificate(app_uuid, next){
-	app.locals.db.sqlCommand(sql.getApp.certificate(app_uuid), function(err, results){
-		next(err, (err) ? null : results)
-	})
-}
-
 //helper function that attempts to find the associated certificate bundle in the database
-function getAppCertificateByUuid (app_uuid, callback) {
-	forwardAppCertificate(app_uuid, function (err, results) {
-		if (err) {
-			return callback(err);
-		}
-
-		if (results && results[0] && results[0].certificate) {
-			callback(null, results[0].certificate);
-		}
-		else {
-			callback(null, null); //none found
-		}
-	});
+function getAppCertificateByUuid(app_uuid, callback) {
+    app.locals.db.getOne(sql.getApp.certificate(app_uuid), function(err, result) {
+        if (err) {
+            return callback(err);
+        }
+        if (result && result.certificate) {
+            callback(null, result.certificate);
+        } else {
+            callback(null, null);
+        }
+    });
 }
 
 function getAppCertificate(req, res, next) {
