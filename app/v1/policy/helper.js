@@ -43,7 +43,7 @@ function validateAppPolicyOnlyPost (req, res) {
 
 //helper functions
 
-function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, returnPreview, module_config, cb) {
+function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, returnPreview, cb) {
     let makePolicyTable = {};
     if (appPolicyObj) { //existence of appPolicyObj implies to return the app policy object
         makePolicyTable.appPolicies = setupAppPolicies(isProduction, useLongUuids, appPolicyObj);
