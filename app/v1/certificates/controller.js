@@ -3,21 +3,20 @@ const pem = require('pem');
 const fs = require('fs');
 const logger = require('../../../custom/loggers/winston/index');
 const settings = require('../../../settings.js');
-const { spawnSync } = require('child_process');
 const CA_DIR_PREFIX = __dirname + '/../../../customizable/ca/';
 
-const authorityKey = (fs.existsSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName)) ? 
+const authorityKey = (fs.existsSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName)) ?
     //file exists
-    fs.readFileSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName).toString() : 
+    fs.readFileSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityKeyFileName).toString() :
     //file does not exist
     null;
-const authorityCertificate = (fs.existsSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName)) ? 
+const authorityCertificate = (fs.existsSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName)) ?
     //file exists
-    fs.readFileSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName).toString() : 
+    fs.readFileSync(CA_DIR_PREFIX + settings.certificateAuthority.authorityCertFileName).toString() :
     //file does not exist
     null;
 
-const openSSLEnabled = authorityKey && authorityCertificate 
+const openSSLEnabled = authorityKey && authorityCertificate
     && settings.securityOptions.passphrase && settings.securityOptions.certificate.commonName;
 
 function checkAuthorityValidity (cb){
@@ -25,25 +24,25 @@ function checkAuthorityValidity (cb){
         return cb(false);
     }
     pem.createPkcs12(
-        authorityKey, 
-        authorityCertificate, 
-        settings.securityOptions.passphrase, 
+        authorityKey,
+        authorityCertificate,
+        settings.securityOptions.passphrase,
         {
             cipher: 'aes128',
             clientKeyPassword: settings.securityOptions.passphrase
-        }, 
+        },
         function(err, pkcs12){
             cb((err) ? false : true);
         }
-    ); 
+    );
 }
 
 function createPrivateKey(req, res, next){
     if (openSSLEnabled) {
         let options = getKeyOptions(req.body.options);
         pem.createPrivateKey(
-            options.keyBitsize, 
-            options, 
+            options.keyBitsize,
+            options,
             function(err, privateKey){
                 if(err){
                     return res.parcel.setStatus(400)

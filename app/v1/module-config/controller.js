@@ -2,10 +2,9 @@
 const app = require('../app');
 const helper = require('./helper.js');
 const model = require('./model.js');
-const flow = app.locals.flow;
 const cache = require('../../../custom/cache');
-const certificates = require('../certificates/controller');
-const certUtil = require('../helpers/certificates.js');
+const certUtil = require('../helpers/certificates');
+const certController = require('../certificates/controller');
 
 function get(req, res, next) {
     //if environment is not of value "staging", then set the environment to production
@@ -45,7 +44,7 @@ function post(isProduction, req, res, next) {
         return res.parcel.deliver();
     }
 
-    if (req.body.private_key && req.body.certificate) {
+    if (certController.openSSLEnabled && req.body.private_key && req.body.certificate) {
         // while the pkcs12 is not used, this is necessary to check that the private key and certificate match
         certUtil.isCertificateExpired(req.body.certificate, function(err, isExpired) {
             if (err) {

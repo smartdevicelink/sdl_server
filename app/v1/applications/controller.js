@@ -28,7 +28,7 @@ function get (req, res, next) {
 	const finalFlow = flow([
 		chosenFlow,
 		//include extra certificate information if just one app is returned and if the info exists
-		function (apps, next) { 
+		function (apps, next) {
 			//only if looking at a specific app and cert generation is enabled
 			if (apps.length === 1 && certificates.openSSLEnabled) {
 				const certInsertionFlow = flow([
@@ -47,8 +47,7 @@ function get (req, res, next) {
 					}
 				], { method: "waterfall" });
 				return certInsertionFlow(next);
-			}
-			else {
+			} else {
 				return next(null, apps);
 			}
 		},
@@ -400,7 +399,7 @@ function getAppCertificateByUuid (app_uuid, callback) {
 		}
 
 		if (results && results[0] && results[0].certificate) {
-			callback(null, results[0].certificate); 
+			callback(null, results[0].certificate);
 		}
 		else {
 			callback(null, null); //none found
@@ -416,14 +415,14 @@ function getAppCertificate(req, res, next){
 	}
 	// Ford's Android 	security library uses AppId
 	// The SDL	iOS 	security library uses appId
-	const app_uuid = req.body.app_uuid || 
-					req.body.AppId || 
-					req.body.appId || 
-					req.query.app_uuid || 
-					req.query.AppId || 
-					req.query.appId || 
+	const app_uuid = req.body.app_uuid ||
+					req.body.AppId ||
+					req.body.appId ||
+					req.query.app_uuid ||
+					req.query.AppId ||
+					req.query.appId ||
 					req.query.appID;
-	
+
 	if (!app_uuid) {
 		return res.parcel.setStatus(400)
 			.setMessage('No app id was sent')
@@ -480,7 +479,7 @@ function updateAppCertificate (req, res, next) {
 		return res.parcel.setStatus(400)
             .setMessage('Security options have not been properly configured')
             .deliver();
-	}	
+	}
 
 	certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
 		.then(keyCertBundle => {

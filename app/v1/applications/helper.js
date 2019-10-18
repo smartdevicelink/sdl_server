@@ -9,11 +9,7 @@ const log = app.locals.log;
 const db = app.locals.db;
 const config = app.locals.config;
 const async = require('async');
-const settings = require('../../../settings.js');
 const certificates = require('../certificates/controller.js');
-const tmp = require('tmp');
-const fs = require('fs');
-const { spawnSync } = require('child_process');
 const certUtil = require('../helpers/certificates.js');
 
 //validation functions
@@ -353,7 +349,7 @@ function attemptRetry(milliseconds, retryQueue){
     }, milliseconds);
 }
 
-function storeAppCertificates (insertObjs, next) {    
+function storeAppCertificates (insertObjs, next) {
 	app.locals.db.runAsTransaction(function (client, callback) {
 		async.mapSeries(insertObjs, function (insertObj, cb) {
 			app.locals.log.info("Updating certificate of " + insertObj.app_uuid);

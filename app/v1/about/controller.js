@@ -1,11 +1,9 @@
 const app = require('../app');
-const async = require('async');
 const config = require('../../../settings.js');
 const packageJson = require('../../../package.json'); //configuration module
 const requestjs = require('request');
 const semver = require('semver');
-const checkAuthorityValidity = require('../certificates/controller.js').checkAuthorityValidity;
-const openSSLEnabled = require('../certificates/controller').openSSLEnabled;
+const certificateController = require('../certificates/controller.js');
 
 exports.getInfo = function (req, res, next) {
 	var data = {
@@ -31,9 +29,7 @@ exports.getInfo = function (req, res, next) {
 				}
 			}
 		},
-		"certificate_authority": (
-			openSSLEnabled
-		)
+		"certificate_authority": certificateController.openSSLEnabled
 	};
 
 	requestjs({
@@ -49,7 +45,7 @@ exports.getInfo = function (req, res, next) {
 			data.update_type = semver.diff(data.current_version, data.latest_version);
 		}
 		if(data.certificate_authority){
-			return checkAuthorityValidity(function(isAuthorityValid){
+			return certificateController.checkAuthorityValidity(function(isAuthorityValid){
 				data.is_authority_valid = isAuthorityValid && data.certificate_authority;
 				res.parcel.setStatus(200)
 					.setData(data)

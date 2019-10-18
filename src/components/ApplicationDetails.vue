@@ -35,12 +35,12 @@
 
                 <div class="app-table">
                     <h4>General App Info<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/applications/" target="_blank"></a></h4>
-                                    
+
                     <div v-if="(!certificate && private_key) || (certificate && !private_key)" class="alert color-bg-red color-white d-table" role="alert">
-                        ** Notice: The {{(private_key) ? "certificate" : "private key"}} is not defined but the {{(private_key) ? "private key" : "certificate"}} is. 
+                        ** Notice: The {{(private_key) ? "certificate" : "private key"}} is not defined but the {{(private_key) ? "private key" : "certificate"}} is.
                         They should both be set or both left empty.
                     </div>
-                    
+
                     <div v-if="certificate_error" class="alert color-bg-red color-white d-table" role="alert">
                         ** Notice: An error occurred when processing the private key and certificate data. If you are providing your own, please be certain of their accuracy and validity.
                     </div>
@@ -318,19 +318,21 @@
                             Generate Key and Certificate
                         </vue-ladda>
                     </div>
+
+                    <div>
+                        <vue-ladda
+                                type="submit"
+                                class="btn btn-card btn-style-green"
+                                data-style="zoom-in"
+                                style="width:300px"
+                                v-bind:loading="false"
+                                v-on:click="saveCertificate()">
+                            Save Key and Certificate
+                        </vue-ladda>
+                    </div>
                 </div>
 
-                <div>
-                    <vue-ladda
-                        type="submit"
-                        class="btn btn-card btn-style-green"
-                        data-style="zoom-in"
-                        style="width:300px"
-                        v-bind:loading="false"
-                        v-on:click="saveCertificate()">
-                        Save Key and Certificate
-                    </vue-ladda>
-                </div>
+
 
                 <div class="app-table">
                     <h4>Policy Table Preview</h4>
