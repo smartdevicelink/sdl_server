@@ -30,7 +30,8 @@ common.post(
             COMMUNICATION: 5,
             NORMAL: 5,
             NONE: 0
-        }
+        },
+        lock_screen_dismissal_enabled: true
     },
     (err, res, done) => {
         expect(err).to.be.null;

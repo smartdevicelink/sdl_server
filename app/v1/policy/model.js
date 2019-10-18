@@ -34,6 +34,7 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
         "exchange_after_x_days": base.exchange_after_x_days,
         "timeout_after_x_seconds": base.timeout_after_x_seconds,
         "seconds_between_retries": retrySeconds,
+        "lock_screen_dismissal_enabled": base.lock_screen_dismissal_enabled,
         "endpoints": {
             "0x07": {
                 default: [ protocol + settings.policyServerHost + concatPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]

@@ -52,6 +52,7 @@ function insertModuleConfig (moduleConfig) {
         endpoint_0x04: moduleConfig.endpoints["0x04"],
         query_apps_url: moduleConfig.endpoints.queryAppsUrl,
         lock_screen_default_url: moduleConfig.endpoints.lock_screen_icon_url,
+        lock_screen_dismissal_enabled: moduleConfig.lock_screen_dismissal_enabled === true,
         custom_vehicle_data_mapping_url: moduleConfig.endpoints.custom_vehicle_data_mapping_url,
         emergency_notifications: moduleConfig.notifications_per_minute_by_priority.EMERGENCY,
         navigation_notifications: moduleConfig.notifications_per_minute_by_priority.NAVIGATION,

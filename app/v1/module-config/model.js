@@ -50,6 +50,7 @@ function baseTemplate (objOverride) {
             "lock_screen_icon_url": "",
             "custom_vehicle_data_mapping_url": ""
         },
+        lock_screen_dismissal_enabled: false,
         endpoint_properties: {},
         notifications_per_minute_by_priority: {
             EMERGENCY: 0,
@@ -78,6 +79,7 @@ function baseTemplate (objOverride) {
         obj.endpoints["0x04"] = objOverride.endpoint_0x04;
         obj.endpoints.queryAppsUrl = objOverride.query_apps_url;
         obj.endpoints.lock_screen_icon_url = objOverride.lock_screen_default_url;
+        obj.lock_screen_dismissal_enabled = objOverride.lock_screen_dismissal_enabled === true;
         obj.endpoints.custom_vehicle_data_mapping_url = objOverride.custom_vehicle_data_mapping_url;
         obj.notifications_per_minute_by_priority.EMERGENCY = objOverride.emergency_notifications;
         obj.notifications_per_minute_by_priority.NAVIGATION = objOverride.navigation_notifications;
