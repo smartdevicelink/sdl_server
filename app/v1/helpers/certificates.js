@@ -17,7 +17,11 @@ function createKeyCertBundle (clientKey, certificate) {
     });
 }
 
-//given a bundled key and cert, unpacks it back into its components
+/**
+ * given a bundled key and cert, unpacks it back into its components
+ * @param certBuffer - pkcs12 cert buffer
+ * @returns {Promise} response is an object with cert, ca, and key. It is an expanded version of the pkcs cert.
+ */
 function readKeyCertBundle (certBuffer) {
     return new Promise((resolve, reject) => {
         pem.readPkcs12(certBuffer, { //unlock it with the settings password
