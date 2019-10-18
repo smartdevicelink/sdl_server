@@ -355,10 +355,11 @@ function getAppCertificate(app_uuid){
         .toString();
 }
 
-function updateAppCertificate(app_uuid, certificate){
+function updateAppCertificate (obj) {
     let insertObj = {
-        app_uuid: app_uuid,
-        certificate: certificate,
+        app_uuid: obj.app_uuid,
+        certificate: obj.certificate,
+        expiration_ts: obj.expirationDate,
     }
     return sql.insert('app_certificates', insertObj)
         .onConflict()
@@ -367,10 +368,11 @@ function updateAppCertificate(app_uuid, certificate){
         .toString();
 }
 
-function getAllAppCertificates(){
-    return sql.select('app_uuid', 'certificate')
+function getAllExpiredAppCertificates () {
+    return sql.select('*')
         .from('app_certificates')
-        .toString();
+        //checks if the certificate is going to expire within a day
+        .toString() + " WHERE expiration_ts < ((now() AT TIME ZONE 'UTC') + '1 day'::interval)";
 }
 
 function timestampCheck (tableName, whereObj) {
@@ -1011,7 +1013,7 @@ module.exports = {
             idFilter: getAppHybridPreference
         },
         certificate: getAppCertificate,
-        allCertificates: getAllAppCertificates,
+        allExpiredCertificates: getAllExpiredAppCertificates,
     },
     updateAppCertificate: updateAppCertificate,
     timestampCheck: timestampCheck,

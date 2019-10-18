@@ -33,7 +33,8 @@ function get (req, res, next) {
 			if (apps.length === 1 && certificates.openSSLEnabled) {
 				const certInsertionFlow = flow([
 					getAppCertificateByUuid.bind(null, apps[0].uuid),
-					function (certificate, next) {
+					function (appCert, next) {
+						const certificate = appCert.certificate;
 						if (!certificate) {
 							return next(null, apps);
 						}
@@ -418,29 +419,30 @@ function getAppCertificate(req, res, next) {
             .deliver();
     }
 
-    getAppCertificateByUuid(app_uuid, function(err, certificate) {
+    getAppCertificateByUuid(app_uuid, function (err, appCert) {
         if (err) {
             app.locals.log.error(err);
             return res.parcel.setStatus(500)
                 .setMessage('Internal Server Error')
                 .deliver();
         }
-        if (!certificate) {
+        if (!appCert.certificate) {
             return res.parcel.setStatus(400)
                 .setMessage('Could not find certificate for app with that id')
                 .deliver();
         }
 
-        certUtil.readKeyCertBundle(Buffer.from(certificate, 'base64'))
+        certUtil.readKeyCertBundle(Buffer.from(appCert.certificate, 'base64'))
             .then(keyBundle => {
-                return new Promise((resolve, reject) => {
-                    certUtil.isCertificateExpired(keyBundle.cert, function(err, isExpired) {
-                        if (err) {
-                            return reject(err);
-                        }
-                        resolve(!isExpired);
-                    });
-                });
+				return new Promise((resolve, reject) => {
+					helper.getExpiredCerts(function (err, expiredAppCerts) {
+						if (err) {
+							return reject(err);
+						}
+						//return whether a matching app uuid was found in the expired app certs array
+						resolve(expiredAppCerts.find(eac => eac.app_uuid === appCert.app_uuid));
+					});
+				});
             })
             .then(isValid => {
                 if (!isValid) {
@@ -449,7 +451,7 @@ function getAppCertificate(req, res, next) {
                         .deliver();
                 } else {
                     res.parcel.setStatus(200)
-                        .setData({ 'certificate': certificate })
+                        .setData({ 'certificate': appCert.certificate })
                         .deliver();
                 }
             })
@@ -469,72 +471,69 @@ function updateAppCertificate(req, res, next) {
             .deliver();
     }
 
-    certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
-        .then(keyCertBundle => {
-            helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function(err) {
-                if (err) {
-                    app.locals.log.error(err);
-                    return res.parcel.setStatus(500)
-                        .setMessage('Internal Server Error')
-                        .deliver();
-                }
-                return res.parcel.setStatus(200).deliver();
-            });
-        });
+	certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
+		.then(keyCertBundle => {
+			helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
+				if (err) {
+					app.locals.log.error(err);
+					return res.parcel.setStatus(500)
+						.setMessage('Internal Server Error')
+						.deliver();
+				}
+				return res.parcel.setStatus(200).deliver()
+			});
+		})
+		.catch(err => {
+			app.locals.log.error(err);
+			return res.parcel.setStatus(500)
+				.setMessage('Internal Server Error')
+				.deliver();
+		});
 }
 
 function checkAndUpdateCertificates(cb){
 	if (!certificates.openSSLEnabled) {
-		return cb();
+		if (cb) {
+			cb();
+		}
+		return;
 	}
 
-	app.locals.db.sqlCommand(sql.getApp.allCertificates(), parseAppCerts);
+	app.locals.db.sqlCommand(sql.getApp.allExpiredCertificates(), parseAppCerts);
 
-	function parseAppCerts(sqlErr, appIdsAndCerts){
-		if(sqlErr){
+	function parseAppCerts(sqlErr, expiredCertObjs){
+		if (sqlErr) {
 			app.locals.log.error(sqlErr);
 		}
-		async.mapSeries(appIdsAndCerts, function (appObj, next) {
-			if (appObj.certificate) {
-				certUtil.readKeyCertBundle(Buffer.from(appObj.certificate, 'base64'))
-					.then(keyBundle => {
-						certUtil.isCertificateExpired(keyBundle.cert, function (crtErr, isExpired) {
-							if (crtErr) {
-								app.locals.log.error(crtErr);
-							}
-							// if the certificate is expired, create a new one with the already existing private key
-							return next(
-								null,
-								(!isExpired) ? null : { app_uuid: appObj.app_uuid, private_key: keyBundle.key }
-							);
-						});
-					})
-					.catch(pkcsErr => {
-						app.locals.log.error(pkcsErr);
-						next(
-							null,
-							{
-								app_uuid: appObj.app_uuid,
-								private_key: keyBundle.key
-							}
-						);
-					});
-			} else {
-				// app does not have a certificate nor a private key, so both must be created
-				next(
-					null,
-					{
-						app_uuid: appObj.app_uuid
+
+		async.mapSeries(expiredCertObjs, function (expiredCertObj, next) {
+			certUtil.readKeyCertBundle(Buffer.from(expiredCertObj.certificate, 'base64'))
+				.then(keyBundle => {
+					//create a new cert with the already existing private key
+					const appInfo = {
+						app_uuid: expiredCertObj.app_uuid,
+						private_key: keyBundle.key
 					}
-				);
-			}
+					next(null, appInfo);
+				})
+				.catch(pkcsErr => {
+					app.locals.log.error(pkcsErr);
+					//read error. create a new key and cert
+					const appInfo = {
+						app_uuid: expiredCertObj.app_uuid,
+					}
+					next(null, appInfo);
+				});
 		}, function (err, failedApps) {
 			if (err) {
 				app.locals.log.error(err);
+				if (cb) {
+					cb();
+				}
+				return;
 			}
-			//removes all null values to only focus on the app ids that failed
-			failedApps = failedApps.filter(Boolean);
-			async.mapSeries(failedApps, helper.getFailedAppsCert, function (failedAppErr, results) {
+			//create new certificates for the failed apps and save them
+			async.mapSeries(failedApps, helper.createFailedAppsCert, function (failedAppErr, results) {
 				if (failedAppErr) {
 					app.locals.log.error(failedAppErr);
 				}

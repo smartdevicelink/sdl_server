@@ -299,7 +299,7 @@ function storeAppCertificates (insertObjs, next) {
 	});
 }
 
-function getFailedAppsCert(failedApp, next){
+function createFailedAppsCert(failedApp, next){
 	let options = certificates.getCertificateOptions({
 		serialNumber: failedApp.app_uuid,
 		clientKey: failedApp.private_key
@@ -332,9 +332,10 @@ module.exports = {
 	  validateFunctionalGroupPut: validateFunctionalGroupPut,
     validateWebHook: validateWebHook,
     storeAppCertificates: storeAppCertificates,
-    getFailedAppsCert: getFailedAppsCert,
+    createFailedAppsCert: createFailedAppsCert,
     updateAppCertificate: model.updateAppCertificate,
     createAppInfoFlow: createAppInfoFlow,
     storeApps: storeApps,
     storeCategories: storeCategories,
+    getExpiredCerts: model.getExpiredCerts,
 };
