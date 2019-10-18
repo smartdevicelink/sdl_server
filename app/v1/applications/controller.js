@@ -407,92 +407,100 @@ function getAppCertificateByUuid (app_uuid, callback) {
 	});
 }
 
-function getAppCertificate(req, res, next){
-	if (!certificates.openSSLEnabled) {
-		return res.parcel.setStatus(400)
+function getAppCertificate(req, res, next) {
+    if (!certificates.openSSLEnabled) {
+        return res.parcel.setStatus(400)
             .setMessage('Security options have not been properly configured')
             .deliver();
-	}
-	// Ford's Android 	security library uses AppId
-	// The SDL	iOS 	security library uses appId
-	const app_uuid = req.body.app_uuid ||
-					req.body.AppId ||
-					req.body.appId ||
-					req.query.app_uuid ||
-					req.query.AppId ||
-					req.query.appId ||
-					req.query.appID;
+    }
+    // Ford's Android     security library uses AppId
+    // The SDL    iOS     security library uses appId
+    const app_uuid = req.body.AppId ||
+        req.body.appId ||
+        req.query.AppId ||
+        req.query.appId;
 
-	if (!app_uuid) {
-		return res.parcel.setStatus(400)
-			.setMessage('No app id was sent')
-			.deliver();
-	}
+    if (!app_uuid) {
+        return res.parcel.setStatus(400)
+            .setMessage('No app id was sent')
+            .deliver();
+    }
 
-	getAppCertificateByUuid(app_uuid, function (err, certificate) {
-		if (err) {
-			app.locals.log.error(err);
-			return res.parcel.setStatus(500)
-				.setMessage('Internal Server Error')
-				.deliver();
-		}
-		if (!certificate) {
-			return res.parcel.setStatus(400)
-				.setMessage('Could not find certificate for app with that id')
-				.deliver();
-		}
+    getAppCertificateByUuid(app_uuid, function(err, certificate) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.parcel.setStatus(500)
+                .setMessage('Internal Server Error')
+                .deliver();
+        }
+        if (!certificate) {
+            return res.parcel.setStatus(400)
+                .setMessage('Could not find certificate for app with that id')
+                .deliver();
+        }
 
-		certUtil.readKeyCertBundle(Buffer.from(certificate, 'base64'))
-			.then(keyBundle => {
-				return new Promise((resolve, reject) => {
-					certUtil.isCertificateExpired(keyBundle.cert, function (err, isExpired) {
-						if (err) {
-							return reject(err);
-						}
-						resolve(!isExpired);
-					});
-				});
-			})
-			.then(isValid => {
-				if (!isValid) {
-					return res.parcel.setStatus(500)
-						.setMessage('App certificate is expired')
-						.deliver();
-				}
-				else {
-					res.parcel.setStatus(200)
-						.setData({"certificate": certificate})
-						.deliver();
-				}
-			})
-			.reject(err => {
-				app.locals.log.error(err);
-					return res.parcel.setStatus(500)
-						.setMessage('Internal Server Error')
-						.deliver();
-			});
-	});
+        certUtil.readKeyCertBundle(Buffer.from(certificate, 'base64'))
+            .then(keyBundle => {
+                return new Promise((resolve, reject) => {
+                    certUtil.isCertificateExpired(keyBundle.cert, function(err, isExpired) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve(!isExpired);
+                    });
+                });
+            })
+            .then(isValid => {
+                if (!isValid) {
+                    return res.parcel.setStatus(500)
+                        .setMessage('App certificate is expired')
+                        .deliver();
+                } else {
+                    res.parcel.setStatus(200)
+                        .setData({ 'certificate': certificate })
+                        .deliver();
+                }
+            })
+            .catch(err => {
+                app.locals.log.error(err);
+                return res.parcel.setStatus(500)
+                    .setMessage('Internal Server Error')
+                    .deliver();
+            });
+    });
 }
 
-function updateAppCertificate (req, res, next) {
-	if (!certificates.openSSLEnabled) {
-		return res.parcel.setStatus(400)
+function updateAppCertificate(req, res, next) {
+    if (!certificates.openSSLEnabled) {
+        return res.parcel.setStatus(400)
             .setMessage('Security options have not been properly configured')
             .deliver();
-	}
+    }
 
-	certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
-		.then(keyCertBundle => {
-			helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
-				if (err) {
-					app.locals.log.error(err);
-					return res.parcel.setStatus(500)
-						.setMessage('Internal Server Error')
-						.deliver();
-				}
-				return res.parcel.setStatus(200).deliver()
-			});
-		});
+    let doUpdate = function(keyCertBundle) {
+        helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function(err) {
+            if (err) {
+                app.locals.log.error(err);
+                return res.parcel.setStatus(500)
+                    .setMessage('Internal Server Error')
+                    .deliver();
+            }
+            return res.parcel.setStatus(200).deliver();
+        });
+    };
+
+    if (!req.body.options.clientKey && !req.body.options.certificate) {
+        return doUpdate(
+            {
+                pkcs12: ''
+            }
+        );
+    } else {
+        certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
+            .then(keyCertBundle => {
+                return doUpdate(keyCertBundle);
+            });
+    }
 }
 
 function checkAndUpdateCertificates(cb){
