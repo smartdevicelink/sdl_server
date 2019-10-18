@@ -477,30 +477,18 @@ function updateAppCertificate(req, res, next) {
             .deliver();
     }
 
-    let doUpdate = function(keyCertBundle) {
-        helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function(err) {
-            if (err) {
-                app.locals.log.error(err);
-                return res.parcel.setStatus(500)
-                    .setMessage('Internal Server Error')
-                    .deliver();
-            }
-            return res.parcel.setStatus(200).deliver();
-        });
-    };
-
-    if (!req.body.options.clientKey && !req.body.options.certificate) {
-        return doUpdate(
-            {
-                pkcs12: ''
-            }
-        );
-    } else {
-        certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
-            .then(keyCertBundle => {
-                return doUpdate(keyCertBundle);
+    certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
+        .then(keyCertBundle => {
+            helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function(err) {
+                if (err) {
+                    app.locals.log.error(err);
+                    return res.parcel.setStatus(500)
+                        .setMessage('Internal Server Error')
+                        .deliver();
+                }
+                return res.parcel.setStatus(200).deliver();
             });
-    }
+        });
 }
 
 function checkAndUpdateCertificates(cb){
