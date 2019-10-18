@@ -3,6 +3,8 @@ node_modules/
 dist/
 *.log
 .env
+*.pem
+*.key
 
 # Editor directories and files
 .idea

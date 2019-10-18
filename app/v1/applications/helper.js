@@ -8,6 +8,13 @@ const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
 const config = app.locals.config;
+const async = require('async');
+const settings = require('../../../settings.js');
+const certificates = require('../certificates/controller.js');
+const tmp = require('tmp');
+const fs = require('fs');
+const { spawnSync } = require('child_process');
+const certUtil = require('../helpers/certificates.js');
 
 //validation functions
 
@@ -25,7 +32,14 @@ function validateActionPost (req, res) {
 
 function validateServicePermissionPut (req, res) {
 	if (!req.body.id || !check.boolean(req.body.is_selected) || !check.string(req.body.service_type_name) || !check.string(req.body.permission_name)) {
-		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name required");
+		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name are required");
+	}
+    return;
+}
+
+function validateFunctionalGroupPut (req, res) {
+	if (!req.body.app_id || !check.boolean(req.body.is_selected) || !check.string(req.body.property_name)) {
+		res.parcel.setStatus(400).setMessage("app_id, is_selected, and property_name are required");
 	}
     return;
 }
@@ -89,9 +103,19 @@ function createAppInfoFlow (filterTypeFunc, value) {
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
 }
 
+function storeCategories(categories, callback) {
+    const upsertCats = app.locals.db.setupSqlCommands(sql.upsertCategories(categories));
+
+    const insertFlow = app.locals.flow([
+        app.locals.flow(upsertCats, {method: 'parallel'})
+    ], {method: 'series'});
+
+    insertFlow(callback);
+}
+
 //application store functions
 
-function storeApps (includeApprovalStatus, apps, callback) {
+function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
     let queue = [];
     function recStore(includeApprovalStatus, theseApps, cb){
         const fullFlow = flow([
@@ -107,7 +131,7 @@ function storeApps (includeApprovalStatus, apps, callback) {
 				flame.async.map(appObjs, autoBlacklistModifier, next);
 			},
             function (appObjs, next) {
-                flame.async.map(appObjs, model.storeApp, next);
+                flame.async.map(appObjs, model.storeApp.bind(null, notifyOEM), next);
             }
         ], {method: "waterfall", eventLoop: true});
 
@@ -129,11 +153,76 @@ function storeApps (includeApprovalStatus, apps, callback) {
         });
     }
     recStore(includeApprovalStatus, apps, function(){
-        callback();
+        if(certificates.openSSLEnabled){
+            appCerts(apps, callback);
+        } else {
+            callback();
+        }
         if(queue.length > 0){
             attemptRetry(300000, queue);
         }
     });
+}
+
+function appCerts(apps, callback){
+    async.mapSeries(apps, function(app, next){
+        db.sqlCommand(sql.getApp.certificate(app.uuid), function(err, data){
+            if(err){
+                log.error(err);
+                return;
+            }
+            function badCert(cb){
+                certificates.createCertificateFlow({
+                    serialNumber: app.uuid
+                }, function(crtErr, cert){
+                    if(crtErr){
+                        // issues arose in creating certificate
+                        return cb(crtErr, null);
+                    }
+                    //console.log(cert)
+                    certUtil.createKeyCertBundle(cert.clientKey, cert.certificate)
+                        .then(keyCertBundle => {
+                            cb(null, {
+                                app_uuid: app.uuid,
+                                certificate: keyCertBundle
+                            });
+                        })
+                        .catch(err => {
+                            cb(err)
+                        });
+                });
+            }
+            if(data.length != 0){
+                //app has a cert, check if it's expired
+                certUtil.readKeyCertBundle(Buffer.from(data[0].certificate, 'base64'))
+                    .then(keyBundle => {
+                        certUtil.isCertificateExpired(keyBundle.cert, function (expErr, isExpired) {
+                            if(expErr || isExpired){
+                                return badCert(next);
+                            }
+                            // certificate is valid, nothing needs to be done
+                            next();
+                        });
+                    })
+                    .catch(err => {
+                        return badCert(next);
+                    })
+            } else {
+                badCert(next);
+            }
+        })
+    }, function(err, results){
+        if(err){
+            log.error(err);
+        }
+        if(results.filter(Boolean).length){
+            log.info('App certificates generated, store them with a transaction');
+            //log.info(results.filter(Boolean));
+            storeAppCertificates(results.filter(Boolean), callback);
+        } else {
+            callback();
+        }
+    })
 }
 
 //determine whether the object needs to be deleted or stored in the database
@@ -243,7 +332,7 @@ function attemptRetry(milliseconds, retryQueue){
 							flame.async.map(appObjs, autoBlacklistModifier, callback);
 						},
                         function (appObjs, callback) {
-                            flame.async.map(appObjs, model.storeApp, callback);
+                            flame.async.map(appObjs, model.storeApp.bind(null, true), callback);
                         }
                     ], {method: "waterfall", eventLoop: true});
                     fullFlow(function (err, res) {
@@ -264,14 +353,62 @@ function attemptRetry(milliseconds, retryQueue){
     }, milliseconds);
 }
 
-module.exports = {
-	validateActionPost: validateActionPost,
-	validateAutoPost: validateAutoPost,
-	validateAdministratorPost: validateAdministratorPost,
-	validatePassthroughPost: validatePassthroughPost,
-	validateHybridPost: validateHybridPost,
-	validateServicePermissionPut: validateServicePermissionPut,
-    validateWebHook: validateWebHook,
-	createAppInfoFlow: createAppInfoFlow,
-	storeApps: storeApps
+function storeAppCertificates (insertObjs, next) {    
+	app.locals.db.runAsTransaction(function (client, callback) {
+		async.mapSeries(insertObjs, function (insertObj, cb) {
+			app.locals.log.info("Updating certificate of " + insertObj.app_uuid);
+            updateAppCertificate(insertObj.app_uuid, insertObj.certificate, cb);
+		}, callback);
+	}, function (err, response) {
+		if(err){
+			app.locals.log.error(err);
+		}
+		app.locals.log.info("App certificates updated");
+		next();
+	});
 }
+
+function getFailedAppsCert(failedApp, next){
+	let options = certificates.getCertificateOptions({
+		serialNumber: failedApp.app_uuid,
+		clientKey: failedApp.private_key
+	});
+
+	certificates.createCertificateFlow(options, function(err, keyBundle){
+		if(err){
+			return next(err, {});
+		}
+        certUtil.createKeyCertBundle(keyBundle.clientKey, keyBundle.certificate)
+            .then(keyCertBundle => {
+                next(null, {
+                    app_uuid: failedApp.app_uuid,
+                    certificate: keyCertBundle
+                });
+            })
+            .catch(err => {
+                next(err)
+            });
+	});
+}
+
+//given an app uuid and pkcs12 bundle, stores their relation in the database
+function updateAppCertificate (app_uuid, keyCertBundle, callback) {
+    db.sqlCommand(sql.updateAppCertificate(app_uuid, keyCertBundle.pkcs12.toString('base64')), callback);
+}
+
+module.exports = {
+    validateActionPost: validateActionPost,
+    validateAutoPost: validateAutoPost,
+    validateAdministratorPost: validateAdministratorPost,
+    validatePassthroughPost: validatePassthroughPost,
+    validateHybridPost: validateHybridPost,
+    validateServicePermissionPut: validateServicePermissionPut,
+	  validateFunctionalGroupPut: validateFunctionalGroupPut,
+    validateWebHook: validateWebHook,
+    storeAppCertificates: storeAppCertificates,
+    getFailedAppsCert: getFailedAppsCert,
+    updateAppCertificate: updateAppCertificate,
+    createAppInfoFlow: createAppInfoFlow,
+    storeApps: storeApps,
+    storeCategories: storeCategories,
+};

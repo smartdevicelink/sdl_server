@@ -2,6 +2,8 @@ const app = require('../app');
 const flame = app.locals.flame;
 const settings = require('../../../settings.js');
 const sqlApp = require('../applications/sql.js');
+const _ = require('lodash');
+const vehicleDataHelper = require('../vehicle-data/helper.js');
 
 //module config
 
@@ -12,19 +14,26 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
     const retrySeconds = info.retrySeconds.map(function (secondObj) {
         return secondObj.seconds;
     });
+    const endpointProperties = info.endpointProperties;
 
     var concatPort = "";
     var protocol = "http://";
-    if(settings.policyServerPortSSL){
+    if(settings.ssl.policyServerPort){
         protocol = "https://";
-        if(settings.policyServerPortSSL != 443){
-            concatPort = ":" + settings.policyServerPortSSL;
+        if(settings.ssl.policyServerPort != 443){
+            concatPort = ":" + settings.ssl.policyServerPort;
         }
-    }else if(!settings.policyServerPortSSL && settings.policyServerPort != 80){
+    }else if(!settings.ssl.policyServerPort && settings.policyServerPort != 80){
         concatPort = ":" + settings.policyServerPort;
     }
 
-    next(null, {
+    if(base.certificate && base.private_key){
+        base.certificate += '\n' + base.private_key;
+    } else {
+        base.certificate = null;
+    }
+
+    var moduleConfig = {
         "full_app_id_supported": useLongUuids,
         "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
         "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
@@ -43,7 +52,10 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
             },
             "lock_screen_icon_url": {
                 default: [base.lock_screen_default_url]
-            }
+            },
+        },
+        "endpoint_properties": {
+            // to be populated
         },
         "notifications_per_minute_by_priority": {
             "EMERGENCY": base.emergency_notifications,
@@ -52,8 +64,29 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
             "COMMUNICATION": base.communication_notifications,
             "NORMAL": base.normal_notifications,
             "NONE": base.none_notifications
+        },
+        "certificate": base.certificate,
+    };
+
+    // only have custom_vehicle_data_mapping_url present if set by OEM,
+    // according to evolution proposal
+    if(base.custom_vehicle_data_mapping_url){
+        moduleConfig.endpoints.custom_vehicle_data_mapping_url = {
+            default: [base.custom_vehicle_data_mapping_url]
+        };
+    }
+
+    // inject endpoint properties we have from the database
+    _.forEach(endpointProperties, function (endProp, index) {
+        if (!moduleConfig.endpoint_properties[endProp.endpoint_name] && moduleConfig.endpoints[endProp.endpoint_name]) {
+            moduleConfig.endpoint_properties[endProp.endpoint_name] = {};
+        }
+        if (moduleConfig.endpoint_properties[endProp.endpoint_name] && endProp.property_value) {
+            moduleConfig.endpoint_properties[endProp.endpoint_name][endProp.property_name] = endProp.property_value;
         }
     });
+
+    next(null, moduleConfig);
 }
 
 //consumer messages
@@ -220,6 +253,89 @@ function transformFunctionalGroups (isProduction, info, next) {
     constructFunctionalGroupFlow(next); //run it
 }
 
+function transformRpcVehicleData (rpcTypes = [], rpcParams = [], isForPolicyTable = false, cb) {
+    let result = [];
+    let typeByName = {};
+    let typeById = {};
+    let paramsByTypeId = {};
+    let vehicleDataParams = [];
+
+    // build dictionaries of types
+    for (let type of rpcTypes) {
+        typeByName[type.name] = type;
+        typeById[type.id] = type;
+    }
+
+    // build dictionary of params associated to types
+    // and array of vehicle data params
+    for (let param of rpcParams) {
+        if (!paramsByTypeId[param.rpc_spec_type_id]) {
+            paramsByTypeId[param.rpc_spec_type_id] = [];
+        }
+        paramsByTypeId[param.rpc_spec_type_id].push(param);
+
+        if (
+            param.platform != "documentation"
+            && _.get(typeById[param.rpc_spec_type_id], "element_type") == "FUNCTION"
+            && _.get(typeById[param.rpc_spec_type_id], "name") == "GetVehicleData"
+            && _.get(typeById[param.rpc_spec_type_id], "message_type") == "response"
+        ) {
+            vehicleDataParams.push(param);
+        }
+    }
+
+    function paramBuilder (params) {
+        let results = [];
+
+        for (let param of params) {
+            let vehicleDataItem = vehicleDataHelper.transformVehicleDataItem(param, true);
+            vehicleDataItem.params = [];
+
+            let paramType = typeByName[vehicleDataItem.type];
+            if (paramType && paramType.element_type == "STRUCT") {
+                // recursive struct
+                vehicleDataItem.type = "Struct";
+                vehicleDataItem.params = paramBuilder(paramsByTypeId[paramType.id]);
+            }
+
+            results.push(vehicleDataItem);
+        }
+
+        return results;
+    }
+
+    result = paramBuilder(vehicleDataParams);
+
+    cb(null, result);
+}
+
+function transformVehicleData (isProduction, info, next) {
+    let vehicleData = {
+        "schema_version": info.schemaVersion[0].version,
+        "schema_items": [] // to be populated
+    };
+
+    flame.async.parallel({
+        "customVehicleData": function(callback){
+            vehicleDataHelper.getNestedCustomVehicleData(info.rawCustomVehicleData, true, callback);
+        },
+        "rpcVehicleData": function(callback){
+            // recursively loop through the RPC Spec data to build the nested objects
+            transformRpcVehicleData(info.rawRpcSpecTypes, info.rawRpcSpecParams, true, callback);
+        }
+    }, function(err, transformations){
+        if(!err){
+            vehicleData.schema_items = _.uniqBy(
+                _.concat(transformations.rpcVehicleData, transformations.customVehicleData),
+                function(item){
+                    return item.name;
+                }
+            );
+        }
+        next(err, vehicleData);
+    });
+}
+
 //application policies
 
 function constructAppPolicy (appObj, useLongUuids = false, res, next) {
@@ -266,7 +382,7 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         app_services: appServiceObj,
         allow_unknown_rpc_passthrough: res.appPassthrough.length ? true : false
     };
-    
+
     if (appObj.icon_url) appPolicyObj[uuidProp].icon_url = appObj.icon_url;
     if (appObj.cloud_endpoint) appPolicyObj[uuidProp].endpoint = appObj.cloud_endpoint;
     if (appObj.cloud_transport_type) appPolicyObj[uuidProp].cloud_transport_type = appObj.cloud_transport_type;
@@ -349,6 +465,7 @@ module.exports = {
     transformModuleConfig: transformModuleConfig,
     transformMessages: transformMessages,
     transformFunctionalGroups: transformFunctionalGroups,
+    transformVehicleData: transformVehicleData,
     constructAppPolicy: constructAppPolicy,
     aggregateResults: aggregateResults
 }

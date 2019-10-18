@@ -81,6 +81,13 @@
                             v-bind:disabled="fieldsDisabled">
                             Grant this functional group to applications with "Administrator" privileges
                         </b-form-checkbox>
+
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.is_proprietary_group"
+                            v-bind:disabled="fieldsDisabled">
+                            This is a proprietary functional group <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="You can manually grant Proprietary Groups to an app version when you're reviewing it"></a>
+                        </b-form-checkbox>
                     </div>
 
                     <!-- RPC containers -->

@@ -1,6 +1,7 @@
 const request = require('request');
 const shaidkit = require('shaidkit');
 const config = require('../../../settings.js');
+const package = require('../../../package.json');
 const app = require('../app');
 const flow = app.locals.flow;
 const flame = app.locals.flame;
@@ -11,7 +12,8 @@ const MAX_APPLICATION_QUERY = 50;
 let shaidInitObj = {
     "version": 2,
     "public_key": config.shaidPublicKey,
-    "secret_key": config.shaidSecretKey
+    "secret_key": config.shaidSecretKey,
+    "sdl_server_version": package.version || null
 };
 
 //custom SHAID url option

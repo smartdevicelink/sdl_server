@@ -989,6 +989,9 @@ input:checked + .slider:before {
 .functional-content .rpc-container {
     border-bottom: 1px solid #CCCCCC;
 }
+.functional-content .rpc-container .left-border {
+    border-left: 1px solid #CCCCCC;
+}
 .functional-content .rpc-container label {
     color: #4A5E71;
 }
@@ -1106,6 +1109,10 @@ input:checked + .slider:before {
     padding: 0 !important;
 }
 
+.padding-left-col-1 {
+    padding-left: 8.333%;
+}
+
 .pointer {
     cursor: pointer;
 }
@@ -1154,6 +1161,12 @@ input:checked + .slider:before {
     background-color: #222C37;
 }
 
+/*
+* Alternate Background Color
+*/
+.alt-bg-color {
+    background-color: #E9ECEF !important;
+}
 
 /*
 * Make things spin
