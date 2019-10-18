@@ -517,9 +517,6 @@ function checkAndUpdateCertificates(cb){
 		async.mapSeries(expiredCertObjs, function (expiredCertObj, next) {
 			certUtil.readKeyCertBundle(Buffer.from(expiredCertObj.certificate, 'base64'))
 				.then(keyBundle => {
-					if (crtErr) {
-						app.locals.log.error(crtErr);
-					}
 					//create a new cert with the already existing private key
 					const appInfo = {
 						app_uuid: expiredCertObj.app_uuid,

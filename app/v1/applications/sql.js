@@ -359,7 +359,7 @@ function updateAppCertificate (obj) {
     let insertObj = {
         app_uuid: obj.app_uuid,
         certificate: obj.certificate,
-        expiration_date: obj.expirationDate,
+        expiration_ts: obj.expirationDate,
     }
     return sql.insert('app_certificates', insertObj)
         .onConflict()
@@ -372,7 +372,7 @@ function getAllExpiredAppCertificates () {
     return sql.select('*')
         .from('app_certificates')
         //checks if the certificate is going to expire within a day
-        .toString() + " WHERE expiration_date < (now() + '1 day'::interval)";
+        .toString() + " WHERE expiration_ts < ((now() AT TIME ZONE 'UTC') + '1 day'::interval)";
 }
 
 function timestampCheck (tableName, whereObj) {

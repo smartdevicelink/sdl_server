@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS app_certificates (
     "app_uuid" VARCHAR(36) NOT NULL,
     "certificate" TEXT NOT NULL,
-    "expiration_date" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    "expiration_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     PRIMARY KEY (app_uuid)
 )
