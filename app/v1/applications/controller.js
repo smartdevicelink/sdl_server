@@ -392,10 +392,10 @@ function getAppCertificateByUuid(app_uuid, callback) {
         if (err) {
             return callback(err);
         }
-        if (result && result.certificate) {
-            callback(null, result.certificate);
+        if (result) {
+            callback(null, result);
         } else {
-            callback(null, null);
+            callback(null, {});
         }
     });
 }
