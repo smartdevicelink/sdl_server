@@ -7,6 +7,8 @@ const arrayify = app.locals.arrayify;
 const log = app.locals.log;
 const sql = require('./sql.js');
 const emails = require('../helpers/emails.js');
+const certificates = require('../certificates/controller.js');
+const certUtil = require('../helpers/certificates.js');
 
 //takes SQL data and converts it into a response for the UI to consume
 function constructFullAppObjs (res, next) {
@@ -132,7 +134,7 @@ function storeApp (notifyOEM, appObj, next) {
         flame.async.waterfall([
             //stage 1: insert app info
             client.getOne.bind(client, sql.insertAppInfo(appObj)),
-            //stage 2: insert countries, display names, permissions, and app auto approvals
+            //stage 2: insert countries, display names, permissions, app auto approvals, and certificates if enabled
             function (app, next) {
                 log.info("New/updated app " + app.app_uuid + " added to the database");
                 storedApp = app;
@@ -154,8 +156,69 @@ function storeApp (notifyOEM, appObj, next) {
                 if (appObj.is_auto_approved_enabled) {
                     allInserts.push(sql.insertAppAutoApproval(appObj));
                 }
-                //execute all the sql statements. client.getOne needs client as context or the query will fail
-                flame.async.series(flame.map(allInserts, client.getOne, client), next);
+
+                //generate app certificate if cert generation is enabled
+                if (certificates.openSSLEnabled) {
+                    //perform a cert check
+                    client.getOne(sql.getApp.certificate(app.app_uuid), function (err, data) {
+                        if (err) { //db error
+                            log.error(err);
+                            return next(err);
+                        }
+                        if (!data) { //no cert exists. make one
+                            return finishCertCheck(true);
+                        }
+
+                        //app has a cert. check if it's expired
+                        certUtil.readKeyCertBundle(Buffer.from(data.certificate, 'base64'))
+                            .then(keyBundle => {
+                                certUtil.isCertificateExpired(keyBundle.cert, function (expErr, isExpired) {
+                                    if (expErr || isExpired) {// error or expired. make a new one 
+                                        return finishCertCheck(true);
+                                    }
+                                    // certificate is valid. nothing needs to be done
+                                    finishCertCheck(false);
+                                });
+                            })
+                            .catch(err => { //error. make a new one
+                                return finishCertCheck(true);
+                            });
+                    });
+
+                    function finishCertCheck (shouldCreateCert) {
+                        if (!shouldCreateCert) {
+                            return runInserts();
+                        }
+
+                        log.info("Updating certificate of " + app.app_uuid);
+
+                        certificates.createCertificateFlow({
+                            serialNumber: app.uuid
+                        }, function (crtErr, cert) {
+                            if (crtErr) {
+                                // issues arose in creating certificate
+                                return next(crtErr, null);
+                            }
+                            certUtil.createKeyCertBundle(cert.clientKey, cert.certificate)
+                                .then(keyCertBundle => {
+                                    //add the cert as part of the inserts
+                                    allInserts.push(sql.updateAppCertificate(app.app_uuid, keyCertBundle.pkcs12.toString('base64')));
+                                    runInserts();
+                                })
+                                .catch(err => {
+                                    next(err)
+                                });
+                        });
+                    }
+                }
+                else { //cert generation disabled. continue on
+                    runInserts();
+                }
+
+                function runInserts () {
+                    //execute all the sql statements. client.getOne needs client as context or the query will fail
+                    flame.async.series(flame.map(allInserts, client.getOne, client), next);
+                }
             },
             //stage 3: sync with shaid
             function (res, next) {
@@ -203,7 +266,13 @@ function storeApp (notifyOEM, appObj, next) {
     }, next);
 }
 
+//given an app uuid and pkcs12 bundle, stores their relation in the database
+function updateAppCertificate (app_uuid, keyCertBundle, callback) {
+    db.sqlCommand(sql.updateAppCertificate(app_uuid, keyCertBundle.pkcs12.toString('base64')), callback);
+}
+
 module.exports = {
     constructFullAppObjs: constructFullAppObjs,
-    storeApp: storeApp
+    storeApp: storeApp,
+    updateAppCertificate: updateAppCertificate
 }
