@@ -369,10 +369,22 @@ function updateAppCertificate (obj) {
 }
 
 function getAllExpiredAppCertificates () {
-    return sql.select('*')
-        .from('app_certificates')
-        //checks if the certificate is going to expire within a day
-        .toString() + " WHERE expiration_ts < ((now() AT TIME ZONE 'UTC') + '1 day'::interval)";
+    return sql.select('a.app_uuid')
+        .from('(' +
+            sql.select('ai.app_uuid')
+            .from('app_info ai')
+            .groupBy('ai.app_uuid')
+        + ') a')
+        .leftJoin('app_certificates ac', {
+            'ac.app_uuid': 'a.app_uuid'
+        })
+        .where(
+            sql.or(
+                sql.lt('ac.expiration_ts', sql('((now() AT TIME ZONE \'UTC\') + \'1 day\'::interval)')),
+                sql.isNull('ac.expiration_ts')
+            )
+        )
+        .toString();
 }
 
 function timestampCheck (tableName, whereObj) {
