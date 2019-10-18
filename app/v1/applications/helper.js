@@ -149,76 +149,11 @@ function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
         });
     }
     recStore(includeApprovalStatus, apps, function(){
-        if(certificates.openSSLEnabled){
-            appCerts(apps, callback);
-        } else {
-            callback();
-        }
+        callback();
         if(queue.length > 0){
             attemptRetry(300000, queue);
         }
     });
-}
-
-function appCerts(apps, callback){
-    async.mapSeries(apps, function(app, next){
-        db.sqlCommand(sql.getApp.certificate(app.uuid), function(err, data){
-            if(err){
-                log.error(err);
-                return;
-            }
-            function badCert(cb){
-                certificates.createCertificateFlow({
-                    serialNumber: app.uuid
-                }, function(crtErr, cert){
-                    if(crtErr){
-                        // issues arose in creating certificate
-                        return cb(crtErr, null);
-                    }
-                    //console.log(cert)
-                    certUtil.createKeyCertBundle(cert.clientKey, cert.certificate)
-                        .then(keyCertBundle => {
-                            cb(null, {
-                                app_uuid: app.uuid,
-                                certificate: keyCertBundle
-                            });
-                        })
-                        .catch(err => {
-                            cb(err)
-                        });
-                });
-            }
-            if(data.length != 0){
-                //app has a cert, check if it's expired
-                certUtil.readKeyCertBundle(Buffer.from(data[0].certificate, 'base64'))
-                    .then(keyBundle => {
-                        certUtil.isCertificateExpired(keyBundle.cert, function (expErr, isExpired) {
-                            if(expErr || isExpired){
-                                return badCert(next);
-                            }
-                            // certificate is valid, nothing needs to be done
-                            next();
-                        });
-                    })
-                    .catch(err => {
-                        return badCert(next);
-                    })
-            } else {
-                badCert(next);
-            }
-        })
-    }, function(err, results){
-        if(err){
-            log.error(err);
-        }
-        if(results.filter(Boolean).length){
-            log.info('App certificates generated, store them with a transaction');
-            //log.info(results.filter(Boolean));
-            storeAppCertificates(results.filter(Boolean), callback);
-        } else {
-            callback();
-        }
-    })
 }
 
 //determine whether the object needs to be deleted or stored in the database
@@ -353,7 +288,7 @@ function storeAppCertificates (insertObjs, next) {
 	app.locals.db.runAsTransaction(function (client, callback) {
 		async.mapSeries(insertObjs, function (insertObj, cb) {
 			app.locals.log.info("Updating certificate of " + insertObj.app_uuid);
-            updateAppCertificate(insertObj.app_uuid, insertObj.certificate, cb);
+            model.updateAppCertificate(insertObj.app_uuid, insertObj.certificate, cb);
 		}, callback);
 	}, function (err, response) {
 		if(err){
@@ -387,11 +322,6 @@ function getFailedAppsCert(failedApp, next){
 	});
 }
 
-//given an app uuid and pkcs12 bundle, stores their relation in the database
-function updateAppCertificate (app_uuid, keyCertBundle, callback) {
-    db.sqlCommand(sql.updateAppCertificate(app_uuid, keyCertBundle.pkcs12.toString('base64')), callback);
-}
-
 module.exports = {
     validateActionPost: validateActionPost,
     validateAutoPost: validateAutoPost,
@@ -403,7 +333,7 @@ module.exports = {
     validateWebHook: validateWebHook,
     storeAppCertificates: storeAppCertificates,
     getFailedAppsCert: getFailedAppsCert,
-    updateAppCertificate: updateAppCertificate,
+    updateAppCertificate: model.updateAppCertificate,
     createAppInfoFlow: createAppInfoFlow,
     storeApps: storeApps,
     storeCategories: storeCategories,
