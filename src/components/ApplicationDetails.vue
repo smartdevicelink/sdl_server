@@ -725,45 +725,31 @@ export default {
                 }
             });
         },
-        "gotPrivateKey": function (private_key) {
-            this.private_key = private_key;
-            this.certificate_options.clientKey = this.private_key;
-        },
         "gotCertificateKeyData": function (data) {
             this.private_key = data.clientKey;
             this.certificate = data.certificate;
         },
-		"handleCertModalClick": function (loadingProp, modalName, methodName) {
-			//show a loading icon for the modal, and call the methodName passed in
-			//when finished, turn off the loading icon, hide the modal, and reload the info
-            this[loadingProp] = true;
-            //const self = this;
-			this[methodName](() => {
-				this[loadingProp] = false;
-				if (modalName) {
-					this.$refs[modalName].hide();
-				}
-				//self.environmentClick();
-			});
-        },
         "saveCertificate": function (){
-            if(!((this.certificate && !this.private_key) || (!this.certificate && this.private_key))
-                || (this.certificate.length == 0 && this.private_key.length == 0)){
+            //both keys defined or both keys must be empty
+            if (
+                (this.certificate && this.private_key) ||
+                (!this.certificate && !this.private_key)
+            ) {
                 let options = {
                     app_uuid: this.app.uuid,
                     clientKey: this.private_key,
                     certificate: this.certificate
-                }
-                this.httpRequest('post', 'applications/certificate', { "body": {"options": options}}, (err) => {
-                    if(err){
-                        console.log("Error occurred saving certificate data");
+                };
+                this.httpRequest('post', 'applications/certificate', { 'body': { 'options': options } }, (err) => {
+                    if (err) {
+                        console.log('Error occurred saving certificate data');
                         console.log(err);
                     }
                     this.certificate_error = !!err;
                     this.toTop();
-                })
+                });
             } else {
-                console.log('failed to save certificate')
+                console.log('failed to save certificate');
                 this.toTop();
             }
         },
@@ -816,7 +802,6 @@ export default {
                     response.json().then(parsed => {
                         if(parsed.data.applications.length){
                             this.app = parsed.data.applications[0];
-                            console.log(parsed.data.applications)
                             this.private_key = this.app.private_key;
                             this.certificate = this.app.certificate;
                             this.selected_hybrid_app_preference = this.hybrid_dropdown_options[this.app.hybrid_app_preference || "BOTH"];

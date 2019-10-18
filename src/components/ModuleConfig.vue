@@ -21,12 +21,12 @@
 
                 <h4>Module Config<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/module-config/" target="_blank"></a></h4>
 
-                
+
                 <div v-if="(module_config && !module_config.certificate && private_key) || (module_config && module_config.certificate && !private_key)" class="alert color-bg-red color-white d-table" role="alert">
-                    ** Notice: The {{(private_key) ? "certificate" : "private key"}} is not defined but the {{(private_key) ? "private key" : "certificate"}} is. 
+                    ** Notice: The {{(private_key) ? "certificate" : "private key"}} is not defined but the {{(private_key) ? "private key" : "certificate"}} is.
                     They should both be set or both left empty.
                 </div>
-                
+
                 <div v-if="certificate_error" class="alert color-bg-red color-white d-table" role="alert">
                     ** Notice: {{ certificate_error }}
                 </div>
@@ -188,7 +188,7 @@
                             </vue-ladda>
                         </div>
                     </div>
-                    
+
                             <div class="form-row">
                                 <h4>Custom Vehicle Data Mapping URL</h4>
                                 <input v-model="module_config.endpoints['custom_vehicle_data_mapping_url']" :disabled="fieldsDisabled" class="form-control">
@@ -328,7 +328,7 @@ export default {
                         res.json().then(parsed => {
                             if (parsed.data.module_configs && parsed.data.module_configs.length) {
                                 this.module_config = parsed.data.module_configs[0]; //only one entry
-                                
+
                                 //
                                 this.private_key = this.module_config.private_key;
                             }
@@ -341,10 +341,14 @@ export default {
             });
         },
         "saveModuleConfig": function () {
-            if((this.private_key && !this.module_config.certificate) || (!this.private_key && this.module_config.certificate)){
+            //if one of the keys is defined and not the other, go to the top and don't save.
+            if (
+                (this.private_key && !this.module_config.certificate) ||
+                (!this.private_key && this.module_config.certificate)
+            ) {
                 this.toTop();
             } else {
-                this.handleModalClick("save_button_loading", null, "saveConfig");
+                this.handleModalClick('save_button_loading', null, 'saveConfig');
             }
         },
         "saveConfig": function (cb) {

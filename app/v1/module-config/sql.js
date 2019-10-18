@@ -79,7 +79,7 @@ function insertEndpointProperties (endpointPropertiesObject, id) {
     // flatten endpoint properties into an array of simple objects
     let inserts = [];
     for (let key in endpointPropertiesObject) {
-        for (propKey in endpointPropertiesObject[key]) {
+        for (let propKey in endpointPropertiesObject[key]) {
             let insertObj = {
                 module_config_id: id,
                 endpoint_name: key
