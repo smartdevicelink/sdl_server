@@ -374,6 +374,7 @@ function insertAppInfo (obj) {
         status: obj.status,
         can_background_alert: obj.can_background_alert,
         can_steal_focus: obj.can_steal_focus,
+        can_manage_widgets: obj.can_manage_widgets,
         default_hmi_level: obj.default_hmi_level,
         icon_url: obj.icon_url,
         cloud_endpoint: obj.cloud_endpoint || null,
