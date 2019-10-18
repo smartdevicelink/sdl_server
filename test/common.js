@@ -35,6 +35,20 @@ exports.post = (testName, endpoint, body, endFunction) => {
     });
 };
 
+exports.put = (testName, endpoint, body, endFunction) => {
+    it(testName, (done) => {
+        chai.request(BASE_URL)
+            .put(endpoint)
+            .set('Accept', 'application/json')
+            .set('Content-Type', 'application/json')
+            .set('BASIC-AUTH-PASSWORD', config.basicAuthPassword)
+            .send(body)
+            .end( (err, res) => {
+                endFunction(err, res, done);
+            })
+    });
+};
+
 exports.chai = chai;
 exports.expect = expect;
 exports.BASE_URL = BASE_URL;

@@ -51,7 +51,13 @@ common.post(
         endpoints: {
             '0x04': 'http://localhost:3000/api/1/softwareUpdate',
             queryAppsUrl: 'http://localhost:3000/api/1/queryApps',
-            lock_screen_icon_url: 'https://i.imgur.com/TgkvOIZ.png'
+            lock_screen_icon_url: 'https://i.imgur.com/TgkvOIZ.png',
+            custom_vehicle_data_mapping_url: 'http://oem-example.com'
+        },
+        endpoint_properties: {
+            custom_vehicle_data_mapping_url: {
+                version: "1"
+            }
         },
         notifications_per_minute_by_priority: {
             EMERGENCY: 60,
@@ -60,7 +66,8 @@ common.post(
             COMMUNICATION: 5,
             NORMAL: 5,
             NONE: 0
-        }
+        },
+        lock_screen_dismissal_enabled: true
     },
     (err, res, done) => {
         expect(err).to.be.null;

@@ -25,7 +25,14 @@ function validateActionPost (req, res) {
 
 function validateServicePermissionPut (req, res) {
 	if (!req.body.id || !check.boolean(req.body.is_selected) || !check.string(req.body.service_type_name) || !check.string(req.body.permission_name)) {
-		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name required");
+		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name are required");
+	}
+    return;
+}
+
+function validateFunctionalGroupPut (req, res) {
+	if (!req.body.app_id || !check.boolean(req.body.is_selected) || !check.string(req.body.property_name)) {
+		res.parcel.setStatus(400).setMessage("app_id, is_selected, and property_name are required");
 	}
     return;
 }
@@ -94,6 +101,16 @@ function createAppInfoFlow (filterTypeFunc, value) {
 	}, {method: 'parallel', eventLoop: true});
 
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
+}
+
+function storeCategories(categories, callback) {
+    const upsertCats = app.locals.db.setupSqlCommands(sql.upsertCategories(categories));
+
+    const insertFlow = app.locals.flow([
+        app.locals.flow(upsertCats, {method: 'parallel'})
+    ], {method: 'series'});
+
+    insertFlow(callback);
 }
 
 //application store functions
@@ -274,14 +291,16 @@ function attemptRetry(milliseconds, retryQueue){
 }
 
 module.exports = {
-	validateActionPost: validateActionPost,
-	validateAutoPost: validateAutoPost,
-	validateAdministratorPost: validateAdministratorPost,
-	validatePassthroughPost: validatePassthroughPost,
-	validateHybridPost: validateHybridPost,
-	validateRPCEncryptionPut: validateRPCEncryptionPut,
-	validateServicePermissionPut: validateServicePermissionPut,
+	  validateActionPost: validateActionPost,
+	  validateAutoPost: validateAutoPost,
+	  validateAdministratorPost: validateAdministratorPost,
+	  validatePassthroughPost: validatePassthroughPost,
+	  validateHybridPost: validateHybridPost,
+	  validateRPCEncryptionPut: validateRPCEncryptionPut,
+	  validateServicePermissionPut: validateServicePermissionPut,
+	  validateFunctionalGroupPut: validateFunctionalGroupPut,
     validateWebHook: validateWebHook,
-	createAppInfoFlow: createAppInfoFlow,
-	storeApps: storeApps
-}
+    createAppInfoFlow: createAppInfoFlow,
+    storeApps: storeApps,
+    storeCategories: storeCategories,
+};
