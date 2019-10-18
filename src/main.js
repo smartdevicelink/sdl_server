@@ -12,11 +12,13 @@ import SideNav from './components/common/SideNav.vue'
 import UserNav from './components/common/UserNav.vue'
 import AppRow from './components/common/AppRow.vue'
 import AppServicePermissionRow from './components/common/AppServicePermission.vue'
+import AppFunctionalGroupRow from './components/common/AppFunctionalGroup.vue'
 import Invitee from './components/common/Invitee.vue'
 import RpcItem from './components/common/RpcItem'
 import RpcChecklist from './components/common/RpcChecklist'
 import HmiSelector from './components/common/HmiSelector'
 import MessageItem from './components/common/MessageItem'
+import SchemaItem from './components/common/SchemaItem'
 import CardItem from './components/common/CardItem'
 import PatternInput from './components/common/PatternInput'
 
@@ -39,6 +41,7 @@ Vue.component("page-side-nav", SideNav);
 Vue.component("page-user-nav", UserNav);
 Vue.component("app-row", AppRow);
 Vue.component("app-service-permission-row", AppServicePermissionRow);
+Vue.component("app-functional-group-row", AppFunctionalGroupRow);
 Vue.component("invitee", Invitee);
 Vue.component("rpc-item", RpcItem);
 Vue.component("rpc-checklist", RpcChecklist);
@@ -46,6 +49,7 @@ Vue.component("hmi-selector", HmiSelector);
 Vue.component("message-item", MessageItem);
 Vue.component("card-item", CardItem);
 Vue.component("pattern-input", PatternInput);
+Vue.component("schema-item", SchemaItem);
 
 Vue.http.options.root = '/api/v1';
 

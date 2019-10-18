@@ -15,7 +15,7 @@
         props: {
             value: {
                 required: true,
-                type: [Number, String]
+                type: [Number, String],
             },
             // Using for: String.prototype.replace(regexp, replacement)
             regExp: {

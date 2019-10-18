@@ -14,8 +14,9 @@ function get (req, res, next) {
 
     if (returnTemplate) { //template mode. return just the shell of a functional group, rpcs included
         chosenFlow = flow([
-            function (next) {
-                next(null, [model.getFunctionGroupTemplate()]); //must be in an array
+            helper.generateFunctionGroupTemplates.bind(null, isProduction),
+            function (template, next) {
+                next(null, [template]); //must be in an array
             }
         ], {method: 'waterfall'});
     }
@@ -57,7 +58,7 @@ function getGroupNamesStaging (req, res, next) {
             .setData({
                 "names": groupNames
             })
-            .deliver();        
+            .deliver();
     });
 }
 

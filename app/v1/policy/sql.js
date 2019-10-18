@@ -58,6 +58,65 @@ function getAppModules (appId) {
         .toString();
 }
 
+function getVehicleDataSchemaVersion (isProduction) {
+    let rpc_spec = sql.select('MAX(rs.created_ts) AS created_ts')
+        .from('rpc_spec rs');
+
+    let cvd = sql.select('MAX(vcvd.created_ts) AS created_ts')
+        .from('view_custom_vehicle_data vcvd');
+
+    if(isProduction){
+        cvd.where({
+            'vcvd.status': 'PRODUCTION'
+        });
+    }
+
+    return sql.select('EXTRACT(epoch FROM MAX(COALESCE(created_ts, now()))::timestamp)::text AS version')
+        .from('(' + rpc_spec.union(cvd) + ') grouped');
+}
+
+function getLatestRpcSpecId() {
+    return sql.select('id')
+        .from('rpc_spec')
+        .orderBy('created_ts DESC')
+        .limit(1);
+}
+
+function getRpcSpecTypes (types) {
+    let query = sql.select('rst.*')
+        .from('rpc_spec_type rst')
+        .where({
+            'rst.rpc_spec_id': getLatestRpcSpecId()
+        });
+
+    if(Array.isArray(types) && types.length > 0){
+        query.where(
+            sql.in('rst.element_type', types)
+        );
+    }
+
+    return query;
+}
+
+function getRpcSpecParams () {
+    let query = sql.select('rsp.*')
+        .from('rpc_spec_param rsp')
+        .join('rpc_spec_type rst', {
+            'rst.id': 'rsp.rpc_spec_type_id'
+        })
+        .where({
+            'rst.rpc_spec_id': getLatestRpcSpecId()
+        })
+        .where(
+            sql.or(
+                sql.notEq('rsp.platform', 'documentation'),
+                sql.isNull('rsp.platform')
+            )
+        );
+
+    return query;
+}
+
 function getDefaultFunctionalGroups (isProduction) {
     let statement = funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)
         .where({'view_function_group_info.is_default': true});
@@ -172,6 +231,16 @@ function getAppFunctionalGroups (isProduction, appObj) {
                     'view_function_group_info.is_administrator_group': true
                 })
         ),
+        //adds functional groups with is_proprietary_group set to true and app flagged
+        sql.exists(
+            sql.select()
+                .from('app_function_groups afg')
+                .where({
+                    'afg.app_id': appObj.id,
+                    'afg.property_name': sql('view_function_group_info.property_name'),
+                    'view_function_group_info.is_proprietary_group': true
+                })
+        ),
     ];
 
     if(appObj.can_background_alert){
@@ -212,6 +281,10 @@ module.exports = {
     getAppFunctionalGroups: getAppFunctionalGroups,
     getDefaultFunctionalGroups: getDefaultFunctionalGroups,
     getPreDataConsentFunctionalGroups: getPreDataConsentFunctionalGroups,
-    getDeviceFunctionalGroups: getDeviceFunctionalGroups
+    getDeviceFunctionalGroups: getDeviceFunctionalGroups,
+    getVehicleDataSchemaVersion: getVehicleDataSchemaVersion,
+    getLatestRpcSpecId: getLatestRpcSpecId,
+    getRpcSpecTypes: getRpcSpecTypes,
+    getRpcSpecParams: getRpcSpecParams
 }
 

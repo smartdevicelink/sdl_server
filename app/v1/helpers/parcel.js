@@ -1,5 +1,5 @@
 const UUID = require("uuid");
-const GET = require("lodash.get");
+const GET = require("lodash").get;
 
 // extend the properties and functionality of the Express.js "res" variable
 // use via: app.use(response.extendExpress);
