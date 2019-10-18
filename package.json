@@ -41,7 +41,7 @@
     "dotenv": "4.0.0",
     "express": "4.16.0",
     "helmet": "^3.15.1",
-    "jquery": "3.2.1",
+    "jquery": "^3.4.1",
     "lodash": "^4.17.15",
     "mustache": "^3.0.1",
     "nodemailer": "^6.1.1",
