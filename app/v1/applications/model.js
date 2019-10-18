@@ -172,12 +172,12 @@ function storeApp (notifyOEM, appObj, next) {
                         //app has a cert. check if it's expired
                         certUtil.readKeyCertBundle(Buffer.from(data.certificate, 'base64'))
                             .then(keyBundle => {
-                                certUtil.isCertificateExpired(keyBundle.cert, function (expErr, isExpired) {
-                                    if (expErr || isExpired) {// error or expired. make a new one 
+                                getExpiredCerts(function (err, expiredAppCerts) {
+                                    if (err) { // error. make a new one 
                                         return finishCertCheck(true);
                                     }
-                                    // certificate is valid. nothing needs to be done
-                                    finishCertCheck(false);
+                                    //return whether a matching app uuid was found in the expired app certs array
+                                    finishCertCheck(expiredAppCerts.find(eac => eac.app_uuid === data.app_uuid));
                                 });
                             })
                             .catch(err => { //error. make a new one
@@ -202,11 +202,21 @@ function storeApp (notifyOEM, appObj, next) {
                             certUtil.createKeyCertBundle(cert.clientKey, cert.certificate)
                                 .then(keyCertBundle => {
                                     //add the cert as part of the inserts
-                                    allInserts.push(sql.updateAppCertificate(app.app_uuid, keyCertBundle.pkcs12.toString('base64')));
-                                    runInserts();
+                                    extractExpirationDate(keyCertBundle.pkcs12, function (err, expirationDate) {
+                                        if (err) {
+                                            return next(err);
+                                        }
+                                        const insertObj = {
+                                            app_uuid: app.app_uuid,
+                                            certificate: keyCertBundle.pkcs12.toString('base64'),
+                                            expirationDate: expirationDate
+                                        }
+                                        allInserts.push(sql.updateAppCertificate(insertObj));
+                                        runInserts();
+                                    });
                                 })
                                 .catch(err => {
-                                    next(err)
+                                    next(err);
                                 });
                         });
                     }
@@ -267,12 +277,41 @@ function storeApp (notifyOEM, appObj, next) {
 }
 
 //given an app uuid and pkcs12 bundle, stores their relation in the database
-function updateAppCertificate (app_uuid, keyCertBundle, callback) {
-    db.sqlCommand(sql.updateAppCertificate(app_uuid, keyCertBundle.pkcs12.toString('base64')), callback);
+function updateAppCertificate (uuid, keyCertBundle, callback) {
+    extractExpirationDate(keyCertBundle.pkcs12, function (err, expirationDate) {
+        if (err) {
+            return callback(err);
+        }
+        const insertObj = {
+            app_uuid: uuid,
+            certificate: keyCertBundle.pkcs12.toString('base64'),
+            expirationDate: expirationDate
+        }
+        db.sqlCommand(sql.updateAppCertificate(insertObj), callback);
+    });
+
+}
+
+function extractExpirationDate (keyCertBundle, callback) {
+    certUtil.readKeyCertBundle(keyCertBundle)
+        .then(keyBundle => {
+            return certUtil.parseCertificate(keyBundle.cert);
+        })
+        .then(certInfo => {
+            callback(null, new Date(certInfo.validity.end));
+        })
+        .catch(err => {
+            return callback(err);
+        });
+}
+
+function getExpiredCerts (callback) {
+    db.sqlCommand(sql.getApp.allExpiredCertificates(), callback);
 }
 
 module.exports = {
     constructFullAppObjs: constructFullAppObjs,
     storeApp: storeApp,
-    updateAppCertificate: updateAppCertificate
+    updateAppCertificate: updateAppCertificate,
+    getExpiredCerts: getExpiredCerts
 }
