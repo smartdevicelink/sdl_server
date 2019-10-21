@@ -64,4 +64,4 @@ The following environment variables are the most relevant for getting the policy
 To know if this process was successful and if your policy server is now capable of generating keys and certificates, check the About page to see if certificate generation is enabled.
 
 ## Retrieving the Certificates
-SDL_Core's certificate is stored in the module_config of the policy table and is updated via a Policy Table Update. For an app to update its certificate, it must make either a `GET` or `POST` request to the `/applications/certificate/get` endpoint. See the API documentation for more details.
+SDL Core's certificate is stored in the module_config of the policy table and is updated via a Policy Table Update. For an app to update its certificate, it must make either a `GET` or `POST` request to the `/applications/certificate/get` endpoint. See the API documentation for more details.
