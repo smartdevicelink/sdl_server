@@ -179,7 +179,7 @@ function storeApp (notifyOEM, appObj, next) {
                         log.info("Updating certificate of " + app.app_uuid);
 
                         certificates.createCertificateFlow({
-                            serialNumber: app.uuid
+                            serialNumber: app.app_uuid
                         }, function (crtErr, cert) {
                             if (crtErr) {
                                 // issues arose in creating certificate
