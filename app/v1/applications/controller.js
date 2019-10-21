@@ -3,6 +3,7 @@ const helper = require('./helper.js');
 const sql = require('./sql.js');
 const flow = app.locals.flow;
 const async = require('async');
+const moment = require('moment');
 const settings = require('../../../settings.js');
 const certUtil = require('../helpers/certificates.js');
 const certificates = require('../certificates/controller.js');
@@ -432,35 +433,19 @@ function getAppCertificate(req, res, next) {
                 .deliver();
         }
 
-        certUtil.readKeyCertBundle(Buffer.from(appCert.certificate, 'base64'))
-            .then(keyBundle => {
-				return new Promise((resolve, reject) => {
-					helper.getExpiredCerts(function (err, expiredAppCerts) {
-						if (err) {
-							return reject(err);
-						}
-						//return whether a matching app uuid was found in the expired app certs array
-						resolve(expiredAppCerts.find(eac => eac.app_uuid === appCert.app_uuid));
-					});
-				});
-            })
-            .then(isValid => {
-                if (!isValid) {
-                    return res.parcel.setStatus(500)
-                        .setMessage('App certificate is expired')
-                        .deliver();
-                } else {
-                    res.parcel.setStatus(200)
-                        .setData({ 'certificate': appCert.certificate })
-                        .deliver();
-                }
-            })
-            .catch(err => {
-                app.locals.log.error(err);
-                return res.parcel.setStatus(500)
-                    .setMessage('Internal Server Error')
-                    .deliver();
-            });
+        const expirationDate = moment.utc(appCert.expiration_ts).format();
+        const currentDate = moment.utc().format();
+
+        if (expirationDate < currentDate) {
+			return res.parcel.setStatus(500)
+                .setMessage('App certificate is expired')
+                .deliver();
+        }
+        else {
+	        res.parcel.setStatus(200)
+	            .setData({ 'certificate': appCert.certificate })
+	            .deliver();
+        }
     });
 }
 

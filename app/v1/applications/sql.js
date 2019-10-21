@@ -340,7 +340,7 @@ function getAppAutoApproval (id) {
 }
 
 function getAppCertificate(app_uuid){
-    return sql.select('ac.certificate')
+    return sql.select('ac.certificate', 'ac.expiration_ts::TEXT')
         .from('app_info ai')
         .join('app_certificates ac', {
             'ac.app_uuid': 'ai.app_uuid'
