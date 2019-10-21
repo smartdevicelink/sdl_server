@@ -64,10 +64,6 @@ function isCertificateExpired(certificate, cb) {
         });
 }
 
-function certificateGenerationEnabled() {
-
-}
-
 module.exports = {
     createKeyCertBundle: createKeyCertBundle,
     readKeyCertBundle: readKeyCertBundle,
