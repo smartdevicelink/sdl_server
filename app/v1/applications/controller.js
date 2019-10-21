@@ -150,6 +150,34 @@ function hybridPost (req, res, next) {
 	});
 }
 
+function rpcEncryptionPut (req, res, next) {
+	helper.validateRPCEncryptionPut(req, res);
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+	app.locals.db.runAsTransaction(function (client, callback) {
+		async.waterfall([
+			function (callback) {
+				client.getOne(sql.getApp.base['idFilter'](req.body.id), callback);
+			},
+			function (result, callback) {
+				if (!result) {
+					return callback("Unknown app");
+				}
+				client.getOne(sql.updateRPCEncryption(req.body), callback);
+			}
+		], callback);
+	}, function (err, response) {
+		if (err) {
+			app.locals.log.error(err);
+			return res.parcel.setStatus(500).deliver();
+		} else {
+			return res.parcel.setStatus(200).deliver();
+		}
+	});
+}
+
 function autoPost (req, res, next) {
 	helper.validateAutoPost(req, res);
 	if (res.parcel.message) {
@@ -556,6 +584,7 @@ module.exports = {
 	autoPost: autoPost,
 	administratorPost: administratorPost,
 	passthroughPost: passthroughPost,
+	rpcEncryptionPut: rpcEncryptionPut,
 	hybridPost: hybridPost,
 	getFunctionalGroups: getFunctionalGroups,
 	putFunctionalGroup: putFunctionalGroup,

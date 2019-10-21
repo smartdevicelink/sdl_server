@@ -64,6 +64,7 @@ Here are the environment variables that will most likely be used:
 * `CERTIFICATE_EMAIL_ADDRESS`: String. Default information of the issuer's email address.
 * `CERTIFICATE_HASH`: String. The cryptographic hash function to use. Default 'sha256'.
 * `CERTIFICATE_DAYS`: Integer. The number of days until the certificate expires. Default 7.
+* `ENCRYPTION_REQUIRED`: String boolean ("true" or "false"). Whether or not to require RPC encryption for auto-approved app versions. Default "false".
 
 * `STAGING_PG_USER` **DEPRECATED**: String. The name of the user to allow the server access the database (staging mode)
 * `STAGING_PG_DATABASE` **DEPRECATED**: String. The name of the database where policy and app data is stored (staging mode)

@@ -40,6 +40,7 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
         "exchange_after_x_days": base.exchange_after_x_days,
         "timeout_after_x_seconds": base.timeout_after_x_seconds,
         "seconds_between_retries": retrySeconds,
+        "lock_screen_dismissal_enabled": base.lock_screen_dismissal_enabled,
         "endpoints": {
             "0x07": {
                 default: [ protocol + settings.policyServerHost + concatPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]
@@ -151,6 +152,8 @@ function transformFunctionalGroups (isProduction, info, next) {
     //set up the top level objects for these hashes
     for (let i = 0; i < baseInfo.length; i++) {
         groupedData[baseInfo[i].id] = {};
+
+        groupedData[baseInfo[i].id].encryption_required = baseInfo[i].encryption_required;
 
         const selectedPrompt = consentPrompts.find(function (prompt) {
             return prompt.message_category === baseInfo[i].user_consent_prompt;
@@ -388,6 +391,7 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
     if (appObj.cloud_transport_type) appPolicyObj[uuidProp].cloud_transport_type = appObj.cloud_transport_type;
     if (appObj.ca_certificate) appPolicyObj[uuidProp].certificate = appObj.ca_certificate;
     if (res.hybridPreference.length) appPolicyObj[uuidProp].hybrid_app_preference = res.hybridPreference[0].hybrid_preference;
+    if (appObj.encryption_required) appPolicyObj[uuidProp].encryption_required = appObj.encryption_required;
 
     if(res.incomingAppPolicy){
         if (res.incomingAppPolicy.enabled !== undefined) appPolicyObj[uuidProp].enabled = res.incomingAppPolicy.enabled;
