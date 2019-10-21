@@ -202,7 +202,7 @@ function storeApp (notifyOEM, appObj, next) {
                             certUtil.createKeyCertBundle(cert.clientKey, cert.certificate)
                                 .then(keyCertBundle => {
                                     //add the cert as part of the inserts
-                                    extractExpirationDate(keyCertBundle.pkcs12, function (err, expirationDate) {
+                                    certUtil.extractExpirationDateBundle(keyCertBundle.pkcs12, function (err, expirationDate) {
                                         if (err) {
                                             return next(err);
                                         }
@@ -278,7 +278,7 @@ function storeApp (notifyOEM, appObj, next) {
 
 //given an app uuid and pkcs12 bundle, stores their relation in the database
 function updateAppCertificate (uuid, keyCertBundle, callback) {
-    extractExpirationDate(keyCertBundle.pkcs12, function (err, expirationDate) {
+    certUtil.extractExpirationDateBundle(keyCertBundle.pkcs12, function (err, expirationDate) {
         if (err) {
             return callback(err);
         }
@@ -290,19 +290,6 @@ function updateAppCertificate (uuid, keyCertBundle, callback) {
         db.sqlCommand(sql.updateAppCertificate(insertObj), callback);
     });
 
-}
-
-function extractExpirationDate (keyCertBundle, callback) {
-    certUtil.readKeyCertBundle(keyCertBundle)
-        .then(keyBundle => {
-            return certUtil.parseCertificate(keyBundle.cert);
-        })
-        .then(certInfo => {
-            callback(null, new Date(certInfo.validity.end));
-        })
-        .catch(err => {
-            return callback(err);
-        });
 }
 
 function getExpiredCerts (callback) {

@@ -380,6 +380,7 @@ function getAllExpiredAppCertificates () {
         })
         .where(
             sql.or(
+                //checks if the certificate is going to expire within a day
                 sql.lt('ac.expiration_ts', sql('((now() AT TIME ZONE \'UTC\') + \'1 day\'::interval)')),
                 sql.isNull('ac.expiration_ts')
             )

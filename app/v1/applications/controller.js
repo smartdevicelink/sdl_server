@@ -504,6 +504,10 @@ function checkAndUpdateCertificates(cb){
 	function parseAppCerts(sqlErr, expiredCertObjs){
 		if (sqlErr) {
 			app.locals.log.error(sqlErr);
+			if (cb) {
+				cb();
+			}
+			return;
 		}
 
 		async.mapSeries(expiredCertObjs, function (expiredCertObj, next) {

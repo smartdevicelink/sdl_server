@@ -1,5 +1,6 @@
 ALTER TABLE module_config
 DROP COLUMN IF EXISTS certificate CASCADE,
-DROP COLUMN IF EXISTS private_key CASCADE;
+DROP COLUMN IF EXISTS private_key CASCADE,
+DROP COLUMN IF EXISTS expiration_ts CASCADE;
 
 DROP TABLE IF EXISTS app_certificates;

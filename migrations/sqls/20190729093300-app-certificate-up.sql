@@ -9,7 +9,8 @@ WITH ( OIDS = FALSE );
 
 ALTER TABLE module_config
 ADD COLUMN IF NOT EXISTS private_key TEXT,
-ADD COLUMN IF NOT EXISTS certificate TEXT;
+ADD COLUMN IF NOT EXISTS certificate TEXT,
+ADD COLUMN IF NOT EXISTS expiration_ts TIMESTAMP WITHOUT TIME ZONE;
 
 CREATE OR REPLACE VIEW view_module_config AS
 SELECT module_config.*
