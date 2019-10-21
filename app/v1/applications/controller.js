@@ -436,7 +436,7 @@ function getAppCertificate(req, res, next) {
         const expirationDate = moment.utc(appCert.expiration_ts).format();
         const currentDate = moment.utc().format();
 
-        if (expirationDate < currentDate) {
+        if (moment(expirationDate).isBefore(currentDate)) {
 			return res.parcel.setStatus(500)
                 .setMessage('App certificate is expired')
                 .deliver();
