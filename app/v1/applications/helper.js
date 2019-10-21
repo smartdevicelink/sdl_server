@@ -333,9 +333,7 @@ module.exports = {
     validateWebHook: validateWebHook,
     storeAppCertificates: storeAppCertificates,
     createFailedAppsCert: createFailedAppsCert,
-    updateAppCertificate: model.updateAppCertificate,
     createAppInfoFlow: createAppInfoFlow,
     storeApps: storeApps,
     storeCategories: storeCategories,
-    getExpiredCerts: model.getExpiredCerts,
 };

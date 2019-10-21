@@ -1,5 +1,6 @@
 const app = require('../app');
 const helper = require('./helper.js');
+const model = require('./model.js');
 const sql = require('./sql.js');
 const flow = app.locals.flow;
 const async = require('async');
@@ -458,7 +459,7 @@ function updateAppCertificate(req, res, next) {
 
 	certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
 		.then(keyCertBundle => {
-			helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
+			model.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
 				if (err) {
 					app.locals.log.error(err);
 					return res.parcel.setStatus(500)
