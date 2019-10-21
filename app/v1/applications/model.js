@@ -168,21 +168,7 @@ function storeApp (notifyOEM, appObj, next) {
                         if (!data) { //no cert exists. make one
                             return finishCertCheck(true);
                         }
-
-                        //app has a cert. check if it's expired
-                        certUtil.readKeyCertBundle(Buffer.from(data.certificate, 'base64'))
-                            .then(keyBundle => {
-                                getExpiredCerts(function (err, expiredAppCerts) {
-                                    if (err) { // error. make a new one 
-                                        return finishCertCheck(true);
-                                    }
-                                    //return whether a matching app uuid was found in the expired app certs array
-                                    finishCertCheck(expiredAppCerts.find(eac => eac.app_uuid === data.app_uuid));
-                                });
-                            })
-                            .catch(err => { //error. make a new one
-                                return finishCertCheck(true);
-                            });
+                        return finishCertCheck(false); //cert exists. let the cron update the cert if it's nearing expiration
                     });
 
                     function finishCertCheck (shouldCreateCert) {
