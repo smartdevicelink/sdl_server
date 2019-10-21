@@ -18,13 +18,17 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
 
     var concatPort = "";
     var protocol = "http://";
-    if(settings.policyServerPortSSL){
+    if(settings.ssl.policyServerPort){
         protocol = "https://";
-        if(settings.policyServerPortSSL != 443){
-            concatPort = ":" + settings.policyServerPortSSL;
+        if(settings.ssl.policyServerPort != 443){
+            concatPort = ":" + settings.ssl.policyServerPort;
         }
-    }else if(!settings.policyServerPortSSL && settings.policyServerPort != 80){
+    }else if(!settings.ssl.policyServerPort && settings.policyServerPort != 80){
         concatPort = ":" + settings.policyServerPort;
+    }
+
+    if(base.certificate && base.private_key){
+        base.certificate += '\n' + base.private_key;
     }
 
     var moduleConfig = {
@@ -59,7 +63,8 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
             "COMMUNICATION": base.communication_notifications,
             "NORMAL": base.normal_notifications,
             "NONE": base.none_notifications
-        }
+        },
+        "certificate": base.certificate,
     };
 
     // only have custom_vehicle_data_mapping_url present if set by OEM,

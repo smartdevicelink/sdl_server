@@ -144,14 +144,12 @@
                             </div>
                         </div>
                     </div>
-
-
-                    <div class="form-row mb-0">
-                        <h4 for="name">Email Notifications</h4>
+                    
+                    <div class="form-row m-0">
                         <div class="row">
                             <div class="col-sm-12">
                                 <i
-                                    v-if="about.notification.appsPendingReview.email.enabled"
+                                    v-if="about.is_authority_valid"
                                     class="fa fa-check-circle color-green"
                                     style=""
                                     aria-hidden="true">
@@ -162,7 +160,29 @@
                                     style=""
                                     aria-hidden="true">
                                 </i>
-                                <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none">App pending review: {{ about.notification.appsPendingReview.email.enabled ? `enabled (${about.notification.appsPendingReview.email.frequency})` : `disabled` }}</label>
+                                <label class="col-form-label color-primary ml-1" style="text-transform:none">Certificate generation: {{ about.is_authority_valid ? `enabled` : `disabled` }}</label>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="form-row mb-0">
+                        <h4 for="name">Email Notifications</h4>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <i
+                                    v-if="about.notification && about.notification.appsPendingReview.email.enabled"
+                                    class="fa fa-check-circle color-green"
+                                    style=""
+                                    aria-hidden="true">
+                                </i>
+                                <i
+                                    v-else
+                                    class="fa fa-times-circle color-red"
+                                    style=""
+                                    aria-hidden="true">
+                                </i>
+                                <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none">App pending review: {{ ( about.notification && about.notification.appsPendingReview.email.enabled) ? `enabled (${about.notification.appsPendingReview.email.frequency})` : `disabled` }}</label>
                             </div>
                         </div>
                     </div>

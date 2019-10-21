@@ -41,7 +41,6 @@ function getAppInfoFilter (filterObj) {
 }
 
 function changeAppApprovalStatus (id, statusName, reason) {
-    console.log(reason);
     return sql.update('app_info')
         .set({
             approval_status: statusName,
@@ -337,6 +336,55 @@ function getAppAutoApproval (id) {
             'app_info.id': id,
             'app_oem_enablements.key': 'auto_approve'
         })
+        .toString();
+}
+
+function getAppCertificate(app_uuid){
+    return sql.select('ac.certificate', 'ac.expiration_ts::TEXT')
+        .from('app_info ai')
+        .join('app_certificates ac', {
+            'ac.app_uuid': 'ai.app_uuid'
+        })
+        .where(
+            sql.or({
+                'ai.app_uuid': app_uuid,
+                'ai.app_short_uuid': app_uuid
+            })
+        )
+        .limit(1)
+        .toString();
+}
+
+function updateAppCertificate (obj) {
+    let insertObj = {
+        app_uuid: obj.app_uuid,
+        certificate: obj.certificate,
+        expiration_ts: obj.expirationDate,
+    }
+    return sql.insert('app_certificates', insertObj)
+        .onConflict()
+        .onConstraint('app_certificates_pkey')
+        .doUpdate()
+        .toString();
+}
+
+function getAllExpiredAppCertificates () {
+    return sql.select('a.app_uuid, ac.certificate, ac.expiration_ts')
+        .from('(' +
+            sql.select('ai.app_uuid')
+            .from('app_info ai')
+            .groupBy('ai.app_uuid')
+        + ') a')
+        .leftJoin('app_certificates ac', {
+            'ac.app_uuid': 'a.app_uuid'
+        })
+        .where(
+            sql.or(
+                //checks if the certificate is going to expire within a day
+                sql.lt('ac.expiration_ts', sql('((now() AT TIME ZONE \'UTC\') + \'1 day\'::interval)')),
+                sql.isNull('ac.expiration_ts')
+            )
+        )
         .toString();
 }
 
@@ -990,8 +1038,11 @@ module.exports = {
         hybridPreference: {
             multiFilter: getAppHybridPreferenceFilter,
             idFilter: getAppHybridPreference
-        }
+        },
+        certificate: getAppCertificate,
+        allExpiredCertificates: getAllExpiredAppCertificates,
     },
+    updateAppCertificate: updateAppCertificate,
     timestampCheck: timestampCheck,
     versionCheck: versionCheck,
     checkAutoApproval: checkAutoApproval,

@@ -49,6 +49,7 @@ const services = require('./services/controller.js');
 const moduleConfig = require('./module-config/controller.js');
 const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
+const certificates = require('./certificates/controller.js');
 const vehicleData = require('./vehicle-data/controller.js');
 
 function exposeRoutes () {
@@ -69,6 +70,9 @@ function exposeRoutes () {
 	app.post('/applications/hybrid', auth.validateAuth, applications.hybridPost);
 	app.put('/applications/rpcencryption', auth.validateAuth, applications.rpcEncryptionPut);
 	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
+	app.post('/applications/certificate/get', applications.getAppCertificate);
+	app.get('/applications/certificate/get', applications.getAppCertificate);
+	app.post('/applications/certificate', applications.updateAppCertificate);
 	app.get('/applications/groups', auth.validateAuth, applications.getFunctionalGroups);
 	app.put('/applications/groups', auth.validateAuth, applications.putFunctionalGroup);
 	app.post('/webhook', applications.webhook); //webhook route
@@ -93,17 +97,20 @@ function exposeRoutes () {
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
 	app.get('/about', auth.validateAuth, about.getInfo);
-    //begin vehicle data routes
-    app.post('/vehicle-data', auth.validateAuth, vehicleData.post);
-    app.get('/vehicle-data', auth.validateAuth, vehicleData.get);
-    app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote);
-    app.get('/vehicle-data/type', auth.validateAuth, vehicleData.getValidTypes);
-
-
+	app.post('/security/certificate', certificates.createCertificate);
+	app.post('/security/private', certificates.createPrivateKey);
+  //begin vehicle data routes
+  app.post('/vehicle-data', auth.validateAuth, vehicleData.post);
+  app.get('/vehicle-data', auth.validateAuth, vehicleData.get);
+  app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote); 
+  app.get('/vehicle-data/type', auth.validateAuth, vehicleData.getValidTypes);
 }
 
 //do not allow routes to be exposed until these async functions are completed
 flame.async.parallel([
+	//certificate expiration check and renewal for both applications and for the module config
+	applications.checkAndUpdateCertificates,
+	moduleConfig.checkAndUpdateCertificate,
 	//get and store permission info from SHAID on startup
 	function (next) {
 		permissions.update(function () {
@@ -155,3 +162,5 @@ new Cron('00 00 00 * * *', permissions.update, null, true);
 new Cron('00 05 00 * * *', messages.updateLanguages, null, true);
 new Cron('00 10 00 * * *', applications.queryAndStoreCategories, null, true);
 new Cron('00 15 00 * * *', vehicleData.updateRpcSpec, null, true);
+new Cron('00 20 00 * * *', applications.checkAndUpdateCertificates, null, true);
+new Cron('00 25 00 * * *', moduleConfig.checkAndUpdateCertificate, null, true);

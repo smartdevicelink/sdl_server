@@ -37,6 +37,41 @@ These routes are hit by the Policy Server UI to promote a functional group or co
 ### `POST /messages/update`
 This route updates the Policy Server's list of languages.
 
+### `POST & GET /applications/certificate/get`
+This route queries the Policy Server database for an app's certificate and returns it, unless it's expired. If it is expired a 400 response is returned. Either appId or AppId is required in the query or the json body of the request.
+
+Example requests:
+```
+/applications/certificate/get?appId=31cc4209-79e7-4704-9ec4-3b485d3eeb93 GET
+
+/applications/certificate/get POST
+{
+    appId: 31cc4209-79e7-4704-9ec4-3b485d3eeb93
+}
+```
+
+Response:
+```json
+{
+    "meta": {
+        "request_id": "427a7fb4-f2f1-44d6-8c2b-e7d927790960",
+        "code": 200,
+        "message": null
+    },
+    "data": {
+        "certificate": "MIIKMQIBAzCCCf..."
+    }
+}
+```
+
+The certificate is a Base64 encoded string containing the pkcs12 certificate. This contains the certificate and private key and can be read using an openssl library with the password provided as ```CERTIFICATE_PASSPHRASE``` in your server's .env settings.
+
+Example using openssl (note that the cert is a Base64 string and the ```CERTIFICATE_PASSPHRASE`` is used to read the pkcs12 certificate):
+```
+echo "MIIKMQIBAzCCCf..." | base64 -D > app-cert.p12 && openssl pkcs12 -nokeys -in app-cert.p12 -passin pass:CERTIFICATE_PASSPHRASE
+```
+
+
 ## UI endpoints
 These are API routes that are accessed by the Policy Server user interface.
 

@@ -8,6 +8,9 @@ const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
 const config = app.locals.config;
+const async = require('async');
+const certificates = require('../certificates/controller.js');
+const certUtil = require('../helpers/certificates.js');
 
 //validation functions
 
@@ -290,6 +293,44 @@ function attemptRetry(milliseconds, retryQueue){
     }, milliseconds);
 }
 
+function storeAppCertificates (insertObjs, next) {
+	app.locals.db.runAsTransaction(function (client, callback) {
+		async.mapSeries(insertObjs, function (insertObj, cb) {
+			app.locals.log.info("Updating certificate of " + insertObj.app_uuid);
+            model.updateAppCertificate(insertObj.app_uuid, insertObj.certificate, cb);
+		}, callback);
+	}, function (err, response) {
+		if(err){
+			app.locals.log.error(err);
+		}
+		app.locals.log.info("App certificates updated");
+		next();
+	});
+}
+
+function createFailedAppsCert(failedApp, next){
+	let options = certificates.getCertificateOptions({
+		serialNumber: failedApp.app_uuid,
+		clientKey: failedApp.private_key
+	});
+
+	certificates.createCertificateFlow(options, function(err, keyBundle){
+		if(err){
+			return next(err, {});
+		}
+        certUtil.createKeyCertBundle(keyBundle.clientKey, keyBundle.certificate)
+            .then(keyCertBundle => {
+                next(null, {
+                    app_uuid: failedApp.app_uuid,
+                    certificate: keyCertBundle
+                });
+            })
+            .catch(err => {
+                next(err)
+            });
+	});
+}
+
 module.exports = {
 	  validateActionPost: validateActionPost,
 	  validateAutoPost: validateAutoPost,
@@ -300,6 +341,8 @@ module.exports = {
 	  validateServicePermissionPut: validateServicePermissionPut,
 	  validateFunctionalGroupPut: validateFunctionalGroupPut,
     validateWebHook: validateWebHook,
+    storeAppCertificates: storeAppCertificates,
+    createFailedAppsCert: createFailedAppsCert,
     createAppInfoFlow: createAppInfoFlow,
     storeApps: storeApps,
     storeCategories: storeCategories,

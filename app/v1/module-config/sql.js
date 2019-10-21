@@ -20,6 +20,18 @@ function moduleConfigByStatus (isProduction) {
     return sql.select('*').from(tableName);
 }
 
+function getAllExpiredModuleCertificates () {
+    return sql.select('*')
+        .from('view_module_config')
+        .where(
+            sql.or(
+                //checks if the certificate is going to expire within a day
+                sql.lt('expiration_ts', sql('((now() AT TIME ZONE \'UTC\') + \'1 day\'::interval)')),
+                sql.isNull('expiration_ts')
+            )
+        );
+}
+
 function retrySecondsByStatus (isProduction) {
     return sql.select('module_config_retry_seconds.*')
         .from('(' + moduleConfigByStatus(isProduction) + ') vmc')
@@ -59,7 +71,10 @@ function insertModuleConfig (moduleConfig) {
         voicecom_notifications: moduleConfig.notifications_per_minute_by_priority.VOICECOM,
         communication_notifications: moduleConfig.notifications_per_minute_by_priority.COMMUNICATION,
         normal_notifications: moduleConfig.notifications_per_minute_by_priority.NORMAL,
-        none_notifications: moduleConfig.notifications_per_minute_by_priority.NONE
+        none_notifications: moduleConfig.notifications_per_minute_by_priority.NONE,
+        certificate: moduleConfig.certificate,
+        private_key: moduleConfig.private_key,
+        expiration_ts: moduleConfig.expiration_ts,
     })
     .returning('*');
 }
@@ -77,8 +92,8 @@ function insertRetrySeconds (secondsArray, id) {
 function insertEndpointProperties (endpointPropertiesObject, id) {
     // flatten endpoint properties into an array of simple objects
     let inserts = [];
-    for (key in endpointPropertiesObject) {
-        for (propKey in endpointPropertiesObject[key]) {
+    for (let key in endpointPropertiesObject) {
+        for (let propKey in endpointPropertiesObject[key]) {
             let insertObj = {
                 module_config_id: id,
                 endpoint_name: key
@@ -94,10 +109,20 @@ function insertEndpointProperties (endpointPropertiesObject, id) {
     return sql.insert('module_config_endpoint_property', inserts);
 }
 
+function updateModuleConfig (id, fields) {
+    return sql.update('module_config', fields)
+        .where({
+            id: id
+        })
+        .returning('*');
+}
+
 module.exports = {
     insertModuleConfig: insertModuleConfig,
     insertRetrySeconds: insertRetrySeconds,
     insertEndpointProperties: insertEndpointProperties,
+    getAllExpiredModuleCertificates: getAllExpiredModuleCertificates,
+    updateModuleConfig: updateModuleConfig,
     moduleConfig: {
         id: moduleConfigById,
         status: moduleConfigByStatus

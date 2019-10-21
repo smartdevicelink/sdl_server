@@ -59,9 +59,10 @@ class Parcel {
     }
 
     // method to write the response to the client
-    deliver(){
+    deliver(printJson = false){
         var response_ts = new Date();
-        if(this.res && this.res.app.locals.log) this.res.app.locals.log.info(JSON.stringify(this.getJSON()));
+        if(this.res && this.res.app.locals.log) this.res.app.locals.log.info(`${this.method} ${this.status} ${this.url}`);
+        if(this.res && this.res.app.locals.log && printJson) this.res.app.locals.log.info(JSON.stringify(this.getJSON()));
 
         // send response to client
         this.res

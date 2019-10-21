@@ -60,7 +60,7 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
                 cacheData.appPolicies = data.appPolicies;
-                cb(err, cacheData);
+                cb(err, returnPreview, cacheData);
             });
         } else {
             if (returnPreview) {
@@ -72,7 +72,7 @@ function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, 
             const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
             policyTableMakeFlow(function (err, data) {
                 cache.setCacheData(isProduction, app.locals.version, cache.policyTableKey, data);
-                cb(err, data);
+                cb(err, returnPreview, data);
             });
         }
     });
