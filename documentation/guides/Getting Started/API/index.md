@@ -64,9 +64,9 @@ Response:
 }
 ```
 
-The certificate is a Base64 encoded string containing the pks12 certificate. This contains the certificate and private key and can be read using an openssl library with the password provided as ```CERTIFICATE_PASSPHRASE``` in your server's .env settings.
+The certificate is a Base64 encoded string containing the pkcs12 certificate. This contains the certificate and private key and can be read using an openssl library with the password provided as ```CERTIFICATE_PASSPHRASE``` in your server's .env settings.
 
-Example using openssl (note that the cert is a Base64 string and the ```CERTIFICATE_PASSPHRASE`` is used to read the pks12 certificate):
+Example using openssl (note that the cert is a Base64 string and the ```CERTIFICATE_PASSPHRASE`` is used to read the pkcs12 certificate):
 ```
 echo "MIIKMQIBAzCCCf..." | base64 -D > app-cert.p12 && openssl pkcs12 -nokeys -in app-cert.p12 -passin pass:CERTIFICATE_PASSPHRASE
 ```
