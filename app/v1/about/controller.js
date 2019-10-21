@@ -14,6 +14,7 @@ exports.getInfo = function (req, res, next) {
 		"cache_module": config.cacheModule,
 		"auth_type": config.authType,
 		"auto_approve_all_apps": config.autoApproveAllApps,
+		"encryption_required": config.autoApproveSetRPCEncryption,
 		"base_url": app.locals.baseUrl,
 		"notification": {
 			"appsPendingReview": {

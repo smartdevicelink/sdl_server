@@ -16,7 +16,6 @@ function transformModuleConfig (info, next) {
     //hash up base info
     for (let i = 0; i < base.length; i++) {
         hashBase[base[i].id] = base[i];
-        hashBase[base[i].id] = base[i];
         hashBase[base[i].id].seconds_between_retries = [];
         hashBase[base[i].id].raw_endpoint_properties = endpointProperties;
     }
@@ -50,6 +49,7 @@ function baseTemplate (objOverride) {
             "lock_screen_icon_url": "",
             "custom_vehicle_data_mapping_url": ""
         },
+        lock_screen_dismissal_enabled: false,
         endpoint_properties: {},
         notifications_per_minute_by_priority: {
             EMERGENCY: 0,
@@ -60,7 +60,8 @@ function baseTemplate (objOverride) {
             NONE: 0
         },
         certificate: "",
-        private_key: ""
+        private_key: "",
+        expiration_ts: "",
     };
 
     // initialize known endpoint property objects
@@ -80,6 +81,7 @@ function baseTemplate (objOverride) {
         obj.endpoints["0x04"] = objOverride.endpoint_0x04;
         obj.endpoints.queryAppsUrl = objOverride.query_apps_url;
         obj.endpoints.lock_screen_icon_url = objOverride.lock_screen_default_url;
+        obj.lock_screen_dismissal_enabled = objOverride.lock_screen_dismissal_enabled === true;
         obj.endpoints.custom_vehicle_data_mapping_url = objOverride.custom_vehicle_data_mapping_url;
         obj.notifications_per_minute_by_priority.EMERGENCY = objOverride.emergency_notifications;
         obj.notifications_per_minute_by_priority.NAVIGATION = objOverride.navigation_notifications;
@@ -89,6 +91,7 @@ function baseTemplate (objOverride) {
         obj.notifications_per_minute_by_priority.NONE = objOverride.none_notifications;
         obj.certificate = objOverride.certificate;
         obj.private_key = objOverride.private_key;
+        obj.expiration_ts = objOverride.expiration_ts;
 
         // inject endpoint properties we have from the database
         _.forEach(objOverride.raw_endpoint_properties, function(endProp, index) {

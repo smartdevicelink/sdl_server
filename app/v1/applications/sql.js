@@ -340,7 +340,7 @@ function getAppAutoApproval (id) {
 }
 
 function getAppCertificate(app_uuid){
-    return sql.select('ac.certificate')
+    return sql.select('ac.certificate', 'ac.expiration_ts::TEXT')
         .from('app_info ai')
         .join('app_certificates ac', {
             'ac.app_uuid': 'ai.app_uuid'
@@ -369,7 +369,7 @@ function updateAppCertificate (obj) {
 }
 
 function getAllExpiredAppCertificates () {
-    return sql.select('a.app_uuid')
+    return sql.select('a.app_uuid, ac.certificate, ac.expiration_ts')
         .from('(' +
             sql.select('ai.app_uuid')
             .from('app_info ai')
@@ -380,6 +380,7 @@ function getAllExpiredAppCertificates () {
         })
         .where(
             sql.or(
+                //checks if the certificate is going to expire within a day
                 sql.lt('ac.expiration_ts', sql('((now() AT TIME ZONE \'UTC\') + \'1 day\'::interval)')),
                 sql.isNull('ac.expiration_ts')
             )
@@ -421,6 +422,7 @@ function insertAppInfo (obj) {
         status: obj.status,
         can_background_alert: obj.can_background_alert,
         can_steal_focus: obj.can_steal_focus,
+        can_manage_widgets: obj.can_manage_widgets,
         default_hmi_level: obj.default_hmi_level,
         icon_url: obj.icon_url,
         cloud_endpoint: obj.cloud_endpoint || null,
@@ -444,6 +446,7 @@ function insertAppInfo (obj) {
 
     if (obj.approval_status) { //has a defined approval_status. otherwise leave as default
         insertObj.approval_status = obj.approval_status;
+        insertObj.encryption_required = obj.encryption_required || false;
     }
 
     return sql.insert('app_info', insertObj)
@@ -878,6 +881,18 @@ function insertAppAutoApproval (obj) {
         .toString();
 }
 
+function updateRPCEncryption(obj) {
+    return sql.update('app_info')
+        .set({
+            'encryption_required': obj.encryption_required
+        })
+        .where({
+            'id': obj.id
+        })
+        .returning('*')
+        .toString();
+}
+
 function insertAppBlacklist (obj) {
     return sql.insert('app_oem_enablements', 'app_uuid, key')
         .select(`'${obj.uuid}' AS app_uuid, 'blacklist' AS key`)
@@ -1043,6 +1058,7 @@ module.exports = {
     deletePassthrough: deletePassthrough,
     insertHybridPreference: insertHybridPreference,
     deleteHybridPreference: deleteHybridPreference,
+    updateRPCEncryption: updateRPCEncryption,
     insertAppBlacklist: insertAppBlacklist,
     deleteAppBlacklist: deleteAppBlacklist,
     getBlacklistedApps: getBlacklistedApps,

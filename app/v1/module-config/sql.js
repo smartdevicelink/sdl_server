@@ -20,6 +20,18 @@ function moduleConfigByStatus (isProduction) {
     return sql.select('*').from(tableName);
 }
 
+function getAllExpiredModuleCertificates () {
+    return sql.select('*')
+        .from('view_module_config')
+        .where(
+            sql.or(
+                //checks if the certificate is going to expire within a day
+                sql.lt('expiration_ts', sql('((now() AT TIME ZONE \'UTC\') + \'1 day\'::interval)')),
+                sql.isNull('expiration_ts')
+            )
+        );
+}
+
 function retrySecondsByStatus (isProduction) {
     return sql.select('module_config_retry_seconds.*')
         .from('(' + moduleConfigByStatus(isProduction) + ') vmc')
@@ -52,6 +64,7 @@ function insertModuleConfig (moduleConfig) {
         endpoint_0x04: moduleConfig.endpoints["0x04"],
         query_apps_url: moduleConfig.endpoints.queryAppsUrl,
         lock_screen_default_url: moduleConfig.endpoints.lock_screen_icon_url,
+        lock_screen_dismissal_enabled: moduleConfig.lock_screen_dismissal_enabled === true,
         custom_vehicle_data_mapping_url: moduleConfig.endpoints.custom_vehicle_data_mapping_url,
         emergency_notifications: moduleConfig.notifications_per_minute_by_priority.EMERGENCY,
         navigation_notifications: moduleConfig.notifications_per_minute_by_priority.NAVIGATION,
@@ -61,6 +74,7 @@ function insertModuleConfig (moduleConfig) {
         none_notifications: moduleConfig.notifications_per_minute_by_priority.NONE,
         certificate: moduleConfig.certificate,
         private_key: moduleConfig.private_key,
+        expiration_ts: moduleConfig.expiration_ts,
     })
     .returning('*');
 }
@@ -95,10 +109,20 @@ function insertEndpointProperties (endpointPropertiesObject, id) {
     return sql.insert('module_config_endpoint_property', inserts);
 }
 
+function updateModuleConfig (id, fields) {
+    return sql.update('module_config', fields)
+        .where({
+            id: id
+        })
+        .returning('*');
+}
+
 module.exports = {
     insertModuleConfig: insertModuleConfig,
     insertRetrySeconds: insertRetrySeconds,
     insertEndpointProperties: insertEndpointProperties,
+    getAllExpiredModuleCertificates: getAllExpiredModuleCertificates,
+    updateModuleConfig: updateModuleConfig,
     moduleConfig: {
         id: moduleConfigById,
         status: moduleConfigByStatus

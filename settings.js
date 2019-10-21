@@ -73,6 +73,8 @@ module.exports = {
     basicAuthPassword: process.env.BASIC_AUTH_PASSWORD || null,
     //whether or not to auto-approve all app versions received by SHAID (unless specifically blacklisted)
     autoApproveAllApps: process.env.AUTO_APPROVE_ALL_APPS == "true" ? true : false,
+    //whether or not to require encryption for all auto-approved apps
+    autoApproveSetRPCEncryption: process.env.ENCRYPTION_REQUIRED == "true" ? true : false,
     //credentials for using the SHAID API
     shaidPublicKey: process.env.SHAID_PUBLIC_KEY,
     shaidSecretKey: process.env.SHAID_SECRET_KEY,

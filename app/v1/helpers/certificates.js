@@ -47,20 +47,22 @@ function parseCertificate (cert) {
     });
 }
 
-/**
- *
- * @param certificate Certificate to check expiration on.
- * @param cb returns (err, isExpired)
- */
-function isCertificateExpired(certificate, cb) {
+//given a key cert bundle, returns the expiration date of the cert
+function extractExpirationDateBundle (keyCertBundle, callback) {
+    readKeyCertBundle(keyCertBundle)
+        .then(keyBundle => {
+            return extractExpirationDateCertificate(keyBundle.cert, callback);
+        });
+}
+
+//given a cert, returns the expiration date of the cert
+function extractExpirationDateCertificate (certificate, callback) {
     parseCertificate(certificate)
         .then(certInfo => {
-            const expirationDate = certInfo.validity.end;
-            //expirationDate is less than now then it is expired
-            cb(null, expirationDate < Date.now());
+            callback(null, new Date(certInfo.validity.end));
         })
         .catch(err => {
-            return cb(err);
+            return callback(err);
         });
 }
 
@@ -68,5 +70,6 @@ module.exports = {
     createKeyCertBundle: createKeyCertBundle,
     readKeyCertBundle: readKeyCertBundle,
     parseCertificate: parseCertificate,
-    isCertificateExpired: isCertificateExpired,
+    extractExpirationDateBundle: extractExpirationDateBundle,
+    extractExpirationDateCertificate: extractExpirationDateCertificate,
 }

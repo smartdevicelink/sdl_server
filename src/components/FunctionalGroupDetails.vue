@@ -84,9 +84,26 @@
 
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
+                            v-model="fg.is_widget_group"
+                            v-bind:disabled="fieldsDisabled">
+                            Grant this functional group to applications with widget management privileges
+                        </b-form-checkbox>
+                        
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
                             v-model="fg.is_proprietary_group"
                             v-bind:disabled="fieldsDisabled">
                             This is a proprietary functional group <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="You can manually grant Proprietary Groups to an app version when you're reviewing it"></a>
+                        </b-form-checkbox>
+                    </div>
+
+                    <div class="form-row">
+                        <h4 for="is-default">Encryption</h4>
+                        <b-form-checkbox
+                            class="color-bg-gray color-primary"
+                            v-model="fg.encryption_required"
+                            v-bind:disabled="fieldsDisabled">
+                            Require RPCs in this functional group to be encrypted
                         </b-form-checkbox>
                     </div>
 
@@ -223,6 +240,8 @@ import { eventBus } from '../main.js';
                     "is_device": false,
                     "is_app_provider_group": false,
                     "is_administrator_group": false,
+                    "is_widget_group": false,
+                    "is_proprietary_group": false,
                     "rpcs": [
                     ]
                 },
@@ -378,12 +397,6 @@ import { eventBus } from '../main.js';
         created: function(){
             // listen for checkbox changes in RPC components
             eventBus.$on("rpcCheckboxChecked", (rpc_index, item_index, item_type, is_checked) => {
-                /*console.log({
-                    rpc_index,
-                    item_index,
-                    item_type,
-                    is_checked
-                });*/
                 if(item_type == "parameter"){
                     this.fg.rpcs[rpc_index].parameters[item_index].selected = is_checked;
                 }else if(item_type == "hmi"){

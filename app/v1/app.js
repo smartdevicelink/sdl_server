@@ -68,6 +68,7 @@ function exposeRoutes () {
 	app.post('/applications/administrator', auth.validateAuth, applications.administratorPost);
 	app.post('/applications/passthrough', auth.validateAuth, applications.passthroughPost);
 	app.post('/applications/hybrid', auth.validateAuth, applications.hybridPost);
+	app.put('/applications/rpcencryption', auth.validateAuth, applications.rpcEncryptionPut);
 	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
 	app.post('/applications/certificate/get', applications.getAppCertificate);
 	app.get('/applications/certificate/get', applications.getAppCertificate);
@@ -107,8 +108,10 @@ function exposeRoutes () {
 
 //do not allow routes to be exposed until these async functions are completed
 flame.async.parallel([
-	//get and store permission info from SHAID on startup
+	//certificate expiration check and renewal for both applications and for the module config
 	applications.checkAndUpdateCertificates,
+	moduleConfig.checkAndUpdateCertificate,
+	//get and store permission info from SHAID on startup
 	function (next) {
 		permissions.update(function () {
 			log.info("Permissions updated");
@@ -160,3 +163,4 @@ new Cron('00 05 00 * * *', messages.updateLanguages, null, true);
 new Cron('00 10 00 * * *', applications.queryAndStoreCategories, null, true);
 new Cron('00 15 00 * * *', vehicleData.updateRpcSpec, null, true);
 new Cron('00 20 00 * * *', applications.checkAndUpdateCertificates, null, true);
+new Cron('00 25 00 * * *', moduleConfig.checkAndUpdateCertificate, null, true);

@@ -1,8 +1,10 @@
 const app = require('../app');
 const helper = require('./helper.js');
+const model = require('./model.js');
 const sql = require('./sql.js');
 const flow = app.locals.flow;
 const async = require('async');
+const moment = require('moment');
 const settings = require('../../../settings.js');
 const certUtil = require('../helpers/certificates.js');
 const certificates = require('../certificates/controller.js');
@@ -136,6 +138,34 @@ function hybridPost (req, res, next) {
 			},
 			function(result, callback) {
 				client.getOne(sql.insertHybridPreference(req.body), callback);
+			}
+		], callback);
+	}, function (err, response) {
+		if (err) {
+			app.locals.log.error(err);
+			return res.parcel.setStatus(500).deliver();
+		} else {
+			return res.parcel.setStatus(200).deliver();
+		}
+	});
+}
+
+function rpcEncryptionPut (req, res, next) {
+	helper.validateRPCEncryptionPut(req, res);
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+	app.locals.db.runAsTransaction(function (client, callback) {
+		async.waterfall([
+			function (callback) {
+				client.getOne(sql.getApp.base['idFilter'](req.body.id), callback);
+			},
+			function (result, callback) {
+				if (!result) {
+					return callback("Unknown app");
+				}
+				client.getOne(sql.updateRPCEncryption(req.body), callback);
 			}
 		], callback);
 	}, function (err, response) {
@@ -432,35 +462,19 @@ function getAppCertificate(req, res, next) {
                 .deliver();
         }
 
-        certUtil.readKeyCertBundle(Buffer.from(appCert.certificate, 'base64'))
-            .then(keyBundle => {
-				return new Promise((resolve, reject) => {
-					helper.getExpiredCerts(function (err, expiredAppCerts) {
-						if (err) {
-							return reject(err);
-						}
-						//return whether a matching app uuid was found in the expired app certs array
-						resolve(expiredAppCerts.find(eac => eac.app_uuid === appCert.app_uuid));
-					});
-				});
-            })
-            .then(isValid => {
-                if (!isValid) {
-                    return res.parcel.setStatus(500)
-                        .setMessage('App certificate is expired')
-                        .deliver();
-                } else {
-                    res.parcel.setStatus(200)
-                        .setData({ 'certificate': appCert.certificate })
-                        .deliver();
-                }
-            })
-            .catch(err => {
-                app.locals.log.error(err);
-                return res.parcel.setStatus(500)
-                    .setMessage('Internal Server Error')
-                    .deliver();
-            });
+        const expirationDate = moment.utc(appCert.expiration_ts);
+        const currentDate = moment.utc();
+
+        if (moment(expirationDate).isBefore(currentDate)) {
+			return res.parcel.setStatus(500)
+                .setMessage('App certificate is expired')
+                .deliver();
+        }
+        else {
+	        res.parcel.setStatus(200)
+	            .setData({ 'certificate': appCert.certificate })
+	            .deliver();
+        }
     });
 }
 
@@ -473,7 +487,7 @@ function updateAppCertificate(req, res, next) {
 
 	certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
 		.then(keyCertBundle => {
-			helper.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
+			model.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
 				if (err) {
 					app.locals.log.error(err);
 					return res.parcel.setStatus(500)
@@ -504,6 +518,10 @@ function checkAndUpdateCertificates(cb){
 	function parseAppCerts(sqlErr, expiredCertObjs){
 		if (sqlErr) {
 			app.locals.log.error(sqlErr);
+			if (cb) {
+				cb();
+			}
+			return;
 		}
 
 		async.mapSeries(expiredCertObjs, function (expiredCertObj, next) {
@@ -566,6 +584,7 @@ module.exports = {
 	autoPost: autoPost,
 	administratorPost: administratorPost,
 	passthroughPost: passthroughPost,
+	rpcEncryptionPut: rpcEncryptionPut,
 	hybridPost: hybridPost,
 	getFunctionalGroups: getFunctionalGroups,
 	putFunctionalGroup: putFunctionalGroup,

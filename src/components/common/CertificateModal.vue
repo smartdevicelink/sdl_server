@@ -67,7 +67,7 @@
 
 <script>
     export default {
-        props: ['name', 'environmentClick', 'actionCallback', 'certificate_options'],
+        props: ['private_key', 'name', 'environmentClick', 'actionCallback', 'certificate_options'],
         data () {
             return {
                 "integerInput": {

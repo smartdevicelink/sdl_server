@@ -129,6 +129,26 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <i
+                                    v-if="about.encryption_required"
+                                    class="fa fa-check-circle color-green"
+                                    style=""
+                                    aria-hidden="true">
+                                </i>
+                                <i
+                                    v-else
+                                    class="fa fa-times-circle color-red"
+                                    style=""
+                                    aria-hidden="true">
+                                </i>
+                                <label class="col-form-label color-primary ml-1" style="text-transform:none">Require RPC encryption for auto-approved apps: {{ about.encryption_required ? `enabled` : `disabled` }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row m-0">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <i
                                     v-if="about.is_authority_valid"
                                     class="fa fa-check-circle color-green"
                                     style=""
