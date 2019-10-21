@@ -29,8 +29,6 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
 
     if(base.certificate && base.private_key){
         base.certificate += '\n' + base.private_key;
-    } else {
-        base.certificate = null;
     }
 
     var moduleConfig = {
