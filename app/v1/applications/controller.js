@@ -433,8 +433,8 @@ function getAppCertificate(req, res, next) {
                 .deliver();
         }
 
-        const expirationDate = moment.utc(appCert.expiration_ts).format();
-        const currentDate = moment.utc().format();
+        const expirationDate = moment.utc(appCert.expiration_ts);
+        const currentDate = moment.utc();
 
         if (moment(expirationDate).isBefore(currentDate)) {
 			return res.parcel.setStatus(500)
