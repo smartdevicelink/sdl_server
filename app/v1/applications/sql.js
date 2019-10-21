@@ -369,7 +369,7 @@ function updateAppCertificate (obj) {
 }
 
 function getAllExpiredAppCertificates () {
-    return sql.select('a.app_uuid')
+    return sql.select('a.app_uuid, ac.certificate, ac.expiration_ts')
         .from('(' +
             sql.select('ai.app_uuid')
             .from('app_info ai')
