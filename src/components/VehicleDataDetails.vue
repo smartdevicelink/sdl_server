@@ -26,7 +26,7 @@
                     <!-- vehicle data loaded here --> 
                     <div class="form-row">
                         <div>
-                            <schema-item
+                            <vehicle-data-item
                                 :item="vehicle_data"
                                 :fieldsDisabled="fieldsDisabled"
                                 :vehicleParams="vehicleParams"
@@ -34,7 +34,7 @@
                                 :pardonedName="vehicleNameCopy"
                                 :vehicleDataTypes="vehicleDataTypes"
                                 :level="1"
-                            ></schema-item>
+                            ></vehicle-data-item>
                         </div>
                     </div>
 

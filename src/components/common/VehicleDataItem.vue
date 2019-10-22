@@ -21,7 +21,7 @@
                 <div class="form-group row">
                     <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
                     <div class="col-sm-10">
-                        <input v-model="item[propName]" :disabled="fieldsDisabled" class="form-control">
+                        <input v-model="item[propName]" :disabled="fieldsDisabled || (level === 1 && item.id)" class="form-control">
                     </div>
                     <p v-if="findCommonParams(item[propName]) === 'CUSTOM'">
                         <br>A parent or top level vehicle data item with this name already exists! By saving, you will overwrite the previously existing vehicle data.
@@ -76,8 +76,8 @@
                 </div>
             </template>
 
-            <!-- Natural + Zero Number type, or Integer type --> 
-            <template v-if="getPropType(propName) === 'ZeroNatural' 
+            <!-- Natural + Zero Number type, or Integer type -->
+            <template v-if="getPropType(propName) === 'ZeroNatural'
                 || getPropType(propName) === 'Integer'">
                 <div class="form-group row">
                     <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
@@ -85,7 +85,7 @@
                         <input class="form-control text-truncate"
                             v-if=""
                            :disabled="fieldsDisabled"
-                           @input="getPropType(propName) === 'ZeroNatural' ? 
+                           @input="getPropType(propName) === 'ZeroNatural' ?
                                 updateZeroNaturalNumber(propName, $event.target.value)
                                 : updateIntegerNumber(propName, $event.target.value)"
                            v-model="item[propName]"></input>
@@ -97,7 +97,7 @@
 
         <!-- Nested Schema Item component render -->
         <div v-for="(param, paramIndex) in item.params">
-            <schema-item
+            <vehicle-data-item
                 v-bind:item="param"
                 :fieldsDisabled="fieldsDisabled"
                 :index="paramIndex"
@@ -107,7 +107,7 @@
                 :topLevelVehicleNames="topLevelVehicleNames"
                 :vehicleDataTypes="vehicleDataTypes"
                 :level="level + 1"
-            ></schema-item>
+            ></vehicle-data-item>
         </div>
 
         <!-- Allows adding nested parameters under certain conditions -->
@@ -124,7 +124,7 @@
 
 <script>
     export default {
-        props: ['item', 'index', 'fieldsDisabled', 'removeFromParent', 'vehicleParams', 'topLevelVehicleNames', 
+        props: ['item', 'index', 'fieldsDisabled', 'removeFromParent', 'vehicleParams', 'topLevelVehicleNames',
             'pardonedName', 'vehicleDataTypes', 'level'],
         data() {
             return {
