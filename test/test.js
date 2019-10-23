@@ -37,7 +37,14 @@ describe('SDL SERVER TESTS', function () {
             importTest('/module/promote', './api/v1/module/promote');
             importTest('/vehicle-data', './api/v1/vehicle-data/vehicle-data');
             importTest('/vehicle-data/type', './api/v1/vehicle-data/type');
-
+            importTest('/applications/auto', './api/v1/applications/auto');
+            importTest('/applications/administrator', './api/v1/applications/administrator');
+            importTest('/applications/passthrough', './api/v1/applications/passthrough');
+            importTest('/applications/rpcencryption', './api/v1/applications/rpcencryption');
+            importTest('/applications/hybrid', './api/v1/applications/hybrid');
+            importTest('/applications/permission', './api/v1/applications/permission');
+            importTest('/applications/certificate-get', './api/v1/applications/certificate-get');
+            importTest('/applications/certificate', './api/v1/applications/certificate');
         });
     });
 

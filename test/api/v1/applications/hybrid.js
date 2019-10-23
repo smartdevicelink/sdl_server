@@ -1,11 +1,11 @@
-var common = require('../../../common');
-var expect = common.expect;
-var endpoint = '/api/v1/applications/auto';
+const common = require('../../../common');
+const expect = common.expect;
+const endpoint = '/api/v1/applications/hybrid';
 
 common.post(
-    'should add the given uuid to the app_oem_enablements table',
+    'should add the given uuid to the app_hybrid_preference table with value CLOUD',
     endpoint,
-    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', is_auto_approved_enabled: true},
+    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', hybrid_preference: "CLOUD"},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
@@ -14,9 +14,20 @@ common.post(
 );
 
 common.post(
-    'should remove the given uuid to the app_oem_enablements table',
+    'should add the given uuid to the app_hybrid_preference table with value MOBILE',
     endpoint,
-    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', is_auto_approved_enabled: false},
+    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', hybrid_preference: "MOBILE"},
+    (err, res, done) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(200);
+        done();
+    }
+);
+
+common.post(
+    'should add the given uuid to the app_hybrid_preference table with value BOTH',
+    endpoint,
+    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', hybrid_preference: "BOTH"},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
@@ -36,9 +47,9 @@ common.post(
 );
 
 common.post(
-    'should return 400 with only is_auto_approved_enabled specified',
+    'should return 400 with only hybrid_preference specified',
     endpoint,
-    {is_auto_approved_enabled: true},
+    {hybrid_preference: true},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(400);
@@ -47,9 +58,9 @@ common.post(
 );
 
 common.post(
-    'should not add invalid uuid to the app_oem_enablements table',
+    'should not add invalid uuid to the app_hybrid_preference table',
     endpoint,
-    {uuid: 'INVALID', is_auto_approved_enabled: true},
+    {uuid: 'INVALID', hybrid_preference: true},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(400);
@@ -58,9 +69,9 @@ common.post(
 );
 
 common.post(
-    'should return 400 with invalid is_auto_approved_enabled',
+    'should return 400 with invalid hybrid_preference',
     endpoint,
-    {uuid: 'dfda5c35-700e-487e-87d2-ea4b2c572802', is_auto_approved_enabled: 7},
+    {uuid: 'dfda5c35-700e-487e-87d2-ea4b2c572802', hybrid_preference: "TESTING"},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(400);

@@ -1,11 +1,11 @@
-var common = require('../../../common');
-var expect = common.expect;
-var endpoint = '/api/v1/applications/auto';
+const common = require('../../../common');
+const expect = common.expect;
+const endpoint = '/api/v1/applications/administrator';
 
 common.post(
     'should add the given uuid to the app_oem_enablements table',
     endpoint,
-    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', is_auto_approved_enabled: true},
+    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', is_administrator_app: true},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
@@ -14,9 +14,9 @@ common.post(
 );
 
 common.post(
-    'should remove the given uuid to the app_oem_enablements table',
+    'should remove the given uuid from the app_oem_enablements table',
     endpoint,
-    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', is_auto_approved_enabled: false},
+    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', is_administrator_app: false},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
@@ -36,9 +36,9 @@ common.post(
 );
 
 common.post(
-    'should return 400 with only is_auto_approved_enabled specified',
+    'should return 400 with only is_administrator_app specified',
     endpoint,
-    {is_auto_approved_enabled: true},
+    {is_administrator_app: true},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(400);
@@ -49,7 +49,7 @@ common.post(
 common.post(
     'should not add invalid uuid to the app_oem_enablements table',
     endpoint,
-    {uuid: 'INVALID', is_auto_approved_enabled: true},
+    {uuid: 'INVALID', is_administrator_app: true},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(400);
@@ -58,9 +58,9 @@ common.post(
 );
 
 common.post(
-    'should return 400 with invalid is_auto_approved_enabled',
+    'should return 400 with invalid is_administrator_app',
     endpoint,
-    {uuid: 'dfda5c35-700e-487e-87d2-ea4b2c572802', is_auto_approved_enabled: 7},
+    {uuid: 'dfda5c35-700e-487e-87d2-ea4b2c572802', is_administrator_app: 7},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(400);
