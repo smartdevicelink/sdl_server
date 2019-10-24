@@ -52,7 +52,7 @@ common.put(
     {id: -1, encryption_required: true},
     (err, res, done) => {
         expect(err).to.be.null;
-        expect(res).to.have.status(400);
+        expect(res).to.have.status(500);
         done();
     }
 );

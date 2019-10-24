@@ -1,8 +1,8 @@
+const chai = require('chai');
 var common = require('../../../common');
 var expect = common.expect;
 var endpoint = '/api/v1/vehicle-data';
 var promoteEndpoint = '/api/v1/vehicle-data/promote';
-let id;
 
 common.get(
     'should get vehicle data template',
@@ -56,6 +56,22 @@ common.post(
                 ]
             }
         ]
+    },
+    (err, res, done) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(200);
+        done();
+    }
+);
+
+common.post(
+    'should create a new STAGING vehicle data item with only the mandatory fields filled out',
+    endpoint,
+    {
+        name: 'example-data',
+        key: 'example-data',
+        type: 'Integer',
+        params: []
     },
     (err, res, done) => {
         expect(err).to.be.null;
@@ -140,22 +156,39 @@ common.get(
         expect(err).to.be.null;
         expect(res).to.have.status(200);
         expect(res.body.data.custom_vehicle_data).to.have.lengthOf.above(0);
-        id = res.body.data.custom_vehicle_data[0].id;
         done();
     }
 );
 
-common.get(
-    'should get vehicle data with the given id',
-    endpoint,
-    { id: id },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(res.body.data.custom_vehicle_data).to.have.lengthOf(1);
-        done();
-    }
-);
+it('should get vehicle data with the given id', (done) => {
+    //get production data first
+    chai.request(common.BASE_URL)
+        .get(endpoint)
+        .set('Accept', 'application/json')
+        .set('Content-Type', 'application/json')
+        .set('BASIC-AUTH-PASSWORD', common.config.basicAuthPassword)
+        .send()
+        .end((err, res) => {
+            expect(err).to.be.null;
+            expect(res).to.have.status(200);
+
+            const id = res.body.data.custom_vehicle_data[0].id;
+            //query a specific vehicle data item
+            chai.request(common.BASE_URL)
+                .get(endpoint)
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .set('BASIC-AUTH-PASSWORD', common.config.basicAuthPassword)
+                .query({ id: id })
+                .send()
+                .end((err, res) => {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    expect(res.body.data.custom_vehicle_data).to.have.lengthOf(1);
+                    done();
+                });
+        });
+});
 
 common.get(
     'should not get any vehicle data with invalid id',

@@ -66,6 +66,53 @@ common.post(
     }
 );
 
+common.post(
+    'should fail storing an app certificate with no app uuid',
+    endpoint,
+    {
+        options: {
+            clientKey: 'test1', 
+            certificate: 'test2',
+        }
+    },
+    (err, res, done) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(400);
+        done();
+    }
+);
+
+common.post(
+    'should fail storing an app certificate with no clientKey',
+    endpoint,
+    {
+        options: {
+            app_uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6',
+            certificate: 'test2',
+        }
+    },
+    (err, res, done) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(400);
+        done();
+    }
+);
+
+common.post(
+    'should fail storing an app certificate with no certificate',
+    endpoint,
+    {
+        options: {
+            app_uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6',
+            clientKey: 'test1', 
+        }
+    },
+    (err, res, done) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(400);
+        done();
+    }
+);
 
 it('should return 400 when storing a certificate with an invalid app uuid', (done) => {
     generateCertificate( (err, res) => {

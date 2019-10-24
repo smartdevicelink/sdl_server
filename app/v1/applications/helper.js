@@ -75,6 +75,17 @@ function validatePassthroughPost (req, res) {
     return;
 }
 
+function validateUpdateAppCertificate (req, res) {
+    if (!req.body.options ||
+        !check.string(req.body.options.app_uuid) ||
+        !check.string(req.body.options.clientKey) ||
+        !check.string(req.body.options.certificate)
+    ) {
+        res.parcel.setStatus(400).setMessage("options object with app_uuid, clientKey and certificate required");
+    }
+    return;
+}
+
 function validateWebHook (req, res) {
 	if(req.headers["public_key"] != app.locals.config.shaidPublicKey){
 		// request cannot be verified as authentic
@@ -340,6 +351,7 @@ module.exports = {
 	  validateRPCEncryptionPut: validateRPCEncryptionPut,
 	  validateServicePermissionPut: validateServicePermissionPut,
 	  validateFunctionalGroupPut: validateFunctionalGroupPut,
+      validateUpdateAppCertificate: validateUpdateAppCertificate,
     validateWebHook: validateWebHook,
     storeAppCertificates: storeAppCertificates,
     createFailedAppsCert: createFailedAppsCert,
