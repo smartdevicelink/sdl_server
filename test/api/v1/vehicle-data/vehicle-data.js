@@ -4,7 +4,6 @@ var endpoint = '/api/v1/vehicle-data';
 var promoteEndpoint = '/api/v1/vehicle-data/promote';
 let id;
 
-
 common.get(
     'should get vehicle data template',
     endpoint,
@@ -61,6 +60,51 @@ common.post(
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
+        done();
+    }
+);
+
+common.post(
+    'should fail creating vehicle data item when name field is missing',
+    endpoint,
+    {
+        key: 'Struct 1',
+        type: 'Struct',
+        params: []
+    },
+    (err, res, done) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(400);
+        done();
+    }
+);
+
+common.post(
+    'should fail creating vehicle data item when key field is missing',
+    endpoint,
+    {
+        name: 'Struct 1',
+        type: 'Struct',
+        params: []
+    },
+    (err, res, done) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(400);
+        done();
+    }
+);
+
+common.post(
+    'should fail creating vehicle data item when type field is missing',
+    endpoint,
+    {
+        name: 'Struct 1',
+        key: 'Struct 1',
+        params: []
+    },
+    (err, res, done) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(400);
         done();
     }
 );

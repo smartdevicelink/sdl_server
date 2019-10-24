@@ -45,6 +45,10 @@ describe('SDL SERVER TESTS', function () {
             importTest('/applications/permission', './api/v1/applications/permission');
             importTest('/applications/certificate-get', './api/v1/applications/certificate-get');
             importTest('/applications/certificate', './api/v1/applications/certificate');
+            importTest('/about', './api/v1/about/about');
+            importTest('/security/certificate', './api/v1/security/certificate');
+            importTest('/security/private', './api/v1/security/private');
+            importTest('/login', './api/v1/login/login');
         });
     });
 
