@@ -168,3 +168,12 @@ new Cron('00 10 00 * * *', applications.queryAndStoreCategories, null, true);
 new Cron('00 15 00 * * *', vehicleData.updateRpcSpec, null, true);
 new Cron('00 20 00 * * *', applications.checkAndUpdateCertificates, null, true);
 new Cron('00 25 00 * * *', moduleConfig.checkAndUpdateCertificate, null, true);
+
+/* FOR TESTING
+new Cron('10 * * * * *', permissions.update, null, true);
+new Cron('20 * * * * *', messages.updateLanguages, null, true);
+new Cron('30 * * * * *', applications.queryAndStoreCategories, null, true);
+new Cron('40 * * * * *', vehicleData.updateRpcSpec, null, true);
+new Cron('50 * * * * *', applications.checkAndUpdateCertificates, null, true);
+new Cron('00 * * * * *', moduleConfig.checkAndUpdateCertificate, null, true);
+*/

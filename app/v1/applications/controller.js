@@ -597,7 +597,17 @@ function queryAndStoreCategories(callback) {
             helper.storeCategories
         ],
         { method: 'waterfall', eventLoop: true }
-    )(callback);
+    )(function(err){
+        if(err){
+            app.locals.log.error("Error syncing App Categories.");
+        }else{
+            app.locals.log.info("App Categories sync complete.");
+        }
+
+        if(callback){
+            callback(err);
+        }
+    });
 }
 
 module.exports = {
