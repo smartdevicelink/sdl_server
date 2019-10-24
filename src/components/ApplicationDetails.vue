@@ -53,6 +53,7 @@
                                     <th>Last Update</th>
                                     <th>Platform</th>
                                     <th>Category</th>
+                                    <th>Widgets</th>
                                     <th>Hybrid App Preference</th>
                                 </tr>
                             </thead>
@@ -66,6 +67,7 @@
                                     <td>{{ app.updated_ts }}</td>
                                     <td>{{ app.platform }}</td>
                                     <td>{{ app.category.display_name }}</td>
+                                    <td>{{ app.can_manage_widgets ? "Yes" : "No" }}</td>
                                     <td class="overflow-visible">
                                         <b-dropdown size="sm" right
                                             variant="secondary"
