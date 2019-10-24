@@ -245,7 +245,6 @@
 
                 <!-- CERTIFICATE GENERATOR MODAL -->
                 <certificate-modal
-                    :private_key="private_key"
                     :environmentClick="environmentClick"
                     :actionCallback="gotCertificateKeyData"
                     :certificate_options="certificate_options"
