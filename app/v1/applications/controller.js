@@ -485,24 +485,47 @@ function updateAppCertificate(req, res, next) {
             .deliver();
     }
 
-	certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
-		.then(keyCertBundle => {
-			model.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
-				if (err) {
-					app.locals.log.error(err);
-					return res.parcel.setStatus(500)
-						.setMessage('Internal Server Error')
-						.deliver();
-				}
-				return res.parcel.setStatus(200).deliver()
-			});
-		})
-		.catch(err => {
-			app.locals.log.error(err);
-			return res.parcel.setStatus(500)
-				.setMessage('Internal Server Error')
+	helper.validateUpdateAppCertificate(req, res);
+
+	if (res.parcel.message) {
+		return res.parcel.deliver();
+	}
+
+    //make sure the passed in app uuid exists in the db
+	app.locals.db.sqlCommand(sql.getApp.base['uuidFilter'](req.body.options.app_uuid), function (err, results) {
+		if (err) {
+			return res.parcel
+				.setStatus(500)
+				.setMessage("Internal service error.")
 				.deliver();
-		});
+		}
+		if (!results.length) {
+			return res.parcel
+				.setStatus(400)
+				.setMessage("Invalid app.")
+				.deliver();
+		}
+		//valid app uuid. continue
+
+		certUtil.createKeyCertBundle(req.body.options.clientKey, req.body.options.certificate)
+			.then(keyCertBundle => {
+				model.updateAppCertificate(req.body.options.app_uuid, keyCertBundle, function (err) {
+					if (err) {
+						app.locals.log.error(err);
+						return res.parcel.setStatus(500)
+							.setMessage('Internal Server Error')
+							.deliver();
+					}
+					return res.parcel.setStatus(200).deliver()
+				});
+			})
+			.catch(err => {
+				app.locals.log.error(err);
+				return res.parcel.setStatus(500)
+					.setMessage('Internal Server Error')
+					.deliver();
+			});
+	});
 }
 
 function checkAndUpdateCertificates(cb){

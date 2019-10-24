@@ -36,12 +36,12 @@ common.post(
 );
 
 common.post(
-    'should return 400 with only uuid specified',
+    'should return 500 with only uuid specified',
     endpoint,
     {uuid: 'dfda5c35-700e-487e-87d2-ea4b2c572802'},
     (err, res, done) => {
         expect(err).to.be.null;
-        expect(res).to.have.status(400);
+        expect(res).to.have.status(500);
         done();
     }
 );
