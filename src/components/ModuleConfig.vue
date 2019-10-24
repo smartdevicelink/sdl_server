@@ -180,7 +180,7 @@
                         <div class="app-table">
                             <h4>Private Key</h4>
                             <b-form-textarea
-                                :disabled="fieldsDisabled"
+                                :disabled="true"
                                 id="textarea"
                                 v-model="private_key"
                                 placeholder="No private key specified"
@@ -192,7 +192,7 @@
                         <div class="app-table">
                             <h4>Certificate</h4>
                             <b-form-textarea class="form-group"
-                                :disabled="fieldsDisabled"
+                                :disabled="true"
                                 id="textarea"
                                 v-model="module_config.certificate"
                                 placeholder="No certificate specified"
@@ -200,7 +200,6 @@
                                 max-rows="50"
                                 ></b-form-textarea>
 
-                            <!--pre class="mt-3 mb-0">{{ module_config.certificate }}</pre-->
                             <vue-ladda
                                 type="submit"
                                 class="btn btn-card"
