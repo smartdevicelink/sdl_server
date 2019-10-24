@@ -277,9 +277,12 @@ function populateRpcHash (rpcHash, hmiLevels, parameters) {
     for (let i = 0; i < hmiLevels.length; i++) {
         const rpcName = hmiLevels[i].permission_name;
         const level = hmiLevels[i].hmi_level;
-        //set the selected rpcs to true, including at the RPC level
-        rpcHash[rpcName].selected = true;
-        rpcHash[rpcName].hmi_levels[level].selected = true;
+        // set the selected rpcs to true, including at the RPC level
+        // only do this for RPCs that have been synced from SHAID
+        if(rpcHash[rpcName]){
+            rpcHash[rpcName].selected = true;
+            rpcHash[rpcName].hmi_levels[level].selected = true;
+        }
     }
     for (let i = 0; i < parameters.length; i++) {
         const rpcName = parameters[i].rpc_name;
