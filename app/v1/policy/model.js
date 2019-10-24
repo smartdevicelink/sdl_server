@@ -30,6 +30,9 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
     if(base.certificate && base.private_key){
         base.certificate += '\n' + base.private_key;
     }
+    else {
+        delete base.certificate;
+    }
 
     var moduleConfig = {
         "full_app_id_supported": useLongUuids,

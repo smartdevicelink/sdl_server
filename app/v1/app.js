@@ -27,9 +27,13 @@ app.locals.version = path.basename(__dirname);
 
 // construct base URL, e.g. "http://localhost:3000"
 app.locals.baseUrl = "http";
-if(app.locals.config.policyServerPort == 443) app.locals.baseUrl += "s";
+if(app.locals.config.ssl.policyServerPort) app.locals.baseUrl += "s";
 app.locals.baseUrl += "://" + app.locals.config.policyServerHost;
-if(![80,443].includes(app.locals.config.policyServerPort)) app.locals.baseUrl += ":" + app.locals.config.policyServerPort;
+if(app.locals.config.ssl.policyServerPort && app.locals.config.ssl.policyServerPort != 443){
+    app.locals.baseUrl += ":" + app.locals.config.ssl.policyServerPort;
+}else if(app.locals.config.policyServerPort != 80){
+    app.locals.baseUrl += ":" + app.locals.config.policyServerPort;
+}
 
 //export app before requiring dependent modules to avoid circular dependency issues
 module.exports = app;
@@ -102,7 +106,7 @@ function exposeRoutes () {
   //begin vehicle data routes
   app.post('/vehicle-data', auth.validateAuth, vehicleData.post);
   app.get('/vehicle-data', auth.validateAuth, vehicleData.get);
-  app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote); 
+  app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote);
   app.get('/vehicle-data/type', auth.validateAuth, vehicleData.getValidTypes);
 }
 
