@@ -85,6 +85,7 @@ function getCertificateOptions(options = {}){
         hash: settings.securityOptions.certificate.hash,
         days: options.days || settings.securityOptions.certificate.days,
         serialNumber: options.serialNumber,
+        csrConfigFile: settings.securityOptions.certificate.csrConfigFile
     };
 }
 
@@ -116,6 +117,7 @@ function createCertificateFlow(options, next){
         options.serviceKeyPassword = settings.securityOptions.passphrase;
         let tasks = [];
 
+
         let csrOptions = getCertificateOptions(options);
         let keyOptions = getKeyOptions(options);
 
@@ -130,8 +132,12 @@ function createCertificateFlow(options, next){
             });
         }
 
-        //create new csr using passed in key or newly generated one.
         tasks.push(function(cb){
+            writeCSRConfigFile(csrOptions, cb);
+        });
+
+        //create new csr using passed in key or newly generated one.
+        tasks.push(function(options, cb){
             pem.createCSR(csrOptions, function(err, csr){
                 cb(err, csr);
             });
@@ -150,6 +156,48 @@ function createCertificateFlow(options, next){
     } else {
         next('Security options have not been properly configured');
     }
+}
+
+function writeCSRConfigFile (options, cb){
+    let csrConfig = '# OpenSSL configuration file for creating a CSR for an app certificate\n' +
+        '[req]\n' +
+        'distinguished_name = req_distinguished_name\n' +
+        'prompt = no\n' +
+        '[ req_distinguished_name ]\n';
+    
+    if(options.country){
+        csrConfig += 'C = ' + options.country + '\n';
+    }
+    if(options.state){
+        csrConfig += 'ST = ' + options.state + '\n';
+    }
+    if(options.locality){
+        csrConfig += 'L = ' + options.locality + '\n';
+    }
+    if(options.organization){
+        csrConfig += 'O = ' + options.organization + '\n';
+    }
+    if(options.organizationUnit){
+        csrConfig += 'OU = ' + options.organizationUnit + '\n';
+    }
+    if(options.commonName){
+        csrConfig += 'CN = ' + options.commonName + '\n';
+    }
+    if(options.emailAddress){
+        csrConfig += 'emailAddress = ' + options.emailAddress + '\n';
+    }
+
+    // all app certificates MUST have the SUBJECT serial number equal to its app_uuid that core will recognize it as
+    if(options.serialNumber){
+        csrConfig += 'serialNumber = ' + options.serialNumber;
+    }
+    fs.writeFile(
+        settings.securityOptions.certificate.csrConfigFile, 
+        csrConfig, 
+        function(err){
+            cb(err, options);
+        }
+    );
 }
 
 module.exports = {
