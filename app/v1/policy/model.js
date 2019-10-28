@@ -284,6 +284,7 @@ function transformRpcVehicleData (rpcTypes = [], rpcParams = [], isForPolicyTabl
             && _.get(typeById[param.rpc_spec_type_id], "name") == "GetVehicleData"
             && _.get(typeById[param.rpc_spec_type_id], "message_type") == "response"
         ) {
+            param.key = param.name;
             vehicleDataParams.push(param);
         }
     }
@@ -301,6 +302,7 @@ function transformRpcVehicleData (rpcTypes = [], rpcParams = [], isForPolicyTabl
                 vehicleDataItem.type = "Struct";
                 vehicleDataItem.params = paramBuilder(paramsByTypeId[paramType.id]);
             }
+            vehicleDataItem.key = vehicleDataItem.name;
 
             results.push(vehicleDataItem);
         }
@@ -384,7 +386,8 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         RequestType: [],
         RequestSubType: [],
         app_services: appServiceObj,
-        allow_unknown_rpc_passthrough: res.appPassthrough.length ? true : false
+        allow_unknown_rpc_passthrough: res.appPassthrough.length ? true : false,
+        encryption_required : appObj.encryption_required ? true : false
     };
 
     if (appObj.icon_url) appPolicyObj[uuidProp].icon_url = appObj.icon_url;
@@ -392,7 +395,6 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
     if (appObj.cloud_transport_type) appPolicyObj[uuidProp].cloud_transport_type = appObj.cloud_transport_type;
     if (appObj.ca_certificate) appPolicyObj[uuidProp].certificate = appObj.ca_certificate;
     if (res.hybridPreference.length) appPolicyObj[uuidProp].hybrid_app_preference = res.hybridPreference[0].hybrid_preference;
-    if (appObj.encryption_required) appPolicyObj[uuidProp].encryption_required = appObj.encryption_required;
 
     if(res.incomingAppPolicy){
         if (res.incomingAppPolicy.enabled !== undefined) appPolicyObj[uuidProp].enabled = res.incomingAppPolicy.enabled;
