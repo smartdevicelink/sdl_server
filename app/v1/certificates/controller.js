@@ -1,6 +1,7 @@
 const async = require('async');
 const pem = require('pem');
 const fs = require('fs');
+const tmp = require('tmp');
 const logger = require('../../../custom/loggers/winston/index');
 const settings = require('../../../settings.js');
 const CA_DIR_PREFIX = __dirname + '/../../../customizable/ca/';
@@ -85,7 +86,7 @@ function getCertificateOptions(options = {}){
         hash: settings.securityOptions.certificate.hash,
         days: options.days || settings.securityOptions.certificate.days,
         serialNumber: options.serialNumber,
-        csrConfigFile: settings.securityOptions.certificate.csrConfigFile
+        csrConfigFile: options.csrConfigFile,
     };
 }
 
@@ -117,7 +118,6 @@ function createCertificateFlow(options, next){
         options.serviceKeyPassword = settings.securityOptions.passphrase;
         let tasks = [];
 
-
         let csrOptions = getCertificateOptions(options);
         let keyOptions = getKeyOptions(options);
 
@@ -132,13 +132,16 @@ function createCertificateFlow(options, next){
             });
         }
 
+        //write the CSR file for the pem module to use when generating the certificate
         tasks.push(function(cb){
             writeCSRConfigFile(csrOptions, cb);
         });
 
         //create new csr using passed in key or newly generated one.
-        tasks.push(function(options, cb){
+        tasks.push(function(csrFilePath, doneReadingFile, cb){
+            csrOptions.csrConfigFile = csrFilePath;
             pem.createCSR(csrOptions, function(err, csr){
+                doneReadingFile();
                 cb(err, csr);
             });
         });
@@ -191,13 +194,21 @@ function writeCSRConfigFile (options, cb){
     if(options.serialNumber){
         csrConfig += 'serialNumber = ' + options.serialNumber;
     }
-    fs.writeFile(
-        settings.securityOptions.certificate.csrConfigFile, 
-        csrConfig, 
-        function(err){
-            cb(err, options);
+
+    //store the contents in a file for a moment for the pem module to read from
+    tmp.file(function (err, path, fd, done) {
+        if (err) {
+            return cb(err);
         }
-    );
+
+        fs.writeFile(
+            path,
+            csrConfig, 
+            function (err) {
+                cb(err, path, done);
+            }
+        );
+    });
 }
 
 module.exports = {
