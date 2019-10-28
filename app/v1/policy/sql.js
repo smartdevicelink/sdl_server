@@ -157,7 +157,11 @@ function getAppFunctionalGroups (isProduction, appObj) {
                 })
                 .where({
                     'ap.app_id': appObj.id,
-                    'fghl.function_group_id': sql('view_function_group_info.id')
+                    'fghl.function_group_id': sql('view_function_group_info.id'),
+                    'view_function_group_info.is_proprietary_group': false,
+                    'view_function_group_info.is_widget_group': false,
+                    'view_function_group_info.is_app_provider_group': false,
+                    'view_function_group_info.is_administrator_group': false
                 })
         ),
         //adds functional groups which contain a parameter in the HMI level the app is requesting
@@ -172,7 +176,11 @@ function getAppFunctionalGroups (isProduction, appObj) {
                 })
                 .where({
                     'ap.app_id': appObj.id,
-                    'fgp.function_group_id': sql('view_function_group_info.id')
+                    'fgp.function_group_id': sql('view_function_group_info.id'),
+                    'view_function_group_info.is_proprietary_group': false,
+                    'view_function_group_info.is_widget_group': false,
+                    'view_function_group_info.is_app_provider_group': false,
+                    'view_function_group_info.is_administrator_group': false
                 })
                 .where(
                     sql.exists(
@@ -206,7 +214,11 @@ function getAppFunctionalGroups (isProduction, appObj) {
                     'ap.app_id': appObj.id,
                     'fghl.function_group_id': sql('view_function_group_info.id'),
                     'p.type': 'MODULE',
-                    'fghl.hmi_level': sql('hlc.hmi_level_enum')
+                    'fghl.hmi_level': sql('hlc.hmi_level_enum'),
+                    'view_function_group_info.is_proprietary_group': false,
+                    'view_function_group_info.is_widget_group': false,
+                    'view_function_group_info.is_app_provider_group': false,
+                    'view_function_group_info.is_administrator_group': false
                 })
         ),
         //adds functional groups with is_app_provider_group set to true for an app that is
@@ -251,7 +263,11 @@ function getAppFunctionalGroups (isProduction, appObj) {
                     .where({
                         'fghl.function_group_id': sql('view_function_group_info.id'),
                         'fghl.permission_name': 'Alert',
-                        'fghl.hmi_level': 'BACKGROUND'
+                        'fghl.hmi_level': 'BACKGROUND',
+                        'view_function_group_info.is_proprietary_group': false,
+                        'view_function_group_info.is_widget_group': false,
+                        'view_function_group_info.is_app_provider_group': false,
+                        'view_function_group_info.is_administrator_group': false
                     })
             )
         );
@@ -260,7 +276,10 @@ function getAppFunctionalGroups (isProduction, appObj) {
     if (appObj.can_manage_widgets) {
         sqlOr.push(
             {
-                'view_function_group_info.is_widget_group': true
+                'view_function_group_info.is_proprietary_group': false,
+                'view_function_group_info.is_widget_group': true,
+                'view_function_group_info.is_app_provider_group': false,
+                'view_function_group_info.is_administrator_group': false
             }
         );
     }

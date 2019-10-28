@@ -154,6 +154,8 @@ function checkAndUpdateCertificate (cb) {
                         updated_ts: sqlBricks('now()'),
                     };
 
+                    cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
+                    cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
                     db.sqlCommand(sql.updateModuleConfig(moduleConfig.id, updateObj), next);
                 });
             });
