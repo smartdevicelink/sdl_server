@@ -1,6 +1,7 @@
 const async = require('async');
 const pem = require('pem');
 const fs = require('fs');
+const tmp = require('tmp');
 const logger = require('../../../custom/loggers/winston/index');
 const settings = require('../../../settings.js');
 const CA_DIR_PREFIX = __dirname + '/../../../customizable/ca/';
@@ -85,6 +86,7 @@ function getCertificateOptions(options = {}){
         hash: settings.securityOptions.certificate.hash,
         days: options.days || settings.securityOptions.certificate.days,
         serialNumber: options.serialNumber,
+        csrConfigFile: options.csrConfigFile,
     };
 }
 
@@ -130,9 +132,16 @@ function createCertificateFlow(options, next){
             });
         }
 
-        //create new csr using passed in key or newly generated one.
+        //write the CSR file for the pem module to use when generating the certificate
         tasks.push(function(cb){
+            writeCSRConfigFile(csrOptions, cb);
+        });
+
+        //create new csr using passed in key or newly generated one.
+        tasks.push(function(csrFilePath, doneReadingFile, cb){
+            csrOptions.csrConfigFile = csrFilePath;
             pem.createCSR(csrOptions, function(err, csr){
+                doneReadingFile();
                 cb(err, csr);
             });
         });
@@ -150,6 +159,56 @@ function createCertificateFlow(options, next){
     } else {
         next('Security options have not been properly configured');
     }
+}
+
+function writeCSRConfigFile (options, cb){
+    let csrConfig = '# OpenSSL configuration file for creating a CSR for an app certificate\n' +
+        '[req]\n' +
+        'distinguished_name = req_distinguished_name\n' +
+        'prompt = no\n' +
+        '[ req_distinguished_name ]\n';
+    
+    if(options.country){
+        csrConfig += 'C = ' + options.country + '\n';
+    }
+    if(options.state){
+        csrConfig += 'ST = ' + options.state + '\n';
+    }
+    if(options.locality){
+        csrConfig += 'L = ' + options.locality + '\n';
+    }
+    if(options.organization){
+        csrConfig += 'O = ' + options.organization + '\n';
+    }
+    if(options.organizationUnit){
+        csrConfig += 'OU = ' + options.organizationUnit + '\n';
+    }
+    if(options.commonName){
+        csrConfig += 'CN = ' + options.commonName + '\n';
+    }
+    if(options.emailAddress){
+        csrConfig += 'emailAddress = ' + options.emailAddress + '\n';
+    }
+
+    // all app certificates MUST have the SUBJECT serial number equal to its app_uuid that core will recognize it as
+    if(options.serialNumber){
+        csrConfig += 'serialNumber = ' + options.serialNumber;
+    }
+
+    //store the contents in a file for a moment for the pem module to read from
+    tmp.file(function (err, path, fd, done) {
+        if (err) {
+            return cb(err);
+        }
+
+        fs.writeFile(
+            path,
+            csrConfig, 
+            function (err) {
+                cb(err, path, done);
+            }
+        );
+    });
 }
 
 module.exports = {

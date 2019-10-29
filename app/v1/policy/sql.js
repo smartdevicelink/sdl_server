@@ -276,10 +276,7 @@ function getAppFunctionalGroups (isProduction, appObj) {
     if (appObj.can_manage_widgets) {
         sqlOr.push(
             {
-                'view_function_group_info.is_proprietary_group': false,
-                'view_function_group_info.is_widget_group': true,
-                'view_function_group_info.is_app_provider_group': false,
-                'view_function_group_info.is_administrator_group': false
+                'view_function_group_info.is_widget_group': true
             }
         );
     }

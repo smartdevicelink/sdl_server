@@ -113,7 +113,7 @@ function checkAndUpdateCertificate (cb) {
 
     function certCheckAndUpdateModuleConfigs (err, expiredModuleConfigs) {
         if (err) {
-            app.locals.log.error(res.parcel.message);
+            app.locals.log.error(err);
             if (cb) {
                 cb();
             }
@@ -131,7 +131,7 @@ function checkAndUpdateCertificate (cb) {
 
             certController.createCertificateFlow(options, function (err, keyBundle) {
                 if (err) {
-                    app.locals.log.error(res.parcel.message);
+                    app.locals.log.error(err);
                     return next();
                 }
 
@@ -141,7 +141,7 @@ function checkAndUpdateCertificate (cb) {
 
                 certUtil.extractExpirationDateCertificate(keyBundle.certificate, function (err, newExpDate) {
                     if (err) {
-                        app.locals.log.error(res.parcel.message);
+                        app.locals.log.error(err);
                         return next();
                     }
                     //the expiration date is valid. add it to the module config body for storage in the DB
@@ -161,7 +161,7 @@ function checkAndUpdateCertificate (cb) {
             });
         }, function (err) {
             if (err) {
-                app.locals.log.error(res.parcel.message);
+                app.locals.log.error(err);
             }
             if (cb) {
                 cb();
