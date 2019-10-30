@@ -12,9 +12,18 @@ This page displays a list of applications pulled from the SHAID server. When ini
 | Last Update | The timestamp from when the app information was most recently updated. |
 | Platform | Android/IOS |
 | Category | Specifies the type of application. eg. Media, Information, Social. |
+| Widgets | Whether this app is requesting the use of widgets. |
 | Hybrid App Preference | Which app to show on the HMI when the same app is detected on multiple platforms. |
 | Endpoint | For cloud/embedded apps, the server endpoint of the app. |
 | Transport Type | For cloud/embedded apps, the expected transport type of the server endpoint. |
+
+### Toggles
+| Toggle | Notes |
+|----------|---------|
+| Automatically approve future versions of this app | The current version will still need to be approved manually. |
+| Grant all versions of this app access to "Administrator" Functional Groups |  |
+| Allow all versions of this app to send unknown RPCs through App Service RPC passthrough |  |
+| Require RPC encryption for this version of the app  |  |
 
 ### App Display Names
 | Property | Definition |
@@ -26,14 +35,19 @@ This page displays a list of applications pulled from the SHAID server. When ini
 |----------|---------|
 | Name | Strings to identify the permission. |
 | Type | RPC  |
-| HMI Level Requested | BACKGROUND/FULL/NONE/LIMITED   |
+| Min. HMI Level | BACKGROUND/FULL/NONE/LIMITED |
 
 ### Service Provider
 Service Provider options appear when an application has requested to be an App Service provider. OEMs may choose which RPCs/events the application is allowed to receive via the permission toggle switches. OEMs should note that disabling all the toggle switches does *not* revoke the application's general ability to act as an App Service Provider, but simply limits the app's abilities regarding that particular Service.
 
 | Property | Definition |
 |----------|---------|
-| Permissions | An RPC/event related to the app's requested service.  |
+| Permissions | An RPC/event related to the app's requested service. |
+
+### Grant Proprietary Functional Groups
+| Property | Definition |
+|----------|---------|
+| Functional Group Name | A functional group that is categorized as a proprietary functional group. |
 
 ### Developer Contact Info
 | Property | Definition |
@@ -44,6 +58,8 @@ Service Provider options appear when an application has requested to be an App S
 | Tech Email | The optional contact email for technical issues regarding the app. |
 | Tech Phone | The optional contact phone number for technical issues. |
 
+### Certificates
+An application can have a private key and certificate associated with it, if certificate generation is enabled. The certificate is set up to auto renew one day before its expiration, but these values can also be manually renewed by clicking on "Generate Key and Certificate", following by clicking on "Save Key and Certificate".
 
 ### Policy Table Preview
 This is an example of how the app and its required permissions will appear in the Policy Table.
