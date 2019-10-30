@@ -28,7 +28,7 @@ Once a new custom vehicle data item is created, it will be available as an optio
 | Is Array | Whether this parameter is an array of the specified type. |
 
 ### Creating a New Vehicle Data Item
-When creating a new functional group, first consider if there should be a user consent prompt associated with the group. If yes, the following diagram will walk through the correct steps.
+
 ![Custom-Vehicle-Data-Details](./assets/Custom-Vehicle-Data-Details.png)
 
 ## Staging 
