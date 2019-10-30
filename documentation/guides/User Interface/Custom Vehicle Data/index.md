@@ -24,7 +24,7 @@ Once a new custom vehicle data item is created, it will be available as an optio
 | Min Size | The minimum number of items for the value if it is an array. |
 | Max Size | The maximum number of items for the value if it is an array. |
 | Min Value | The minimum value for the value if it is a number. |
-| Max Value | The minimum value for the value if it is a number. |
+| Max Value | The maximum value for the value if it is a number. |
 | Is Array | Whether this parameter is an array of the specified type. |
 
 ### Creating a New Vehicle Data Item
