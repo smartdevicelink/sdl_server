@@ -16,7 +16,18 @@ It should be noted that the cards under "Production" cannot be edited. If you wi
 | Name | The String for which to identify the functional groups. |
 | Description | A body of text to outline the permissions associated with this functional group. |
 | User Consent Prompt | The consumer friendly message to be displayed when requesting input from the user. |
-| Make Default Functional Group | If set to true, all approved applications will have access to this functional group and its permissions. |
+
+### Special Grants
+| Checkbox | Notes |
+|----------|---------|
+| Grant this functional group to all applications by default  | If set to true, all staging and accepted applications will have access to this functional group and its permissions. |
+| Grant this functional group to all applications prior to the user accepting SDL data consent  |  |
+| Grant this functional group to all applications after the user has accepted SDL data consent  |  |
+| Grant this functional group to all applications with at least one service provider type  |  |
+| Grant this functional group to applications with "Administrator" privileges  |  |
+| Grant this functional group to applications with widget management privileges  |  |
+| This is a proprietary functional group  |  |
+| Require RPCs in this functional group to be encrypted   |  |
 
 ### RPCs
 | Property | Definition |
@@ -34,8 +45,8 @@ When creating a new functional group, first consider if there should be a user c
 For information on the language object properties, refer back to the documentation on the <a href="/docs/sdl-server/master/policy-table/consumer-friendly-messages/">consumer messages</a> object.
 ![Consumer-Messages](./assets/Consumer-Messages.png)
 
-## Staging
+## Staging 
 This environment is where temporary or unfinished entries reside. They can be edited and reworked.
 
 ## Production
-Only promote an entry to production if you are certain that all information associated is correct and final. After promoting to production, changes can not be made to the entry and a new entry must be created for any alterations to be made.
+Only promote entries to production if you are certain that all information associated is correct and final. After promoting to production, changes can not be made to that version of the entry and further changes will need to be made in the staging view.
