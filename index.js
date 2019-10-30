@@ -72,14 +72,14 @@ function start (overrideApp) {
 
 	//start the server
 	// if SSL is configured, load the cert and listen on the secure port
-	if(config.policyServerPortSSL && config.sslPrivateKeyFilename && config.sslCertificateFilename){
-		log.info(`Listening for secure connections on port ${config.policyServerPortSSL}!`);
+	if(config.ssl.policyServerPort && config.ssl.privateKeyFilename && config.ssl.certificateFilename){
+		log.info(`Listening for secure connections on port ${config.ssl.policyServerPort}!`);
 
 		//start listening on secure port
 		https.createServer({
-			"key": fs.readFileSync('./customizable/ssl/' + config.sslPrivateKeyFilename),
-			"cert": fs.readFileSync('./customizable/ssl/' + config.sslCertificateFilename)
-		}, app).listen(config.policyServerPortSSL);
+			"key": fs.readFileSync('./customizable/ssl/' + config.ssl.privateKeyFilename),
+			"cert": fs.readFileSync('./customizable/ssl/' + config.ssl.certificateFilename)
+		}, app).listen(config.ssl.policyServerPort);
 	}
 
 	//start the server on the unsecure port

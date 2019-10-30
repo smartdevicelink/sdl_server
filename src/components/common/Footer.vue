@@ -22,7 +22,9 @@ export default {
         }
     },
     created (){
-        this.httpRequest("get", "about", {}, (err, response) => {
+        this.httpRequest("get", "about", {
+            "preventAuthRedirect": true
+        }, (err, response) => {
             if(err){
                 // error
                 console.log("Error receiving about info.");

@@ -3,9 +3,20 @@ var expect = common.expect;
 var endpoint = '/api/v1/applications/auto';
 
 common.post(
-    'should add the given uuid to the auto approve table',
+    'should add the given uuid to the app_oem_enablements table',
     endpoint,
     {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', is_auto_approved_enabled: true},
+    (err, res, done) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(200);
+        done();
+    }
+);
+
+common.post(
+    'should remove the given uuid to the app_oem_enablements table',
+    endpoint,
+    {uuid: '30ea6bce-91de-4b18-8b52-68d82112eee6', is_auto_approved_enabled: false},
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
@@ -36,7 +47,7 @@ common.post(
 );
 
 common.post(
-    'should not add invalid uuid to the auto approve table',
+    'should not add invalid uuid to the app_oem_enablements table',
     endpoint,
     {uuid: 'INVALID', is_auto_approved_enabled: true},
     (err, res, done) => {

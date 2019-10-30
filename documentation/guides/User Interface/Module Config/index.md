@@ -1,6 +1,6 @@
 # Module Config
 
-The `module_config` object of the Policy Table is represented here. For information on the properties of the module config, refer back to the earlier documentation regarding the [Policy Table](/docs/sdl-server/master/policy-table/overview/).
+The `module_config` object of the Policy Table is represented here. For information on the properties of the module config, refer back to the earlier documentation regarding the [Policy Table](../../api-reference-documentation/policy-table/overview/).
 
 ![Module-Config.png](./assets/Module-Config.png)
 

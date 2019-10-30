@@ -59,6 +59,15 @@ This section is a list of URLs that are used throughout the SDL lifecycle, such 
 | 0X04 | Array | A list of URLs that can be used to retrieve module software updates. |
 | queryAppsUrl | Array | A list of URLs that can be used to receive valid apps for querying on iOS devices. |
 | lock_screen_icon_url | Array | A list of URLs to image files which can be displayed by the application on the driver's device during lockout. |
+| custom_vehicle_data_mapping_url | Array | A list of URLs that can be used for the OEM Network Mapping table. |
+
+
+### Endpoint Properties
+This section stores additional properties related to endpoints.
+
+| Property | Type | Description |
+| -------- | ---- | ----------- |
+| custom_vehicle_data_mapping_url.version| String | The current OEM Network Mapping table version. |
 
 ## Vehicle Information
 Vehicle identification information is stored in the module configuration portion of the Policy Table.
@@ -74,10 +83,23 @@ Vehicle identification information is stored in the module configuration portion
 An example of how the Module Config portion of a Policy Table might look.
 
     "module_config": {
+        "lock_screen_dismissal_enabled": true,
         "endpoints": {
             "0x07": {
-            "default": [ "http://localhost:3000/api/1/policies/proprietary" ],
+                "default": [ "http://localhost:3000/api/1/policies/proprietary" ]
+            },
+            "lock_screen_icon_url": {
+                "default":[  "https://i.imgur.com/TgkvOIZ.png" ]
+            },
+            "custom_vehicle_data_mapping_url":{  
+               "default":[ "http://localhost:3000/api/1/vehicleDataMap" ]
+            } 
           }
+        },
+        "endpoint_properties": {  
+            "custom_vehicle_data_mapping_url": {
+                "version":"0.1.2"
+            }
         },
         "exchange_after_x_ignition_cycles": 100,
         "exchange_after_x_kilometers": 1800,

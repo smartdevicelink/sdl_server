@@ -50,6 +50,21 @@ Here are the environment variables that will most likely be used:
 * `NOTIFY_APP_REVIEW_FREQUENCY`: String enum (DISABLED, REALTIME). The frequency of which outgoing emails should be sent to notify the OEM of new apps ready for review. Default DISABLED.
 * `NOTIFY_APP_REVIEW_EMAILS`: String. A comma-separated list of email addresses to send an email to when new apps are ready for review. Default empty string.
 * `AUTO_APPROVE_ALL_APPS`: String boolean ("true" or "false"). Whether or not to auto-approve all app versions received by SHAID (except for blacklisted apps). Default "false".
+* `CA_PRIVATE_KEY_FILENAME`: String. Mandatory. The filename of your .key file generated, to be placed in `customizable/ca/`
+* `CA_CERTIFICATE_FILENAME`: String. Mandatory. The filename of your .pem file generated, to be placed in `customizable/ca/`
+* `CERTIFICATE_PASSPHRASE`: String. Mandatory. A secret password used for every certificate generated.
+* `CERTIFICATE_COMMON_NAME`: String. Mandatory. Default information of the issuer's fully qualified domain name to secure.
+* `PRIVATE_KEY_BITSIZE`: Integer. The size of the private keys generated. Default 2048.
+* `PRIVATE_KEY_CIPHER`: String. The type of cipher to use for encryption/decryption. Defaults to "des3".
+* `CERTIFICATE_COUNTRY`: String. Default information of the issuer's country (two-letter ISO code).
+* `CERTIFICATE_STATE`: String. Default information of the issuer's state.
+* `CERTIFICATE_LOCALITY`: String. Default information of the issuer's city.
+* `CERTIFICATE_ORGANIZATION`: String. Default information of the issuer's legal company name.
+* `CERTIFICATE_ORGANIZATION_UNIT`: String. Default information of the issuer's company's branch.
+* `CERTIFICATE_EMAIL_ADDRESS`: String. Default information of the issuer's email address.
+* `CERTIFICATE_HASH`: String. The cryptographic hash function to use. Default 'sha256'.
+* `CERTIFICATE_DAYS`: Integer. The number of days until the certificate expires. Default 7.
+* `ENCRYPTION_REQUIRED`: String boolean ("true" or "false"). Whether or not to require RPC encryption for auto-approved app versions. Default "false".
 
 * `STAGING_PG_USER` **DEPRECATED**: String. The name of the user to allow the server access the database (staging mode)
 * `STAGING_PG_DATABASE` **DEPRECATED**: String. The name of the database where policy and app data is stored (staging mode)
