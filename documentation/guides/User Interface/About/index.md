@@ -8,4 +8,9 @@ This section provides basic information about your SDL Policy Server's configura
 * Caching service (if enabled)
 * Authentication type (if enabled)
 * Auto-approve incoming apps (if enabled)
+* Require RPC Encryption for auto-approved apps (if enabled)
+* Certificate generation (if enabled)
 * Email notifications (if enabled)
+
+
+![About.png](./assets/About.png)
