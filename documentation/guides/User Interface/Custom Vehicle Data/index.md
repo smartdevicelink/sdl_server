@@ -24,11 +24,11 @@ Once a new custom vehicle data item is created, it will be available as an optio
 | Min Size | The minimum number of items for the value if it is an array. |
 | Max Size | The maximum number of items for the value if it is an array. |
 | Min Value | The minimum value for the value if it is a number. |
-| Max Value | The minimum value for the value if it is a number. |
+| Max Value | The maximum value for the value if it is a number. |
 | Is Array | Whether this parameter is an array of the specified type. |
 
 ### Creating a New Vehicle Data Item
-When creating a new functional group, first consider if there should be a user consent prompt associated with the group. If yes, the following diagram will walk through the correct steps.
+
 ![Custom-Vehicle-Data-Details](./assets/Custom-Vehicle-Data-Details.png)
 
 ## Staging 
