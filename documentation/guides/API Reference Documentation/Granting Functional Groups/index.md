@@ -8,6 +8,16 @@ Incoming applications will request specific permissions (ex. Alert, Show, speed,
 
 Any functional group that is checked to be granted to all applications by default will automatically be given to all applications that are not blacklisted.
 
+Any functional group that is checked to be granted to all applications prior to the user accepting SDL data consent will automatically be given to all applications that are not blacklisted.
+
+Proprietary functional group are to be manually assigned to applications in review.
+
+Applications requesting widget management privileges will be given functional groups that have the corresponding checkbox checked.
+
+Applications requesting administrator privileges will be given functional groups that have the corresponding checkbox checked.
+
+Applications requesting at least one service provider type will be given functional groups that have the corresponding checkbox checked.
+
 When using the staging policy table, the functional groups that are available for assignment will be the same functional groups seen in the Functional Groups UI menu in STAGING mode. Similarly, the production policy table uses the functional groups seen in PRODUCTION mode.
 
 ## Example
