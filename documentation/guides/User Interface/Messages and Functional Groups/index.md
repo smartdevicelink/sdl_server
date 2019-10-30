@@ -27,6 +27,10 @@ It should be noted that the cards under "Production" cannot be edited. If you wi
 | Grant this functional group to applications with "Administrator" privileges  |  |
 | Grant this functional group to applications with widget management privileges  |  |
 | This is a proprietary functional group  |  |
+
+### Encryption
+| Checkbox | Notes |
+|----------|---------|
 | Require RPCs in this functional group to be encrypted   |  |
 
 ### RPCs
@@ -49,4 +53,4 @@ For information on the language object properties, refer back to the documentati
 This environment is where temporary or unfinished entries reside. They can be edited and reworked.
 
 ## Production
-Only promote entries to production if you are certain that all information associated is correct and final. After promoting to production, changes can not be made to that version of the entry and further changes will need to be made in the staging view.
+Production entries are not directly editable and may only be created/edited/deleted by promoting them from the staging entries. Only promote staging entries to production if you are certain that all information associated is correct.

@@ -59,7 +59,7 @@ Service Provider options appear when an application has requested to be an App S
 | Tech Phone | The optional contact phone number for technical issues. |
 
 ### Certificates
-An application can have a private key and certificate associated with it, if certificate generation is enabled. The certificate is set up to auto renew one day before its expiration, but these values can also be manually renewed by clicking on "Generate Key and Certificate", following by clicking on "Save Key and Certificate".
+An application can have a private key and certificate associated with it, if certificate generation is enabled. The certificate is set up to auto renew one day before its expiration, but these values can also be manually renewed by clicking "Generate Key and Certificate", followed by clicking "Save Key and Certificate".
 
 ### Policy Table Preview
 This is an example of how the app and its required permissions will appear in the Policy Table.

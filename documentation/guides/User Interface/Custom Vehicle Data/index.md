@@ -8,6 +8,7 @@ Each card will have identifying information, which includes the name of the top 
 
 ### Editing
 It should be noted that the cards under the "Production" view cannot be edited. If you wish to edit existing cards then you need to be in the "Staging" view and then click on the card. When editing, remember to hit the save button at the bottom of the page to keep any changes.
+
 ![Custom-Vehicle-Data-Save-Button](./assets/Custom-Vehicle-Data-Save-Button.png) 
 
 Once a new custom vehicle data item is created, it will be available as an option to assign to vehicle data RPCs in functional groups.
@@ -35,4 +36,4 @@ Once a new custom vehicle data item is created, it will be available as an optio
 This environment is where temporary or unfinished entries reside. They can be edited and reworked.
 
 ## Production
-Only promote entries to production if you are certain that all information associated is correct and final. After promoting to production, changes can not be made to that version of the entry and further changes will need to be made in the staging view.
+Production entries are not directly editable and may only be created/edited/deleted by promoting them from the staging entries. Only promote staging entries to production if you are certain that all information associated is correct.
