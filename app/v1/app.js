@@ -27,9 +27,13 @@ app.locals.version = path.basename(__dirname);
 
 // construct base URL, e.g. "http://localhost:3000"
 app.locals.baseUrl = "http";
-if(app.locals.config.policyServerPort == 443) app.locals.baseUrl += "s";
+if(app.locals.config.ssl.policyServerPort) app.locals.baseUrl += "s";
 app.locals.baseUrl += "://" + app.locals.config.policyServerHost;
-if(![80,443].includes(app.locals.config.policyServerPort)) app.locals.baseUrl += ":" + app.locals.config.policyServerPort;
+if(app.locals.config.ssl.policyServerPort && app.locals.config.ssl.policyServerPort != 443){
+    app.locals.baseUrl += ":" + app.locals.config.ssl.policyServerPort;
+}else if(app.locals.config.policyServerPort != 80){
+    app.locals.baseUrl += ":" + app.locals.config.policyServerPort;
+}
 
 //export app before requiring dependent modules to avoid circular dependency issues
 module.exports = app;
@@ -49,6 +53,8 @@ const services = require('./services/controller.js');
 const moduleConfig = require('./module-config/controller.js');
 const about = require('./about/controller.js');
 const auth = require('./middleware/auth.js');
+const certificates = require('./certificates/controller.js');
+const vehicleData = require('./vehicle-data/controller.js');
 
 function exposeRoutes () {
 	// use helmet middleware for security
@@ -66,7 +72,13 @@ function exposeRoutes () {
 	app.post('/applications/administrator', auth.validateAuth, applications.administratorPost);
 	app.post('/applications/passthrough', auth.validateAuth, applications.passthroughPost);
 	app.post('/applications/hybrid', auth.validateAuth, applications.hybridPost);
+	app.put('/applications/rpcencryption', auth.validateAuth, applications.rpcEncryptionPut);
 	app.put('/applications/service/permission', auth.validateAuth, applications.putServicePermission);
+	app.post('/applications/certificate/get', applications.getAppCertificate);
+	app.get('/applications/certificate/get', applications.getAppCertificate);
+	app.post('/applications/certificate', applications.updateAppCertificate);
+	app.get('/applications/groups', auth.validateAuth, applications.getFunctionalGroups);
+	app.put('/applications/groups', auth.validateAuth, applications.putFunctionalGroup);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
@@ -89,29 +101,38 @@ function exposeRoutes () {
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
 	app.get('/about', auth.validateAuth, about.getInfo);
-}
-
-function updatePermissionsAndGenerateTemplates (next) {
-	permissions.update(function () {
-		//generate functional group templates for fast responding to the UI for function group info
-		//requires that permission information has updated
-		groups.generateFunctionGroupTemplates(function () {
-			log.info("Functional groups generated");
-			if (next) {
-				next();
-			}
-		});
-	});
+	app.post('/security/certificate', certificates.createCertificate);
+	app.post('/security/private', certificates.createPrivateKey);
+  //begin vehicle data routes
+  app.post('/vehicle-data', auth.validateAuth, vehicleData.post);
+  app.get('/vehicle-data', auth.validateAuth, vehicleData.get);
+  app.post('/vehicle-data/promote', auth.validateAuth, vehicleData.promote);
+  app.get('/vehicle-data/type', auth.validateAuth, vehicleData.getValidTypes);
 }
 
 //do not allow routes to be exposed until these async functions are completed
 flame.async.parallel([
+	//certificate expiration check and renewal for both applications and for the module config
+	applications.checkAndUpdateCertificates,
+	moduleConfig.checkAndUpdateCertificate,
 	//get and store permission info from SHAID on startup
-	updatePermissionsAndGenerateTemplates,
+	function (next) {
+		permissions.update(function () {
+			log.info("Permissions updated");
+			next();
+		});
+	},
 	function (next) {
 		// get and store app service type info from SHAID on startup
 		services.upsertTypes(function () {
 			log.info("App service types updated");
+			next();
+		});
+	},
+    function (next) {
+		//get and store app categories from SHAID on startup
+		applications.queryAndStoreCategories(function() {
+			log.info('App categories updated');
 			next();
 		});
 	},
@@ -129,11 +150,30 @@ flame.async.parallel([
 			next();
 		});
 	},
+	function(next) {
+	 	vehicleData.updateRpcSpec(function() {
+            log.info("RPC Spec updated");
+            next();
+	 	});
+	},
 ], function () {
 	log.info("Start up complete. Exposing routes.");
 	exposeRoutes();
 });
 
 //cron job for running updates. runs once a day at midnight
-new Cron('00 00 00 * * *', updatePermissionsAndGenerateTemplates, null, true);
-new Cron('00 00 00 * * *', messages.updateLanguages, null, true);
+new Cron('00 00 00 * * *', permissions.update, null, true);
+new Cron('00 05 00 * * *', messages.updateLanguages, null, true);
+new Cron('00 10 00 * * *', applications.queryAndStoreCategories, null, true);
+new Cron('00 15 00 * * *', vehicleData.updateRpcSpec, null, true);
+new Cron('00 20 00 * * *', applications.checkAndUpdateCertificates, null, true);
+new Cron('00 25 00 * * *', moduleConfig.checkAndUpdateCertificate, null, true);
+
+/* FOR TESTING
+new Cron('10 * * * * *', permissions.update, null, true);
+new Cron('20 * * * * *', messages.updateLanguages, null, true);
+new Cron('30 * * * * *', applications.queryAndStoreCategories, null, true);
+new Cron('40 * * * * *', vehicleData.updateRpcSpec, null, true);
+new Cron('50 * * * * *', applications.checkAndUpdateCertificates, null, true);
+new Cron('00 * * * * *', moduleConfig.checkAndUpdateCertificate, null, true);
+*/

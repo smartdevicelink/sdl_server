@@ -41,7 +41,6 @@ function getAppInfoFilter (filterObj) {
 }
 
 function changeAppApprovalStatus (id, statusName, reason) {
-    console.log(reason);
     return sql.update('app_info')
         .set({
             approval_status: statusName,
@@ -340,6 +339,55 @@ function getAppAutoApproval (id) {
         .toString();
 }
 
+function getAppCertificate(app_uuid){
+    return sql.select('ac.certificate', 'ac.expiration_ts::TEXT')
+        .from('app_info ai')
+        .join('app_certificates ac', {
+            'ac.app_uuid': 'ai.app_uuid'
+        })
+        .where(
+            sql.or({
+                'ai.app_uuid': app_uuid,
+                'ai.app_short_uuid': app_uuid
+            })
+        )
+        .limit(1)
+        .toString();
+}
+
+function updateAppCertificate (obj) {
+    let insertObj = {
+        app_uuid: obj.app_uuid,
+        certificate: obj.certificate,
+        expiration_ts: obj.expirationDate,
+    }
+    return sql.insert('app_certificates', insertObj)
+        .onConflict()
+        .onConstraint('app_certificates_pkey')
+        .doUpdate()
+        .toString();
+}
+
+function getAllExpiredAppCertificates () {
+    return sql.select('a.app_uuid, ac.certificate, ac.expiration_ts')
+        .from('(' +
+            sql.select('ai.app_uuid')
+            .from('app_info ai')
+            .groupBy('ai.app_uuid')
+        + ') a')
+        .leftJoin('app_certificates ac', {
+            'ac.app_uuid': 'a.app_uuid'
+        })
+        .where(
+            sql.or(
+                //checks if the certificate is going to expire within a day
+                sql.lt('ac.expiration_ts', sql('((now() AT TIME ZONE \'UTC\') + \'1 day\'::interval)')),
+                sql.isNull('ac.expiration_ts')
+            )
+        )
+        .toString();
+}
+
 function timestampCheck (tableName, whereObj) {
     return sql.select('max(updated_ts)')
         .from(tableName)
@@ -374,6 +422,7 @@ function insertAppInfo (obj) {
         status: obj.status,
         can_background_alert: obj.can_background_alert,
         can_steal_focus: obj.can_steal_focus,
+        can_manage_widgets: obj.can_manage_widgets,
         default_hmi_level: obj.default_hmi_level,
         icon_url: obj.icon_url,
         cloud_endpoint: obj.cloud_endpoint || null,
@@ -397,6 +446,7 @@ function insertAppInfo (obj) {
 
     if (obj.approval_status) { //has a defined approval_status. otherwise leave as default
         insertObj.approval_status = obj.approval_status;
+        insertObj.encryption_required = obj.encryption_required || false;
     }
 
     return sql.insert('app_info', insertObj)
@@ -539,6 +589,21 @@ function insertAppServicePermission (obj) {
     }).toString();
 }
 
+function upsertCategories (categories) {
+    return categories.map(function (category) {
+        return sql.insert("categories", {
+            "id": category.id,
+            "display_name": category.display_name,
+            "name": category.name
+        })
+        .onConflict()
+        .onConstraint("categories_pkey")
+        .doUpdate()
+        .returning("*")
+        .toString();
+    });
+}
+
 function deleteAppServicePermission (obj) {
     return sql.delete()
         .from('app_service_type_permissions')
@@ -546,6 +611,68 @@ function deleteAppServicePermission (obj) {
             "app_id": obj.id,
             "service_type_name": obj.service_type_name,
             "permission_name": obj.permission_name
+        })
+        .toString();
+}
+
+function getAppFunctionalGroups (obj = {}) {
+    let query = null;
+
+    // set up base query
+    if (obj.environment && obj.environment.toLowerCase() == "production") {
+        query = sql.select('view_function_group_info.*')
+            .from('view_function_group_info')
+            .where({
+                'view_function_group_info.status': 'PRODUCTION'
+            });
+    } else {
+        const funcGroupsGroup = sql.select('max(id) AS id', 'property_name')
+            .from('view_function_group_info')
+            .groupBy('view_function_group_info.property_name');
+
+        query = sql.select('view_function_group_info.*')
+            .from('(' + funcGroupsGroup + ') vfgi')
+            .innerJoin('view_function_group_info', {
+                'view_function_group_info.id': 'vfgi.id'
+            });
+    }
+
+    if (obj.is_proprietary_group === "true" || obj.is_proprietary_group === true) {
+        query.where({
+            'view_function_group_info.is_proprietary_group': true
+        });
+    } else if (obj.is_proprietary_group === "false" || obj.is_proprietary_group === false) {
+        query.where({
+            'view_function_group_info.is_proprietary_group': false
+        });
+    }
+
+    query.leftJoin('app_function_groups afg', {
+        'afg.app_id': sql.val(obj.app_id ||  null),
+        'afg.property_name': 'view_function_group_info.property_name'
+    })
+    .select('CASE WHEN afg.app_id IS NOT NULL THEN TRUE ELSE FALSE END AS is_selected')
+    .where({
+        'view_function_group_info.is_deleted': false
+    })
+    .orderBy('LOWER(view_function_group_info.property_name)');
+
+    return query;
+}
+
+function insertAppFunctionalGroup (obj) {
+    return sql.insert('app_function_groups', {
+        "app_id": obj.app_id,
+        "property_name": obj.property_name
+    }).toString();
+}
+
+function deleteAppFunctionalGroup (obj) {
+    return sql.delete()
+        .from('app_function_groups')
+        .where({
+            "app_id": obj.app_id,
+            "property_name": obj.property_name
         })
         .toString();
 }
@@ -754,6 +881,18 @@ function insertAppAutoApproval (obj) {
         .toString();
 }
 
+function updateRPCEncryption(obj) {
+    return sql.update('app_info')
+        .set({
+            'encryption_required': obj.encryption_required
+        })
+        .where({
+            'id': obj.id
+        })
+        .returning('*')
+        .toString();
+}
+
 function insertAppBlacklist (obj) {
     return sql.insert('app_oem_enablements', 'app_uuid, key')
         .select(`'${obj.uuid}' AS app_uuid, 'blacklist' AS key`)
@@ -899,8 +1038,11 @@ module.exports = {
         hybridPreference: {
             multiFilter: getAppHybridPreferenceFilter,
             idFilter: getAppHybridPreference
-        }
+        },
+        certificate: getAppCertificate,
+        allExpiredCertificates: getAllExpiredAppCertificates,
     },
+    updateAppCertificate: updateAppCertificate,
     timestampCheck: timestampCheck,
     versionCheck: versionCheck,
     checkAutoApproval: checkAutoApproval,
@@ -916,6 +1058,7 @@ module.exports = {
     deletePassthrough: deletePassthrough,
     insertHybridPreference: insertHybridPreference,
     deleteHybridPreference: deleteHybridPreference,
+    updateRPCEncryption: updateRPCEncryption,
     insertAppBlacklist: insertAppBlacklist,
     deleteAppBlacklist: deleteAppBlacklist,
     getBlacklistedApps: getBlacklistedApps,
@@ -926,5 +1069,9 @@ module.exports = {
     deleteAppServicePermission: deleteAppServicePermission,
     deleteAppServicePermissions: deleteAppServicePermissions,
     insertAppServicePermissions: insertAppServicePermissions,
-    insertStandardAppServicePermissions: insertStandardAppServicePermissions
+    insertStandardAppServicePermissions: insertStandardAppServicePermissions,
+    upsertCategories: upsertCategories,
+    getAppFunctionalGroups: getAppFunctionalGroups,
+    insertAppFunctionalGroup: insertAppFunctionalGroup,
+    deleteAppFunctionalGroup: deleteAppFunctionalGroup
 }

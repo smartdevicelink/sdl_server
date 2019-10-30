@@ -25,17 +25,20 @@
         },
         methods: {
             checkboxUpdated: function(){
-                for(var option_index in this.options){
-                    // determine if each option is checked
-                    var is_checked = false;
-                    for(var index in this.selected){
-                        if(this.selected[index] == option_index){
-                            is_checked = true;
-                            break;
+                // timeout fixes event race condition in Safari and FF
+                setTimeout(() => {
+                    for(var option_index in this.options){
+                        // determine if each option is checked
+                        var is_checked = false;
+                        for(var index in this.selected){
+                            if(this.selected[index] == option_index){
+                                is_checked = true;
+                                break;
+                            }
                         }
+                        eventBus.$emit("rpcCheckboxChecked", this.rpcIndex, option_index, this.type, is_checked);
                     }
-                    eventBus.$emit("rpcCheckboxChecked", this.rpcIndex, option_index, this.type, is_checked);
-                }
+                });
             }
         },
         created: function(){

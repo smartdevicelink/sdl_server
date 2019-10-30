@@ -40,18 +40,44 @@ module.exports = {
     policyServerPort: process.env.POLICY_SERVER_PORT || 3000,
     //the SSL certificate files and secure port to listen for secure connections with
     //files should be stored in ./customizable/ssl
-    sslPrivateKeyFilename: process.env.SSL_PRIVATE_KEY_FILENAME || null,
-    sslCertificateFilename: process.env.SSL_CERTIFICATE_FILENAME || null,
-    policyServerPortSSL: process.env.POLICY_SERVER_PORT_SSL || null, // typically 443
+    ssl: {
+        privateKeyFilename: process.env.SSL_PRIVATE_KEY_FILENAME || null,
+        certificateFilename: process.env.SSL_CERTIFICATE_FILENAME || null,
+        policyServerPort: process.env.POLICY_SERVER_PORT_SSL || null, // typically 443
+    },
+    certificateAuthority: {
+        authorityKeyFileName: process.env.CA_PRIVATE_KEY_FILENAME || null,
+        authorityCertFileName: process.env.CA_CERTIFICATE_FILENAME || null,
+    },
+    securityOptions: {
+        passphrase: process.env.CERTIFICATE_PASSPHRASE || null,
+        privateKey: {
+            keyBitsize: process.env.PRIVATE_KEY_BITSIZE || 2048,
+            cipher: process.env.PRIVATE_KEY_CIPHER || "des3",
+        },
+        certificate: {
+            country: process.env.CERTIFICATE_COUNTRY || null,
+            state: process.env.CERTIFICATE_STATE || null,
+            locality: process.env.CERTIFICATE_LOCALITY || null,
+            organization: process.env.CERTIFICATE_ORGANIZATION || null,
+            organizationUnit: process.env.CERTIFICATE_ORGANIZATION_UNIT || null,
+            commonName: process.env.CERTIFICATE_COMMON_NAME || null,
+            emailAddress: process.env.CERTIFICATE_EMAIL_ADDRESS || null,
+            hash: process.env.CERTIFICATE_HASH || null,
+            days: process.env.CERTIFICATE_DAYS || 7,
+        }
+    },
     //what kind of auth to enforce? "basic" or null (no authentication)
     authType: process.env.AUTH_TYPE || null,
     //an optional password users must enter to access the Policy Server interface when paired with "basic" authType
     basicAuthPassword: process.env.BASIC_AUTH_PASSWORD || null,
     //whether or not to auto-approve all app versions received by SHAID (unless specifically blacklisted)
     autoApproveAllApps: process.env.AUTO_APPROVE_ALL_APPS == "true" ? true : false,
+    //whether or not to require encryption for all auto-approved apps
+    autoApproveSetRPCEncryption: process.env.ENCRYPTION_REQUIRED == "true" ? true : false,
     //credentials for using the SHAID API
     shaidPublicKey: process.env.SHAID_PUBLIC_KEY,
     shaidSecretKey: process.env.SHAID_SECRET_KEY,
     //the location of the RPC specification in order to retrieve an up-to-date language list
-    githubLanguageSourceUrl: 'https://raw.githubusercontent.com/smartdevicelink/rpc_spec/master/MOBILE_API.xml'
+    rpcSpecXmlUrl: 'https://raw.githubusercontent.com/smartdevicelink/rpc_spec/master/MOBILE_API.xml'
 }

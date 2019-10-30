@@ -1,42 +1,46 @@
 const app = require('../app');
 const flame = app.locals.flame;
 const flow = app.locals.flow;
-const setupSqlCommands = app.locals.db.setupSqlCommands;
+const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 const sqlBrick = require('sql-bricks-postgres');
 const async = require('async');
 
-let cachedTemplate;
-let cachedRpcHash;
-
-function getFunctionGroupTemplate () {
-    //the cached object is expected to be mutated, so return a full copy!
-    return JSON.parse(JSON.stringify(cachedTemplate));
-}
-
-function getRpcHashTemplate () {
-    //the cached object is expected to be mutated, so return a full copy!
-    return JSON.parse(JSON.stringify(cachedRpcHash));
-}
-
 //generates a single-element functional group info template object
 function generateTemplate (info, next) {
     //get what the full response would look like in hash form
-    generateRpcObjectHash(info.rpcs, info.permissionRelations, info.hmiValues);
+    let rpcHash = generateRpcObjectHash(info.rpcs, info.permissionRelations, info.hmiValues);
 
     //convert the hash into an array
-    rpcHashToArray(getRpcHashTemplate(), function (err, rpcs) {
-        cachedTemplate = baseTemplate();
-        cachedTemplate.rpcs = rpcs;
-        next();
+    rpcHashToArray(rpcHash, function (err, rpcs) {
+        let template = baseTemplate();
+        template.rpcs = rpcs;
+        next(err, template);
     });
+}
+
+function generateRpcHash (isProduction = false, callback) {
+    const getTemplateInfo = flow({
+        rpcs: setupSql.bind(null, sql.rpcs),
+        permissionRelations: setupSql.bind(null, sql.permissionRelationsNoModules(isProduction)),
+        hmiValues: setupSql.bind(null, sql.hmiLevels),
+    }, {method: 'parallel'});
+
+    const finalFlow = flow([
+        getTemplateInfo,
+        function (info, callback) {
+            callback(null, generateRpcObjectHash(info.rpcs, info.permissionRelations, info.hmiValues));
+        }
+    ], {method: 'waterfall'});
+
+    finalFlow(callback);
 }
 
 //only needs to be generated once, because the RPC list and permission relations cannot be changed after server start up
 //used as a step in generating a functional group response
 //an exception is made for this being synchronous due to the conditions in which this runs
 function generateRpcObjectHash (rpcs, permissionRelations, hmiValues) {
-    cachedRpcHash = {}; //build the cache
+    let rpcHash = {}; //build the cache
 
     const hmiValuesHash = {};
     for (let i = 0; i < hmiValues.length; i++) {
@@ -50,22 +54,26 @@ function generateRpcObjectHash (rpcs, permissionRelations, hmiValues) {
 
     for (let i = 0; i < rpcs.length; i++) {
         const rpcName = rpcs[i].name;
-        cachedRpcHash[rpcName] = {};
-        cachedRpcHash[rpcName].name = rpcName;
-        cachedRpcHash[rpcName].hmi_levels = hmiValuesHash;
-        cachedRpcHash[rpcName].selected = false;
-        cachedRpcHash[rpcName].parameters = {};
+        rpcHash[rpcName] = {};
+        rpcHash[rpcName].name = rpcName;
+        rpcHash[rpcName].hmi_levels = hmiValuesHash;
+        rpcHash[rpcName].selected = false;
+        rpcHash[rpcName].parameters = {};
     }
 
     for (let i = 0; i < permissionRelations.length; i++) {
         const rpcName = permissionRelations[i].parent_permission_name;
         const parameterName = permissionRelations[i].child_permission_name;
-        cachedRpcHash[rpcName].parameters[parameterName] = {
+        const isCustom = permissionRelations[i].is_custom;
+        rpcHash[rpcName].parameters[parameterName] = {
             name: parameterName,
             key: parameterName,
+            is_custom: isCustom,
             selected: false
         };
     }
+
+    return rpcHash;
 }
 
 //convert the rpc hash into an array suitable for responding to the UI
@@ -87,7 +95,7 @@ function rpcHashToArray (rpcHash, next) {
         rpc.hmi_levels = hmiLevelArray;
         //sort the parameters by name, making it an array in the process
         flame.async.sortBy(rpc.parameters, function (parameter, callback) {
-            callback(null, parameter.name);
+            callback(null, parameter.is_custom + parameter.name);
         }, function (err, sortedParameters) {
             rpc.parameters = sortedParameters;
             callback(null, rpc);
@@ -110,6 +118,9 @@ function baseTemplate (objOverride) {
         is_device: false,
         is_app_provider_group: false,
         is_administrator_group: false,
+        encryption_required: false,
+        is_widget_group: false,
+        is_proprietary_group: false,
         is_deleted: false,
         user_consent_prompt: null,
         rpcs: []
@@ -127,6 +138,9 @@ function baseTemplate (objOverride) {
         obj.is_device = objOverride.is_device;
         obj.is_app_provider_group = objOverride.is_app_provider_group;
         obj.is_administrator_group = objOverride.is_administrator_group;
+        obj.encryption_required = objOverride.encryption_required;
+        obj.is_widget_group = objOverride.is_widget_group;
+        obj.is_proprietary_group = objOverride.is_proprietary_group;
         obj.is_deleted = objOverride.is_deleted;
     }
 
@@ -134,7 +148,7 @@ function baseTemplate (objOverride) {
 }
 
 //creates functional groups in a format the UI can understand
-function makeFunctionGroups (includeRpcs, info, next) {
+function makeFunctionGroups (includeRpcs, isProduction, info, next) {
     const baseInfo = info.base;
     const hmiLevels = info.hmiLevels;
     const parameters = info.parameters;
@@ -216,14 +230,23 @@ function makeFunctionGroups (includeRpcs, info, next) {
         //if the template didn't specify rpcs, do not include selected rpc/parameter info in the response
         if (includeRpcs) {
             //create RPC arrays for each functional group id and attach it to the functional group
-            flame.async.map(functionalGroups, function (group, callback) {
-                const funcGroupData = groupedData[group.id];
-                const rpcHash = populateRpcHash(getRpcHashTemplate(), funcGroupData.hmiLevels, funcGroupData.parameters);
-                rpcHashToArray(rpcHash, function (err, rpcs) {
-                    group.rpcs = rpcs; //attach the rpc array
-                    callback(null, group);
-                });
-            }, next);
+            flame.async.waterfall([
+                generateRpcHash.bind(null, isProduction),
+                function (rpcHashTemplate, callback) {
+                    flame.async.map(functionalGroups, function(group, callback) {
+                        const funcGroupData = groupedData[group.id];
+                        const rpcHash = populateRpcHash(
+                            JSON.parse(JSON.stringify(rpcHashTemplate)),
+                            funcGroupData.hmiLevels,
+                            funcGroupData.parameters
+                        );
+                        rpcHashToArray(rpcHash, function (err, rpcs) {
+                            group.rpcs = rpcs; //attach the rpc array
+                            callback(null, group);
+                        });
+                    }, callback);
+                }
+            ], next);
         }
         else {
             next(null, functionalGroups); //skip rpc insertion
@@ -254,15 +277,22 @@ function populateRpcHash (rpcHash, hmiLevels, parameters) {
     for (let i = 0; i < hmiLevels.length; i++) {
         const rpcName = hmiLevels[i].permission_name;
         const level = hmiLevels[i].hmi_level;
-        //set the selected rpcs to true, including at the RPC level
-        rpcHash[rpcName].selected = true;
-        rpcHash[rpcName].hmi_levels[level].selected = true;
+        // set the selected rpcs to true, including at the RPC level
+        // only do this for RPCs that have been synced from SHAID
+        if(rpcHash[rpcName]){
+            rpcHash[rpcName].selected = true;
+            rpcHash[rpcName].hmi_levels[level].selected = true;
+        }
     }
     for (let i = 0; i < parameters.length; i++) {
         const rpcName = parameters[i].rpc_name;
         const parameter = parameters[i].parameter;
-        //set the selected rpcs to true
-        rpcHash[rpcName].parameters[parameter].selected = true;
+
+        // custom vehicle data not guaranteed to be promoted to PRODUCTION before the functional group
+        if(rpcHash[rpcName].parameters[parameter]){
+            //set the selected rpcs to true
+            rpcHash[rpcName].parameters[parameter].selected = true;
+        }
     }
     return rpcHash;
 }
@@ -277,6 +307,9 @@ function convertToInsertableFunctionalGroupInfo (functionalGroupObj, statusOverr
         is_device: functionalGroupObj.is_device || false,
         is_app_provider_group: functionalGroupObj.is_app_provider_group || false,
         is_administrator_group: functionalGroupObj.is_administrator_group || false,
+        encryption_required : functionalGroupObj.encryption_required || false,
+        is_widget_group: functionalGroupObj.is_widget_group || false,
+        is_proprietary_group: functionalGroupObj.is_proprietary_group || false,
         description: functionalGroupObj.description || null,
         is_deleted: functionalGroupObj.is_deleted || false
     };
@@ -366,8 +399,7 @@ function insertFunctionalGroupsWithTransaction(isProduction, rawFunctionalGroups
 module.exports = {
     makeFunctionGroups: makeFunctionGroups,
     generateTemplate: generateTemplate,
-    getFunctionGroupTemplate: getFunctionGroupTemplate,
-    getRpcHashTemplate: getRpcHashTemplate,
     insertFunctionalGroupsWithTransaction: insertFunctionalGroupsWithTransaction,
-    rpcHashToArray: rpcHashToArray
+    rpcHashToArray: rpcHashToArray,
+    generateRpcObjectHash: generateRpcObjectHash
 }

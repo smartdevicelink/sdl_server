@@ -4,18 +4,20 @@ const flame = app.locals.flame;
 const flow = app.locals.flow;
 const db = app.locals.db;
 const sql = require('./sql.js');
+const _ = require('lodash');
 
 //keeping this synchronous due to how small the data is. pass this to the event loop
 function transformModuleConfig (info, next) {
     const base = info.base;
     const retrySeconds = info.retrySeconds;
-
+    const endpointProperties = info.endpointProperties;
+  
     const hashBase = {};
     //hash up base info
     for (let i = 0; i < base.length; i++) {
         hashBase[base[i].id] = base[i];
-        hashBase[base[i].id] = base[i];
         hashBase[base[i].id].seconds_between_retries = [];
+        hashBase[base[i].id].raw_endpoint_properties = endpointProperties;
     }
 
     //retry seconds are ordered
@@ -33,7 +35,7 @@ function transformModuleConfig (info, next) {
 }
 
 function baseTemplate (objOverride) {
-    const obj = {
+    let obj = {
         id: 0,
         status: "PRODUCTION",
         exchange_after_x_ignition_cycles: 0,
@@ -44,8 +46,11 @@ function baseTemplate (objOverride) {
         endpoints: {
             "0x04": "",
             "queryAppsUrl": "",
-            "lock_screen_icon_url": ""
+            "lock_screen_icon_url": "",
+            "custom_vehicle_data_mapping_url": ""
         },
+        lock_screen_dismissal_enabled: false,
+        endpoint_properties: {},
         notifications_per_minute_by_priority: {
             EMERGENCY: 0,
             NAVIGATION: 0,
@@ -53,7 +58,15 @@ function baseTemplate (objOverride) {
             COMMUNICATION: 0,
             NORMAL: 0,
             NONE: 0
-        }
+        },
+        certificate: "",
+        private_key: "",
+        expiration_ts: "",
+    };
+
+    // initialize known endpoint property objects
+    for (endpoint in obj.endpoints) {
+        obj.endpoint_properties[endpoint] = {};
     }
 
     if (objOverride) {
@@ -68,12 +81,24 @@ function baseTemplate (objOverride) {
         obj.endpoints["0x04"] = objOverride.endpoint_0x04;
         obj.endpoints.queryAppsUrl = objOverride.query_apps_url;
         obj.endpoints.lock_screen_icon_url = objOverride.lock_screen_default_url;
+        obj.lock_screen_dismissal_enabled = objOverride.lock_screen_dismissal_enabled === true;
+        obj.endpoints.custom_vehicle_data_mapping_url = objOverride.custom_vehicle_data_mapping_url;
         obj.notifications_per_minute_by_priority.EMERGENCY = objOverride.emergency_notifications;
         obj.notifications_per_minute_by_priority.NAVIGATION = objOverride.navigation_notifications;
         obj.notifications_per_minute_by_priority.VOICECOM = objOverride.voicecom_notifications;
         obj.notifications_per_minute_by_priority.COMMUNICATION = objOverride.communication_notifications;
         obj.notifications_per_minute_by_priority.NORMAL = objOverride.normal_notifications;
         obj.notifications_per_minute_by_priority.NONE = objOverride.none_notifications;
+        obj.certificate = objOverride.certificate;
+        obj.private_key = objOverride.private_key;
+        obj.expiration_ts = objOverride.expiration_ts;
+
+        // inject endpoint properties we have from the database
+        _.forEach(objOverride.raw_endpoint_properties, function(endProp, index) {
+            if (obj.endpoint_properties[endProp.endpoint_name]) {
+                obj.endpoint_properties[endProp.endpoint_name][endProp.property_name] = endProp.property_value;
+            }
+        });
     }
 
     return obj;
@@ -84,8 +109,7 @@ function insertModuleConfig (isProduction, moduleConfig, next) {
     //change status
     if (isProduction) {
         moduleConfig.status = "PRODUCTION";
-    }
-    else {
+    } else {
         moduleConfig.status = "STAGING";
     }
     // process message groups synchronously (due to the SQL transaction)
@@ -96,12 +120,30 @@ function insertModuleConfig (isProduction, moduleConfig, next) {
             //stage 2: insert module config retry seconds
             function (newModConf, next) {
                 if (moduleConfig.seconds_between_retries.length > 0) {
-                    client.getOne(sql.insertRetrySeconds(moduleConfig.seconds_between_retries, newModConf.id), next);
-                }
-                else {
-                    next();
+                    client.getOne(sql.insertRetrySeconds(moduleConfig.seconds_between_retries, newModConf.id), function(err){
+                        next(err, newModConf);
+                    });
+                } else {
+                    next(null, newModConf);
                 }
             },
+            //stage 3: insert module config endpoint properties
+            function (newModConf, next) {
+                //ensure that there is at least one value inside the properties
+                let foundPropertyValue = false;
+
+                for (let key in moduleConfig.endpoint_properties) {
+                    for (propKey in moduleConfig.endpoint_properties[key]) {
+                        foundPropertyValue = true;
+                    }
+                }
+
+                if (foundPropertyValue) {
+                    client.getOne(sql.insertEndpointProperties(moduleConfig.endpoint_properties, newModConf.id), next);
+                } else {
+                    next();
+                }
+            }
         ], callback);
     }, next);
 }

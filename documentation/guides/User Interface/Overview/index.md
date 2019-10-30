@@ -9,6 +9,10 @@ A majority of the modifications made to the Policy Table are done through SQL da
 
 [Consumer Friendly Messages](../messages-and-functional-groups/)
 
+[Custom Vehicle Data](../custom-vehicle-data/)
+
+[About](../about/)
+
 ## Vue.js
 <a href="https://vuejs.org/v2/guide/">Vue.js</a> is an open source JavaScript framework which the Policy Server uses in building the user interface. It allows the creation of multiple components of a similar structure. For the Policy Server, the larger components for building each page exist in the /src/components directory while the smaller and more numerous items are located in the /common subdirectory. Any files related to styling such as <a href="https://developer.mozilla.org/en-US/docs/Web/CSS">CSS</a>, text fonts, and images, are in the /assets subdirectory. The basic HTML for the user interface can be found in the /ui/raw directory.
 ## Webpack

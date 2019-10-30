@@ -8,6 +8,9 @@ const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
 const config = app.locals.config;
+const async = require('async');
+const certificates = require('../certificates/controller.js');
+const certUtil = require('../helpers/certificates.js');
 
 //validation functions
 
@@ -25,7 +28,14 @@ function validateActionPost (req, res) {
 
 function validateServicePermissionPut (req, res) {
 	if (!req.body.id || !check.boolean(req.body.is_selected) || !check.string(req.body.service_type_name) || !check.string(req.body.permission_name)) {
-		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name required");
+		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name are required");
+	}
+    return;
+}
+
+function validateFunctionalGroupPut (req, res) {
+	if (!req.body.app_id || !check.boolean(req.body.is_selected) || !check.string(req.body.property_name)) {
+		res.parcel.setStatus(400).setMessage("app_id, is_selected, and property_name are required");
 	}
     return;
 }
@@ -44,6 +54,13 @@ function validateAutoPost (req, res) {
     return;
 }
 
+function validateRPCEncryptionPut (req, res) {
+	if (!req.body.id || !check.boolean(req.body.encryption_required)) {
+		res.parcel.setStatus(400).setMessage("id and encryption_required required");
+	}
+    return;
+}
+
 function validateAdministratorPost (req, res) {
 	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_administrator_app)) {
 		res.parcel.setStatus(400).setMessage("uuid and is_administrator_app required");
@@ -55,6 +72,17 @@ function validatePassthroughPost (req, res) {
 	if (!check.string(req.body.uuid) || !check.boolean(req.body.allow_unknown_rpc_passthrough)) {
 		res.parcel.setStatus(400).setMessage("uuid and allow_unknown_rpc_passthrough required");
 	}
+    return;
+}
+
+function validateUpdateAppCertificate (req, res) {
+    if (!req.body.options ||
+        !check.string(req.body.options.app_uuid) ||
+        !check.string(req.body.options.clientKey) ||
+        !check.string(req.body.options.certificate)
+    ) {
+        res.parcel.setStatus(400).setMessage("options object with app_uuid, clientKey and certificate required");
+    }
     return;
 }
 
@@ -87,6 +115,16 @@ function createAppInfoFlow (filterTypeFunc, value) {
 	}, {method: 'parallel', eventLoop: true});
 
 	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
+}
+
+function storeCategories(categories, callback) {
+    const upsertCats = app.locals.db.setupSqlCommands(sql.upsertCategories(categories));
+
+    const insertFlow = app.locals.flow([
+        app.locals.flow(upsertCats, {method: 'parallel'})
+    ], {method: 'series'});
+
+    insertFlow(callback);
 }
 
 //application store functions
@@ -190,6 +228,7 @@ function autoApprovalModifier (appObj, next) {
 	// check if auto-approve *all apps* is enabled
 	if(config.autoApproveAllApps){
 		appObj.approval_status = 'ACCEPTED';
+		appObj.encryption_required = config.autoApproveSetRPCEncryption;
 		next(null, appObj);
 		return;
 	}
@@ -200,6 +239,7 @@ function autoApprovalModifier (appObj, next) {
         //change the status of this appObj to ACCEPTED
         if (res.length > 0) {
             appObj.approval_status = 'ACCEPTED';
+			appObj.encryption_required = config.autoApproveSetRPCEncryption;
         }
         next(null, appObj);
     });
@@ -264,14 +304,58 @@ function attemptRetry(milliseconds, retryQueue){
     }, milliseconds);
 }
 
-module.exports = {
-	validateActionPost: validateActionPost,
-	validateAutoPost: validateAutoPost,
-	validateAdministratorPost: validateAdministratorPost,
-	validatePassthroughPost: validatePassthroughPost,
-	validateHybridPost: validateHybridPost,
-	validateServicePermissionPut: validateServicePermissionPut,
-    validateWebHook: validateWebHook,
-	createAppInfoFlow: createAppInfoFlow,
-	storeApps: storeApps
+function storeAppCertificates (insertObjs, next) {
+	app.locals.db.runAsTransaction(function (client, callback) {
+		async.mapSeries(insertObjs, function (insertObj, cb) {
+			app.locals.log.info("Updating certificate of " + insertObj.app_uuid);
+            model.updateAppCertificate(insertObj.app_uuid, insertObj.certificate, cb);
+		}, callback);
+	}, function (err, response) {
+		if(err){
+			app.locals.log.error(err);
+		}
+		app.locals.log.info("App certificates updated");
+		next();
+	});
 }
+
+function createFailedAppsCert(failedApp, next){
+	let options = certificates.getCertificateOptions({
+		serialNumber: failedApp.app_uuid,
+		clientKey: failedApp.private_key
+	});
+
+	certificates.createCertificateFlow(options, function(err, keyBundle){
+		if(err){
+			return next(err, {});
+		}
+        certUtil.createKeyCertBundle(keyBundle.clientKey, keyBundle.certificate)
+            .then(keyCertBundle => {
+                next(null, {
+                    app_uuid: failedApp.app_uuid,
+                    certificate: keyCertBundle
+                });
+            })
+            .catch(err => {
+                next(err)
+            });
+	});
+}
+
+module.exports = {
+	  validateActionPost: validateActionPost,
+	  validateAutoPost: validateAutoPost,
+	  validateAdministratorPost: validateAdministratorPost,
+	  validatePassthroughPost: validatePassthroughPost,
+	  validateHybridPost: validateHybridPost,
+	  validateRPCEncryptionPut: validateRPCEncryptionPut,
+	  validateServicePermissionPut: validateServicePermissionPut,
+	  validateFunctionalGroupPut: validateFunctionalGroupPut,
+      validateUpdateAppCertificate: validateUpdateAppCertificate,
+    validateWebHook: validateWebHook,
+    storeAppCertificates: storeAppCertificates,
+    createFailedAppsCert: createFailedAppsCert,
+    createAppInfoFlow: createAppInfoFlow,
+    storeApps: storeApps,
+    storeCategories: storeCategories,
+};

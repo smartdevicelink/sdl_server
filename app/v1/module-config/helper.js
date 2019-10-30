@@ -87,7 +87,8 @@ function validatePost (req, res) {
 function getModuleConfigFlow (property, value) {
     const getInfoFlow = app.locals.flow({
         base: setupSql.bind(null, sql.moduleConfig[property](value)),
-        retrySeconds: setupSql.bind(null, sql.retrySeconds[property](value))
+        retrySeconds: setupSql.bind(null, sql.retrySeconds[property](value)),
+        endpointProperties: setupSql.bind(null, sql.endpointProperties[property](value))
     }, {method: 'parallel'});
 
     return app.locals.flow([

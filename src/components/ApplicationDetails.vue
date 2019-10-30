@@ -35,6 +35,16 @@
 
                 <div class="app-table">
                     <h4>General App Info<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/applications/" target="_blank"></a></h4>
+
+                    <div v-if="(!certificate && private_key) || (certificate && !private_key)" class="alert color-bg-red color-white d-table" role="alert">
+                        ** Notice: The {{(private_key) ? "certificate" : "private key"}} is not defined but the {{(private_key) ? "private key" : "certificate"}} is.
+                        They should both be set or both left empty.
+                    </div>
+
+                    <div v-if="certificate_error" class="alert color-bg-red color-white d-table" role="alert">
+                        ** Notice: An error occurred when processing the private key and certificate data. If you are providing your own, please be certain of their accuracy and validity.
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -43,16 +53,21 @@
                                     <th>Last Update</th>
                                     <th>Platform</th>
                                     <th>Category</th>
+                                    <th>Widgets</th>
                                     <th>Hybrid App Preference</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="icon"><img class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" /></td>
+                                    <td class="icon">
+                                        <img v-if="app.icon_url" v-bind:src="app.icon_url" class="rounded" style="width: 40px; height: 40px;" />
+                                        <img v-else class="rounded" style="width: 40px; height: 40px;" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e9f9b8d79%20text%20%7B%20fill%3Argba(255%2C255%2C255%2C.75)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e9f9b8d79%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23777%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274.4296875%22%20y%3D%22104.5%22%3E200x200%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" />
+                                    </td>
                                     <td class="title">{{ app.name }}</td>
                                     <td>{{ app.updated_ts }}</td>
                                     <td>{{ app.platform }}</td>
                                     <td>{{ app.category.display_name }}</td>
+                                    <td>{{ app.can_manage_widgets ? "Yes" : "No" }}</td>
                                     <td class="overflow-visible">
                                         <b-dropdown size="sm" right
                                             variant="secondary"
@@ -113,7 +128,7 @@
                             <span class="slider round"></span>
                         </label>
                         <label class="form-check-label switch-label">
-                          Automatically approve future updates to this app
+                          Automatically approve <b>future versions</b> of this app
                         </label>
                     </div>
                     <div class="mt-2 mb-2">
@@ -122,16 +137,25 @@
                             <span class="slider round"></span>
                         </label>
                         <label class="form-check-label switch-label">
-                          Grant this app access to "Administrator" Functional Groups<a class="fa fa-exclamation-circle color-primary doc-link" v-b-tooltip.hover title="Manage Administator permissions via the Functional Groups tab"></a>
+                          Grant <b>all versions of this app</b> access to "Administrator" Functional Groups<a class="fa fa-exclamation-circle color-primary doc-link" v-b-tooltip.hover title="Manage Administator permissions via the Functional Groups tab"></a>
                         </label>
                     </div>
-                    <div class="mt-2 mb-5">
+                    <div class="mt-2 mb-2">
                         <label class="switch">
                             <input v-on:click="togglePassthroughClick" type="checkbox" :checked="app.allow_unknown_rpc_passthrough"></input>
                             <span class="slider round"></span>
                         </label>
                         <label class="form-check-label switch-label">
-                          Allow app to send unknown RPCs through App Service RPC passthrough
+                          Allow <b>all versions of this app</b> to send unknown RPCs through App Service RPC passthrough
+                        </label>
+                    </div>
+                    <div class="mt-2 mb-5">
+                        <label class="switch">
+                            <input v-on:click="toggleRPCEncryptionClick" type="checkbox" :checked="app.encryption_required"></input>
+                            <span class="slider round"></span>
+                        </label>
+                        <label class="form-check-label switch-label">
+                          Require RPC encryption for <b>this version</b> of the app
                         </label>
                     </div>
                 </div>
@@ -217,6 +241,38 @@
                 </div>
 
                 <div class="app-table">
+                    <h4>Grant Proprietary Functional Groups <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Optionally grant this app version access to select proprietary production functional groups"></a></h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm table-w-33">
+                            <thead>
+                                <tr>
+                                    <th>Functional Group Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-if="proprietary_functional_groups == null">
+                                    <td>
+                                        <label class="switch">
+                                        </label>
+                                        <label class="form-check-label switch-label">
+                                          No production propriety groups defined.
+                                        </label>
+                                    </td>
+                                </tr>
+                                <app-functional-group-row
+                                    v-for="(item, index) in proprietary_functional_groups"
+                                    v-bind:item="item"
+                                    v-bind:index="index"
+                                    v-bind:key="item.id"
+                                    v-bind:app_id="app.id"
+                                    v-bind:approval_status="app.approval_status"
+                                    v-bind:updatePolicyTablesHandler="getPolicy"/>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="app-table">
                     <h4>Developer Contact Info</h4>
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -239,6 +295,58 @@
                         </table>
                     </div>
                 </div>
+
+
+                <div v-if="about.is_authority_valid">
+                    <div  class="app-table">
+                        <h4>Private Key</h4>
+                        <b-form-textarea
+                            :disabled="true"
+                            v-model="private_key"
+                            placeholder="No private key specified"
+                            style="width:605px"
+                            rows="3"
+                            max-rows="50"
+                            ></b-form-textarea>
+                    </div>
+
+                    <div class="app-table">
+                        <h4>Certificate</h4>
+                        <b-form-textarea class="form-group"
+                            :disabled="true"
+                            v-model="certificate"
+                            placeholder="No certificate specified"
+                            style="width:605px"
+                            rows="3"
+                            max-rows="50"
+                            ></b-form-textarea>
+
+                        <!--pre class="mt-3 mb-0">{{ module_config.certificate }}</pre-->
+                        <vue-ladda
+                            type="submit"
+                            class="btn btn-card"
+                            data-style="zoom-in"
+                            style="width:300px"
+                            v-bind:loading="false"
+                            v-b-modal.certificateModal>
+                            Generate Key and Certificate
+                        </vue-ladda>
+                    </div>
+
+                    <div>
+                        <vue-ladda
+                                type="submit"
+                                class="btn btn-card btn-style-green"
+                                data-style="zoom-in"
+                                style="width:300px"
+                                v-bind:loading="false"
+                                v-on:click="saveCertificate()">
+                            Save Key and Certificate
+                        </vue-ladda>
+                    </div>
+                </div>
+
+
 
                 <div class="app-table">
                     <h4>Policy Table Preview</h4>
@@ -310,6 +418,15 @@
                         </vue-ladda>
                     </form>
                 </b-modal>
+
+                <!-- CERTIFICATE GENERATOR MODAL -->
+                <certificate-modal
+                    :environmentClick="() => {}"
+                    :actionCallback="gotCertificateKeyData"
+                    :certificate_options="certificate_options"
+                    name="certificateModal">
+                </certificate-modal>
+
             </main>
         </div>
     </div>
@@ -378,6 +495,7 @@ export default {
             "app": null,
             "policytableStaging": null,
             "policytableProduction": null,
+            "proprietary_functional_groups": null,
             "options": {
                 "PENDING": pending_opt,
                 "STAGING": staging_opt,
@@ -430,10 +548,36 @@ export default {
             "selected_hybrid_app_preference": {
                 "text": "Both",
                 "value": "BOTH"
-            }
+            },
+            "key_button_loading": false,
+            "certificate_save_loading": false,
+            "certificate_error": false,
+            "certificate_options": {
+                "keyBitsize": "",
+                "cipher": "",
+                "country": "",
+                "state": "",
+                "locality": "",
+                "organization": "",
+                "organizationUnit": "",
+                "commonName": "",
+                "emailAddress": "",
+                "days": "",
+                "private_key": null,
+            },
+            "private_key": null,
+            "certificate": null,
+            "integerInput": {
+                "regExp": /^[\D]*|\D*/g, // Match any character that doesn't belong to the positive integer
+                "replacement": ""
+            },
+            "about": {},
         };
     },
     methods: {
+        "toTop": function(){
+            this.$scrollTo("body", 500);
+        },
         "handleAppState": function (changedState) {
             if (this.app) {
                 const isProduction = this.app.approval_status === "ACCEPTED";
@@ -572,6 +716,27 @@ export default {
                 }
             });
         },
+        "toggleRPCEncryptionClick": function(){
+            this.app.encryption_required = !this.app.encryption_required;
+            console.log("Requesting RPC Encryption change to: " + this.app.encryption_required);
+
+            this.httpRequest("put", "applications/rpcencryption", {
+                "body": {
+                    "id": this.app.id,
+                    "encryption_required": this.app.encryption_required
+                }
+            }, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error changing RPC Encryption app setting.");
+                    this.app.encryption_required = !this.app.encryption_required;
+                }else{
+                    // success
+                    console.log("RPC Encryption setting changed to: " + this.app.encryption_required);
+                    this.getApp();
+                }
+            });
+        },
         "saveHybridPreference": function(pref){
             var old_preference = this.app.hybrid_app_preference.value;
             this.selected_hybrid_app_preference = this.hybrid_dropdown_options[pref];
@@ -593,6 +758,34 @@ export default {
                     this.getApp();
                 }
             });
+        },
+        "gotCertificateKeyData": function (data) {
+            this.private_key = data.clientKey;
+            this.certificate = data.certificate;
+        },
+        "saveCertificate": function (){
+            //both keys defined or both keys must be empty
+            if (
+                (this.certificate && this.private_key) ||
+                (!this.certificate && !this.private_key)
+            ) {
+                let options = {
+                    app_uuid: this.app.uuid,
+                    clientKey: this.private_key,
+                    certificate: this.certificate
+                };
+                this.httpRequest('post', 'applications/certificate', { 'body': { 'options': options } }, (err) => {
+                    if (err) {
+                        console.log('Error occurred saving certificate data');
+                        console.log(err);
+                    }
+                    this.certificate_error = !!err;
+                    this.toTop();
+                });
+            } else {
+                console.log('failed to save certificate');
+                this.toTop();
+            }
         },
         getPolicy: function (isProduction, modelName) {
             const envName = isProduction ? "production" : "staging";
@@ -643,6 +836,8 @@ export default {
                     response.json().then(parsed => {
                         if(parsed.data.applications.length){
                             this.app = parsed.data.applications[0];
+                            this.private_key = this.app.private_key;
+                            this.certificate = this.app.certificate;
                             this.selected_hybrid_app_preference = this.hybrid_dropdown_options[this.app.hybrid_app_preference || "BOTH"];
                             if (this.app.is_blacklisted) {
                                 this.selected_option = this.options["BLACKLISTED"];
@@ -655,6 +850,42 @@ export default {
                         }else{
                             console.log("No applications returned");
                         }
+                    });
+                }
+            });
+        },
+        "getFunctionalGroupData": function () {
+            this.httpRequest("get", "applications/groups", {
+                "params": {
+                    "environment": "PRODUCTION",
+                    "is_proprietary_group": true,
+                    "app_id": this.$route.params.id
+                }
+            }, (err, response) => {
+                if (err) {
+                    console.log("Error fetching functional group data: ");
+                    console.log(err);
+                } else {
+                    response.json().then(parsed => {
+                        if(parsed.data.groups && parsed.data.groups.length){
+                            this.proprietary_functional_groups = parsed.data.groups;
+                        }else{
+                            console.log("No functional data returned");
+                        }
+                    });
+                }
+            });
+        },
+        "getAbout": function () {
+            this.httpRequest("get", "about", {}, (err, response) => {
+                if(err){
+                    // error
+                    console.log("Error receiving about info.");
+                    console.log(response);
+                }else{
+                    // success
+                    response.json().then(parsed => {
+                        this.about = parsed.data;
                     });
                 }
             });
@@ -685,6 +916,8 @@ export default {
     },
     created: function(){
         this.getApp();
+        this.getFunctionalGroupData();
+        this.getAbout();
     },
     beforeDestroy () {
         // ensure closing of all modals
