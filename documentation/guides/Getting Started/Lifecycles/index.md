@@ -2,6 +2,7 @@
 When the Policy Server starts up, it will try to update its current information by using external sources such as SHAID. It will do the following:
 
 * Update the permission list and permission relationships. These permissions include RPCs, vehicle parameters and module types.
+* Synchronize the app categories from SHAID.
 * Update language information. Language code information is retrieved from the SDL [RPC spec](https://raw.githubusercontent.com/smartdevicelink/rpc_spec/master/MOBILE_API.xml), specified in `settings.js`. This is used for the consumer friendly messages object.
 * Query and store SHAID applications. The Policy Server will grab new or updated application information from SHAID and store it in the Policy Server's database.
 * Pull in changes from new releases of the RPC spec, if there are any, and store its information.
