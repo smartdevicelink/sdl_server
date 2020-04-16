@@ -353,7 +353,7 @@ function updateAppCertificate (uuid, keyCertBundle, callback) {
 }
 
 function getExpiredCerts (callback) {
-    db.sqlCommand(sql.getApp.base.uuidFilterallExpiredCertificates(), callback);
+    db.sqlCommand(sql.getApp.allExpiredCertificates(), callback);
 }
 
 module.exports = {
