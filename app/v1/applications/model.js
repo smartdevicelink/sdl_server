@@ -9,6 +9,8 @@ const sql = require('./sql.js');
 const emails = require('../helpers/emails.js');
 const certificates = require('../certificates/controller.js');
 const certUtil = require('../helpers/certificates.js');
+const webengineHandler = require('../../../customizable/webengine-bundle');
+const Url = require('url').URL;
 
 //takes SQL data and converts it into a response for the UI to consume
 function constructFullAppObjs (res, next) {
@@ -91,6 +93,10 @@ function constructFullAppObjs (res, next) {
             obj.display_names = [];
             obj.permissions = [];
             obj.services = arrayify(hashedServices, [appInfo.id]); //services should be an array
+            // convert the package url to a fully qualified url if it exists
+            if (obj.package_url) {
+                obj.package_url = new Url(obj.package_url, app.locals.baseUrl);
+            }
         }
     }));
 
@@ -122,6 +128,7 @@ function constructFullAppObjs (res, next) {
     for (let id in hashedApps) {
         fullApps.push(hashedApps[id]);
     }
+
     next(null, fullApps);
 }
 
@@ -129,9 +136,21 @@ function constructFullAppObjs (res, next) {
 //store the information using a SQL transaction
 function storeApp (notifyOEM, appObj, next) {
     var storedApp = null;
+    var oldPackageUrl = null;
     // process message groups synchronously (due to the SQL transaction)
     db.runAsTransaction(function (client, callback) {
         flame.async.waterfall([
+            //stage 0: check for a package url in a previous version of this app
+            //notify the custom webengine bundle function of this old package later on 
+            client.getOne.bind(client, sql.getApp.base.multiFilter({
+                app_uuid: appObj.uuid
+            })),
+            function (oldApp, next) {
+                if (oldApp.package_url) {
+                    oldPackageUrl = oldApp.package_url;
+                }
+                next();
+            },
             //stage 1: insert app info
             client.getOne.bind(client, sql.insertAppInfo(appObj)),
             //stage 2: insert countries, display names, permissions, app auto approvals, and certificates if enabled
@@ -155,6 +174,9 @@ function storeApp (notifyOEM, appObj, next) {
                 }
                 if (appObj.is_auto_approved_enabled) {
                     allInserts.push(sql.insertAppAutoApproval(appObj));
+                }
+                if (appObj.categories.length > 0) {
+                    allInserts.push(sql.insertAppCategories(appObj.categories, app.id));
                 }
 
                 //generate app certificate if cert generation is enabled
@@ -216,7 +238,59 @@ function storeApp (notifyOEM, appObj, next) {
                     flame.async.series(flame.map(allInserts, client.getOne, client), next);
                 }
             },
-            //stage 3: sync with shaid
+            //stage 3: locales insert. this is a multi step process so it needs its own flow
+            function (res, next) {
+                if (!appObj.locales || appObj.locales.length === 0) {
+                    return next(null, res); // no locales. skip
+                }
+
+                // attempt locale and tts chunks insert
+                const insertLocaleInfo = function (localeInfo, done) {
+                    flame.async.waterfall([
+                        client.getOne.bind(client, sql.insertAppLocale(localeInfo, storedApp.id)),
+                        function (localeResult, next) {
+                            // continue with inserting ttschunks after retreiving the returned id
+                            // use the passed in locales 
+                            if (localeInfo.tts_chunks.length === 0) {
+                                // no tts chunks to process. stop early
+                                return next();
+                            }
+                            const query = sql.insertAppLocaleTtsChunks(localeInfo.tts_chunks, localeResult.id);
+                            client.getOne(query, next);
+                        }
+                    ], done);
+                }
+
+                flame.async.parallel(flame.map(appObj.locales, insertLocaleInfo), function (err) {
+                    next(err, res);
+                });
+            },
+            //stage 4: call custom routine to get the byte size of the bundle at the package url if it exists
+            function (res, next) {
+                if (appObj.package_url) {
+                    webengineHandler.handleBundle(appObj.package_url, oldPackageUrl, function (err, data) {
+                        if (err) {
+                            return next(err);
+                        }
+                        // url is required
+                        if (!data || !data.url) {
+                            console.warn('No url property created for the webengine bundle for uuid ' + appObj.uuid);
+                            data = {
+                                url: null,
+                                size_compressed_bytes: null,
+                                size_decompressed_bytes: null
+                            };
+                        }
+                        // store the returned results of the custom webengine bundle handler function
+                        const query = sql.updateWebengineBundleInfo(storedApp.id, data);
+                        client.getOne(query, next);
+                    });
+                }
+                else {
+                    next(null, res);
+                }
+            },
+            //stage 5: sync with shaid
             function (res, next) {
                 if(!storedApp.version_id){
                     // skip sync with SHAID if no app version ID is present
@@ -227,7 +301,7 @@ function storeApp (notifyOEM, appObj, next) {
                     next(err, res);
                 });
             },
-            //stage 4: notify OEM of pending app?
+            //stage 6: notify OEM of pending app?
             function(res, next) {
                 if(!(
                     notifyOEM
@@ -279,7 +353,7 @@ function updateAppCertificate (uuid, keyCertBundle, callback) {
 }
 
 function getExpiredCerts (callback) {
-    db.sqlCommand(sql.getApp.allExpiredCertificates(), callback);
+    db.sqlCommand(sql.getApp.base.uuidFilterallExpiredCertificates(), callback);
 }
 
 module.exports = {

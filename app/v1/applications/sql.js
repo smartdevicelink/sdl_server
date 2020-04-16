@@ -433,7 +433,18 @@ function insertAppInfo (obj) {
         category_id: obj.category.id,
         vendor_name: obj.vendor.name,
         vendor_email: obj.vendor.email,
-        version_id: obj.version_id
+        version_id: obj.version_id,
+        is_in_catalog: obj.is_in_catalog,
+        is_homepage_app: obj.is_homepage_app,
+        catalog_name: obj.catalog_name,
+        is_oem_specific: obj.is_oem_specific,
+        download_urls: obj.download_urls,
+        min_rpc_version: obj.min_rpc_version,
+        min_protocol_version: obj.min_protocol_version,
+        developer_version: obj.developer_version,
+        package_url: obj.package_url,
+        entrypoint_path: obj.entrypoint_path,
+        transport_type: obj.transport_type,
     };
 
     if(obj.created_ts){
@@ -587,6 +598,44 @@ function insertAppServicePermission (obj) {
         "service_type_name": obj.service_type_name,
         "permission_name": obj.permission_name
     }).toString();
+}
+
+function insertAppCategories (objs, appId) {
+    if (objs.length === 0) {
+        return null;
+    }
+    const categoryInserts = objs.map(function (category) {
+        return {
+            app_id: appId,
+            category_id: category.id
+        }
+    });
+    return sql.insert('app_additional_category', categoryInserts).toString();
+}
+
+function insertAppLocale (obj, appId) {
+    return sql.insert('app_locale', {
+            app_id: appId,
+            locale: obj.locale.code,
+            name: obj.name,
+            vr_names: obj.vr_names,
+        })
+        .returning("id")
+        .toString();
+}
+
+function insertAppLocaleTtsChunks (objs, localeId) {
+    if (objs.length === 0) {
+        return null;
+    }
+    const localesInserts = objs.map(function (locale) {
+        return {
+            app_locale_id: localeId,
+            chunk_type: locale.chunk_type,
+            chunk_text: locale.chunk_text,
+        }
+    });
+    return sql.insert('app_locale_ttsname', localesInserts).toString();
 }
 
 function upsertCategories (categories) {
@@ -982,6 +1031,19 @@ function getBlacklistedAppFullUuids (uuids) {
     return query.toString();
 }
 
+function updateWebengineBundleInfo (id, bundleInfo) {
+    return sql.update('app_info')
+        .set({
+            package_url: bundleInfo.url,
+            size_compressed_bytes: bundleInfo.size_compressed_bytes,
+            size_decompressed_bytes: bundleInfo.size_decompressed_bytes,
+        })
+        .where({
+            id: id
+        })
+        .toString();
+}
+
 module.exports = {
     changeAppApprovalStatus: changeAppApprovalStatus,
     deleteAutoApproval: deleteAutoApproval,
@@ -1073,5 +1135,9 @@ module.exports = {
     upsertCategories: upsertCategories,
     getAppFunctionalGroups: getAppFunctionalGroups,
     insertAppFunctionalGroup: insertAppFunctionalGroup,
-    deleteAppFunctionalGroup: deleteAppFunctionalGroup
+    deleteAppFunctionalGroup: deleteAppFunctionalGroup,
+    insertAppCategories: insertAppCategories,
+    insertAppLocale: insertAppLocale,
+    insertAppLocaleTtsChunks: insertAppLocaleTtsChunks,
+    updateWebengineBundleInfo: updateWebengineBundleInfo
 }

@@ -14,6 +14,8 @@ ALTER TABLE app_info
     DROP COLUMN IF EXISTS developer_version,
     DROP COLUMN IF EXISTS package_url,
     DROP COLUMN IF EXISTS entrypoint_path,
-    DROP COLUMN IF EXISTS transport_type;
+    DROP COLUMN IF EXISTS transport_type,
+    DROP COLUMN IF EXISTS size_compressed_bytes,
+    DROP COLUMN IF EXISTS size_decompressed_bytes;
 
 DROP TYPE IF EXISTS transport_type;
