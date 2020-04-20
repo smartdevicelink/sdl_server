@@ -97,6 +97,7 @@ function constructFullAppObjs (res, next) {
             if (obj.package_url) {
                 obj.package_url = new Url(obj.package_url, app.locals.baseUrl);
             }
+            obj.description = appInfo.description;
         }
     }));
 

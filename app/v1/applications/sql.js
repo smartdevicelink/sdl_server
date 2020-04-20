@@ -445,6 +445,7 @@ function insertAppInfo (obj) {
         package_url: obj.package_url,
         entrypoint_path: obj.entrypoint_path,
         transport_type: obj.transport_type,
+        description: obj.description,
     };
 
     if(obj.created_ts){

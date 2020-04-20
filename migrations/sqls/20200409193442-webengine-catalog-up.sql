@@ -13,7 +13,8 @@ ALTER TABLE app_info
     ADD COLUMN IF NOT EXISTS entrypoint_path TEXT,
     ADD COLUMN IF NOT EXISTS transport_type transport_type,
     ADD COLUMN IF NOT EXISTS size_compressed_bytes INT,
-    ADD COLUMN IF NOT EXISTS size_decompressed_bytes INT
+    ADD COLUMN IF NOT EXISTS size_decompressed_bytes INT,
+    ADD COLUMN IF NOT EXISTS description VARCHAR(1000);
 ;
 
 CREATE TABLE app_additional_category (

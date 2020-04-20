@@ -16,6 +16,7 @@ ALTER TABLE app_info
     DROP COLUMN IF EXISTS entrypoint_path,
     DROP COLUMN IF EXISTS transport_type,
     DROP COLUMN IF EXISTS size_compressed_bytes,
-    DROP COLUMN IF EXISTS size_decompressed_bytes;
+    DROP COLUMN IF EXISTS size_decompressed_bytes,
+    DROP COLUMN IF EXISTS description;
 
 DROP TYPE IF EXISTS transport_type;
