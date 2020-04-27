@@ -444,6 +444,7 @@ function insertAppInfo (obj) {
         developer_version: obj.developer_version,
         package_url: obj.package_url,
         entrypoint_path: obj.entrypoint_path,
+        icon_path: obj.icon_path,
         transport_type: obj.transport_type,
         description: obj.description,
     };

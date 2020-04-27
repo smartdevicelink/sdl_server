@@ -11,6 +11,7 @@ ALTER TABLE app_info
     ADD COLUMN IF NOT EXISTS developer_version TEXT,
     ADD COLUMN IF NOT EXISTS package_url TEXT,
     ADD COLUMN IF NOT EXISTS entrypoint_path TEXT,
+    ADD COLUMN IF NOT EXISTS icon_path TEXT,
     ADD COLUMN IF NOT EXISTS transport_type transport_type,
     ADD COLUMN IF NOT EXISTS size_compressed_bytes INT,
     ADD COLUMN IF NOT EXISTS size_decompressed_bytes INT,
@@ -30,7 +31,7 @@ WITH (
 
 -- Add existing categories from all current versions of applications to this table
 INSERT INTO app_additional_category (app_id, category_id)
-SELECT 
+SELECT
     id AS app_id,
     category_id AS category_id
 FROM app_info;
