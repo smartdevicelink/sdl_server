@@ -30,6 +30,16 @@ function getAppInfoFilter (filterObj) {
                 'app_info.approval_status': filterObj.approval_status
             });
         }
+        if(filterObj.platform){
+            statement.where({
+                'app_info.platform': filterObj.platform
+            });
+        }
+        if(filterObj.transport_type){
+            statement.where({
+                'app_info.transport_type': filterObj.transport_type
+            });
+        }
         if(filterObj.get_blacklist){
             statement.where(sql.isNotNull('app_oem_enablements.app_uuid'));
         } else {

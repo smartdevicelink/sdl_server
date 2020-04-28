@@ -611,13 +611,16 @@ function queryAndStoreCategories(callback) {
 }
 
 function getAppStore (req, res, next) {
+    // only let embedded apps through
 	let filterObj = {
 		approval_status: 'ACCEPTED',
+        platform: 'EMBEDDED',
 	};
-    if (req.query.platform) {
-        filterObj.platform = req.query.platform;
+
+    if (req.query.uuid) { //filter by app uuid
+        filterObj.app_uuid = req.query.uuid;
     }
-    if (req.query.platform) {
+    if (req.query.transport_type) { //filter by transport type
         filterObj.transport_type = req.query.transport_type;
     }
 
@@ -625,7 +628,7 @@ function getAppStore (req, res, next) {
     
     const finalFlow = flow([
         chosenFlow,
-        helper.appStoreTransformation,
+        helper.appStoreTransformation.bind(null, req.query.min_rpc_version, req.query.min_protocol_version),
     ], { method: 'waterfall' });
 
     finalFlow(function (err, apps) {
