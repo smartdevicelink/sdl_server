@@ -147,7 +147,7 @@ function storeApp (notifyOEM, appObj, next) {
                 app_uuid: appObj.uuid
             })),
             function (oldApp, next) {
-                if (oldApp.package_url) {
+                if (oldApp && oldApp.package_url) {
                     oldPackageUrl = oldApp.package_url;
                 }
                 next();

@@ -342,6 +342,28 @@ function createFailedAppsCert(failedApp, next){
 	});
 }
 
+function appStoreTransformation (apps, next) {
+    // only let embedded apps through and limit the information that's returned to the caller
+    const filterFunc = app => {
+        return app.platform === 'EMBEDDED' && (app.transport_type === 'webengine' || app.transport_type === 'websocket');
+    }
+    const newApps = apps.filter(filterFunc)
+        .map(app => ({
+            name: application.name,
+            display_names: application.display_names,
+            description: application.description,
+            uuid: application.uuid,
+            enabled: application.enabled,
+            transport_type: application.transport_type,
+            hybrid_app_preference: application.hybrid_app_preference,
+            icon_url: application.icon_url,
+            package_url: application.package_url,
+            size_compressed_bytes: application.size_compressed_bytes,
+            size_decompressed_bytes: application.size_decompressed_bytes,
+        }));
+    next(null, newApps);
+}
+
 module.exports = {
 	  validateActionPost: validateActionPost,
 	  validateAutoPost: validateAutoPost,
@@ -358,4 +380,5 @@ module.exports = {
     createAppInfoFlow: createAppInfoFlow,
     storeApps: storeApps,
     storeCategories: storeCategories,
+    appStoreTransformation: appStoreTransformation,
 };

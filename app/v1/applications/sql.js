@@ -607,7 +607,7 @@ function insertAppCategories (objs, appId) {
             category_id: category.id
         }
     });
-    return sql.insert('app_additional_category', categoryInserts).toString();
+    return sql.insert('app_categories', categoryInserts).toString();
 }
 
 function insertAppLocale (obj, appId) {

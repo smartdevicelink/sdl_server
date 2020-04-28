@@ -611,34 +611,21 @@ function queryAndStoreCategories(callback) {
 }
 
 function getAppStore (req, res, next) {
-    let chosenFlow = helper.createAppInfoFlow('multiFilter', { approval_status: 'ACCEPTED'});
+	let filterObj = {
+		approval_status: 'ACCEPTED',
+	};
+    if (req.query.platform) {
+        filterObj.platform = req.query.platform;
+    }
+    if (req.query.platform) {
+        filterObj.transport_type = req.query.transport_type;
+    }
+
+    let chosenFlow = helper.createAppInfoFlow('multiFilter', filterObj);
     
     const finalFlow = flow([
         chosenFlow,
-        function (apps, next) {
-            const returnedApps = [];
-            let format;
-            for (const application of apps) {
-                if (application.platform === 'EMBEDDED' && (application.transport_type === 'webengine' || ap.transport_type === 'websocket')) {
-                    format = {
-                        package: {}
-                    };
-                    format.name = application.name;
-                    format.nicknames = application.display_names;
-                    format.description = application. description;
-                    format.policyAppId = application.uuid;
-                    format.enabled = application.enabled;
-                    format.transportType = application.transport_type;
-                    format.hybridAppPreference = application.hybrid_app_preference;
-                    format.icon_url = application.icon_url;
-                    format.package.url = application.package_url;
-                    format.package.size_compressed_bytes = application.size_compressed_bytes;
-                    format.package.size_decompressed_bytes = application.size_decompressed_bytes;
-                    returnedApps.push(format);
-                }
-            }
-            next(null, returnedApps);
-        },
+        helper.appStoreTransformation,
     ], { method: 'waterfall' });
 
     finalFlow(function (err, apps) {
