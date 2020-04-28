@@ -1,14 +1,9 @@
 DROP TABLE IF EXISTS public.app_locale_ttsname;
 DROP TABLE IF EXISTS public.app_locale;
 DROP TABLE IF EXISTS public.locale_lkp;
-DROP TABLE IF EXISTS public.app_additional_category;
+DROP TABLE IF EXISTS public.app_categories;
 
 ALTER TABLE app_info
-    DROP COLUMN IF EXISTS is_in_catalog,
-    DROP COLUMN IF EXISTS is_homepage_app,
-    DROP COLUMN IF EXISTS catalog_name,
-    DROP COLUMN IF EXISTS is_oem_specific,
-    DROP COLUMN IF EXISTS download_urls,
     DROP COLUMN IF EXISTS min_rpc_version,
     DROP COLUMN IF EXISTS min_protocol_version,
     DROP COLUMN IF EXISTS developer_version,

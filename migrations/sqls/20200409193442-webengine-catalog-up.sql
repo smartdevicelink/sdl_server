@@ -1,11 +1,6 @@
 CREATE TYPE transport_type as enum ('webengine', 'websocket');
 
 ALTER TABLE app_info
-    ADD COLUMN IF NOT EXISTS is_in_catalog boolean DEFAULT FALSE NOT NULL,
-    ADD COLUMN IF NOT EXISTS is_homepage_app boolean DEFAULT FALSE NOT NULL,
-    ADD COLUMN IF NOT EXISTS catalog_name VARCHAR(36) DEFAULT NULL,
-    ADD COLUMN IF NOT EXISTS is_oem_specific boolean DEFAULT FALSE NOT NULL,
-    ADD COLUMN IF NOT EXISTS download_urls VARCHAR(100)[] DEFAULT NULL,
    	ADD COLUMN IF NOT EXISTS min_rpc_version TEXT,
     ADD COLUMN IF NOT EXISTS min_protocol_version TEXT,
     ADD COLUMN IF NOT EXISTS developer_version TEXT,
@@ -18,10 +13,10 @@ ALTER TABLE app_info
     ADD COLUMN IF NOT EXISTS description VARCHAR(1000);
 ;
 
-CREATE TABLE app_additional_category (
+CREATE TABLE app_categories (
     "app_id" INT NOT NULL,
     "category_id" INT NOT NULL,
-    CONSTRAINT app_additional_category_pk PRIMARY KEY (app_id, category_id),
+    CONSTRAINT app_categories_pk PRIMARY KEY (app_id, category_id),
     CONSTRAINT app_id FOREIGN KEY (app_id) REFERENCES app_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT category_id FOREIGN KEY (category_id) REFERENCES categories (id) ON UPDATE CASCADE ON DELETE CASCADE
 )
@@ -30,7 +25,7 @@ WITH (
 );
 
 -- Add existing categories from all current versions of applications to this table
-INSERT INTO app_additional_category (app_id, category_id)
+INSERT INTO app_categories (app_id, category_id)
 SELECT
     id AS app_id,
     category_id AS category_id
