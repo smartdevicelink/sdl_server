@@ -80,7 +80,7 @@ function exposeRoutes () {
 	app.get('/applications/groups', auth.validateAuth, applications.getFunctionalGroups);
 	app.put('/applications/groups', auth.validateAuth, applications.putFunctionalGroup);
 	// webengine app store
-	app.get('/application/store', applications.getAppStore);
+	app.get('/applications/store', applications.getAppStore);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
