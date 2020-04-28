@@ -93,10 +93,6 @@ function constructFullAppObjs (res, next) {
             obj.display_names = [];
             obj.permissions = [];
             obj.services = arrayify(hashedServices, [appInfo.id]); //services should be an array
-            // convert the package url to a fully qualified url if it exists
-            if (obj.package_url) {
-                obj.package_url = new Url(obj.package_url, app.locals.baseUrl);
-            }
             obj.description = appInfo.description;
         }
     }));

@@ -11,12 +11,8 @@ const UUID = require('uuid');
  *      if there was a failure in the process, it should be sent as the first argument. the policy server will log it
  *      the second argument to return must follow the formatted object below
  *      {
- *          url: the policy server should save a copy of the app bundle and serve that bundle over this url
- *              the recommendation is to store the bundles as randomized string names in the static folder.
- *              the url should be a relative path, under the assumption that the host, part, and protocol can change
- *              if it is a relative path, the full path will be computed by the policy server on runtime
- *              this can be overwritten by sending an absolute url instead, in which case the policy server will not 
- *              perform additional logic on the url
+ *          url: the policy server should save a copy of the app bundle somewhere publicly accessible
+ *              this url must be a full resolved url
  *          size_compressed_bytes: the number of bytes of the compressed downloaded bundle
  *          size_decompressed_bytes: the number of bytes of the extracted downloaded bundle
  *      }
