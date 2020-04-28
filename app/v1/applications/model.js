@@ -137,21 +137,9 @@ function constructFullAppObjs (res, next) {
 //store the information using a SQL transaction
 function storeApp (notifyOEM, appObj, next) {
     var storedApp = null;
-    var oldPackageUrl = null;
     // process message groups synchronously (due to the SQL transaction)
     db.runAsTransaction(function (client, callback) {
         flame.async.waterfall([
-            //stage 0: check for a package url in a previous version of this app
-            //notify the custom webengine bundle function of this old package later on 
-            client.getOne.bind(client, sql.getApp.base.multiFilter({
-                app_uuid: appObj.uuid
-            })),
-            function (oldApp, next) {
-                if (oldApp && oldApp.package_url) {
-                    oldPackageUrl = oldApp.package_url;
-                }
-                next();
-            },
             //stage 1: insert app info
             client.getOne.bind(client, sql.insertAppInfo(appObj)),
             //stage 2: insert countries, display names, permissions, app auto approvals, and certificates if enabled
@@ -268,19 +256,22 @@ function storeApp (notifyOEM, appObj, next) {
             },
             //stage 4: call custom routine to get the byte size of the bundle at the package url if it exists
             function (res, next) {
-                if (appObj.package_url) {
-                    webengineHandler.handleBundle(appObj.package_url, oldPackageUrl, function (err, data) {
+                if (appObj.transport_type === 'webengine' && appObj.package_url) {
+                    webengineHandler.handleBundle(appObj.package_url, function (err, data) {
                         if (err) {
                             return next(err);
                         }
-                        // url is required
-                        if (!data || !data.url) {
-                            console.warn('No url property created for the webengine bundle for uuid ' + appObj.uuid);
-                            data = {
-                                url: null,
-                                size_compressed_bytes: null,
-                                size_decompressed_bytes: null
-                            };
+                        if (!data) {
+                            return next('No object returned for the webengine bundle for uuid ' + appObj.uuid);
+                        }
+                        if (!data.url) {
+                            return next('No url property for the webengine bundle for uuid ' + appObj.uuid);
+                        }
+                        if (!data.size_compressed_bytes) {
+                            return next('No size_compressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
+                        }
+                        if (!data.size_decompressed_bytes) {
+                            return next('No size_decompressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
                         }
                         // store the returned results of the custom webengine bundle handler function
                         const query = sql.updateWebengineBundleInfo(storedApp.id, data);
