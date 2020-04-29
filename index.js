@@ -41,6 +41,8 @@ function start (overrideApp) {
 
 	//load up the html, js and css content that makes up the UI
 	app.use(express.static(__dirname + '/dist'));
+	//expose everything in the static folder
+	app.use(express.static(__dirname + '/static'));
 
 	//global routes
 

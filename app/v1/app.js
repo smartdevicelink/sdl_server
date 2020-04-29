@@ -79,6 +79,8 @@ function exposeRoutes () {
 	app.post('/applications/certificate', applications.updateAppCertificate);
 	app.get('/applications/groups', auth.validateAuth, applications.getFunctionalGroups);
 	app.put('/applications/groups', auth.validateAuth, applications.putFunctionalGroup);
+	// webengine app store
+	app.get('/applications/store', applications.getAppStore);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.post('/staging/policy', policy.postFromCoreStaging);
