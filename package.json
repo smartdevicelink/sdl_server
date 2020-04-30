@@ -35,6 +35,7 @@
     "bootstrap": "4.0.0-beta",
     "bootstrap-vue": "1.5.1",
     "check-types": "7.3.0",
+    "cors": "^2.8.5",
     "cron": "1.3.0",
     "db-migrate": "^0.11.10",
     "db-migrate-pg": "0.2.4",

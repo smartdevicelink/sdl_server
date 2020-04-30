@@ -364,16 +364,18 @@ function appStoreTransformation (min_rpc_version, min_protocol_version, apps, ne
     const newApps = apps
         .map(app => ({
             name: app.name,
-            display_names: app.display_names,
+            nicknames: app.display_names,
             description: app.description,
-            uuid: app.uuid,
+            policyAppID: app.uuid,
             enabled: app.enabled,
-            transport_type: app.transport_type,
-            hybrid_app_preference: app.hybrid_app_preference,
+            transportType: app.cloud_transport_type,
+            hybridAppPreference: app.hybrid_app_preference,
             icon_url: app.icon_url,
-            package_url: app.package_url,
-            size_compressed_bytes: app.size_compressed_bytes,
-            size_decompressed_bytes: app.size_decompressed_bytes,
+            package: {
+                url: app.package_url,
+                size_compressed_bytes: app.size_compressed_bytes,
+                size_decompressed_bytes: app.size_decompressed_bytes,
+            }
         }));
     next(null, newApps);
 }
