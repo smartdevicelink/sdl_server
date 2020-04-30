@@ -1,5 +1,6 @@
 const express = require('express');
 const helmet = require('helmet');
+const cors = require('cors');
 let app = express();
 const path = require('path');
 
@@ -80,11 +81,13 @@ function exposeRoutes () {
 	app.get('/applications/groups', auth.validateAuth, applications.getFunctionalGroups);
 	app.put('/applications/groups', auth.validateAuth, applications.putFunctionalGroup);
 	// webengine app store
-	app.get('/applications/store', applications.getAppStore);
+	app.get('/applications/store', cors(), applications.getAppStore);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
-	app.post('/staging/policy', policy.postFromCoreStaging);
-	app.post('/production/policy', policy.postFromCoreProduction);
+	app.options('/staging/policy', cors())
+	app.options('/production/policy', cors())
+	app.post('/staging/policy', cors(), policy.postFromCoreStaging);
+	app.post('/production/policy', cors(), policy.postFromCoreProduction);
 	app.get('/policy/preview', policy.getPreview);
 	app.post('/policy/apps', policy.postAppPolicy);
 	//end policy table routes
