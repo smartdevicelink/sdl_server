@@ -9,6 +9,8 @@ const sql = require('./sql.js');
 const emails = require('../helpers/emails.js');
 const certificates = require('../certificates/controller.js');
 const certUtil = require('../helpers/certificates.js');
+const webengineHandler = require('../../../customizable/webengine-bundle');
+const Url = require('url').URL;
 
 //takes SQL data and converts it into a response for the UI to consume
 function constructFullAppObjs (res, next) {
@@ -91,6 +93,7 @@ function constructFullAppObjs (res, next) {
             obj.display_names = [];
             obj.permissions = [];
             obj.services = arrayify(hashedServices, [appInfo.id]); //services should be an array
+            obj.description = appInfo.description;
         }
     }));
 
@@ -122,6 +125,7 @@ function constructFullAppObjs (res, next) {
     for (let id in hashedApps) {
         fullApps.push(hashedApps[id]);
     }
+
     next(null, fullApps);
 }
 
@@ -155,6 +159,9 @@ function storeApp (notifyOEM, appObj, next) {
                 }
                 if (appObj.is_auto_approved_enabled) {
                     allInserts.push(sql.insertAppAutoApproval(appObj));
+                }
+                if (appObj.categories.length > 0) {
+                    allInserts.push(sql.insertAppCategories(appObj.categories, app.id));
                 }
 
                 //generate app certificate if cert generation is enabled
@@ -216,7 +223,62 @@ function storeApp (notifyOEM, appObj, next) {
                     flame.async.series(flame.map(allInserts, client.getOne, client), next);
                 }
             },
-            //stage 3: sync with shaid
+            //stage 3: locales insert. this is a multi step process so it needs its own flow
+            function (res, next) {
+                if (!appObj.locales || appObj.locales.length === 0) {
+                    return next(null, res); // no locales. skip
+                }
+
+                // attempt locale and tts chunks insert
+                const insertLocaleInfo = function (localeInfo, done) {
+                    flame.async.waterfall([
+                        client.getOne.bind(client, sql.insertAppLocale(localeInfo, storedApp.id)),
+                        function (localeResult, next) {
+                            // continue with inserting ttschunks after retreiving the returned id
+                            // use the passed in locales 
+                            if (localeInfo.tts_chunks.length === 0) {
+                                // no tts chunks to process. stop early
+                                return next();
+                            }
+                            const query = sql.insertAppLocaleTtsChunks(localeInfo.tts_chunks, localeResult.id);
+                            client.getOne(query, next);
+                        }
+                    ], done);
+                }
+
+                flame.async.parallel(flame.map(appObj.locales, insertLocaleInfo), function (err) {
+                    next(err, res);
+                });
+            },
+            //stage 4: call custom routine to get the byte size of the bundle at the package url if it exists
+            function (res, next) {
+                if (appObj.transport_type === 'webengine' && appObj.package_url) {
+                    webengineHandler.handleBundle(appObj.package_url, function (err, data) {
+                        if (err) {
+                            return next(err);
+                        }
+                        if (!data) {
+                            return next('No object returned for the webengine bundle for uuid ' + appObj.uuid);
+                        }
+                        if (!data.url) {
+                            return next('No url property for the webengine bundle for uuid ' + appObj.uuid);
+                        }
+                        if (!data.size_compressed_bytes) {
+                            return next('No size_compressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
+                        }
+                        if (!data.size_decompressed_bytes) {
+                            return next('No size_decompressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
+                        }
+                        // store the returned results of the custom webengine bundle handler function
+                        const query = sql.updateWebengineBundleInfo(storedApp.id, data);
+                        client.getOne(query, next);
+                    });
+                }
+                else {
+                    next(null, res);
+                }
+            },
+            //stage 5: sync with shaid
             function (res, next) {
                 if(!storedApp.version_id){
                     // skip sync with SHAID if no app version ID is present
@@ -227,7 +289,7 @@ function storeApp (notifyOEM, appObj, next) {
                     next(err, res);
                 });
             },
-            //stage 4: notify OEM of pending app?
+            //stage 6: notify OEM of pending app?
             function(res, next) {
                 if(!(
                     notifyOEM

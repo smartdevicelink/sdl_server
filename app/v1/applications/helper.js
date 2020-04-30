@@ -342,6 +342,86 @@ function createFailedAppsCert(failedApp, next){
 	});
 }
 
+function appStoreTransformation (min_rpc_version, min_protocol_version, apps, next) {
+    // limit the information that's returned to the caller
+    if (min_rpc_version) {
+        apps = apps.filter(app => {
+            // filter out apps with a lower min rpc version than the query
+            const queryVersion = min_rpc_version.split('.');
+            const appVersion = app.min_rpc_version.split('.');
+            return versionCompare(appVersion, queryVersion)
+        });
+    }
+    if (min_protocol_version) {
+        apps = apps.filter(app => {
+            // filter out apps with a lower min rpc version than the query
+            const queryVersion = min_protocol_version.split('.');
+            const appVersion = app.min_protocol_version.split('.');
+            return versionCompare(appVersion, queryVersion)
+        });
+    }
+
+    const newApps = apps
+        .map(app => ({
+            name: app.name,
+            nicknames: app.display_names,
+            description: app.description,
+            policyAppID: app.uuid,
+            enabled: app.enabled,
+            transportType: app.cloud_transport_type,
+            hybridAppPreference: app.hybrid_app_preference,
+            icon_url: app.icon_url,
+            package: {
+                url: app.package_url,
+                size_compressed_bytes: app.size_compressed_bytes,
+                size_decompressed_bytes: app.size_decompressed_bytes,
+            }
+        }));
+    next(null, newApps);
+}
+
+// compares two versions with this syntax: [major, minor, patch]
+// returns true if v1 is higher or equal to v2
+// returns false otherwise
+function versionCompare (v1, v2) {
+    if (v1[0] === undefined) {
+        v1[0] = 0;
+    }
+    if (v1[1] === undefined) {
+        v1[1] = 0;
+    }
+    if (v1[2] === undefined) {
+        v1[2] = 0;
+    }
+    if (v2[0] === undefined) {
+        v2[0] = 0;
+    }
+    if (v2[1] === undefined) {
+        v2[1] = 0;
+    }
+    if (v2[2] === undefined) {
+        v2[2] = 0;
+    }
+    // coerce to number
+    v1 = v1.map(Number);
+    v2 = v2.map(Number);
+
+    if (v1[0] > v2[0]) {
+        return true;
+    } else if (v1[0] === v2[0]) {
+        if (v1[1] > v2[1]) {
+            return true;
+        } else if (v1[1] === v2[1]) {
+            if (v1[2] > v2[2]) {
+                return true;
+            } else if (v1[2] === v2[2]) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 module.exports = {
 	  validateActionPost: validateActionPost,
 	  validateAutoPost: validateAutoPost,
@@ -358,4 +438,5 @@ module.exports = {
     createAppInfoFlow: createAppInfoFlow,
     storeApps: storeApps,
     storeCategories: storeCategories,
+    appStoreTransformation: appStoreTransformation,
 };

@@ -37,6 +37,9 @@ These routes are hit by the Policy Server UI to promote a functional group or co
 ### `POST /messages/update`
 This route updates the Policy Server's list of languages.
 
+### `GET /applications/store`
+Retrieves approved, embedded application information, filterable by `uuid` or by `transport_type`. The possible values for `transport_type` are `webengine` and `websocket`. The return object includes app bundle information such as the location of the bundle and its file size, compressed and uncompressed. The logic of where to store these app packages is customizable by the policy server. See the `customizable/webengine-bundle/index.js` file for details.
+
 ### `POST & GET /applications/certificate/get`
 This route queries the Policy Server database for an app's certificate and returns it, unless it's expired. If it is expired a 400 response is returned. Either appId or AppId is required in the query or the json body of the request.
 
