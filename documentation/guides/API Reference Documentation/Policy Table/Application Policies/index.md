@@ -38,6 +38,7 @@ An application can be categorized by an HMI type allowing the SDL-enabled head u
 | SOCIAL |  |
 | SYSTEM |  |
 | TESTING |  |
+| WEB_VIEW | Custom root template allowing in-vehicle WebEngine applications with appropriate permissions to show the application's own web view. |
 
 <a name="Application-HMI-Levels"></a>
 
