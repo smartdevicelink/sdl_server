@@ -354,6 +354,10 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
     const funcGroupNames = res.funcGroupNames.map(function (elem) {
         return elem.property_name;
     });
+    const categories = res.categories.map(function (elem) {
+        return elem.name;
+    })
+
     const appServiceObj = {};
     res.serviceTypes.forEach(s => {
         appServiceObj[s.service_type_name] = {
@@ -376,6 +380,7 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
     const appPolicyObj = {};
     const uuidProp = (useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)
     appPolicyObj[uuidProp] = {
+        AppHMIType: categories,
         nicknames: displayNames,
         keep_context: true,
         steal_focus: appObj.can_steal_focus,
