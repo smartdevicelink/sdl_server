@@ -8,11 +8,11 @@ DROP VIEW IF EXISTS view_function_group_info;
 INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'GetVehicleData' AS rpc_name, 'gearStatus' AS parameter
 FROM function_group_info
-WHERE property_name = 'VehicleInfo-3'
+WHERE property_name = 'DrivingCharacteristics-3'
 	AND NOT EXISTS(
         SELECT 1
         FROM function_group_parameters
-        WHERE property_name = 'VehicleInfo-3'
+        WHERE property_name = 'DrivingCharacteristics-3'
             AND parameter = 'gearStatus'
             AND rpc_name = 'GetVehicleData'
     );
@@ -20,11 +20,11 @@ WHERE property_name = 'VehicleInfo-3'
 INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'OnVehicleData' AS rpc_name, 'gearStatus' AS parameter
 FROM function_group_info
-WHERE property_name = 'VehicleInfo-3'
+WHERE property_name = 'DrivingCharacteristics-3'
 	AND NOT EXISTS(
         SELECT 1
         FROM function_group_parameters
-        WHERE property_name = 'VehicleInfo-3'
+        WHERE property_name = 'DrivingCharacteristics-3'
             AND parameter = 'gearStatus'
             AND rpc_name = 'OnVehicleData'
     );
@@ -32,11 +32,11 @@ WHERE property_name = 'VehicleInfo-3'
 INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'SubscribeVehicleData' AS rpc_name, 'gearStatus' AS parameter
 FROM function_group_info
-WHERE property_name = 'VehicleInfo-3'
+WHERE property_name = 'DrivingCharacteristics-3'
 	AND NOT EXISTS(
         SELECT 1
         FROM function_group_parameters
-        WHERE property_name = 'VehicleInfo-3'
+        WHERE property_name = 'DrivingCharacteristics-3'
             AND parameter = 'gearStatus'
             AND rpc_name = 'SubscribeVehicleData'
     );
@@ -44,11 +44,11 @@ WHERE property_name = 'VehicleInfo-3'
 INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'UnsubscribeVehicleData' AS rpc_name, 'gearStatus' AS parameter
 FROM function_group_info
-WHERE property_name = 'VehicleInfo-3'
+WHERE property_name = 'DrivingCharacteristics-3'
 	AND NOT EXISTS(
         SELECT 1
         FROM function_group_parameters
-        WHERE property_name = 'VehicleInfo-3'
+        WHERE property_name = 'DrivingCharacteristics-3'
             AND parameter = 'gearStatus'
             AND rpc_name = 'UnsubscribeVehicleData'
     );
