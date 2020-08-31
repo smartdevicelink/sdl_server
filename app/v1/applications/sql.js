@@ -266,6 +266,30 @@ function getAppCategory (id) {
         .toString();
 }
 
+function getAllAppCategoriesFilter (filterObj) {
+    return sql.select('app_id AS id', 'app_categories.category_id', 'display_name')
+        .from('app_categories')
+        .join('categories', {
+            'app_categories.category_id': 'categories.id'
+        })
+        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
+            'ai.id': 'app_categories.app_id'
+        })
+        .toString();
+}
+
+function getAllAppCategories (id) {
+    return sql.select('app_id AS id', 'app_categories.category_id', 'display_name')
+        .from('app_categories')
+        .join('categories', {
+            'app_categories.category_id': 'categories.id'
+        })
+        .where({
+            app_id: id
+        })
+        .toString();
+}
+
 function getAppCategoriesNames (id) {
     return sql.select('categories.id', 'categories.name')
         .from('categories')
@@ -1087,6 +1111,10 @@ module.exports = {
         category: {
             multiFilter: getAppCategoryFilter,
             idFilter: getAppCategory
+        },
+        allCategories: {
+            multiFilter: getAllAppCategoriesFilter,
+            idFilter: getAllAppCategories
         },
         serviceTypes: {
             multiFilter: getAppServiceTypesFilter,
