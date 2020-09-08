@@ -62,10 +62,20 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
         "notifications_per_minute_by_priority": {
             "EMERGENCY": base.emergency_notifications,
             "NAVIGATION": base.navigation_notifications,
+            "PROJECTION": base.projection_notifications,
             "VOICECOM": base.voicecom_notifications,
             "COMMUNICATION": base.communication_notifications,
             "NORMAL": base.normal_notifications,
             "NONE": base.none_notifications
+        },
+        "subtle_notifications_per_minute_by_priority": {
+            "EMERGENCY": base.subtle_emergency_notifications,
+            "NAVIGATION": base.subtle_navigation_notifications,
+            "PROJECTION": base.subtle_projection_notifications,
+            "VOICECOM": base.subtle_voicecom_notifications,
+            "COMMUNICATION": base.subtle_communication_notifications,
+            "NORMAL": base.subtle_normal_notifications,
+            "NONE": base.subtle_none_notifications
         },
         "certificate": base.certificate,
     };

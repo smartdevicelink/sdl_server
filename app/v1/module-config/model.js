@@ -54,6 +54,16 @@ function baseTemplate (objOverride) {
         notifications_per_minute_by_priority: {
             EMERGENCY: 0,
             NAVIGATION: 0,
+            PROJECTION: 0,
+            VOICECOM: 0,
+            COMMUNICATION: 0,
+            NORMAL: 0,
+            NONE: 0
+        },
+        subtle_notifications_per_minute_by_priority: {
+            EMERGENCY: 0,
+            NAVIGATION: 0,
+            PROJECTION: 0,
             VOICECOM: 0,
             COMMUNICATION: 0,
             NORMAL: 0,
@@ -85,10 +95,18 @@ function baseTemplate (objOverride) {
         obj.endpoints.custom_vehicle_data_mapping_url = objOverride.custom_vehicle_data_mapping_url;
         obj.notifications_per_minute_by_priority.EMERGENCY = objOverride.emergency_notifications;
         obj.notifications_per_minute_by_priority.NAVIGATION = objOverride.navigation_notifications;
+        obj.notifications_per_minute_by_priority.PROJECTION = objOverride.projection_notifications;
         obj.notifications_per_minute_by_priority.VOICECOM = objOverride.voicecom_notifications;
         obj.notifications_per_minute_by_priority.COMMUNICATION = objOverride.communication_notifications;
         obj.notifications_per_minute_by_priority.NORMAL = objOverride.normal_notifications;
         obj.notifications_per_minute_by_priority.NONE = objOverride.none_notifications;
+        obj.subtle_notifications_per_minute_by_priority.EMERGENCY = objOverride.subtle_emergency_notifications;
+        obj.subtle_notifications_per_minute_by_priority.NAVIGATION = objOverride.subtle_navigation_notifications;
+        obj.subtle_notifications_per_minute_by_priority.PROJECTION = objOverride.subtle_projection_notifications;
+        obj.subtle_notifications_per_minute_by_priority.VOICECOM = objOverride.subtle_voicecom_notifications;
+        obj.subtle_notifications_per_minute_by_priority.COMMUNICATION = objOverride.subtle_communication_notifications;
+        obj.subtle_notifications_per_minute_by_priority.NORMAL = objOverride.subtle_normal_notifications;
+        obj.subtle_notifications_per_minute_by_priority.NONE = objOverride.subtle_none_notifications;
         obj.certificate = objOverride.certificate;
         obj.private_key = objOverride.private_key;
         obj.expiration_ts = objOverride.expiration_ts;

@@ -53,6 +53,7 @@ function validatePost (req, res) {
     }
     req.body.notifications_per_minute_by_priority.EMERGENCY -= 0;
     req.body.notifications_per_minute_by_priority.NAVIGATION -= 0;
+    req.body.notifications_per_minute_by_priority.PROJECTION -= 0;
     req.body.notifications_per_minute_by_priority.VOICECOM -= 0;
     req.body.notifications_per_minute_by_priority.COMMUNICATION -= 0;
     req.body.notifications_per_minute_by_priority.NORMAL -= 0;
@@ -62,6 +63,9 @@ function validatePost (req, res) {
     }
     if (!check.number(req.body.notifications_per_minute_by_priority.NAVIGATION)) {
         return setError("NAVIGATION notification count required");
+    }
+    if (!check.number(req.body.notifications_per_minute_by_priority.PROJECTION)) {
+        return setError("PROJECTION notification count required");
     }
     if (!check.number(req.body.notifications_per_minute_by_priority.VOICECOM)) {
         return setError("VOICECOM notification count required");
@@ -74,6 +78,35 @@ function validatePost (req, res) {
     }
     if (!check.number(req.body.notifications_per_minute_by_priority.NONE)) {
         return setError("NONE notification count required");
+    }
+
+    req.body.subtle_notifications_per_minute_by_priority.EMERGENCY -= 0;
+    req.body.subtle_notifications_per_minute_by_priority.NAVIGATION -= 0;
+    req.body.subtle_notifications_per_minute_by_priority.PROJECTION -= 0;
+    req.body.subtle_notifications_per_minute_by_priority.VOICECOM -= 0;
+    req.body.subtle_notifications_per_minute_by_priority.COMMUNICATION -= 0;
+    req.body.subtle_notifications_per_minute_by_priority.NORMAL -= 0;
+    req.body.subtle_notifications_per_minute_by_priority.NONE -= 0;
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.EMERGENCY)) {
+        return setError("Subtle EMERGENCY notification count required");
+    }
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.NAVIGATION)) {
+        return setError("Subtle NAVIGATION notification count required");
+    }
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.PROJECTION)) {
+        return setError("Subtle PROJECTION notification count required");
+    }
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.VOICECOM)) {
+        return setError("Subtle VOICECOM notification count required");
+    }
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.COMMUNICATION)) {
+        return setError("Subtle COMMUNICATION notification count required");
+    }
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.NORMAL)) {
+        return setError("Subtle NORMAL notification count required");
+    }
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.NONE)) {
+        return setError("Subtle NONE notification count required");
     }
     return;
 
