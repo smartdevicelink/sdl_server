@@ -176,6 +176,21 @@
                         </div>
                     </div>
 
+                    <!-- subtle notifications -->
+                    <div class="form-row">
+                        <h4>Subtle Notification Rate Limits by Priority Level</h4>
+                        <div class="form-group row" v-for="(value, key) in module_config.subtle_notifications_per_minute_by_priority">
+                            <div class="col-sm-2">
+                                <pattern-input class="form-control text-truncate"
+                                   :regExp="integerInput.regExp"
+                                   :replacement="integerInput.replacement"
+                                   :disabled="fieldsDisabled"
+                                   v-model.number="module_config.subtle_notifications_per_minute_by_priority[key]"></pattern-input>
+                            </div>
+                            <label class="col-sm-10 col-form-label color-primary" style="text-transform:none">{{ key }} {{ Math.abs(module_config.subtle_notifications_per_minute_by_priority[key]) == 1 ? "notification" : "notifications" }} per minute</label>
+                        </div>
+                    </div>
+
                     <div v-if="about.is_authority_valid">
                         <div class="app-table">
                             <h4>Private Key</h4>
