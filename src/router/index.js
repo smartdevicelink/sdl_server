@@ -19,7 +19,7 @@ import NotFound from '@/components/NotFound'
 import VehicleData from '@/components/VehicleData'
 import VehicleDataDetails from '@/components/VehicleDataDetails'
 
-var authType = AUTH_TYPE; // defined via webpack build
+var authType = document.AUTH_TYPE;
 
 Vue.use(Router)
 
