@@ -11,7 +11,7 @@
         <div class="white-box d-flex padding-0">
             <rpc-checklist
             v-bind:type="'parameter'"
-            v-bind:header="'parameters'"
+            v-bind:header="'PARAMETERS'"
             v-bind:options="parameters"
             v-bind:status="status"
             v-bind:fieldsDisabled="fieldsDisabled"
@@ -19,7 +19,7 @@
             />
             <hmi-selector
                 v-bind:type="'hmi'"
-                v-bind:header="'Supported HMI Levels'"
+                v-bind:header="'SUPPORTED HMI LEVELS'"
                 v-bind:status="status"
                 v-bind:options="hmi_levels"
                 v-bind:fieldsDisabled="fieldsDisabled"

@@ -217,7 +217,7 @@
 
                             <vue-ladda
                                 type="submit"
-                                class="btn btn-card"
+                                class="btn btn-card btn-gray"
                                 data-style="zoom-in"
                                 style="width:300px"
                                 v-if="!fieldsDisabled"

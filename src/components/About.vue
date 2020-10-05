@@ -21,7 +21,7 @@
                                         style=""
                                         aria-hidden="true">
                                     </i>
-                                    <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none">Current version</label>
+                                    <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none; display: inline;">Current version</label>
                                 </template>
                                 <template v-else>
                                     <i
@@ -29,7 +29,7 @@
                                         style=""
                                         aria-hidden="true">
                                     </i>
-                                    <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none">Update available! <a href="https://github.com/smartdevicelink/sdl_server" class="color-red" target="_blank">Install {{ about.latest_version }}</a></label>
+                                    <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none; display: inline;">Update available! <a href="https://github.com/smartdevicelink/sdl_server" class="color-red" target="_blank">Install {{ about.latest_version }}</a></label>
                                 </template>
 
 
@@ -60,11 +60,11 @@
                                     style=""
                                     aria-hidden="true">
                                 </i>
-                                <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none">SSL: {{ about.ssl_port ? `enabled (port ${about.ssl_port})` : `disabled` }}</label>
+                                <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none; display: inline;">SSL: {{ about.ssl_port ? `enabled (port ${about.ssl_port})` : `disabled` }}</label>
                             </div>
                         </div>
                     </div>
-
+                    <br>
                     <div class="form-row m-0">
                         <div class="row">
                             <div class="col-sm-12">
@@ -80,11 +80,11 @@
                                     style=""
                                     aria-hidden="true">
                                 </i>
-                                <label class="col-form-label color-primary ml-1" style="text-transform:none">Caching: {{ about.cache_module ? `enabled (${about.cache_module})` : `disabled` }}</label>
+                                <label class="col-form-label color-primary ml-1" style="text-transform:none; display: inline;">Caching: {{ about.cache_module ? `enabled (${about.cache_module})` : `disabled` }}</label>
                             </div>
                         </div>
                     </div>
-
+                    <br>
                     <div class="form-row m-0">
                         <div class="row">
                             <div class="col-sm-12">
@@ -100,11 +100,11 @@
                                     style=""
                                     aria-hidden="true">
                                 </i>
-                                <label class="col-form-label color-primary ml-1" style="text-transform:none">Authentication: {{ about.auth_type ? `enabled (${about.auth_type})` : `disabled` }}</label>
+                                <label class="col-form-label color-primary ml-1" style="text-transform:none; display: inline;">Authentication: {{ about.auth_type ? `enabled (${about.auth_type})` : `disabled` }}</label>
                             </div>
                         </div>
                     </div>
-
+                    <br>
                     <div class="form-row m-0">
                         <div class="row">
                             <div class="col-sm-12">
@@ -120,11 +120,11 @@
                                     style=""
                                     aria-hidden="true">
                                 </i>
-                                <label class="col-form-label color-primary ml-1" style="text-transform:none">Auto-approve incoming apps: {{ about.auto_approve_all_apps ? `enabled` : `disabled` }}</label>
+                                <label class="col-form-label color-primary ml-1" style="text-transform:none; display: inline;">Auto-approve incoming apps: {{ about.auto_approve_all_apps ? `enabled` : `disabled` }}</label>
                             </div>
                         </div>
                     </div>
-
+                    <br>
                     <div class="form-row m-0">
                         <div class="row">
                             <div class="col-sm-12">
@@ -140,11 +140,11 @@
                                     style=""
                                     aria-hidden="true">
                                 </i>
-                                <label class="col-form-label color-primary ml-1" style="text-transform:none">Require RPC encryption for auto-approved apps: {{ about.encryption_required ? `enabled` : `disabled` }}</label>
+                                <label class="col-form-label color-primary ml-1" style="text-transform:none; display: inline;">Require RPC encryption for auto-approved apps: {{ about.encryption_required ? `enabled` : `disabled` }}</label>
                             </div>
                         </div>
                     </div>
-                    
+                    <br>
                     <div class="form-row m-0">
                         <div class="row">
                             <div class="col-sm-12">
@@ -160,12 +160,11 @@
                                     style=""
                                     aria-hidden="true">
                                 </i>
-                                <label class="col-form-label color-primary ml-1" style="text-transform:none">Certificate generation: {{ about.is_authority_valid ? `enabled` : `disabled` }}</label>
+                                <label class="col-form-label color-primary ml-1" style="text-transform:none; display: inline;">Certificate generation: {{ about.is_authority_valid ? `enabled` : `disabled` }}</label>
                             </div>
                         </div>
                     </div>
-
-
+                    <br>
                     <div class="form-row mb-0">
                         <h4 for="name">Email Notifications</h4>
                         <div class="row">
@@ -182,7 +181,7 @@
                                     style=""
                                     aria-hidden="true">
                                 </i>
-                                <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none">App pending review: {{ ( about.notification && about.notification.appsPendingReview.email.enabled) ? `enabled (${about.notification.appsPendingReview.email.frequency})` : `disabled` }}</label>
+                                <label class="col-form-label color-primary mt-0 ml-1" style="text-transform:none; display: inline;">App pending review: {{ ( about.notification && about.notification.appsPendingReview.email.enabled) ? `enabled (${about.notification.appsPendingReview.email.frequency})` : `disabled` }}</label>
                             </div>
                         </div>
                     </div>

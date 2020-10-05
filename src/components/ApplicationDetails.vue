@@ -125,7 +125,7 @@
                     <div class="mt-2 mb-2" v-if="app.approval_status !== 'LIMITED'">
                         <label class="switch">
                             <input v-on:click="autoApproveClick" type="checkbox" :checked="app.is_auto_approved_enabled"></input>
-                            <span class="slider round"></span>
+                            <span :class="{ round: true, slider: true, 'slider-on': app.is_auto_approved_enabled }"></span>
                         </label>
                         <label class="form-check-label switch-label">
                           Automatically approve <b>future versions</b> of this app
@@ -134,7 +134,7 @@
                     <div class="mt-2 mb-2">
                         <label class="switch">
                             <input v-on:click="toggleAdministratorClick" type="checkbox" :checked="app.is_administrator_app"></input>
-                            <span class="slider round"></span>
+                            <span :class="{ round: true, slider: true, 'slider-on': app.is_administrator_app }"></span>
                         </label>
                         <label class="form-check-label switch-label">
                           Grant <b>all versions of this app</b> access to "Administrator" Functional Groups<a class="fa fa-exclamation-circle color-primary doc-link" v-b-tooltip.hover title="Manage Administator permissions via the Functional Groups tab"></a>
@@ -143,7 +143,7 @@
                     <div class="mt-2 mb-2">
                         <label class="switch">
                             <input v-on:click="togglePassthroughClick" type="checkbox" :checked="app.allow_unknown_rpc_passthrough"></input>
-                            <span class="slider round"></span>
+                            <span :class="{ round: true, slider: true, 'slider-on': app.allow_unknown_rpc_passthrough }"></span>
                         </label>
                         <label class="form-check-label switch-label">
                           Allow <b>all versions of this app</b> to send unknown RPCs through App Service RPC passthrough
@@ -152,7 +152,7 @@
                     <div class="mt-2 mb-5">
                         <label class="switch">
                             <input v-on:click="toggleRPCEncryptionClick" type="checkbox" :checked="app.encryption_required"></input>
-                            <span class="slider round"></span>
+                            <span :class="{ round: true, slider: true, 'slider-on': app.encryption_required }"></span>
                         </label>
                         <label class="form-check-label switch-label">
                           Require RPC encryption for <b>this version</b> of the app
@@ -324,7 +324,7 @@
                         <!--pre class="mt-3 mb-0">{{ module_config.certificate }}</pre-->
                         <vue-ladda
                             type="submit"
-                            class="btn btn-card"
+                            class="btn btn-card btn-gray"
                             data-style="zoom-in"
                             style="width:300px"
                             v-bind:loading="false"
@@ -649,90 +649,82 @@ export default {
             });
         },
         "autoApproveClick": function(){
-            this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
-            console.log("Requesting auto-approval change to: " + this.app.is_auto_approved_enabled);
+            console.log("Requesting auto-approval change to: " + !this.app.is_auto_approved_enabled);
 
-            if(this.app.is_auto_approved_enabled && !confirm("Future versions of this app will be granted all of its requested permissions (including App Services). Are you sure you would like to enable auto-approval for this app?")){
+            if(!this.app.is_auto_approved_enabled && !confirm("Future versions of this app will be granted all of its requested permissions (including App Services). Are you sure you would like to enable auto-approval for this app?")){
                 // user cancelled the confirmation dialog
-                this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
                 return;
             }
 
             this.httpRequest("post", "applications/auto", {
                 "body": {
                     "uuid": this.app.uuid,
-                    "is_auto_approved_enabled": this.app.is_auto_approved_enabled
+                    "is_auto_approved_enabled": !this.app.is_auto_approved_enabled
                 }
             }, (err, response) => {
                 if(err){
                     // error
                     console.log("Error changing auto-approval setting.");
-                    this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
                 }else{
                     // success
-                    console.log("Auto-approve setting changed to: " + this.app.is_auto_approved_enabled);
+                    console.log("Auto-approve setting changed to: " + !this.app.is_auto_approved_enabled);
+                    this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
                 }
             });
         },
         "toggleAdministratorClick": function(){
-            this.app.is_administrator_app = !this.app.is_administrator_app;
-            console.log("Requesting administrator access change to: " + this.app.is_administrator_app);
+            console.log("Requesting administrator access change to: " + !this.app.is_administrator_app);
 
             this.httpRequest("post", "applications/administrator", {
                 "body": {
                     "uuid": this.app.uuid,
-                    "is_administrator_app": this.app.is_administrator_app
+                    "is_administrator_app": !this.app.is_administrator_app
                 }
             }, (err, response) => {
                 if(err){
                     // error
                     console.log("Error changing administrator app setting.");
-                    this.app.is_administrator_app = !this.app.is_administrator_app;
                 }else{
                     // success
-                    console.log("App administrator setting changed to: " + this.app.is_administrator_app);
+                    console.log("App administrator setting changed to: " + !this.app.is_administrator_app);
                     this.getApp();
                 }
             });
         },
         "togglePassthroughClick": function(){
-            this.app.allow_unknown_rpc_passthrough = !this.app.allow_unknown_rpc_passthrough;
-            console.log("Requesting RPC Passthrough change to: " + this.app.allow_unknown_rpc_passthrough);
+            console.log("Requesting RPC Passthrough change to: " + !this.app.allow_unknown_rpc_passthrough);
 
             this.httpRequest("post", "applications/passthrough", {
                 "body": {
                     "uuid": this.app.uuid,
-                    "allow_unknown_rpc_passthrough": this.app.allow_unknown_rpc_passthrough
+                    "allow_unknown_rpc_passthrough": !this.app.allow_unknown_rpc_passthrough
                 }
             }, (err, response) => {
                 if(err){
                     // error
                     console.log("Error changing RPC Passthrough app setting.");
-                    this.app.allow_unknown_rpc_passthrough = !this.app.allow_unknown_rpc_passthrough;
                 }else{
                     // success
-                    console.log("RPC Passthrough setting changed to: " + this.app.allow_unknown_rpc_passthrough);
+                    console.log("RPC Passthrough setting changed to: " + !this.app.allow_unknown_rpc_passthrough);
                     this.getApp();
                 }
             });
         },
         "toggleRPCEncryptionClick": function(){
-            this.app.encryption_required = !this.app.encryption_required;
-            console.log("Requesting RPC Encryption change to: " + this.app.encryption_required);
+            console.log("Requesting RPC Encryption change to: " + !this.app.encryption_required);
 
             this.httpRequest("put", "applications/rpcencryption", {
                 "body": {
                     "id": this.app.id,
-                    "encryption_required": this.app.encryption_required
+                    "encryption_required": !this.app.encryption_required
                 }
             }, (err, response) => {
                 if(err){
                     // error
                     console.log("Error changing RPC Encryption app setting.");
-                    this.app.encryption_required = !this.app.encryption_required;
                 }else{
                     // success
-                    console.log("RPC Encryption setting changed to: " + this.app.encryption_required);
+                    console.log("RPC Encryption setting changed to: " + !this.app.encryption_required);
                     this.getApp();
                 }
             });
