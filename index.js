@@ -63,11 +63,12 @@ function start (overrideApp) {
 	    return;
 	});
 
-	//catch-all route. serve the index.html file again. this is so vue-router's history mode functions
-	app.use(function (req, res) {
-	    res.sendFile(htmlLocation);
-	});
-
+	if (!overrideApp) {
+		//catch-all route. serve the index.html file again. this is so vue-router's history mode functions
+		app.use(function (req, res) {
+		    res.sendFile(htmlLocation);
+		});
+	}
 
 	// Invalidate previous data in the cache on startup
 	cache.flushAll();
@@ -84,12 +85,13 @@ function start (overrideApp) {
 		}, app).listen(config.ssl.policyServerPort);
 	}
 
-	//start the server on the unsecure port
-	app.listen(config.policyServerPort, function () {
-	    log.info(`Policy server started on port ${config.policyServerPort}!`);
-	});
 
-
+	if (!overrideApp) {
+		//start the server on the unsecure port
+		app.listen(config.policyServerPort, function () {
+		    log.info(`Policy server started on port ${config.policyServerPort}!`);
+		});
+	}
 }
 
 module.exports = function (app) {
