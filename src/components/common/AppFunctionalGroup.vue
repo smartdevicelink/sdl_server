@@ -3,7 +3,7 @@
         <td>
             <label class="switch">
                 <input v-on:click="toggleAppFunctionalGroup" type="checkbox" :checked="item.is_selected" :disabled="disableEditing">
-                <span class="slider round" :class="{ disabled: disableEditing }"></span>
+                <span :class="{ round: true, slider: true, 'slider-on': item.is_selected, disabled: disableEditing }"></span>
             </label>
             <label class="form-check-label switch-label">
               {{ item.property_name }}<a class="fa fa-info-circle color-primary doc-link" :href="'/functionalgroups/manage?id='+item.id+'&environment='+item.status"></a>

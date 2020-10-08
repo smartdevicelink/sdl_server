@@ -3,7 +3,7 @@
         <td>
             <label class="switch">
                 <input v-on:click="toggleAppServicePermission" type="checkbox" :checked="item.is_selected" :disabled="disableEditing == 1">
-                <span class="slider round" :class="{ disabled: disableEditing }"></span>
+                <span :class="{ round: true, slider: true, 'slider-on': item.is_selected, disabled: disableEditing }"></span>
             </label>
             <label class="form-check-label switch-label">
               {{ item.name }}
