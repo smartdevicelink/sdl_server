@@ -2,7 +2,7 @@
     <tr>
         <td>
             <label class="switch">
-                <input v-on:click="toggleAppFunctionalGroup" type="checkbox" :checked="item.is_selected" :disabled="disableEditing"></input>
+                <input v-on:click="toggleAppFunctionalGroup" type="checkbox" :checked="item.is_selected" :disabled="disableEditing">
                 <span class="slider round" :class="{ disabled: disableEditing }"></span>
             </label>
             <label class="form-check-label switch-label">
@@ -27,7 +27,7 @@
                         "is_selected": !this.item.is_selected,
                         "property_name": this.item.property_name
                     }
-                }, (err, response) => {
+                }, (err) => {
                     if(err){
                         // error
                         console.log("Error saving app functional group state");

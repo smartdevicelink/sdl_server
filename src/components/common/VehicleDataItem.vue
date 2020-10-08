@@ -15,7 +15,7 @@
         </h5>
 
         <!-- Iterate over every property in item and render it depending on its content -->
-        <div v-for="(param, propName) in item">
+        <div v-for="(param, propName) in item" v-bind:key="propName">
             <!-- Vehicle String type. Vehicle Strings cant or shouldn't have names matching vehicle parameters -->
             <template v-if="getPropType(propName) === 'VehicleString'">
                 <div class="form-group row">
@@ -83,12 +83,11 @@
                     <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display.toUpperCase() }}</label>
                     <div class="col-sm-4">
                         <input class="form-control text-truncate"
-                            v-if=""
                            :disabled="fieldsDisabled"
                            @input="getPropType(propName) === 'ZeroNatural' ?
                                 updateZeroNaturalNumber(propName, $event.target.value)
                                 : updateIntegerNumber(propName, $event.target.value)"
-                           v-model="item[propName]"></input>
+                           v-model="item[propName]">
                     </div>
                 </div>
             </template>
@@ -96,7 +95,7 @@
         </div>
 
         <!-- Nested Schema Item component render -->
-        <div v-for="(param, paramIndex) in item.params">
+        <div v-for="(param, paramIndex) in item.params" v-bind:key="paramIndex">
             <vehicle-data-item
                 v-bind:item="param"
                 :fieldsDisabled="fieldsDisabled"

@@ -112,8 +112,7 @@
                         <h4 for="rpcs">RPCs</h4>
                         <div class="rpcs">
                             <rpc-item
-                                v-for="(item, index) in fg.rpcs"
-                                v-if="item.selected"
+                                v-for="(item, index) in fg.rpcs.filter(rpc => rpc.selected)"
                                 v-bind:status="fg.status"
                                 v-bind:environment="environment"
                                 v-bind:fieldsDisabled="fieldsDisabled"
@@ -149,9 +148,9 @@
                     <ul class="list-group rpc-list">
                         <li
                             class="list-group-item rpc-list-item pointer"
-                            v-for="(item, index) in fg.rpcs"
-                            v-if="isRpcAvailable(item)"
+                            v-for="(item, index) in fg.rpcs.filter(item => isRpcAvailable(item))"
                             v-on:click="addRpc(item)"
+                            v-bind:key="index"
                         >
                         {{ item.name }}
                         </li>

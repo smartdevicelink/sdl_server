@@ -36,7 +36,7 @@
             }
         },
         watch: {
-            "$route": function(to, from){
+            "$route": function(){
                 this.is_logged_in = this.$session.exists();
             }
         }
