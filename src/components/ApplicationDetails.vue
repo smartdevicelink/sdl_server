@@ -124,7 +124,7 @@
                     </div>
                     <div class="mt-2 mb-2" v-if="app.approval_status !== 'LIMITED'">
                         <label class="switch">
-                            <input v-on:click="autoApproveClick" type="checkbox" :checked="app.is_auto_approved_enabled"></input>
+                            <input v-on:click="autoApproveClick" type="checkbox" :checked="app.is_auto_approved_enabled">
                             <span :class="{ round: true, slider: true, 'slider-on': app.is_auto_approved_enabled }"></span>
                         </label>
                         <label class="form-check-label switch-label">
@@ -133,7 +133,7 @@
                     </div>
                     <div class="mt-2 mb-2">
                         <label class="switch">
-                            <input v-on:click="toggleAdministratorClick" type="checkbox" :checked="app.is_administrator_app"></input>
+                            <input v-on:click="toggleAdministratorClick" type="checkbox" :checked="app.is_administrator_app">
                             <span :class="{ round: true, slider: true, 'slider-on': app.is_administrator_app }"></span>
                         </label>
                         <label class="form-check-label switch-label">
@@ -142,7 +142,7 @@
                     </div>
                     <div class="mt-2 mb-2">
                         <label class="switch">
-                            <input v-on:click="togglePassthroughClick" type="checkbox" :checked="app.allow_unknown_rpc_passthrough"></input>
+                            <input v-on:click="togglePassthroughClick" type="checkbox" :checked="app.allow_unknown_rpc_passthrough">
                             <span :class="{ round: true, slider: true, 'slider-on': app.allow_unknown_rpc_passthrough }"></span>
                         </label>
                         <label class="form-check-label switch-label">
@@ -151,7 +151,7 @@
                     </div>
                     <div class="mt-2 mb-5">
                         <label class="switch">
-                            <input v-on:click="toggleRPCEncryptionClick" type="checkbox" :checked="app.encryption_required"></input>
+                            <input v-on:click="toggleRPCEncryptionClick" type="checkbox" :checked="app.encryption_required">
                             <span :class="{ round: true, slider: true, 'slider-on': app.encryption_required }"></span>
                         </label>
                         <label class="form-check-label switch-label">
@@ -170,7 +170,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="name in app.display_names">
+                                <tr v-for="(name, index) in app.display_names" v-bind:key="index">
                                     <td>{{ name }}</td>
                                 </tr>
                             </tbody>
@@ -190,7 +190,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="permission in app.permissions">
+                                <tr v-for="(permission, index) in app.permissions" v-bind:key="index">
                                     <td>{{ permission.key }}</td>
                                     <td>{{ permission.type }}</td>
                                     <td>{{ permission.hmi_level }}</td>
@@ -200,7 +200,7 @@
                     </div>
                 </div>
 
-                <div v-for="service in app.services" class="app-table">
+                <div v-for="(service, index) in app.services" class="app-table" v-bind:key="index">
                     <h4>{{ service.display_name }} Service Provider</h4>
                     <!--<span>The developer has indicated that this app is capable of handling one or more App Service Types. Which App Service Provider RPCs would you like to grant to the app? If you wish to deny an entire App Service Type, please reject the application.</span>-->
                     <div class="table-responsive">
@@ -232,7 +232,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="name in service.service_names">
+                                <tr v-for="(name, index) in service.service_names" v-bind:key="index">
                                     <td>{{ name }}</td>
                                 </tr>
                             </tbody>
@@ -630,7 +630,7 @@ export default {
                     "version_id": this.app.version_id,
                     "denial_message": withFeedBack ? this.modal_text : null
                 }
-            }, (err, response) => {
+            }, (err) => {
                 this.$refs.appActionModal.hide();
                 this.$refs.appBlacklistModal.hide();
                 this.$refs.notProductionModal.hide();
@@ -661,7 +661,7 @@ export default {
                     "uuid": this.app.uuid,
                     "is_auto_approved_enabled": !this.app.is_auto_approved_enabled
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing auto-approval setting.");
@@ -680,7 +680,7 @@ export default {
                     "uuid": this.app.uuid,
                     "is_administrator_app": !this.app.is_administrator_app
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing administrator app setting.");
@@ -699,7 +699,7 @@ export default {
                     "uuid": this.app.uuid,
                     "allow_unknown_rpc_passthrough": !this.app.allow_unknown_rpc_passthrough
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing RPC Passthrough app setting.");
@@ -718,7 +718,7 @@ export default {
                     "id": this.app.id,
                     "encryption_required": !this.app.encryption_required
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing RPC Encryption app setting.");
@@ -739,7 +739,7 @@ export default {
                     "uuid": this.app.uuid,
                     "hybrid_preference": this.selected_hybrid_app_preference.value
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing app hybrid preference.");

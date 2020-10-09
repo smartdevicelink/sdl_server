@@ -39,7 +39,6 @@
 
 <script>
 export default {
-    props: ["email", "password"],
     data: function(){
         return {
             "email": null,

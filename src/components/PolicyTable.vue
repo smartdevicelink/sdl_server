@@ -70,7 +70,7 @@ export default {
     methods: {
         "environmentClick": function(){
             this.$nextTick(function () {
-                const self = this;
+                //const self = this;
                 console.log("Selected environment: " + this.environment);
                 this.httpRequest("get", "policy/preview", {
                     "params": {
@@ -93,7 +93,7 @@ export default {
                 });
             });
         },
-        "checkScroll": function(e) {
+        "checkScroll": function() {
             this.at_top = window.scrollY ? false : true;
         }
     },

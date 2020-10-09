@@ -2,7 +2,7 @@
     <tr>
         <td>
             <label class="switch">
-                <input v-on:click="toggleAppServicePermission" type="checkbox" :checked="item.is_selected" :disabled="disableEditing == 1"></input>
+                <input v-on:click="toggleAppServicePermission" type="checkbox" :checked="item.is_selected" :disabled="disableEditing == 1">
                 <span class="slider round" :class="{ disabled: disableEditing }"></span>
             </label>
             <label class="form-check-label switch-label">
@@ -28,7 +28,7 @@
                         "service_type_name": this.service_type_name,
                         "permission_name": this.item.name
                     }
-                }, (err, response) => {
+                }, (err) => {
                     if(err){
                         // error
                         console.log("Error saving app service permission state");

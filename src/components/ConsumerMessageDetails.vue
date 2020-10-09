@@ -28,8 +28,7 @@
                     <div class="form-row">
                         <h4>Languages</h4>
                         <message-item
-                            v-for="(value, key) in message.languages"
-                            v-if="value.selected"
+                            v-for="(value, key) in message.languages.filter(value => value.selected)"
                             v-bind:item="value"
                             v-bind:fieldsDisabled="fieldsDisabled"
                             v-bind:environment="environment"
@@ -65,9 +64,9 @@
                 <ul class="list-group rpc-list">
                     <li
                         class="list-group-item rpc-list-item pointer"
-                        v-for="(value, key) in message.languages"
-                        v-if="isLangAvailable(value)"
+                        v-for="(value, key) in message.languages.filter(value => isLangAvailable(value))"
                         v-on:click="addLanguage(value)"
+                        v-bind:key="key"
                     >
                     {{ value.language_id }}
                     </li>
@@ -118,7 +117,7 @@
 </template>
 
 <script>
-import { eventBus } from '../main.js';
+    //import { eventBus } from '../main.js';
     export default {
         props: ['id','environment'],
         data: function () {

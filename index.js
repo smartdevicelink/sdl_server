@@ -4,7 +4,7 @@ const express = require('express');
 const https = require('https');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
-const EventEmitter = require('events');
+//const EventEmitter = require('events');
 const config = require('./settings.js'); //configuration module
 const packageJson = require('./package.json'); //configuration module
 const log = require(`./custom/loggers/${config.loggerModule}/index.js`); //logger module
@@ -36,7 +36,7 @@ function start (overrideApp) {
 
 	//load all routes located in the app directory using a v<version number> naming convention
 	for (let i in versions){
-	    app.use(["/api/v"+versions[i], "/api/"+versions[i]], require("./app/v" + versions[i] + "/app"));
+		app.use(["/api/v"+versions[i], "/api/"+versions[i]], require("./app/v" + versions[i] + "/app"));
 	}
 
 	//load up the html, js and css content that makes up the UI
@@ -48,25 +48,26 @@ function start (overrideApp) {
 
 	//basic health check endpoint
 	app.get("/health", function (req, res) {
-	    res.sendStatus(200);
+		res.sendStatus(200);
 	});
 
 	//version endpoint (based on package.json version)
 	app.get("/version", function (req, res) {
-	    res.status(200).send(packageJson.version)
+		res.status(200).send(packageJson.version)
 	});
 
 	//error catcher
+	// eslint-disable-next-line no-unused-vars
 	app.use(function (err, req, res, next) {
-	    log.error(err);
-	    res.sendStatus(500);
-	    return;
+		log.error(err);
+		res.sendStatus(500);
+		return;
 	});
 
 	if (!overrideApp) {
 		//catch-all route. serve the index.html file again. this is so vue-router's history mode functions
 		app.use(function (req, res) {
-		    res.sendFile(htmlLocation);
+			res.sendFile(htmlLocation);
 		});
 	}
 
@@ -89,7 +90,7 @@ function start (overrideApp) {
 	if (!overrideApp) {
 		//start the server on the unsecure port
 		app.listen(config.policyServerPort, function () {
-		    log.info(`Policy server started on port ${config.policyServerPort}!`);
+			log.info(`Policy server started on port ${config.policyServerPort}!`);
 		});
 	}
 }

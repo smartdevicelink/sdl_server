@@ -35,7 +35,7 @@ export default {
                     "password": this.password_input
                 },
                 "preventAuthRedirect": true
-            }, (err, response) => {
+            }, (err) => {
                 if (err) {
                     alert("Sorry, that password is incorrect.");
                     this.password_input = "";

@@ -43,8 +43,8 @@ module.exports = app;
 app.locals.shaid = require('./shaid');
 //load all the routes in the controllers files and other places
 const login = require('./login/controller.js');
-const forgot = require('./forgot/controller.js');
-const register = require('./register/controller.js');
+//const forgot = require('./forgot/controller.js');
+//const register = require('./register/controller.js');
 const applications = require('./applications/controller.js');
 const policy = require('./policy/controller.js');
 const permissions = require('./permissions/controller.js');
@@ -156,10 +156,10 @@ flame.async.parallel([
 		});
 	},
 	function(next) {
-	 	vehicleData.updateRpcSpec(function() {
+		vehicleData.updateRpcSpec(function() {
             log.info("RPC Spec updated");
             next();
-	 	});
+		});
 	},
 ], function () {
 	log.info("Start up complete. Exposing routes.");
