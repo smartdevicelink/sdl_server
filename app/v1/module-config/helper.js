@@ -36,9 +36,6 @@ function validatePost (req, res) {
             return setError(req.body.seconds_between_retries[i] + " is not a number");
         }
     }
-    if (req.body.seconds_between_retries.length > 5) {
-        return setError("Array length of seconds_between_retries is greater than 5");
-    }
     if (!req.body.endpoints) {
         return setError("endpoints object required");
     }
