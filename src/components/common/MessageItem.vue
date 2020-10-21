@@ -4,7 +4,7 @@
         <h5>{{ item.language_id }}
             <i
                 v-on:click="removeLanguage()"
-                v-if="!fieldsDisabled"
+                v-if="!fieldsDisabled && item.language_id !== 'en-us'"
                 class="pointer pull-right fa fa-times hover-color-red"
                 aria-hidden="true">
             </i>
