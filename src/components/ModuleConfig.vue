@@ -109,7 +109,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="!fieldsDisabled" v-on:click="addRetryUpdateElement()" id="add" class="another-rpc pointer">
+                            <div v-if="!fieldsDisabled && module_config.seconds_between_retries.length < 5" v-on:click="addRetryUpdateElement()" id="add" class="another-rpc pointer">
                                 <i class="fa fa-plus middle-middle"></i>
                             </div>
                     </div>
