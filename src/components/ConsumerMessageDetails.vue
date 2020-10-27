@@ -28,7 +28,7 @@
                     <div class="form-row">
                         <h4>Languages</h4>
                         <message-item
-                            v-for="(value, key) in message.languages.filter(value => value.selected)"
+                            v-for="(value, key) in message.languages"
                             v-bind:item="value"
                             v-bind:fieldsDisabled="fieldsDisabled"
                             v-bind:environment="environment"
@@ -62,14 +62,16 @@
             <b-modal ref="addLanguageModal" title="Select Language" hide-footer id="addLanguageModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                 <input v-model="lang_search" placeholder="Search for a language" class="form-control" id="lang-search">
                 <ul class="list-group rpc-list">
-                    <li
-                        class="list-group-item rpc-list-item pointer"
-                        v-for="(value, key) in message.languages.filter(value => isLangAvailable(value))"
+                    <div
+                        v-for="(value, key) in message.languages"
                         v-on:click="addLanguage(value)"
-                        v-bind:key="key"
-                    >
-                    {{ value.language_id }}
-                    </li>
+                        v-bind:key="key">
+                        <li
+                            class="list-group-item rpc-list-item pointer"
+                            v-if="isLangAvailable(value)">
+                            {{ value.language_id }}
+                        </li>
+                    </div>
                 </ul>
             </b-modal>
 

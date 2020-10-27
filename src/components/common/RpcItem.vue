@@ -1,5 +1,5 @@
 <template>
-    <div class="white-box rpc-container">
+    <div v-if="item.selected" class="white-box rpc-container">
         <h5>{{ item.name }}
             <i
                 v-on:click="removeRpc()"

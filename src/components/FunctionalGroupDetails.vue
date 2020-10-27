@@ -112,7 +112,7 @@
                         <h4 for="rpcs">RPCs</h4>
                         <div class="rpcs">
                             <rpc-item
-                                v-for="(item, index) in fg.rpcs.filter(rpc => rpc.selected)"
+                                v-for="(item, index) in fg.rpcs"
                                 v-bind:status="fg.status"
                                 v-bind:environment="environment"
                                 v-bind:fieldsDisabled="fieldsDisabled"
@@ -146,14 +146,16 @@
                     <input v-model="rpc_search" placeholder="Search for an RPC" class="form-control" id="rpc-search">
 
                     <ul class="list-group rpc-list">
-                        <li
-                            class="list-group-item rpc-list-item pointer"
-                            v-for="(item, index) in fg.rpcs.filter(item => isRpcAvailable(item))"
+                        <div 
+                            v-for="(item, index) in fg.rpcs"
                             v-on:click="addRpc(item)"
-                            v-bind:key="index"
-                        >
-                        {{ item.name }}
-                        </li>
+                            v-bind:key="index">
+                            <li 
+                                class="list-group-item rpc-list-item pointer"
+                                v-if="isRpcAvailable(item)">
+                                {{ item.name }}
+                            </li>
+                        </div>
                     </ul>
                 </b-modal>
 
