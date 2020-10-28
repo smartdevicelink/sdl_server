@@ -94,13 +94,15 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Endpoint</th>
+                                    <th v-if="app.transport_type === 'webengine'">Entry Point Path</th>
+                                    <th v-else>Endpoint</th>
                                     <th>Transport Type</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{{ app.cloud_endpoint }}</td>
+                                    <td v-if="app.transport_type === 'webengine'">{{ app.entrypoint_path }}</td>
+                                    <td v-else>{{ app.cloud_endpoint }}</td>
                                     <td>{{ app.cloud_transport_type }}</td>
                                 </tr>
                             </tbody>
