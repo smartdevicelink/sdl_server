@@ -94,7 +94,7 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th v-if="app.transport_type === 'webengine'">Entry Point Path</th>
+                                    <th v-if="app.transport_type === 'webengine'">Entrypoint Path</th>
                                     <th v-else>Endpoint</th>
                                     <th>Transport Type</th>
                                 </tr>
