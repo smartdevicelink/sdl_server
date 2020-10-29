@@ -2,14 +2,17 @@ const config = require('../../../settings.js');
 const log = require('../../loggers/winston');
 const Redis = require('redis');
 var redis;
-try {
-    redis = Redis.createClient({
-        port: config.cacheModulePort,
-        host: config.cacheModuleHost,
-        password: config.cacheModulePassword
-    });
-} catch (e) {
-    log.error('Cannot connect to Redis. Please check that your configuration is correct.');
+// Don't create the redis client when running the build process
+if (process.env.NODE_ENV !== "build") {
+    try {
+        redis = Redis.createClient({
+            port: config.cacheModulePort,
+            host: config.cacheModuleHost,
+            password: config.cacheModulePassword
+        });
+    } catch (e) {
+        log.error('Cannot connect to Redis. Please check that your configuration is correct.');
+    }
 }
 
 

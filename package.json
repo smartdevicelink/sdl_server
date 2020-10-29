@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "npm run-script db-migrate-up && NODE_ENV=staging vue-cli-service serve",
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build": "NODE_ENV=build vue-cli-service build",
     "lint": "vue-cli-service lint",
     "start": "npm run dev",
     "test": "npm run db-migrate-reset-pg-test > /dev/null 2>&1 && npm run db-migrate-up-pg-test > /dev/null 2>&1 && NODE_ENV=test mocha",
