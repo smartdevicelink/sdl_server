@@ -51,49 +51,49 @@
                             class="color-bg-gray color-primary"
                             v-model="fg.is_default"
                             v-bind:disabled="fieldsDisabled">
-                            Grant this functional group to all applications by default
+                            <p class="color-primary">Grant this functional group to all applications by default</p>
                         </b-form-checkbox>
 
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_pre_data_consent"
                             v-bind:disabled="fieldsDisabled">
-                            Grant this functional group to all applications prior to the user accepting SDL data consent
+                            <p class="color-primary">Grant this functional group to all applications prior to the user accepting SDL data consent</p>
                         </b-form-checkbox>
 
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_device"
                             v-bind:disabled="fieldsDisabled">
-                            Grant this functional group to all applications after the user has accepted SDL data consent
+                            <p class="color-primary">Grant this functional group to all applications after the user has accepted SDL data consent</p>
                         </b-form-checkbox>
 
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_app_provider_group"
                             v-bind:disabled="fieldsDisabled">
-                            Grant this functional group to all applications with at least one service provider type
+                            <p class="color-primary">Grant this functional group to all applications with at least one service provider type</p>
                         </b-form-checkbox>
 
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_administrator_group"
                             v-bind:disabled="fieldsDisabled">
-                            Grant this functional group to applications with "Administrator" privileges
+                            <p class="color-primary">Grant this functional group to applications with "Administrator" privileges</p>
                         </b-form-checkbox>
 
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_widget_group"
                             v-bind:disabled="fieldsDisabled">
-                            Grant this functional group to applications with widget management privileges
+                            <p class="color-primary">Grant this functional group to applications with widget management privileges</p>
                         </b-form-checkbox>
                         
                         <b-form-checkbox
                             class="color-bg-gray color-primary"
                             v-model="fg.is_proprietary_group"
                             v-bind:disabled="fieldsDisabled">
-                            This is a proprietary functional group <a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="You can manually grant Proprietary Groups to an app version when you're reviewing it"></a>
+                            <p class="color-primary">This is a proprietary functional group</p> <a class="fa </p>fa-question-circle color-primary doc-link" v-b-tooltip.hover title="You can manually grant Proprietary Groups to an app version when you're reviewing it"></a>
                         </b-form-checkbox>
                     </div>
 
@@ -103,7 +103,7 @@
                             class="color-bg-gray color-primary"
                             v-model="fg.encryption_required"
                             v-bind:disabled="fieldsDisabled">
-                            Require RPCs in this functional group to be encrypted
+                            <p class="color-primary">Require RPCs in this functional group to be encrypted</p>
                         </b-form-checkbox>
                     </div>
 
@@ -113,7 +113,6 @@
                         <div class="rpcs">
                             <rpc-item
                                 v-for="(item, index) in fg.rpcs"
-                                v-if="item.selected"
                                 v-bind:status="fg.status"
                                 v-bind:environment="environment"
                                 v-bind:fieldsDisabled="fieldsDisabled"
@@ -147,14 +146,16 @@
                     <input v-model="rpc_search" placeholder="Search for an RPC" class="form-control" id="rpc-search">
 
                     <ul class="list-group rpc-list">
-                        <li
-                            class="list-group-item rpc-list-item pointer"
+                        <div 
                             v-for="(item, index) in fg.rpcs"
-                            v-if="isRpcAvailable(item)"
                             v-on:click="addRpc(item)"
-                        >
-                        {{ item.name }}
-                        </li>
+                            v-bind:key="index">
+                            <li 
+                                class="list-group-item rpc-list-item pointer"
+                                v-if="isRpcAvailable(item)">
+                                {{ item.name }}
+                            </li>
+                        </div>
                     </ul>
                 </b-modal>
 

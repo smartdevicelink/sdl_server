@@ -266,6 +266,42 @@ function getAppCategory (id) {
         .toString();
 }
 
+function getAllAppCategoriesFilter (filterObj) {
+    return sql.select('app_id AS id', 'app_categories.category_id', 'display_name')
+        .from('app_categories')
+        .join('categories', {
+            'app_categories.category_id': 'categories.id'
+        })
+        .join('(' + getAppInfoFilter(filterObj) + ') ai', {
+            'ai.id': 'app_categories.app_id'
+        })
+        .toString();
+}
+
+function getAllAppCategories (id) {
+    return sql.select('app_id AS id', 'app_categories.category_id', 'display_name')
+        .from('app_categories')
+        .join('categories', {
+            'app_categories.category_id': 'categories.id'
+        })
+        .where({
+            app_id: id
+        })
+        .toString();
+}
+
+function getAppCategoriesNames (id) {
+    return sql.select('categories.id', 'categories.name')
+        .from('categories')
+        .join('app_categories', {
+            'app_categories.category_id': 'categories.id'
+        })
+        .where({
+            'app_categories.app_id': id
+        })
+        .toString();
+}
+
 function getAppServiceTypes (id) {
     return sql.select('ast.app_id, ast.service_type_name, st.display_name')
         .from('app_service_types ast')
@@ -1076,6 +1112,10 @@ module.exports = {
             multiFilter: getAppCategoryFilter,
             idFilter: getAppCategory
         },
+        allCategories: {
+            multiFilter: getAllAppCategoriesFilter,
+            idFilter: getAllAppCategories
+        },
         serviceTypes: {
             multiFilter: getAppServiceTypesFilter,
             idFilter: getAppServiceTypes
@@ -1111,6 +1151,7 @@ module.exports = {
         certificate: getAppCertificate,
         allExpiredCertificates: getAllExpiredAppCertificates,
     },
+    getAppCategoriesNames: getAppCategoriesNames,
     updateAppCertificate: updateAppCertificate,
     timestampCheck: timestampCheck,
     versionCheck: versionCheck,

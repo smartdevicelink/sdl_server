@@ -21,7 +21,7 @@
                 <template v-else>
                     <router-link v-if="actions_visible" v-bind:to="'/applications/' + item.id" class="btn btn-dark btn-sm">Review</router-link>
                     <span v-else class="fa fa-fw fa-1-5x fa-circle" v-bind:class="classStatusDot"></span>
-                    <a v-on:click="toggleActions" class="fa fa-fw fa-1-5x" v-bind:class="actionIcon"></a>
+                    <div v-on:click="toggleActions" class="fa fa-fw fa-1-5x pointer" v-bind:class="actionIcon"></div>
                 </template>
             </div>
         </td>

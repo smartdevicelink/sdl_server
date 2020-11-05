@@ -66,7 +66,7 @@
                                     <td class="title">{{ app.name }}</td>
                                     <td>{{ app.updated_ts }}</td>
                                     <td>{{ app.platform }}</td>
-                                    <td>{{ app.category.display_name }}</td>
+                                    <td>{{ app.categories.map(e => e.display_name).join(', ') }}</td>
                                     <td>{{ app.can_manage_widgets ? "Yes" : "No" }}</td>
                                     <td class="overflow-visible">
                                         <b-dropdown size="sm" right
@@ -94,13 +94,15 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Endpoint</th>
+                                    <th v-if="app.transport_type === 'webengine'">Entrypoint Path</th>
+                                    <th v-else>Endpoint</th>
                                     <th>Transport Type</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{{ app.cloud_endpoint }}</td>
+                                    <td v-if="app.transport_type === 'webengine'">{{ app.entrypoint_path }}</td>
+                                    <td v-else>{{ app.cloud_endpoint }}</td>
                                     <td>{{ app.cloud_transport_type }}</td>
                                 </tr>
                             </tbody>
@@ -124,8 +126,8 @@
                     </div>
                     <div class="mt-2 mb-2" v-if="app.approval_status !== 'LIMITED'">
                         <label class="switch">
-                            <input v-on:click="autoApproveClick" type="checkbox" :checked="app.is_auto_approved_enabled"></input>
-                            <span class="slider round"></span>
+                            <input v-on:click="autoApproveClick" type="checkbox" :checked="app.is_auto_approved_enabled">
+                            <span :class="{ round: true, slider: true, 'slider-on': app.is_auto_approved_enabled }"></span>
                         </label>
                         <label class="form-check-label switch-label">
                           Automatically approve <b>future versions</b> of this app
@@ -133,8 +135,8 @@
                     </div>
                     <div class="mt-2 mb-2">
                         <label class="switch">
-                            <input v-on:click="toggleAdministratorClick" type="checkbox" :checked="app.is_administrator_app"></input>
-                            <span class="slider round"></span>
+                            <input v-on:click="toggleAdministratorClick" type="checkbox" :checked="app.is_administrator_app">
+                            <span :class="{ round: true, slider: true, 'slider-on': app.is_administrator_app }"></span>
                         </label>
                         <label class="form-check-label switch-label">
                           Grant <b>all versions of this app</b> access to "Administrator" Functional Groups<a class="fa fa-exclamation-circle color-primary doc-link" v-b-tooltip.hover title="Manage Administator permissions via the Functional Groups tab"></a>
@@ -142,8 +144,8 @@
                     </div>
                     <div class="mt-2 mb-2">
                         <label class="switch">
-                            <input v-on:click="togglePassthroughClick" type="checkbox" :checked="app.allow_unknown_rpc_passthrough"></input>
-                            <span class="slider round"></span>
+                            <input v-on:click="togglePassthroughClick" type="checkbox" :checked="app.allow_unknown_rpc_passthrough">
+                            <span :class="{ round: true, slider: true, 'slider-on': app.allow_unknown_rpc_passthrough }"></span>
                         </label>
                         <label class="form-check-label switch-label">
                           Allow <b>all versions of this app</b> to send unknown RPCs through App Service RPC passthrough
@@ -151,8 +153,8 @@
                     </div>
                     <div class="mt-2 mb-5">
                         <label class="switch">
-                            <input v-on:click="toggleRPCEncryptionClick" type="checkbox" :checked="app.encryption_required"></input>
-                            <span class="slider round"></span>
+                            <input v-on:click="toggleRPCEncryptionClick" type="checkbox" :checked="app.encryption_required">
+                            <span :class="{ round: true, slider: true, 'slider-on': app.encryption_required }"></span>
                         </label>
                         <label class="form-check-label switch-label">
                           Require RPC encryption for <b>this version</b> of the app
@@ -170,7 +172,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="name in app.display_names">
+                                <tr v-for="(name, index) in app.display_names" v-bind:key="index">
                                     <td>{{ name }}</td>
                                 </tr>
                             </tbody>
@@ -190,7 +192,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="permission in app.permissions">
+                                <tr v-for="(permission, index) in app.permissions" v-bind:key="index">
                                     <td>{{ permission.key }}</td>
                                     <td>{{ permission.type }}</td>
                                     <td>{{ permission.hmi_level }}</td>
@@ -200,7 +202,7 @@
                     </div>
                 </div>
 
-                <div v-for="service in app.services" class="app-table">
+                <div v-for="(service, index) in app.services" class="app-table" v-bind:key="index">
                     <h4>{{ service.display_name }} Service Provider</h4>
                     <!--<span>The developer has indicated that this app is capable of handling one or more App Service Types. Which App Service Provider RPCs would you like to grant to the app? If you wish to deny an entire App Service Type, please reject the application.</span>-->
                     <div class="table-responsive">
@@ -232,7 +234,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="name in service.service_names">
+                                <tr v-for="(name, index) in service.service_names" v-bind:key="index">
                                     <td>{{ name }}</td>
                                 </tr>
                             </tbody>
@@ -324,7 +326,7 @@
                         <!--pre class="mt-3 mb-0">{{ module_config.certificate }}</pre-->
                         <vue-ladda
                             type="submit"
-                            class="btn btn-card"
+                            class="btn btn-card btn-gray"
                             data-style="zoom-in"
                             style="width:300px"
                             v-bind:loading="false"
@@ -564,6 +566,7 @@ export default {
                 "emailAddress": "",
                 "days": "",
                 "private_key": null,
+                "serialNumber": ""
             },
             "private_key": null,
             "certificate": null,
@@ -630,7 +633,7 @@ export default {
                     "version_id": this.app.version_id,
                     "denial_message": withFeedBack ? this.modal_text : null
                 }
-            }, (err, response) => {
+            }, (err) => {
                 this.$refs.appActionModal.hide();
                 this.$refs.appBlacklistModal.hide();
                 this.$refs.notProductionModal.hide();
@@ -649,90 +652,82 @@ export default {
             });
         },
         "autoApproveClick": function(){
-            this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
-            console.log("Requesting auto-approval change to: " + this.app.is_auto_approved_enabled);
+            console.log("Requesting auto-approval change to: " + !this.app.is_auto_approved_enabled);
 
-            if(this.app.is_auto_approved_enabled && !confirm("Future versions of this app will be granted all of its requested permissions (including App Services). Are you sure you would like to enable auto-approval for this app?")){
+            if(!this.app.is_auto_approved_enabled && !confirm("Future versions of this app will be granted all of its requested permissions (including App Services). Are you sure you would like to enable auto-approval for this app?")){
                 // user cancelled the confirmation dialog
-                this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
                 return;
             }
 
             this.httpRequest("post", "applications/auto", {
                 "body": {
                     "uuid": this.app.uuid,
-                    "is_auto_approved_enabled": this.app.is_auto_approved_enabled
+                    "is_auto_approved_enabled": !this.app.is_auto_approved_enabled
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing auto-approval setting.");
-                    this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
                 }else{
                     // success
-                    console.log("Auto-approve setting changed to: " + this.app.is_auto_approved_enabled);
+                    console.log("Auto-approve setting changed to: " + !this.app.is_auto_approved_enabled);
+                    this.app.is_auto_approved_enabled = !this.app.is_auto_approved_enabled;
                 }
             });
         },
         "toggleAdministratorClick": function(){
-            this.app.is_administrator_app = !this.app.is_administrator_app;
-            console.log("Requesting administrator access change to: " + this.app.is_administrator_app);
+            console.log("Requesting administrator access change to: " + !this.app.is_administrator_app);
 
             this.httpRequest("post", "applications/administrator", {
                 "body": {
                     "uuid": this.app.uuid,
-                    "is_administrator_app": this.app.is_administrator_app
+                    "is_administrator_app": !this.app.is_administrator_app
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing administrator app setting.");
-                    this.app.is_administrator_app = !this.app.is_administrator_app;
                 }else{
                     // success
-                    console.log("App administrator setting changed to: " + this.app.is_administrator_app);
+                    console.log("App administrator setting changed to: " + !this.app.is_administrator_app);
                     this.getApp();
                 }
             });
         },
         "togglePassthroughClick": function(){
-            this.app.allow_unknown_rpc_passthrough = !this.app.allow_unknown_rpc_passthrough;
-            console.log("Requesting RPC Passthrough change to: " + this.app.allow_unknown_rpc_passthrough);
+            console.log("Requesting RPC Passthrough change to: " + !this.app.allow_unknown_rpc_passthrough);
 
             this.httpRequest("post", "applications/passthrough", {
                 "body": {
                     "uuid": this.app.uuid,
-                    "allow_unknown_rpc_passthrough": this.app.allow_unknown_rpc_passthrough
+                    "allow_unknown_rpc_passthrough": !this.app.allow_unknown_rpc_passthrough
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing RPC Passthrough app setting.");
-                    this.app.allow_unknown_rpc_passthrough = !this.app.allow_unknown_rpc_passthrough;
                 }else{
                     // success
-                    console.log("RPC Passthrough setting changed to: " + this.app.allow_unknown_rpc_passthrough);
+                    console.log("RPC Passthrough setting changed to: " + !this.app.allow_unknown_rpc_passthrough);
                     this.getApp();
                 }
             });
         },
         "toggleRPCEncryptionClick": function(){
-            this.app.encryption_required = !this.app.encryption_required;
-            console.log("Requesting RPC Encryption change to: " + this.app.encryption_required);
+            console.log("Requesting RPC Encryption change to: " + !this.app.encryption_required);
 
             this.httpRequest("put", "applications/rpcencryption", {
                 "body": {
                     "id": this.app.id,
-                    "encryption_required": this.app.encryption_required
+                    "encryption_required": !this.app.encryption_required
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing RPC Encryption app setting.");
-                    this.app.encryption_required = !this.app.encryption_required;
                 }else{
                     // success
-                    console.log("RPC Encryption setting changed to: " + this.app.encryption_required);
+                    console.log("RPC Encryption setting changed to: " + !this.app.encryption_required);
                     this.getApp();
                 }
             });
@@ -747,7 +742,7 @@ export default {
                     "uuid": this.app.uuid,
                     "hybrid_preference": this.selected_hybrid_app_preference.value
                 }
-            }, (err, response) => {
+            }, (err) => {
                 if(err){
                     // error
                     console.log("Error changing app hybrid preference.");
@@ -836,6 +831,8 @@ export default {
                     response.json().then(parsed => {
                         if(parsed.data.applications.length){
                             this.app = parsed.data.applications[0];
+                            // ensure the serial number is auto-included in cert generation!
+                            this.certificate_options.serialNumber = this.app.uuid; 
                             this.private_key = this.app.private_key;
                             this.certificate = this.app.certificate;
                             this.selected_hybrid_app_preference = this.hybrid_dropdown_options[this.app.hybrid_app_preference || "BOTH"];

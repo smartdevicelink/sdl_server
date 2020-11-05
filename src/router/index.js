@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Login from '@/components/Login'
+//import Login from '@/components/Login'
 import LoginBasic from '@/components/LoginBasic'
-import Register from '@/components/Register'
-import Forgot from '@/components/Forgot'
+//import Register from '@/components/Register'
+//import Forgot from '@/components/Forgot'
 import Applications from '@/components/Applications'
 import ApplicationDetails from '@/components/ApplicationDetails'
 import FunctionalGroups from '@/components/FunctionalGroups'
@@ -13,13 +13,13 @@ import ConsumerMessageDetails from '@/components/ConsumerMessageDetails'
 import ModuleConfig from '@/components/ModuleConfig'
 import About from '@/components/About'
 import PolicyTable from '@/components/PolicyTable'
-import User from '@/components/User'
-import Invite from '@/components/Invite'
+//import User from '@/components/User'
+//import Invite from '@/components/Invite'
 import NotFound from '@/components/NotFound'
 import VehicleData from '@/components/VehicleData'
 import VehicleDataDetails from '@/components/VehicleDataDetails'
 
-var authType = AUTH_TYPE; // defined via webpack build
+var authType = document.AUTH_TYPE;
 
 Vue.use(Router)
 
@@ -222,7 +222,7 @@ const router = new Router({
             }
         }
     ],
-    scrollBehavior: function(to, from, savedPosition) {
+    scrollBehavior: function(/*to, from, savedPosition*/) {
       return { x: 0, y: 0 }
     }
 });

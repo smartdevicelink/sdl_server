@@ -163,6 +163,7 @@ function setupAppPolicies (isProduction, useLongUuids = false, reqAppPolicy) {
 function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, incomingAppObjs, appObjs, callback) {
     const makeAppPolicyFlow = flame.flow(flame.map(appObjs, function (appObj, next) {
         const getInfoFlow = flame.flow({
+            categories: setupSqlCommand.bind(null, sqlApps.getAppCategoriesNames(appObj.id)),
             displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
             moduleNames: setupSqlCommand.bind(null, sql.getAppModules(appObj.id)),
             funcGroupNames: setupSqlCommand.bind(null, sql.getAppFunctionalGroups(isProduction, appObj)),

@@ -92,11 +92,20 @@ function constructFullAppObjs (res, next) {
             obj.countries = [];
             obj.display_names = [];
             obj.permissions = [];
+            obj.categories = [];
             obj.services = arrayify(hashedServices, [appInfo.id]); //services should be an array
             obj.description = appInfo.description;
         }
     }));
 
+    // categories
+    hashify(hashedApps, res.appAllCategories, elem => ({
+        location: [elem.id, "categories"],
+        data: arr => arr.push({
+            id: elem.category_id,
+            display_name: elem.display_name
+        })
+    }))
     // countries
     hashify(hashedApps, res.appCountries, elem => ({
         location: [elem.id, "countries"],

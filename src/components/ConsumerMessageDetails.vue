@@ -29,7 +29,6 @@
                         <h4>Languages</h4>
                         <message-item
                             v-for="(value, key) in message.languages"
-                            v-if="value.selected"
                             v-bind:item="value"
                             v-bind:fieldsDisabled="fieldsDisabled"
                             v-bind:environment="environment"
@@ -63,14 +62,16 @@
             <b-modal ref="addLanguageModal" title="Select Language" hide-footer id="addLanguageModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                 <input v-model="lang_search" placeholder="Search for a language" class="form-control" id="lang-search">
                 <ul class="list-group rpc-list">
-                    <li
-                        class="list-group-item rpc-list-item pointer"
+                    <div
                         v-for="(value, key) in message.languages"
-                        v-if="isLangAvailable(value)"
                         v-on:click="addLanguage(value)"
-                    >
-                    {{ value.language_id }}
-                    </li>
+                        v-bind:key="key">
+                        <li
+                            class="list-group-item rpc-list-item pointer"
+                            v-if="isLangAvailable(value)">
+                            {{ value.language_id }}
+                        </li>
+                    </div>
                 </ul>
             </b-modal>
 
@@ -118,7 +119,7 @@
 </template>
 
 <script>
-import { eventBus } from '../main.js';
+    //import { eventBus } from '../main.js';
     export default {
         props: ['id','environment'],
         data: function () {
