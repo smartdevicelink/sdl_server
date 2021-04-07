@@ -18,6 +18,9 @@ function get(req, res, next) {
     let chosenFlow;
 
     if (req.query.id) { //get module config of a specific id
+        if (Number.isNaN(Number(req.query.id))) {
+            return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
+        }
         chosenFlow = helper.getModuleConfigFlow('id', req.query.id);
     } else { //get the most recent module config object
         chosenFlow = helper.getModuleConfigFlow('status', isProduction);
