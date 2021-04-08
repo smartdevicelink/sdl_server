@@ -15,6 +15,9 @@ function get (req, res, next) {
 	let chosenFlow; //to be determined
 
 	if (req.query.id) { //filter by id
+		if (Number.isNaN(Number(req.query.id))) {
+            return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
+        }
 		chosenFlow = helper.createAppInfoFlow('idFilter', req.query.id);
 	}
 	else if (req.query.uuid) { //filter by app uuid
@@ -75,6 +78,7 @@ function get (req, res, next) {
 //TODO: emailing system for messaging the developer about the approval status change
 function actionPost (req, res, next) {
 	helper.validateActionPost(req, res);
+	helper.checkIdIntegerBody(req, res);
 	if (res.parcel.message) {
 		return res.parcel.deliver();
 	}
@@ -152,6 +156,7 @@ function hybridPost (req, res, next) {
 
 function rpcEncryptionPut (req, res, next) {
 	helper.validateRPCEncryptionPut(req, res);
+	helper.checkIdIntegerBody(req, res);
 	if (res.parcel.message) {
 		return res.parcel.deliver();
 	}
@@ -270,6 +275,7 @@ function passthroughPost (req, res, next) {
 
 function putServicePermission (req, res, next) {
 	helper.validateServicePermissionPut(req, res);
+	helper.checkIdIntegerBody(req, res);
 	if (res.parcel.message) {
 		return res.parcel.deliver();
 	}
