@@ -34,6 +34,12 @@ function get(req, res, next) {
                 .setMessage('Internal server error')
                 .deliver();
         }
+        if (!certController.openSSLEnabled) { // cert gen not enabled
+            data.forEach(obj => {
+                delete obj.certificate;
+                delete obj.private_key
+            })
+        }
         return res.parcel
             .setStatus(200)
             .setData(

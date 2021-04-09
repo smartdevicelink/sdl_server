@@ -4,6 +4,7 @@ const settings = require('../../../settings.js');
 const sqlApp = require('../applications/sql.js');
 const _ = require('lodash');
 const vehicleDataHelper = require('../vehicle-data/helper.js');
+const certController = require('../certificates/controller');
 
 //module config
 
@@ -27,7 +28,7 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
         concatPort = ":" + settings.policyServerPort;
     }
 
-    if(base.certificate && base.private_key){
+    if(certController.openSSLEnabled && base.certificate && base.private_key){
         base.certificate += '\n' + base.private_key;
     }
     else {
