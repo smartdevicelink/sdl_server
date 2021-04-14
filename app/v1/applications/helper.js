@@ -13,6 +13,12 @@ const certificates = require('../certificates/controller.js');
 const certUtil = require('../helpers/certificates.js');
 
 //validation functions
+function checkIdIntegerBody (req, res) {
+    if (Number.isNaN(Number(req.body.id))) {
+        res.parcel.setStatus(400).setMessage("id must be an integer");
+    }
+    return;
+}
 
 function validateActionPost (req, res) {
 	if (!req.body.id || !req.body.approval_status) {
@@ -434,6 +440,7 @@ module.exports = {
 	  validateFunctionalGroupPut: validateFunctionalGroupPut,
       validateUpdateAppCertificate: validateUpdateAppCertificate,
     validateWebHook: validateWebHook,
+    checkIdIntegerBody: checkIdIntegerBody,
     storeAppCertificates: storeAppCertificates,
     createFailedAppsCert: createFailedAppsCert,
     createAppInfoFlow: createAppInfoFlow,
