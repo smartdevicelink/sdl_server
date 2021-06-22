@@ -6,7 +6,7 @@
             <page-side-nav/>
             <page-user-nav/>
 
-            <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
+            <main class="col-md-9 ml-md-auto col-md-10 pt-3 main-content" role="main">
                 <!-- delete modals -->
                 <div class="pull-right">
                     <template v-if="environment == 'STAGING' && id != null">

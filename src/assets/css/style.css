@@ -144,7 +144,10 @@ div.horizontal-divider .text {
 
 
 
-
+.collapse {
+    display: flex;
+    min-width: 300px;
+}
 
 .container-fluid {
     min-height: 100%;
@@ -234,6 +237,14 @@ div.horizontal-divider .text {
     font-weight: lighter;
 }
 
+.navbar a {
+    color: #FFFFFF;
+}
+
+.navbar .router-link {
+    width: 30px
+}
+
 
 /*
 * User Settings sidebar
@@ -273,6 +284,9 @@ div.horizontal-divider .text {
     margin: 0px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.navbar .btn {
+    margin-left: auto
 }
 
 

@@ -5,7 +5,7 @@
             <page-side-nav/>
             <page-user-nav/>
 
-            <main v-if="app != null" class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
+            <main v-if="app != null" class="col-md-9 ml-md-auto col-md-10 pt-3 main-content" role="main">
                 <!--
                 m-md-2
                 -->
@@ -564,6 +564,7 @@ export default {
                 "emailAddress": "",
                 "days": "",
                 "private_key": null,
+                "serialNumber": ""
             },
             "private_key": null,
             "certificate": null,
@@ -836,6 +837,8 @@ export default {
                     response.json().then(parsed => {
                         if(parsed.data.applications.length){
                             this.app = parsed.data.applications[0];
+                            // ensure the serial number is auto-included in cert generation!
+                            this.certificate_options.serialNumber = this.app.uuid; 
                             this.private_key = this.app.private_key;
                             this.certificate = this.app.certificate;
                             this.selected_hybrid_app_preference = this.hybrid_dropdown_options[this.app.hybrid_app_preference || "BOTH"];

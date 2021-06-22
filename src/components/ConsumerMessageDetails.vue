@@ -5,7 +5,7 @@
             <page-side-nav/>
             <page-user-nav/>
 
-            <div class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content">
+            <div class="col-md-9 ml-md-auto col-md-10 pt-3 main-content">
 
                 <div class="pull-right">
                     <template v-if="environment == 'STAGING' && id != null">
