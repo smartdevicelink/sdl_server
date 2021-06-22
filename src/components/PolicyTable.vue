@@ -25,7 +25,7 @@
                     </h4>
                 </div>
                 <b-input-group style="margin-bottom:0.5em;">
-                    <b-input-group-addon>POST</b-input-group-addon>
+                    <b-input-group-text>POST</b-input-group-text>
                     <b-form-input type="text" v-bind:value="policyTablePostUrl"></b-form-input>
                 </b-input-group>
                 <div v-if="policytable !== null">
@@ -70,7 +70,7 @@ export default {
     methods: {
         "environmentClick": function(){
             this.$nextTick(function () {
-                const self = this;
+                //const self = this;
                 console.log("Selected environment: " + this.environment);
                 this.httpRequest("get", "policy/preview", {
                     "params": {
@@ -93,7 +93,7 @@ export default {
                 });
             });
         },
-        "checkScroll": function(e) {
+        "checkScroll": function() {
             this.at_top = window.scrollY ? false : true;
         }
     },

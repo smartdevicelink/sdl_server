@@ -15,11 +15,11 @@
         </h5>
 
         <!-- Iterate over every property in item and render it depending on its content -->
-        <div v-for="(param, propName) in item">
+        <div v-for="(param, propName) in item" v-bind:key="propName">
             <!-- Vehicle String type. Vehicle Strings cant or shouldn't have names matching vehicle parameters -->
             <template v-if="getPropType(propName) === 'VehicleString'">
                 <div class="form-group row">
-                    <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
+                    <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display.toUpperCase() }}</label>
                     <div class="col-sm-10">
                         <input v-model="item[propName]" :disabled="fieldsDisabled || (level === 1 && item.id)" class="form-control">
                     </div>
@@ -38,7 +38,7 @@
             <!-- Vehicle Type type. They must have specific values which are passed into this component -->
             <template v-if="getPropType(propName) === 'VehicleType'">
                 <div class="form-group row">
-                    <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
+                    <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display.toUpperCase() }}</label>
                     <div class="col-sm-10">
                         <b-form-select
                             v-model="item[propName]"
@@ -53,7 +53,7 @@
             <!-- String type -->
             <template v-if="getPropType(propName) === 'String'">
                 <div class="form-group row">
-                    <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
+                    <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display.toUpperCase() }}</label>
                     <div class="col-sm-10">
                         <input v-model="item[propName]" :disabled="fieldsDisabled" class="form-control">
                     </div>
@@ -62,12 +62,12 @@
 
             <!-- Boolean type -->
             <template v-if="getPropType(propName) === 'Boolean'">
-                <div class="form-group row">
+                <div class="form-group row center-element">
                     <b-form-checkbox
                         class="color-primary"
                         v-model="item[propName]"
                         v-bind:disabled="fieldsDisabled || isTopLevelMandatory(propName)">
-                        {{ propsDisplay[propName].display }}
+                        {{ propsDisplay[propName].display.toUpperCase() }}
                     </b-form-checkbox>
                     <p v-if="isTopLevelMandatory(propName)"
                         class="form-group">
@@ -80,15 +80,14 @@
             <template v-if="getPropType(propName) === 'ZeroNatural'
                 || getPropType(propName) === 'Integer'">
                 <div class="form-group row">
-                    <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display }}</label>
+                    <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display.toUpperCase() }}</label>
                     <div class="col-sm-4">
                         <input class="form-control text-truncate"
-                            v-if=""
                            :disabled="fieldsDisabled"
                            @input="getPropType(propName) === 'ZeroNatural' ?
                                 updateZeroNaturalNumber(propName, $event.target.value)
                                 : updateIntegerNumber(propName, $event.target.value)"
-                           v-model="item[propName]"></input>
+                           v-model="item[propName]">
                     </div>
                 </div>
             </template>
@@ -96,7 +95,7 @@
         </div>
 
         <!-- Nested Schema Item component render -->
-        <div v-for="(param, paramIndex) in item.params">
+        <div v-for="(param, paramIndex) in item.params" v-bind:key="paramIndex">
             <vehicle-data-item
                 v-bind:item="param"
                 :fieldsDisabled="fieldsDisabled"
@@ -233,3 +232,10 @@
         },
     };
 </script>
+
+<style scoped>
+    .center-element {
+        align-items: center;
+        display: flex;
+    }
+</style>

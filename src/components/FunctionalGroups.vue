@@ -20,7 +20,7 @@
 
                 <div v-if="unused_count.rpcs !== 0 || unused_count.parameters !== 0" class="alert color-bg-red color-white d-table" role="alert">
                     ** Notice: {{ unused_permissions_text }} not currently being used in a functional group.
-                    <div v-for="perm in unmapped_permissions">
+                    <div v-for="(perm, index) in unmapped_permissions" v-bind:key="index">
                         {{ perm.name }} ({{ perm.type }})
                     </div>
                 </div>
@@ -92,7 +92,8 @@
                         <option value="null">Select a Functional Group...</option>
                         <option
                             v-for="(item, index) in functional_groups"
-                            v-bind:value="item.id">
+                            v-bind:value="item.id"
+                            v-bind:key="index">
                             {{ item.name }}
                         </option>
                     </b-form-select>

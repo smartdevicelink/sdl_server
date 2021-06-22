@@ -171,7 +171,7 @@
                 this.handleModalClick('save_button_loading', null, 'saveData');
             },
             saveData: function (cb) {
-                this.httpRequest('post', 'vehicle-data', { 'body': this.vehicle_data }, (err) => {
+                this.httpRequest('post', 'vehicle-data', { 'body': this.vehicle_data }, () => {
                     this.toTop();
                     cb();
                 });

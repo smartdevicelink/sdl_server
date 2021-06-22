@@ -18,6 +18,9 @@ function get(req, res, next) {
     let chosenFlow;
 
     if (req.query.id) { //get module config of a specific id
+        if (Number.isNaN(Number(req.query.id))) {
+            return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
+        }
         chosenFlow = helper.getModuleConfigFlow('id', req.query.id);
     } else { //get the most recent module config object
         chosenFlow = helper.getModuleConfigFlow('status', isProduction);
@@ -30,6 +33,12 @@ function get(req, res, next) {
                 .setStatus(500)
                 .setMessage('Internal server error')
                 .deliver();
+        }
+        if (!certController.openSSLEnabled) { // cert gen not enabled
+            data.forEach(obj => {
+                delete obj.certificate;
+                delete obj.private_key
+            })
         }
         return res.parcel
             .setStatus(200)

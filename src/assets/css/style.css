@@ -111,6 +111,20 @@ pre {
     box-shadow: none !important;
 }
 
+.custom-control-input:checked ~ .custom-control-label::before {
+    color: #FFFFFF;
+    background-color: #78C970;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.custom-checkbox .custom-control-input:disabled:checked ~ .custom-control-label::before {
+    color: #FFFFFF;
+    background-color: #78C970;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
 .w-auto {
     width: auto;
 }
@@ -551,6 +565,14 @@ div.horizontal-divider .text {
     background-color: #4A5E71 !important;
     color: #FFFFFF !important;
 }
+.btn-gray {
+    background-color: #666 !important;
+    color: #FFFFFF !important;
+}
+.btn-gray:hover {
+    background-color: #4A5E71 !important;
+    color: #FFFFFF !important;
+}
 
 .app-action {
     font-size: .875rem;
@@ -620,10 +642,15 @@ div.horizontal-divider .text {
     cursor: default;
 }
 
+.slider-on {
+    background-color: #78C970;
+    border: solid 1px #78C970;
+}
 
-input:checked + .slider {
-  background-color: #78C970;
-  border: solid 1px #78C970;
+.slider-on:before {
+    -webkit-transform: translateX(15px);
+    -ms-transform: translateX(15px);
+    transform: translateX(15px);
 }
 
 input:checked + .slider-red {
@@ -633,12 +660,6 @@ input:checked + .slider-red {
 
 input:focus + .slider {
   box-shadow: 0 0 1px #78C970;
-}
-
-input:checked + .slider:before {
-  -webkit-transform: translateX(15px);
-  -ms-transform: translateX(15px);
-  transform: translateX(15px);
 }
 
 /* Rounded sliders */
@@ -962,8 +983,10 @@ input:checked + .slider:before {
 .functional-content label {
     font-size: 14px;
     text-transform: uppercase;
-    color: #B3B3B3;
-    margin-top: 15px;
+    padding-top: 4px;
+    padding-bottom: 10px;
+    align-items: center;
+    display: flex;
 }
 .functional-content input,
 .functional-content select,
@@ -1021,7 +1044,7 @@ input:checked + .slider:before {
 .rpc-container .custom-control-indicator {
     top: 0;
 }
-.rpc-container .custom-controls-stacked label {
+.rpc-container label {
     text-transform: none;
 }
 .form-check-label {

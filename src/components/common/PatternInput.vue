@@ -1,5 +1,5 @@
 <template>
-    <input :value="value"
+    <input
            @input="updateValue($event.target.value)"
            @change="emitChange"
            v-model="val"

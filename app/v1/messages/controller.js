@@ -18,6 +18,9 @@ function getInfo (req, res, next) {
         chosenFlow = helper.makeCategoryTemplateFlow();
     }
     else if (req.query.id) { //get messages of a specific id. this is the 'detailed' mode
+        if (Number.isNaN(Number(req.query.id))) {
+            return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
+        }
         chosenFlow = helper.getMessageDetailsFlow(req.query.id);
     }
     else { //get all message info at the highest level, filtering in PRODUCTION or STAGING mode

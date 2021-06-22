@@ -21,6 +21,9 @@ function get (req, res, next) {
         ], {method: 'waterfall'});
     }
     else if (req.query.id) { //filter by id
+        if (Number.isNaN(Number(req.query.id))) {
+            return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
+        }
         chosenFlow = helper.createFuncGroupFlow('idFilter', req.query.id, true, isProduction);
     }
     else { //get all apps at the high level, filtering in PRODUCTION or STAGING mode

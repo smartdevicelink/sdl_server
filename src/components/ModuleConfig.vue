@@ -87,7 +87,7 @@
                     <div class="form-row" style="max-width: 450px;">
                         <h4>When a Policy Table Refresh Fails:</h4>
                             <!-- retry in seconds element -->
-                            <div class="white-box rpc-container" v-for="(value, key) in module_config.seconds_between_retries">
+                            <div class="white-box rpc-container" v-for="(value, key) in module_config.seconds_between_retries" v-bind:key="key">
                                 <div class="row">
                                     <label class="col col-form-label color-primary" style="text-transform:none">Retry after</label>
                                     <div class="col">
@@ -109,7 +109,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="!fieldsDisabled" v-on:click="addRetryUpdateElement()" id="add" class="another-rpc pointer">
+                            <div v-if="!fieldsDisabled && module_config.seconds_between_retries.length < 5" v-on:click="addRetryUpdateElement()" id="add" class="another-rpc pointer">
                                 <i class="fa fa-plus middle-middle"></i>
                             </div>
                     </div>
@@ -128,7 +128,7 @@
                         <h4>Lock Screen Icon URL</h4>
                         <div class="form-group row">
                             <div class="col-sm-10">
-                                <input v-model="module_config.endpoints['lock_screen_icon_url']" :disabled="fieldsDisabled" class="form-control"></input>
+                                <input v-model="module_config.endpoints['lock_screen_icon_url']" :disabled="fieldsDisabled" class="form-control">
                             </div>
                             <div class="col-sm">
                                 <img v-if="module_config.endpoints['lock_screen_icon_url']" v-bind:src="module_config.endpoints['lock_screen_icon_url']" class="pull-right" style="max-width:90px;max-height:50px;"/>
@@ -164,7 +164,7 @@
                     <!-- notifications -->
                     <div class="form-row">
                         <h4>Notification Rate Limits by Priority Level</h4>
-                        <div class="form-group row" v-for="(value, key) in module_config.notifications_per_minute_by_priority">
+                        <div class="form-group row" v-for="(value, key) in module_config.notifications_per_minute_by_priority" v-bind:key="key">
                             <div class="col-sm-2">
                                 <pattern-input class="form-control text-truncate"
                                    :regExp="integerInput.regExp"
@@ -179,7 +179,7 @@
                     <!-- subtle notifications -->
                     <div class="form-row">
                         <h4>Subtle Notification Rate Limits by Priority Level</h4>
-                        <div class="form-group row" v-for="(value, key) in module_config.subtle_notifications_per_minute_by_priority">
+                        <div class="form-group row" v-for="(value, key) in module_config.subtle_notifications_per_minute_by_priority" v-bind:key="key">
                             <div class="col-sm-2">
                                 <pattern-input class="form-control text-truncate"
                                    :regExp="integerInput.regExp"
@@ -217,7 +217,7 @@
 
                             <vue-ladda
                                 type="submit"
-                                class="btn btn-card"
+                                class="btn btn-card btn-gray"
                                 data-style="zoom-in"
                                 style="width:300px"
                                 v-if="!fieldsDisabled"

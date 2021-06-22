@@ -77,30 +77,30 @@ Vue.mixin({
 			}
 			if(["post","put","patch"].indexOf(action) >= 0){
 				this.$http[action](route, options.body, options)
-	            .then(response => {
-	                cb(null, response);
-	            }, response => {
+					.then(response => {
+						cb(null, response);
+					}, response => {
 					if(response.status == 401 && !options.preventAuthRedirect){
 						this.$session.destroy();
 						this.$router.go();
 					}else{
 						cb(response, null);
 					}
-	            });
+				});
 			}else{
 				this.$http[action](route, options)
-	            .then(response => {
-	                cb(null, response);
-	            }, response => {
+					.then(response => {
+						cb(null, response);
+					}, response => {
 					if(response.status == 401 && !options.preventAuthRedirect){
 						this.$session.destroy();
 						this.$router.go();
 					}else{
 						cb(response, null);
 					}
-	            });
+				});
 			}
-	    },
+		},
 		"handleModalClick": function (loadingProp, modalName, methodName) {
 			//show a loading icon for the modal, and call the methodName passed in
 			//when finished, turn off the loading icon, hide the modal, and reload the info
@@ -119,8 +119,6 @@ Vue.mixin({
 
 /* eslint-disable no-new */
 new Vue({
-  el: '#app',
   router,
-  template: '<App/>',
-  components: { App }
-})
+  render: h => h(App),
+}).$mount('#app')

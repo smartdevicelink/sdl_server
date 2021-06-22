@@ -12,6 +12,10 @@ function get(req, res, next) {
         return getTemplate(req, res);
     }
 
+    if (req.query.id && Number.isNaN(Number(req.query.id))) {
+        return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
+    }
+
     async.waterfall(
         [
             function(cb) {
