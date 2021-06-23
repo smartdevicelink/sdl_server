@@ -14,16 +14,16 @@
             <ul class="nav nav-pills flex-column d-md-none">
                 
                 <router-link tag="li" class="d-md-none" to="/applications">
-                    <a class="nav-link">Applications</a>
+                    <a class="nav-link">Applications <span v-if="badge_counts.applications > 0" class="badge badge-circle badge-danger">{{ badge_counts.applications }}</span></a>
                 </router-link>
                 <router-link tag="li" class="d-md-none" to="/policytable">
                     <a class="nav-link" href="/">View Policy Table</a>
                 </router-link>
                 <router-link tag="li" class="d-md-none" to="/functionalgroups">
-                    <a class="nav-link" href="/">Functional Groups</a>
+                    <a class="nav-link" href="/">Functional Groups <span v-if="badge_counts.functional_groups" class="badge badge-circle badge-danger">{{ badge_counts.functional_groups }}</span></a>
                 </router-link>
                 <router-link tag="li" class="d-md-none" to="/consumermessages">
-                    <a class="nav-link" href="/">Consumer Messages</a>
+                    <a class="nav-link" href="/">Consumer Messages <span v-if="badge_counts.consumer_messages" class="badge badge-circle badge-danger">{{ badge_counts.consumer_messages }}</span></a>
                 </router-link>
                 <router-link tag="li" class="d-md-none" to="/vehicledata">
                     <a class="nav-link" href="/">Custom Vehicle Data</a>
