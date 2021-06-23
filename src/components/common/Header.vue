@@ -47,7 +47,16 @@
             return {
                 "is_logged_in": this.$session.exists(),
                 "isHidden": true,
-                "innerWidth": window.innerWidth
+                "innerWidth": window.innerWidth,
+                "badge_counts": {
+                    "applications": 0,
+                    "functional_groups": 0,
+                    "consumer_messages": 0
+                },
+                "intervals": [
+                    setInterval(this.setPendingAppCount, 60000),
+                    setInterval(this.setUnmappedFunctionalCount, 60000)
+                ]
             };
         },
         methods: {
@@ -56,6 +65,40 @@
             },
             "onResize": function () {
                 this.innerWidth = window.innerWidth
+            },
+            "setPendingAppCount": function() {
+                // get number of pending applications
+                this.httpRequest("get", "applications", {
+                    "params": {
+                        "approval_status": "PENDING"
+                    }
+                }, (err, response) => {
+                    if(err){
+                        // error
+                        console.log("Error receiving PENDING applications.");
+                    }else{
+                        // success
+                        response.json().then(parsed => {
+                            this.badge_counts.applications = parsed.data.applications.length;
+                        });
+                    }
+                });
+            },
+            "setUnmappedFunctionalCount": function() {
+                // get number of unmapped RPCs and parameters in PRODUCTION
+                this.httpRequest("get", "permissions/unmapped?environment=PRODUCTION", {
+                }, (err, response) => {
+                    if(err){
+                        // error
+                        console.log("Error fetching functional group data.");
+                        console.log(response);
+                    }else{
+                        // success
+                        response.json().then(parsed => {
+                            this.badge_counts.functional_groups = (parsed.data.unmapped_rpc_count + parsed.data.unmapped_parameter_count);
+                        });
+                    }
+                });
             }
         },
         watch: {
@@ -63,7 +106,10 @@
                 this.is_logged_in = this.$session.exists();
             },
         },
-
+        created: function(){
+            this.setPendingAppCount();
+            this.setUnmappedFunctionalCount();
+        },
         mounted() {
             this.$nextTick(() => {
                 window.addEventListener('resize', this.onResize);
@@ -71,6 +117,10 @@
         },
         beforeDestroy() { 
             window.removeEventListener('resize', this.onResize); 
+            // ensure closing of all modals
+            for(var i = 0; i < this.intervals.length; i++){
+                clearInterval(this.intervals[i]);
+            }
         },
     }
 </script>
