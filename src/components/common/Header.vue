@@ -68,10 +68,12 @@
             },
             "setPendingAppCount": function() {
                 // get number of pending applications
+                // prevent redirects in case we aren't logged in
                 this.httpRequest("get", "applications", {
                     "params": {
                         "approval_status": "PENDING"
-                    }
+                    },
+                    preventAuthRedirect: true,
                 }, (err, response) => {
                     if(err){
                         // error
@@ -86,7 +88,9 @@
             },
             "setUnmappedFunctionalCount": function() {
                 // get number of unmapped RPCs and parameters in PRODUCTION
+                // prevent redirects in case we aren't logged in
                 this.httpRequest("get", "permissions/unmapped?environment=PRODUCTION", {
+                    preventAuthRedirect: true,
                 }, (err, response) => {
                     if(err){
                         // error
@@ -103,6 +107,11 @@
         },
         watch: {
             "$route": function(){
+                // if a login session was just started, update the badge counts
+                if (!this.is_logged_in && this.$session.exists()) {
+                    this.setPendingAppCount();
+                    this.setUnmappedFunctionalCount();
+                }
                 this.is_logged_in = this.$session.exists();
             },
         },
