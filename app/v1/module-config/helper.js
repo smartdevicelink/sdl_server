@@ -15,17 +15,20 @@ function validatePost (req, res) {
     req.body.exchange_after_x_days -= 0;
     req.body.timeout_after_x_seconds -= 0;
 
-    if (!check.number(req.body.exchange_after_x_ignition_cycles)) {
-        return setError("exchange_after_x_ignition_cycles required");
+    if (!check.number(req.body.exchange_after_x_ignition_cycles) || 
+        (check.number(req.body.exchange_after_x_ignition_cycles) && req.body.exchange_after_x_ignition_cycles > 255)) {
+        return setError("exchange_after_x_ignition_cycles required and should not exceed 255");
     }
     if (!check.number(req.body.exchange_after_x_kilometers)) {
         return setError("exchange_after_x_kilometers required");
     }
-    if (!check.number(req.body.exchange_after_x_days)) {
-        return setError("exchange_after_x_days required");
+    if (!check.number(req.body.exchange_after_x_days) ||
+        (check.number(req.body.exchange_after_x_days) && req.body.exchange_after_x_days > 255)) {
+        return setError("exchange_after_x_days required and should not exceed 255");
     }
-    if (!check.number(req.body.timeout_after_x_seconds)) {
-        return setError("timeout_after_x_seconds required");
+    if (!check.number(req.body.timeout_after_x_seconds) ||
+        (check.number(req.body.timeout_after_x_seconds) && req.body.timeout_after_x_seconds > 65535)) {
+        return setError("timeout_after_x_seconds required and should not exceed 65535");
     }
     if (!check.array(req.body.seconds_between_retries)) {
         return setError("seconds_between_retries required");
@@ -58,26 +61,33 @@ function validatePost (req, res) {
     req.body.notifications_per_minute_by_priority.COMMUNICATION -= 0;
     req.body.notifications_per_minute_by_priority.NORMAL -= 0;
     req.body.notifications_per_minute_by_priority.NONE -= 0;
-    if (!check.number(req.body.notifications_per_minute_by_priority.EMERGENCY)) {
-        return setError("EMERGENCY notification count required");
+    if (!check.number(req.body.notifications_per_minute_by_priority.EMERGENCY) ||
+        (check.number(req.body.notifications_per_minute_by_priority.EMERGENCY) && req.body.notifications_per_minute_by_priority.EMERGENCY > 255)) {
+        return setError("EMERGENCY notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.notifications_per_minute_by_priority.NAVIGATION)) {
-        return setError("NAVIGATION notification count required");
+    if (!check.number(req.body.notifications_per_minute_by_priority.NAVIGATION) ||
+        (check.number(req.body.notifications_per_minute_by_priority.NAVIGATION) && req.body.notifications_per_minute_by_priority.NAVIGATION > 255)) {
+        return setError("NAVIGATION notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.notifications_per_minute_by_priority.PROJECTION)) {
-        return setError("PROJECTION notification count required");
+    if (!check.number(req.body.notifications_per_minute_by_priority.PROJECTION) ||
+        (check.number(req.body.notifications_per_minute_by_priority.PROJECTION) && req.body.notifications_per_minute_by_priority.PROJECTION > 255)) {
+        return setError("PROJECTION notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.notifications_per_minute_by_priority.VOICECOM)) {
-        return setError("VOICECOM notification count required");
+    if (!check.number(req.body.notifications_per_minute_by_priority.VOICECOM) ||
+        (check.number(req.body.notifications_per_minute_by_priority.VOICECOM) && req.body.notifications_per_minute_by_priority.VOICECOM > 255)) {
+        return setError("VOICECOM notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.notifications_per_minute_by_priority.COMMUNICATION)) {
-        return setError("COMMUNICATION notification count required");
+    if (!check.number(req.body.notifications_per_minute_by_priority.COMMUNICATION) ||
+        (check.number(req.body.notifications_per_minute_by_priority.COMMUNICATION) && req.body.notifications_per_minute_by_priority.COMMUNICATION > 255)) {
+        return setError("COMMUNICATION notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.notifications_per_minute_by_priority.NORMAL)) {
-        return setError("NORMAL notification count required");
+    if (!check.number(req.body.notifications_per_minute_by_priority.NORMAL) ||
+        (check.number(req.body.notifications_per_minute_by_priority.NORMAL) && req.body.notifications_per_minute_by_priority.NORMAL > 255)) {
+        return setError("NORMAL notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.notifications_per_minute_by_priority.NONE)) {
-        return setError("NONE notification count required");
+    if (!check.number(req.body.notifications_per_minute_by_priority.NONE) ||
+        (check.number(req.body.notifications_per_minute_by_priority.NONE) && req.body.notifications_per_minute_by_priority.NONE > 255)) {
+        return setError("NONE notification count required and should not exceed 255");
     }
 
     req.body.subtle_notifications_per_minute_by_priority.EMERGENCY -= 0;
@@ -87,26 +97,33 @@ function validatePost (req, res) {
     req.body.subtle_notifications_per_minute_by_priority.COMMUNICATION -= 0;
     req.body.subtle_notifications_per_minute_by_priority.NORMAL -= 0;
     req.body.subtle_notifications_per_minute_by_priority.NONE -= 0;
-    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.EMERGENCY)) {
-        return setError("Subtle EMERGENCY notification count required");
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.EMERGENCY) ||
+        (check.number(req.body.subtle_notifications_per_minute_by_priority.EMERGENCY) && req.body.subtle_notifications_per_minute_by_priority.EMERGENCY > 255)) {
+        return setError("Subtle EMERGENCY notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.NAVIGATION)) {
-        return setError("Subtle NAVIGATION notification count required");
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.NAVIGATION) ||
+        (check.number(req.body.subtle_notifications_per_minute_by_priority.NAVIGATION) && req.body.subtle_notifications_per_minute_by_priority.NAVIGATION > 255)) {
+        return setError("Subtle NAVIGATION notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.PROJECTION)) {
-        return setError("Subtle PROJECTION notification count required");
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.PROJECTION) ||
+        (check.number(req.body.subtle_notifications_per_minute_by_priority.PROJECTION) && req.body.subtle_notifications_per_minute_by_priority.PROJECTION > 255)) {
+        return setError("Subtle PROJECTION notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.VOICECOM)) {
-        return setError("Subtle VOICECOM notification count required");
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.VOICECOM) ||
+        (check.number(req.body.subtle_notifications_per_minute_by_priority.VOICECOM) && req.body.subtle_notifications_per_minute_by_priority.VOICECOM > 255)) {
+        return setError("Subtle VOICECOM notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.COMMUNICATION)) {
-        return setError("Subtle COMMUNICATION notification count required");
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.COMMUNICATION) ||
+        (check.number(req.body.subtle_notifications_per_minute_by_priority.COMMUNICATION) && req.body.subtle_notifications_per_minute_by_priority.COMMUNICATION > 255)) {
+        return setError("Subtle COMMUNICATION notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.NORMAL)) {
-        return setError("Subtle NORMAL notification count required");
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.NORMAL) ||
+        (check.number(req.body.subtle_notifications_per_minute_by_priority.NORMAL) && req.body.subtle_notifications_per_minute_by_priority.NORMAL > 255)) {
+        return setError("Subtle NORMAL notification count required and should not exceed 255");
     }
-    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.NONE)) {
-        return setError("Subtle NONE notification count required");
+    if (!check.number(req.body.subtle_notifications_per_minute_by_priority.NONE) ||
+        (check.number(req.body.subtle_notifications_per_minute_by_priority.NONE) && req.body.subtle_notifications_per_minute_by_priority.NONE > 255)) {
+        return setError("Subtle NONE notification count required and should not exceed 255");
     }
     return;
 
