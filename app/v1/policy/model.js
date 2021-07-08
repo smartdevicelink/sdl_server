@@ -107,6 +107,8 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
 function transformMessages (info, cb) {
     const allMessages = info.messageStatuses;
     const groups = info.messageGroups;
+    const highestMessageGroupId = info.highestMessageGroupId[0] ? info.highestMessageGroupId[0].id : 0; // used to help generate a version number
+    const versionString = Number(highestMessageGroupId).toLocaleString().replace(/,/g,'.').padStart(11, "000."); // ###.###.### format up to the id of 999,999,999 
 
     const transformFlow = flame.flow([
         //hash the message groups by message_category
@@ -139,7 +141,7 @@ function transformMessages (info, cb) {
                 next();
             }, function () {
                 next(null, {
-                    "version": "000.000.001", //TODO: what to do with the versioning?
+                    "version": versionString,
                     "messages": messageObj
                 });
             });
