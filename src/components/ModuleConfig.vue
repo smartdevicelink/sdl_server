@@ -16,7 +16,7 @@
                     name="chooseEnvironment" />
 
                 <div class="pull-right">
-                    <b-btn v-if="environment == 'STAGING' && canPromote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote changes to production</b-btn>
+                    <b-btn v-if="environment == 'STAGING' && canPromote" v-b-modal.promoteModal class="btn btn-style-green btn-sm align-middle">Promote staging to production</b-btn>
                 </div>
 
                 <h4>Module Config<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/module-config/" target="_blank"></a></h4>
@@ -243,9 +243,9 @@
                 </div>
 
                 <!-- PROMOTE GROUP MODAL -->
-                <b-modal ref="promoteModal" title="Promote Module Config to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                <b-modal ref="promoteModal" title="Promote Staging Module Config to Production" hide-footer id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                     <small class="form-text text-muted">
-                        This will promote the module config to production, immediately updating the production policy table. Are you sure you want to do this?
+                        This will promote the saved module config state on STAGING to production, immediately updating the production policy table. Are you sure you want to do this?
                     </small>
                     <vue-ladda
                         type="button"
@@ -382,7 +382,7 @@ export default {
             this.handleModalClick("promote_button_loading", "promoteModal", "promoteConfig");
         },
         "promoteConfig": function (cb) {
-            this.httpRequest("post", "module/promote", { "body": this.module_config }, cb);
+            this.httpRequest("post", "module/promoteNoId", { "body": {} }, cb);
         },
         "addRetryUpdateElement": function () {
             var newVal = this.module_config.seconds_between_retries.length ? this.module_config.seconds_between_retries[this.module_config.seconds_between_retries.length - 1]*5 : 1;
