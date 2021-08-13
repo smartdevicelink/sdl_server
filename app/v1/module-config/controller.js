@@ -110,6 +110,34 @@ function post(isProduction, req, res, next) {
     }
 }
 
+function promoteNoId (req, res, next) {
+    if (res.parcel.message) {
+        return res.parcel.deliver();
+    }
+
+    // retrieve the staging config
+    const flow = helper.getModuleConfigFlow('status', false);
+
+    flow(function(err, data) {
+        if (err) {
+            app.locals.log.error(err);
+            return res.parcel
+                .setStatus(500)
+                .setMessage('Internal server error')
+                .deliver();
+        }
+        if (!certController.openSSLEnabled) { // cert gen not enabled
+            data.forEach(obj => {
+                delete obj.certificate;
+                delete obj.private_key
+            })
+        }
+        // modify the body and pass the express parameters along as if we are posting to production
+        req.body = data[0];
+        post(true, req, res, next);
+    });
+}
+
 function checkAndUpdateCertificate (cb) {
     if (!certController.openSSLEnabled) {
         if (cb) {
@@ -183,5 +211,6 @@ module.exports = {
     get: get,
     post: post.bind(null, false),
     promote: post.bind(null, true),
+    promoteNoId: promoteNoId,
     checkAndUpdateCertificate: checkAndUpdateCertificate
 };

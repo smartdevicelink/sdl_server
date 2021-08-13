@@ -106,6 +106,7 @@ function exposeRoutes () {
 	app.get('/module', auth.validateAuth, moduleConfig.get);
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
+	app.post('/module/promoteNoId', auth.validateAuth, moduleConfig.promoteNoId);
 	app.get('/about', auth.validateAuth, about.getInfo);
 	app.post('/security/certificate', certificates.createCertificate);
 	app.post('/security/private', certificates.createPrivateKey);
