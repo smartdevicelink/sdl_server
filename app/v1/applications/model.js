@@ -11,9 +11,10 @@ const certificates = require('../certificates/controller.js');
 const certUtil = require('../helpers/certificates.js');
 const webengineHandler = require('../../../customizable/webengine-bundle');
 const Url = require('url').URL;
+const promisify = require('util').promisify;
 
 //takes SQL data and converts it into a response for the UI to consume
-function constructFullAppObjs (res, next) {
+async function constructFullAppObjs (res) {
     //hash the below data for fast access later
     const hashedCategories = hashify({}, res.appCategories, elem => ({
         location: [elem.id],
@@ -135,222 +136,152 @@ function constructFullAppObjs (res, next) {
         fullApps.push(hashedApps[id]);
     }
 
-    next(null, fullApps);
+    return fullApps;
 }
 
 
 //store the information using a SQL transaction
-function storeApp (notifyOEM, appObj, next) {
-    var storedApp = null;
+async function storeApp (notifyOEM, appObj) {
     // process message groups synchronously (due to the SQL transaction)
-    db.runAsTransaction(function (client, callback) {
-        flame.async.waterfall([
-            //stage 1: insert app info
-            client.getOne.bind(client, sql.insertAppInfo(appObj)),
-            //stage 2: insert countries, display names, permissions, app auto approvals, and certificates if enabled
-            function (app, next) {
-                log.info("New/updated app " + app.app_uuid + " added to the database");
-                storedApp = app;
-                const allInserts = [];
-                if (appObj.countries.length > 0) {
-                    allInserts.push(sql.insertAppCountries(appObj.countries, app.id));
-                }
-                if (appObj.display_names.length > 0) {
-                    allInserts.push(sql.insertAppDisplayNames(appObj.display_names, app.id));
-                }
-                if (appObj.permissions.length > 0) {
-                    allInserts.push(sql.insertAppPermissions(appObj.permissions, app.id));
-                }
-                if (appObj.services.length > 0) {
-                    allInserts.push(sql.insertAppServices(appObj.services, app.id));
-                    allInserts.push(sql.insertAppServiceNames(appObj.services, app.id));
-                    allInserts.push(sql.insertStandardAppServicePermissions(appObj.services, app.id));
-                }
-                if (appObj.is_auto_approved_enabled) {
-                    allInserts.push(sql.insertAppAutoApproval(appObj));
-                }
-                if (appObj.categories.length > 0) {
-                    allInserts.push(sql.insertAppCategories(appObj.categories, app.id));
-                }
+    return await db.asyncTransaction(async client => {
+        //stage 1: insert app info
+        const storedApp = await client.getOne(sql.insertAppInfo(appObj));
+        //stage 2: insert countries, display names, permissions, app auto approvals, and certificates if enabled
+        log.info("New/updated app " + storedApp.app_uuid + " added to the database");
 
-                //generate app certificate if cert generation is enabled
-                if (certificates.openSSLEnabled) {
-                    //perform a cert check
-                    client.getOne(sql.getApp.certificate(app.app_uuid), function (err, data) {
-                        if (err) { //db error
-                            log.error(err);
-                            return next(err);
-                        }
-                        if (!data) { //no cert exists. make one
-                            return finishCertCheck(true);
-                        }
-                        return finishCertCheck(false); //cert exists. let the cron update the cert if it's nearing expiration
-                    });
+        const allInserts = [];
+        if (appObj.countries.length > 0) {
+            allInserts.push(sql.insertAppCountries(appObj.countries, storedApp.id));
+        }
+        if (appObj.display_names.length > 0) {
+            allInserts.push(sql.insertAppDisplayNames(appObj.display_names, storedApp.id));
+        }
+        if (appObj.permissions.length > 0) {
+            allInserts.push(sql.insertAppPermissions(appObj.permissions, storedApp.id));
+        }
+        if (appObj.services.length > 0) {
+            allInserts.push(sql.insertAppServices(appObj.services, storedApp.id));
+            allInserts.push(sql.insertAppServiceNames(appObj.services, storedApp.id));
+            allInserts.push(sql.insertStandardAppServicePermissions(appObj.services, storedApp.id));
+        }
+        if (appObj.is_auto_approved_enabled) {
+            allInserts.push(sql.insertAppAutoApproval(appObj));
+        }
+        if (appObj.categories.length > 0) {
+            allInserts.push(sql.insertAppCategories(appObj.categories, storedApp.id));
+        }
 
-                    function finishCertCheck (shouldCreateCert) {
-                        if (!shouldCreateCert) {
-                            return runInserts();
-                        }
+        //generate app certificate if cert generation is enabled
+        if (certificates.openSSLEnabled) {
+            //perform a cert check
+            const data = await client.getOne(sql.getApp.certificate(storedApp.app_uuid));
+            const shouldCreateCert = !data;
 
-                        log.info("Updating certificate of " + app.app_uuid);
-
-                        certificates.createCertificateFlow({
-                            serialNumber: app.app_uuid
-                        }, function (crtErr, cert) {
-                            if (crtErr) {
-                                // issues arose in creating certificate
-                                return next(crtErr, null);
-                            }
-                            certUtil.createKeyCertBundle(cert.clientKey, cert.certificate)
-                                .then(keyCertBundle => {
-                                    //add the cert as part of the inserts
-                                    certUtil.extractExpirationDateBundle(keyCertBundle.pkcs12, function (err, expirationDate) {
-                                        if (err) {
-                                            return next(err);
-                                        }
-                                        const insertObj = {
-                                            app_uuid: app.app_uuid,
-                                            certificate: keyCertBundle.pkcs12.toString('base64'),
-                                            expirationDate: expirationDate
-                                        }
-                                        allInserts.push(sql.updateAppCertificate(insertObj));
-                                        runInserts();
-                                    });
-                                })
-                                .catch(err => {
-                                    next(err);
-                                });
-                        });
-                    }
-                }
-                else { //cert generation disabled. continue on
-                    runInserts();
-                }
-
-                function runInserts () {
-                    //execute all the sql statements. client.getOne needs client as context or the query will fail
-                    flame.async.series(flame.map(allInserts, client.getOne, client), next);
-                }
-            },
-            //stage 3: locales insert. this is a multi step process so it needs its own flow
-            function (res, next) {
-                if (!appObj.locales || appObj.locales.length === 0) {
-                    return next(null, res); // no locales. skip
-                }
-
-                // attempt locale and tts chunks insert
-                const insertLocaleInfo = function (localeInfo, done) {
-                    flame.async.waterfall([
-                        client.getOne.bind(client, sql.insertAppLocale(localeInfo, storedApp.id)),
-                        function (localeResult, next) {
-                            // continue with inserting ttschunks after retreiving the returned id
-                            // use the passed in locales 
-                            if (localeInfo.tts_chunks.length === 0) {
-                                // no tts chunks to process. stop early
-                                return next();
-                            }
-                            const query = sql.insertAppLocaleTtsChunks(localeInfo.tts_chunks, localeResult.id);
-                            client.getOne(query, next);
-                        }
-                    ], done);
-                }
-
-                flame.async.parallel(flame.map(appObj.locales, insertLocaleInfo), function (err) {
-                    next(err, res);
+            if (shouldCreateCert) {
+                //no cert exists. make one
+                log.info("Updating certificate of " + storedApp.app_uuid);
+                const cert = await certificates.asyncCreateCertificate({
+                    serialNumber: storedApp.app_uuid
                 });
-            },
-            //stage 4: call custom routine to get the byte size of the bundle at the package url if it exists
-            function (res, next) {
-                if (appObj.transport_type === 'webengine' && appObj.package_url) {
-                    webengineHandler.handleBundle(appObj.package_url, function (err, data) {
-                        if (err) {
-                            return next(err);
-                        }
-                        if (!data) {
-                            return next('No object returned for the webengine bundle for uuid ' + appObj.uuid);
-                        }
-                        if (!data.url) {
-                            return next('No url property for the webengine bundle for uuid ' + appObj.uuid);
-                        }
-                        if (!data.size_compressed_bytes) {
-                            return next('No size_compressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
-                        }
-                        if (!data.size_decompressed_bytes) {
-                            return next('No size_decompressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
-                        }
-                        // store the returned results of the custom webengine bundle handler function
-                        const query = sql.updateWebengineBundleInfo(storedApp.id, data);
-                        client.getOne(query, next);
-                    });
+                const keyCertBundle = await certUtil.createKeyCertBundle(cert.clientKey, cert.certificate);
+                //add the cert as part of the inserts
+                const expirationDate = await certUtil.extractExpirationDateBundle(keyCertBundle.pkcs12);
+                const insertObj = {
+                    app_uuid: storedApp.app_uuid,
+                    certificate: keyCertBundle.pkcs12.toString('base64'),
+                    expirationDate: expirationDate
                 }
-                else {
-                    next(null, res);
-                }
-            },
-            //stage 5: sync with shaid
-            function (res, next) {
-                if(!storedApp.version_id){
-                    // skip sync with SHAID if no app version ID is present
-                    next(null, res);
-                    return;
-                }
-                app.locals.shaid.setApplicationApprovalVendor([storedApp], function(err, result){
-                    next(err, res);
-                });
-            },
-            //stage 6: notify OEM of pending app?
-            function(res, next) {
-                if(!(
-                    notifyOEM
-                    && app.locals.emailer.isSmtpConfigured()
-                    && storedApp.approval_status == 'PENDING'
-                    && app.locals.config.notification.appsPendingReview.email.frequency == "REALTIME"
-                    && app.locals.config.notification.appsPendingReview.email.to
-                )){
-                    next(null, res);
-                    return;
-                }
+                allInserts.push(sql.updateAppCertificate(insertObj));
+            } //cert exists. let the cron update the cert if it's nearing expiration
+        }
 
-                // attempt to send email
-                app.locals.emailer.send({
-                    to: app.locals.config.notification.appsPendingReview.email.to,
-                    subject: "SDL App Pending Review",
-                    html: emails.populate(emails.template.appPendingReview, {
-                        action_url: app.locals.baseUrl + "/applications/" + storedApp.id,
-                        app_name: storedApp.name
-                    })
-                });
-                next(null, res);
+        //execute all the sql statements
+        for (const insert of allInserts) {
+            await client.getOne(insert);
+        }
+
+        //stage 3: locales insert. this is a multi step process so it needs its own flow
+        if (!appObj.locales || appObj.locales.length === 0) {
+            // no locales. skip
+        } else {
+            // attempt locale and tts chunks insert
+            await Promise.all(appObj.locales.map(insertLocaleInfo));
+            async function insertLocaleInfo (localeInfo) {
+                const localeResult = await client.getOne(sql.insertAppLocale(localeInfo, storedApp.id));
+                // continue with inserting ttschunks after retreiving the returned id
+                // use the passed in locales 
+                if (localeInfo.tts_chunks.length === 0) {
+                    // no tts chunks to process
+                } else {
+                    await client.getOne(sql.insertAppLocaleTtsChunks(localeInfo.tts_chunks, localeResult.id));
+                }
             }
-        ], function(err, res){
-            if(err){
-                callback(err, appObj.uuid);
+        }
+        //stage 4: call custom routine to get the byte size of the bundle at the package url if it exists
+        if (appObj.transport_type === 'webengine' && appObj.package_url) {
+            const data = await promisify(webengineHandler.handleBundle)(appObj.package_url);
+
+            if (!data) {
+                return new Error('No object returned for the webengine bundle for uuid ' + appObj.uuid);
             }
-            else {
-                callback(err, res);
+            if (!data.url) {
+                return new Error('No url property for the webengine bundle for uuid ' + appObj.uuid);
             }
-        });
-    }, next);
+            if (!data.size_compressed_bytes) {
+                return new Error('No size_compressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
+            }
+            if (!data.size_decompressed_bytes) {
+                return new Error('No size_decompressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
+            }
+            // store the returned results of the custom webengine bundle handler function
+            await client.getOne(sql.updateWebengineBundleInfo(storedApp.id, data));
+        }
+        //stage 5: sync with shaid
+        if(!storedApp.version_id){
+            // skip sync with SHAID if no app version ID is present
+        } else {
+            await app.locals.shaid.setApplicationApprovalVendor([storedApp]);
+        }
+        //stage 6: notify OEM of pending app?
+        if(!(
+            notifyOEM
+            && app.locals.emailer.isSmtpConfigured()
+            && storedApp.approval_status == 'PENDING'
+            && app.locals.config.notification.appsPendingReview.email.frequency == "REALTIME"
+            && app.locals.config.notification.appsPendingReview.email.to
+        )){
+            // don't send email
+        } else {
+            // attempt to send email
+            app.locals.emailer.send({
+                to: app.locals.config.notification.appsPendingReview.email.to,
+                subject: "SDL App Pending Review",
+                html: emails.populate(emails.template.appPendingReview, {
+                    action_url: app.locals.baseUrl + "/applications/" + storedApp.id,
+                    app_name: storedApp.name
+                })
+            });
+        }
+
+        return appObj.uuid;
+    });
 }
 
 //given an app uuid and pkcs12 bundle, stores their relation in the database
-function updateAppCertificate (uuid, keyCertBundle, callback) {
-    certUtil.extractExpirationDateBundle(keyCertBundle.pkcs12, function (err, expirationDate) {
-        if (err) {
-            return callback(err);
-        }
-        const insertObj = {
-            app_uuid: uuid,
-            certificate: keyCertBundle.pkcs12.toString('base64'),
-            expirationDate: expirationDate
-        }
-        db.sqlCommand(sql.updateAppCertificate(insertObj), callback);
-    });
+async function updateAppCertificate (uuid, keyCertBundle) {
+    const expirationDate = await certUtil.extractExpirationDateBundle(keyCertBundle.pkcs12);
+    
+    const insertObj = {
+        app_uuid: uuid,
+        certificate: keyCertBundle.pkcs12.toString('base64'),
+        expirationDate: expirationDate
+    }
 
+    await db.asyncSql(sql.updateAppCertificate(insertObj));
 }
 
-function getExpiredCerts (callback) {
-    db.sqlCommand(sql.getApp.allExpiredCertificates(), callback);
+async function getExpiredCerts () {
+    return await db.asyncSql(sql.getApp.allExpiredCertificates());
 }
 
 module.exports = {

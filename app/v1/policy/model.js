@@ -9,8 +9,7 @@ const certUtil = require('../helpers/certificates');
 
 //module config
 
-//keeping this synchronous due to how small the data is. pass this to the event loop
-function transformModuleConfig (isProduction, useLongUuids = false, info, next) {
+async function transformModuleConfig (isProduction, useLongUuids = false, info) {
     //expecting only one module config
     const base = info.base[0];
     const retrySeconds = info.retrySeconds.map(function (secondObj) {
@@ -30,150 +29,145 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
     }
 
     // asynchronous and synchronous if branches need to be controlled
-    let certificateResolution;
+    let certificateResult;
 
-    if(certController.openSSLEnabled && base.certificate && base.private_key){
-        if (settings.securityOptions.moduleConfigEncryptCertBundle) {
-            certificateResolution = certUtil.createKeyCertBundle(base.private_key, base.certificate);
-        } else {
-            certificateResolution = Promise.resolve(base.certificate + '\n' + base.private_key);
+    try {
+        if(certController.openSSLEnabled && base.certificate && base.private_key){
+            if (settings.securityOptions.moduleConfigEncryptCertBundle) {
+                certificateResult = await certUtil.createKeyCertBundle(base.private_key, base.certificate);
+            } else {
+                certificateResult = base.certificate + '\n' + base.private_key;
+            }
         }
-    }
-    else {
-        certificateResolution = Promise.resolve(undefined);
-    }
+        else {
+            certificateResult = undefined;
+        }
 
-    certificateResolution.then(result => {
         if (settings.securityOptions.moduleConfigEncryptCertBundle) {
-            base.certificate = result.pkcs12.toString('base64');
+            base.certificate = certificateResult.pkcs12.toString('base64');
         } else {
-            base.certificate = result;
+            base.certificate = certificateResult;
         }
-    }).catch(err => {
+    } catch (err) {
         // something went wrong with bundling the cert + key. fallback to default
-        console.error(err);
+        app.locals.log.error(err);
         base.certificate += '\n' + base.private_key;
-    }).finally(() => {
-        var moduleConfig = {
-            "full_app_id_supported": useLongUuids,
-            "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
-            "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
-            "exchange_after_x_days": base.exchange_after_x_days,
-            "timeout_after_x_seconds": base.timeout_after_x_seconds,
-            "seconds_between_retries": retrySeconds,
-            "lock_screen_dismissal_enabled": base.lock_screen_dismissal_enabled,
-            "endpoints": {
-                "0x07": {
-                    default: [ protocol + settings.policyServerHost + concatPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]
-                },
-                "0x04": {
-                    default: [base.endpoint_0x04]
-                },
-                "queryAppsUrl": {
-                    default: [base.query_apps_url]
-                },
-                "lock_screen_icon_url": {
-                    default: [base.lock_screen_default_url]
-                },
+    }
+
+    const moduleConfig = {
+        "full_app_id_supported": useLongUuids,
+        "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
+        "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
+        "exchange_after_x_days": base.exchange_after_x_days,
+        "timeout_after_x_seconds": base.timeout_after_x_seconds,
+        "seconds_between_retries": retrySeconds,
+        "lock_screen_dismissal_enabled": base.lock_screen_dismissal_enabled,
+        "endpoints": {
+            "0x07": {
+                default: [ protocol + settings.policyServerHost + concatPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]
             },
-            "endpoint_properties": {
-                // to be populated
+            "0x04": {
+                default: [base.endpoint_0x04]
             },
-            "notifications_per_minute_by_priority": {
-                "EMERGENCY": base.emergency_notifications,
-                "NAVIGATION": base.navigation_notifications,
-                "PROJECTION": base.projection_notifications,
-                "VOICECOM": base.voicecom_notifications,
-                "COMMUNICATION": base.communication_notifications,
-                "NORMAL": base.normal_notifications,
-                "NONE": base.none_notifications
+            "queryAppsUrl": {
+                default: [base.query_apps_url]
             },
-            "subtle_notifications_per_minute_by_priority": {
-                "EMERGENCY": base.subtle_emergency_notifications,
-                "NAVIGATION": base.subtle_navigation_notifications,
-                "PROJECTION": base.subtle_projection_notifications,
-                "VOICECOM": base.subtle_voicecom_notifications,
-                "COMMUNICATION": base.subtle_communication_notifications,
-                "NORMAL": base.subtle_normal_notifications,
-                "NONE": base.subtle_none_notifications
+            "lock_screen_icon_url": {
+                default: [base.lock_screen_default_url]
             },
-            "certificate": base.certificate,
+        },
+        "endpoint_properties": {
+            // to be populated
+        },
+        "notifications_per_minute_by_priority": {
+            "EMERGENCY": base.emergency_notifications,
+            "NAVIGATION": base.navigation_notifications,
+            "PROJECTION": base.projection_notifications,
+            "VOICECOM": base.voicecom_notifications,
+            "COMMUNICATION": base.communication_notifications,
+            "NORMAL": base.normal_notifications,
+            "NONE": base.none_notifications
+        },
+        "subtle_notifications_per_minute_by_priority": {
+            "EMERGENCY": base.subtle_emergency_notifications,
+            "NAVIGATION": base.subtle_navigation_notifications,
+            "PROJECTION": base.subtle_projection_notifications,
+            "VOICECOM": base.subtle_voicecom_notifications,
+            "COMMUNICATION": base.subtle_communication_notifications,
+            "NORMAL": base.subtle_normal_notifications,
+            "NONE": base.subtle_none_notifications
+        },
+        "certificate": base.certificate,
+    };
+
+    // only have custom_vehicle_data_mapping_url present if set by OEM,
+    // according to evolution proposal
+    if(base.custom_vehicle_data_mapping_url){
+        moduleConfig.endpoints.custom_vehicle_data_mapping_url = {
+            default: [base.custom_vehicle_data_mapping_url]
         };
+    }
 
-        // only have custom_vehicle_data_mapping_url present if set by OEM,
-        // according to evolution proposal
-        if(base.custom_vehicle_data_mapping_url){
-            moduleConfig.endpoints.custom_vehicle_data_mapping_url = {
-                default: [base.custom_vehicle_data_mapping_url]
-            };
+    // inject endpoint properties we have from the database
+    _.forEach(endpointProperties, function (endProp, index) {
+        if (!moduleConfig.endpoint_properties[endProp.endpoint_name] && moduleConfig.endpoints[endProp.endpoint_name]) {
+            moduleConfig.endpoint_properties[endProp.endpoint_name] = {};
         }
-
-        // inject endpoint properties we have from the database
-        _.forEach(endpointProperties, function (endProp, index) {
-            if (!moduleConfig.endpoint_properties[endProp.endpoint_name] && moduleConfig.endpoints[endProp.endpoint_name]) {
-                moduleConfig.endpoint_properties[endProp.endpoint_name] = {};
-            }
-            if (moduleConfig.endpoint_properties[endProp.endpoint_name] && endProp.property_value) {
-                moduleConfig.endpoint_properties[endProp.endpoint_name][endProp.property_name] = endProp.property_value;
-            }
-        });
-
-        next(null, moduleConfig);
+        if (moduleConfig.endpoint_properties[endProp.endpoint_name] && endProp.property_value) {
+            moduleConfig.endpoint_properties[endProp.endpoint_name][endProp.property_name] = endProp.property_value;
+        }
     });
+
+    return moduleConfig;
 }
 
 //consumer messages
 
-function transformMessages (info, cb) {
+async function transformMessages (info) {
     const allMessages = info.messageStatuses;
     const groups = info.messageGroups;
     const highestMessageGroupId = info.highestMessageGroupId[0] ? info.highestMessageGroupId[0].id : 0; // used to help generate a version number
     const versionString = Number(highestMessageGroupId).toLocaleString().replace(/,/g,'.').padStart(11, "000."); // ###.###.### format up to the id of 999,999,999 
 
-    const transformFlow = flame.flow([
-        //hash the message groups by message_category
-        flame.async.groupBy.bind(null, groups, function (group, callback) {
-            callback(null, group.message_category);
-        }),
-        //filter out messages that don't exist in the hashed message groups
-        function (hashedGroups, next) {
-            flame.async.filter(allMessages, function (message, callback) {
-                callback(null, hashedGroups[message.message_category]);
-            }, next);
-        },
-        //finish constructing the consumer messages object
-        function (finalMessages, next) {
-            let messageObj = {};
-            flame.async.map(finalMessages, function (msg, next) {
-                if (!messageObj[msg.message_category]) {
-                    messageObj[msg.message_category] = {};
-                    messageObj[msg.message_category].languages = {};
-                }
-                if (!messageObj[msg.message_category].languages[msg.language_id]) {
-                    messageObj[msg.message_category].languages[msg.language_id] = {};
-                }
-                const langObj = messageObj[msg.message_category].languages[msg.language_id];
-                langObj.tts = msg.tts ? msg.tts : undefined;
-                langObj.line1 = msg.line1 ? msg.line1 : undefined;
-                langObj.line2 = msg.line2 ? msg.line2 : undefined;
-                langObj.textBody = msg.text_body ? msg.text_body : undefined;
-                langObj.label = msg.label ? msg.label : undefined;
-                next();
-            }, function () {
-                next(null, {
-                    "version": versionString,
-                    "messages": messageObj
-                });
-            });
-        }
-    ], {method: 'waterfall'});
+    const hashedGroups = {};
 
-    transformFlow(cb);
+    //hash the message groups by message_category
+    groups.forEach(group => {
+        if (!Array.isArray(hashedGroups[group.message_category])) {
+            hashedGroups[group.message_category] = [];
+        }
+        hashedGroups[group.message_category].push(group);
+    }); 
+
+    let messageObj = {};
+    //filter out messages that don't exist in the hashed message groups
+    const finalMessages = allMessages
+        .filter(message => hashedGroups[message.message_category])
+        .forEach(msg => {
+            if (!messageObj[msg.message_category]) {
+                messageObj[msg.message_category] = {};
+                messageObj[msg.message_category].languages = {};
+            }
+            if (!messageObj[msg.message_category].languages[msg.language_id]) {
+                messageObj[msg.message_category].languages[msg.language_id] = {};
+            }
+            const langObj = messageObj[msg.message_category].languages[msg.language_id];
+            langObj.tts = msg.tts ? msg.tts : undefined;
+            langObj.line1 = msg.line1 ? msg.line1 : undefined;
+            langObj.line2 = msg.line2 ? msg.line2 : undefined;
+            langObj.textBody = msg.text_body ? msg.text_body : undefined;
+            langObj.label = msg.label ? msg.label : undefined;
+        });
+    //finish constructing the consumer messages object
+    return {
+        "version": versionString,
+        "messages": messageObj
+    }; 
 }
 
 //functional groups
 
-function transformFunctionalGroups (isProduction, info, next) {
+async function transformFunctionalGroups (isProduction, info) {
     const baseInfo = info.base;
     const hmiLevels = info.hmiLevels;
     const parameters = info.parameters;
@@ -206,91 +200,74 @@ function transformFunctionalGroups (isProduction, info, next) {
 
     //populate the hash above, using the functional group id as a key
     //include the hmi levels and parameter data
-    const groupUpData = flame.flow([
-        flame.async.map.bind(null, hmiLevels, function (hmiLevel, next) {
-            const funcId = hmiLevel.function_group_id;
-            if (!groupedData[funcId].rpcs) {
-                groupedData[funcId].rpcs = {};
-            }
-            if (!groupedData[funcId].rpcs[hmiLevel.permission_name]) {
-                groupedData[funcId].rpcs[hmiLevel.permission_name] = {};
-                groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels = {};
-                groupedData[funcId].rpcs[hmiLevel.permission_name].parameters = {};
-                groupedData[funcId].rpcs[hmiLevel.permission_name].possible_parameter_count = parseInt(hmiLevel.possible_parameter_count) || 0;
-            }
-            groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels[hmiLevel.hmi_level] = true;
-            next();
-        }),
-        flame.async.map.bind(null, parameters, function (parameter, next) {
-            const funcId = parameter.function_group_id;
-            groupedData[funcId].rpcs[parameter.rpc_name].parameters[parameter.parameter] = true;
-            next();
-        }),
-    ], {method: 'series', eventLoop: true});
+    hmiLevels.map(hmiLevel => {
+        const funcId = hmiLevel.function_group_id;
+        if (!groupedData[funcId].rpcs) {
+            groupedData[funcId].rpcs = {};
+        }
+        if (!groupedData[funcId].rpcs[hmiLevel.permission_name]) {
+            groupedData[funcId].rpcs[hmiLevel.permission_name] = {};
+            groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels = {};
+            groupedData[funcId].rpcs[hmiLevel.permission_name].parameters = {};
+            groupedData[funcId].rpcs[hmiLevel.permission_name].possible_parameter_count = parseInt(hmiLevel.possible_parameter_count) || 0;
+        }
+        groupedData[funcId].rpcs[hmiLevel.permission_name].hmi_levels[hmiLevel.hmi_level] = true;
+    });
+
+    parameters.map(parameter => {
+        const funcId = parameter.function_group_id;
+        groupedData[funcId].rpcs[parameter.rpc_name].parameters[parameter.parameter] = true;
+    });
 
     //transform groupedData into valid functional group rpc objects under the keys
     //modifies the original object
-    function hashToRpcObject (_, next) {
-        //asynchronously iterate over groupedData
-        flame.async.map(groupedData, function (group, callback) {
-            for (let rpc in group.rpcs) {
-                //hmi_levels and parameters property needs to be an array
-                const data = group.rpcs[rpc];
-                let hmiLevels = [];
-                let parameters = [];
-                //manually insert hmi levels. preserve order of BACKGROUND, FULL, LIMITED, NONE
-                if (data.hmi_levels.BACKGROUND) {
-                    hmiLevels.push("BACKGROUND");
-                }
-                if (data.hmi_levels.FULL) {
-                    hmiLevels.push("FULL");
-                }
-                if (data.hmi_levels.LIMITED) {
-                    hmiLevels.push("LIMITED");
-                }
-                if (data.hmi_levels.NONE) {
-                    hmiLevels.push("NONE");
-                }
-                for (let parameter in data.parameters) {
-                    parameters.push(parameter);
-                }
-                //erase and replace
-                delete data.hmi_levels;
-                delete data.parameters;
-                if (hmiLevels.length > 0) {
-                    data.hmi_levels = hmiLevels;
-                }
-
-                if (data.possible_parameter_count > 0) {
-                    //sort the parameters array
-                    data.parameters = parameters.sort();
-                }
-                delete data.possible_parameter_count;
+    for (let prop in groupedData) {
+        const group = groupedData[prop];
+        for (let rpc in group.rpcs) {
+            //hmi_levels and parameters property needs to be an array
+            const data = group.rpcs[rpc];
+            let hmiLevels = [];
+            let parameters = [];
+            //manually insert hmi levels. preserve order of BACKGROUND, FULL, LIMITED, NONE
+            if (data.hmi_levels.BACKGROUND) {
+                hmiLevels.push("BACKGROUND");
             }
-            callback();
-        }, next);
-    }
+            if (data.hmi_levels.FULL) {
+                hmiLevels.push("FULL");
+            }
+            if (data.hmi_levels.LIMITED) {
+                hmiLevels.push("LIMITED");
+            }
+            if (data.hmi_levels.NONE) {
+                hmiLevels.push("NONE");
+            }
+            for (let parameter in data.parameters) {
+                parameters.push(parameter);
+            }
+            //erase and replace
+            delete data.hmi_levels;
+            delete data.parameters;
+            if (hmiLevels.length > 0) {
+                data.hmi_levels = hmiLevels;
+            }
 
-    function constructFullObject (_, next) {
-        let functionalGroupings = {};
-        for (let id in groupedData) {
-            const propertyName = hashIdToPropertyName[id];
-            functionalGroupings[propertyName] = groupedData[id];
+            if (data.possible_parameter_count > 0) {
+                //sort the parameters array
+                data.parameters = parameters.sort();
+            }
+            delete data.possible_parameter_count;
         }
-        next(null, functionalGroupings);
     }
 
-    //combine all the steps above
-    const constructFunctionalGroupFlow = flame.flow([
-        groupUpData,
-        hashToRpcObject,
-        constructFullObject
-    ], {method: 'waterfall', eventLoop: true});
-
-    constructFunctionalGroupFlow(next); //run it
+    let functionalGroupings = {};
+    for (let id in groupedData) {
+        const propertyName = hashIdToPropertyName[id];
+        functionalGroupings[propertyName] = groupedData[id];
+    }
+    return functionalGroupings;
 }
 
-function transformRpcVehicleData (rpcTypes = [], rpcParams = [], isForPolicyTable = false, cb) {
+function transformRpcVehicleData (rpcTypes = [], rpcParams = [], isForPolicyTable = false) {
     let result = [];
     let typeByName = {};
     let typeById = {};
@@ -345,39 +322,30 @@ function transformRpcVehicleData (rpcTypes = [], rpcParams = [], isForPolicyTabl
 
     result = paramBuilder(vehicleDataParams);
 
-    cb(null, result);
+    return result;
 }
 
-function transformVehicleData (isProduction, info, next) {
+async function transformVehicleData (isProduction, info) {
     let vehicleData = {
         "schema_version": info.schemaVersion[0].version,
         "schema_items": [] // to be populated
     };
 
-    flame.async.parallel({
-        "customVehicleData": function(callback){
-            vehicleDataHelper.getNestedCustomVehicleData(info.rawCustomVehicleData, true, callback);
-        },
-        "rpcVehicleData": function(callback){
-            // recursively loop through the RPC Spec data to build the nested objects
-            transformRpcVehicleData(info.rawRpcSpecTypes, info.rawRpcSpecParams, true, callback);
+    const customVehicleData = vehicleDataHelper.getNestedCustomVehicleData(info.rawCustomVehicleData, true);
+    const rpcVehicleData = transformRpcVehicleData(info.rawRpcSpecTypes, info.rawRpcSpecParams, true);
+
+    vehicleData.schema_items = _.uniqBy(
+        _.concat(rpcVehicleData, customVehicleData),
+        function (item) {
+            return item.name;
         }
-    }, function(err, transformations){
-        if(!err){
-            vehicleData.schema_items = _.uniqBy(
-                _.concat(transformations.rpcVehicleData, transformations.customVehicleData),
-                function(item){
-                    return item.name;
-                }
-            );
-        }
-        next(err, vehicleData);
-    });
+    );
+    return vehicleData;
 }
 
 //application policies
 
-function constructAppPolicy (appObj, useLongUuids = false, res, next) {
+async function constructAppPolicy (appObj, useLongUuids = false, res) {
     const displayNames = res.displayNames.map(function (elem) {
         return elem.display_text;
     });
@@ -439,10 +407,10 @@ function constructAppPolicy (appObj, useLongUuids = false, res, next) {
         if (res.incomingAppPolicy.auth_token !== undefined) appPolicyObj[uuidProp].auth_token = res.incomingAppPolicy.auth_token;
     }
 
-    next(null, appPolicyObj);
+    return appPolicyObj;
 }
 
-function aggregateResults (res, next) {
+async function aggregateResults (res) {
     const policyObjs = res.policyObjs;
     const defaultFuncGroups = res.defaultFuncGroups.map(function (obj) {
         return obj.property_name;
@@ -503,7 +471,8 @@ function aggregateResults (res, next) {
         "RequestType": [],
         "RequestSubType": []
     };
-    next(null, appPolicy);
+
+    return appPolicy;
 }
 
 module.exports = {

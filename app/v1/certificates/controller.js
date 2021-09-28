@@ -3,6 +3,7 @@ const pem = require('pem');
 const fs = require('fs');
 const tmp = require('tmp');
 const logger = require('../../../custom/loggers/winston/index');
+const promisify = require('util').promisify;
 const settings = require('../../../settings.js');
 const CA_DIR_PREFIX = __dirname + '/../../../customizable/ca/';
 
@@ -20,41 +21,40 @@ const authorityCertificate = (fs.existsSync(CA_DIR_PREFIX + settings.certificate
 const openSSLEnabled = authorityKey && authorityCertificate
     && settings.securityOptions.passphrase && settings.securityOptions.certificate.commonName;
 
-function checkAuthorityValidity (cb){
+async function checkAuthorityValidity () {
     if (!openSSLEnabled) {
-        return cb(false);
+        return false;
     }
-    pem.createPkcs12(
-        authorityKey,
-        authorityCertificate,
-        settings.securityOptions.passphrase,
-        {
-            cipher: 'aes128',
-            clientKeyPassword: settings.securityOptions.passphrase
-        },
-        function(err, pkcs12){
-            cb((err) ? false : true);
-        }
-    );
-}
-
-function createPrivateKey(req, res, next){
-    if (openSSLEnabled) {
-        let options = getKeyOptions(req.body.options);
-        pem.createPrivateKey(
-            options.keyBitsize,
-            options,
-            function(err, privateKey){
-                if(err){
-                    return res.parcel.setStatus(400)
-                        .setData(err)
-                        .deliver();
-                }
-                return res.parcel.setStatus(200)
-                    .setData(privateKey.key)
-                    .deliver();
+    return new Promise((resolve) => {
+        pem.createPkcs12(
+            authorityKey,
+            authorityCertificate,
+            settings.securityOptions.passphrase,
+            {
+                cipher: 'aes128',
+                clientKeyPassword: settings.securityOptions.passphrase
+            },
+            function (err, pkcs12) {
+                resolve((err) ? false : true);
             }
         );
+    });
+}
+
+async function createPrivateKey (req, res, next) {
+    if (openSSLEnabled) {
+        let options = getKeyOptions(req.body.options);
+
+        try {
+            const privateKey = await promisify(pem.createPrivateKey)(options.keyBitsize, options);
+            return res.parcel.setStatus(200)
+                .setData(privateKey.key)
+                .deliver();
+        } catch (err) {
+            return res.parcel.setStatus(400)
+                .setData(err)
+                .deliver();
+        }
     } else {
         res.parcel.setStatus(400)
             .setMessage('Security options have not been properly configured')
@@ -90,20 +90,20 @@ function getCertificateOptions(options = {}){
     };
 }
 
-function createCertificate(req, res, next){
+async function createCertificate (req, res, next) {
     if (openSSLEnabled) {
         let options = req.body.options || {};
-        createCertificateFlow(options, function(err, certificate){
-            if(err){
-                logger.error(err);
-                return res.parcel.setStatus(400)
-                    .setData(err)
-                    .deliver();
-            }
+        try {
+            const certificate = await asyncCreateCertificate(options)
             return res.parcel.setStatus(200)
                 .setData(certificate)
                 .deliver();
-        });
+        } catch (err) {
+            logger.error(err);
+            return res.parcel.setStatus(400)
+                .setData(err)
+                .deliver();
+        }
     } else {
         res.parcel.setStatus(400)
             .setMessage('Security options have not been properly configured')
@@ -111,7 +111,7 @@ function createCertificate(req, res, next){
     }
 }
 
-function createCertificateFlow(options, next){
+async function asyncCreateCertificate (options) {
     if (openSSLEnabled) {
         options.serviceKey = authorityKey;
         options.serviceCertificate = authorityCertificate;
@@ -122,46 +122,57 @@ function createCertificateFlow(options, next){
         let keyOptions = getKeyOptions(options);
 
         //no client key so create one first
-        if (!csrOptions.clientKey)
-        {
-            tasks.push(function(cb){
-                pem.createPrivateKey(keyOptions.keyBitsize, keyOptions, function(err, key){
-                    csrOptions.clientKey = key.key;
-                    cb(err);
-                });
-            });
+        if (!csrOptions.clientKey) {
+            const key = await promisify(pem.createPrivateKey)(keyOptions.keyBitsize, keyOptions);
+            csrOptions.clientKey = key.key;
         }
 
         //write the CSR file for the pem module to use when generating the certificate
-        tasks.push(function(cb){
-            writeCSRConfigFile(csrOptions, cb);
-        });
+        const csrConfig = makeCSRConfigFile(csrOptions);
+
+        //store the contents in a file for a moment for the pem module to read from
+        const tmpObj = await makeTmpFile(csrConfig);
 
         //create new csr using passed in key or newly generated one.
-        tasks.push(function(csrFilePath, doneReadingFile, cb){
-            csrOptions.csrConfigFile = csrFilePath;
-            pem.createCSR(csrOptions, function(err, csr){
-                doneReadingFile();
-                cb(err, csr);
-            });
-        });
+        csrOptions.csrConfigFile = tmpObj.path;
+        const csr = await promisify(pem.createCSR)(csrOptions);
+        tmpObj.close(); // close the temp file
 
         //finally add the csr and create the certificate.
-        tasks.push(function(csr, cb){
-            csrOptions.csr = csr.csr;
-            pem.createCertificate(csrOptions, function(err, certificate){
-                cb(err, certificate);
-            });
-        });
+        csrOptions.csr = csr.csr;
 
-        //returns err,certificate
-        async.waterfall(tasks, next);
+        //returns certificate
+        return promisify(pem.createCertificate)(csrOptions);
     } else {
-        next('Security options have not been properly configured');
+        throw new Error('Security options have not been properly configured');
     }
 }
 
-function writeCSRConfigFile (options, cb){
+async function makeTmpFile (contents) {
+    return new Promise((resolve, reject) => {
+        tmp.file(function (err, path, fd, done) {
+            if (err) {
+                return reject(err);
+            }
+
+            fs.writeFile(
+                path,
+                contents, 
+                function (err) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve({
+                        path: path,
+                        close: done,
+                    });
+                }
+            );
+        });
+    });
+}
+
+function makeCSRConfigFile (options) {
     let csrConfig = '# OpenSSL configuration file for creating a CSR for an app certificate\n' +
         '[req]\n' +
         'distinguished_name = req_distinguished_name\n' +
@@ -195,20 +206,7 @@ function writeCSRConfigFile (options, cb){
         csrConfig += 'serialNumber = ' + options.serialNumber;
     }
 
-    //store the contents in a file for a moment for the pem module to read from
-    tmp.file(function (err, path, fd, done) {
-        if (err) {
-            return cb(err);
-        }
-
-        fs.writeFile(
-            path,
-            csrConfig, 
-            function (err) {
-                cb(err, path, done);
-            }
-        );
-    });
+    return csrConfig;
 }
 
 module.exports = {
@@ -216,7 +214,7 @@ module.exports = {
     authorityCertificate: authorityCertificate,
     createPrivateKey: createPrivateKey,
     createCertificate: createCertificate,
-    createCertificateFlow: createCertificateFlow,
+    asyncCreateCertificate: asyncCreateCertificate,
     checkAuthorityValidity: checkAuthorityValidity,
     getKeyOptions: getKeyOptions,
     getCertificateOptions: getCertificateOptions,

@@ -2,26 +2,37 @@
 const pg = require('pg'); //handles connections to the postgres database
 const async = require('async');
 const sqlBrick = require('sql-bricks-postgres');
+const promisify = require('util').promisify;
 const config = require('../../../settings.js');
 //get configurations from environment variables
 
 // extend the Postgres client to easily fetch a single expected result as an object
-pg.Client.prototype.getOne = pg.Pool.prototype.getOne = function(query, callback){
+pg.Client.prototype.getOne = pg.Pool.prototype.getOne = async function (query) {
     if (typeof query !== "string") {
         query = query.toString();
     }
-    this.query(query, function(err, result) {
-        callback(err, result && Array.isArray(result.rows) && result.rows.length ? result.rows[0] : null);
+    return new Promise((resolve, reject) => {
+        this.query(query, function (err, result) {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result && Array.isArray(result.rows) && result.rows.length ? result.rows[0] : null);
+        });
     });
 };
 
 // extend the Postgres client to easily fetch multiple expected results as an array
-pg.Client.prototype.getMany = pg.Pool.prototype.getMany = function(query, callback){
+pg.Client.prototype.getMany = pg.Pool.prototype.getMany = async function (query) {
     if (typeof query !== "string") {
         query = query.toString();
     }
-    this.query(query, function(err, result) {
-        callback(err, (result && result.rows) ? result.rows : []);
+    return new Promise((resolve, reject) => {
+        this.query(query, function (err, result) {
+            if (err) {
+                return reject(err);
+            }
+            resolve((result && result.rows) ? result.rows : []);
+        });
     });
 };
 
@@ -70,15 +81,40 @@ module.exports = function (log) {
     });
 
     const self = {
+        /*
         getOne(query, params, callback){
             pool.getOne(query, params, callback);
         },
         getMany(query, params, callback){
             pool.getMany(query, params, callback);
         },
+        */
         //exported functions. these are required to implement
         //this function executes the SQL command in <query> and returns a response using the callback function
         //the callback requires an error parameter and a response from the SQL query
+        asyncSql: async function (query) {
+            if (typeof query !== "string") {
+                query = query.toString();
+            }
+            return new Promise((resolve, reject) => {
+                pool.query(query, function (err, res) {
+                    if (err) {
+                        log.error(err);
+                        log.error(query);
+                        return reject(err);
+                    }
+                    //always return an array
+                    resolve((res && res.rows) ? res.rows : []);
+                });
+            });
+        },
+        asyncSqls: async function (sqlStringArray, propagateErrors) {
+            if (!Array.isArray(sqlStringArray)) { //if its just a single sql statement, make it into an array
+                sqlStringArray = [sqlStringArray];
+            }
+            const promiseMethod = propagateErrors ? 'all' : 'allSettled';
+            return Promise[promiseMethod](sqlStringArray.map(sql => self.asyncSql(sql)));
+        },
         sqlCommand: function (query, callback) {
             if (typeof query !== "string") {
                 query = query.toString();
@@ -92,6 +128,7 @@ module.exports = function (log) {
                 callback(err, (res && res.rows) ? res.rows : []);
             });
         },
+        /*
         //TODO: remove these two functions
         //given a SQL command, sets up a function to execute the query and pass back the results
         setupSqlCommand: function (sqlString, next) {
@@ -125,6 +162,7 @@ module.exports = function (log) {
                 }
             });
         },
+        */
         getClient: function (callback){
             // reserve a client connection ("client") and its associated release callback ("done")
             // callback(err, client, done)
@@ -181,6 +219,33 @@ module.exports = function (log) {
                 }
                 callback(err, result);
             });
+        },
+        asyncTransaction: async function (logic) {
+            let client;
+            let done;
+            return new Promise(resolve => {
+                self.getClient((err, thisClient, thisDone) => {
+                    client = thisClient;
+                    done = thisDone;
+                    self.begin(client, resolve); // start transaction
+                });
+            }).then(() => {
+                // pass the client back to the requester logic (Promise)
+                return logic(client);
+            }).then(result => {
+                // requester has finished their logic. commit the db changes
+                return new Promise(resolve => {
+                    self.commit(client, done, err => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        return resolve(result);
+                    });
+                });
+            }).catch(err => {
+                // error
+                self.rollback(client, done);
+            });   
         }
     }
     return self;

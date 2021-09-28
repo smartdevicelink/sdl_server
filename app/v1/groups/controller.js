@@ -1,42 +1,28 @@
 const app = require('../app');
-const flow = app.locals.flow;
 const helper = require('./helper.js');
 const model = require('./model.js');
 const check = require('check-types');
 const cache = require('../../../custom/cache');
 
-function get (req, res, next) {
+async function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
     const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
     const returnTemplate = !!req.query.template; //coerce to boolean
 
-    let chosenFlow; //to be determined
+    let groups; //to be determined
 
-    if (returnTemplate) { //template mode. return just the shell of a functional group, rpcs included
-        chosenFlow = flow([
-            helper.generateFunctionGroupTemplates.bind(null, isProduction),
-            function (template, next) {
-                next(null, [template]); //must be in an array
-            }
-        ], {method: 'waterfall'});
-    }
-    else if (req.query.id) { //filter by id
-        if (Number.isNaN(Number(req.query.id))) {
-            return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
+    try {
+        if (returnTemplate) { //template mode. return just the shell of a functional group, rpcs included
+            groups = [await helper.generateFunctionGroupTemplates(isProduction)];
         }
-        chosenFlow = helper.createFuncGroupFlow('idFilter', req.query.id, true, isProduction);
-    }
-    else { //get all apps at the high level, filtering in PRODUCTION or STAGING mode
-        chosenFlow = helper.createFuncGroupFlow('statusFilter', isProduction, false, isProduction);
-    }
-
-    chosenFlow(function (err, groups) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.parcel
-                .setStatus(500)
-                .setMessage("Internal server error")
-                .deliver();
+        else if (req.query.id) { //filter by id
+            if (Number.isNaN(Number(req.query.id))) {
+                return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
+            }
+            groups = await helper.createFuncGroupFlow('idFilter', req.query.id, true, isProduction);
+        }
+        else { //get all apps at the high level, filtering in PRODUCTION or STAGING mode
+            groups = await helper.createFuncGroupFlow('statusFilter', isProduction, false, isProduction);
         }
         return res.parcel
             .setStatus(200)
@@ -44,58 +30,61 @@ function get (req, res, next) {
                 "groups": groups
             })
             .deliver();
-    });
+    } catch (err) {
+        app.locals.log.error(err);
+        return res.parcel
+            .setStatus(500)
+            .setMessage("Internal server error")
+            .deliver();
+    }
 }
 
-function getGroupNamesStaging (req, res, next) {
-    helper.getGroupNamesStaging(function (err, groupNames) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.parcel
-                .setStatus(500)
-                .setMessage("Internal server error")
-                .deliver();
-        }
+async function getGroupNamesStaging (req, res, next) {
+    try {
+        const groupNames = await helper.getGroupNamesStaging();
         return res.parcel
             .setStatus(200)
             .setData({
                 "names": groupNames
             })
             .deliver();
-    });
+    } catch (err) {
+        app.locals.log.error(err);
+        return res.parcel
+            .setStatus(500)
+            .setMessage("Internal server error")
+            .deliver();
+    }
 }
 
-function postStaging (req, res, next) {
-    helper.validateFuncGroup(req, res, function () {
-        if (res.parcel.message) {
-            res.parcel.deliver();
-            return;
-        }
-        //check in staging mode
-        helper.validatePromptExistence(false, req, res, function () {
-            if (res.parcel.message) {
-                res.parcel.deliver();
-                return;
-            }
-            //force function group status to STAGING
-            model.insertFunctionalGroupsWithTransaction(false, [req.body], function (err) {
-                if (err) {
-                    app.locals.log.error(err);
-                    res.parcel
-                        .setMessage("Interal server error")
-                        .setStatus(500);
-                }
-                else {
-                    cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
-                    res.parcel.setStatus(200);
-                }
-                res.parcel.deliver();
-            });
-        });
-    });
+async function postStaging (req, res, next) {
+    helper.validateFuncGroup(req, res);
+    if (res.parcel.message) {
+        res.parcel.deliver();
+        return;
+    }
+    //check in staging mode
+    await helper.validatePromptExistence(false, req, res);
+    if (res.parcel.message) {
+        res.parcel.deliver();
+        return;
+    }
+    //force function group status to STAGING
+    try {
+        await model.insertFunctionalGroupsWithTransaction(false, [req.body]);
+        cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
+        res.parcel.setStatus(200);
+        res.parcel.deliver();
+    } catch (err) {
+        app.locals.log.error(err);
+        res.parcel
+            .setMessage("Interal server error")
+            .setStatus(500);
+        res.parcel.deliver();
+    }
 }
 
-function promoteIds (req, res, next) {
+async function promoteIds (req, res, next) {
     helper.validatePromote(req, res);
     if (res.parcel.message) {
         return res.parcel.deliver();
@@ -105,31 +94,17 @@ function promoteIds (req, res, next) {
         req.body.id = [req.body.id];
     }
 
-    const getFuncGroupsFlow = flow(req.body.id.map(function (id) {
-        return helper.createFuncGroupFlow('idFilter', id, true);
-    }), {method: 'parallel', eventLoop: true});
+    const funcGroups = await Promise.all(req.body.id.map(id => helper.createFuncGroupFlow('idFilter', id, true)));
 
-    const getAndInsertFlow = app.locals.flow([
-        getFuncGroupsFlow,
-        function (funcGroups, next) {
-            const notNullGroups = funcGroups.map(function (funcGroup) {
-                return funcGroup[0];
-            }).filter(function (elem) {
-                return elem;
-            });
-            //format the functional groups so it's a single array
-            next(null, notNullGroups);
-        },
-        model.insertFunctionalGroupsWithTransaction.bind(null, true)
-    ], {method: 'waterfall'});
+    const notNullGroups = funcGroups.map(funcGroup => funcGroup[0])
+        .filter(elem => elem);
 
-    getAndInsertFlow(function () {
-        cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
-        res.parcel
-            .setStatus(200)
-            .deliver(); //done
-    });
+    await model.insertFunctionalGroupsWithTransaction(true, notNullGroups);
 
+    cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
+    res.parcel
+        .setStatus(200)
+        .deliver(); //done
 }
 
 module.exports = {

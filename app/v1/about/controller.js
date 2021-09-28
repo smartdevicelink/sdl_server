@@ -33,25 +33,22 @@ exports.getInfo = function (req, res, next) {
 		"certificate_authority": certificateController.openSSLEnabled
 	};
 
+	// cannot use promisify: there are two returns we need
 	requestjs({
 		"method": "GET",
 		"uri": "https://raw.githubusercontent.com/smartdevicelink/sdl_server/master/package.json",
 		"timeout": 5000,
 		"json": true
-	}, function(err, response, body){
-		if(!err && response.statusCode >= 200 && response.statusCode < 300){
+	}, async function (err, response, body) {
+		if (!err && response.statusCode >= 200 && response.statusCode < 300) {
 			// success!
 			data.latest_version = body.version;
 			data.is_update_available = semver.lt(data.current_version, data.latest_version);
 			data.update_type = semver.diff(data.current_version, data.latest_version);
 		}
-		if(data.certificate_authority){
-			return certificateController.checkAuthorityValidity(function(isAuthorityValid){
-				data.is_authority_valid = isAuthorityValid && data.certificate_authority;
-				res.parcel.setStatus(200)
-					.setData(data)
-					.deliver();
-			})
+		if (data.certificate_authority) {
+			const isAuthorityValid = await certificateController.checkAuthorityValidity();
+			data.is_authority_valid = isAuthorityValid && data.certificate_authority;
 		}
 
 		res.parcel.setStatus(200)

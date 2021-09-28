@@ -5,45 +5,59 @@ const encryption = require('../../../customizable/encryption');
 const GET = require('lodash').get;
 
 function postFromCore (isProduction) {
-	return function (req, res, next) {
+	return async function (req, res, next) {
         // attempt decryption of the policy table if it's defined
-        function processPolicies(policy_table){
+        try {
+            const policy_table = await new Promise(resolve => {
+                encryption.decryptPolicyTable(req.body.policy_table, isProduction, function (policy_table) {
+                    resolve(policy_table);
+                });
+            });
+
             helper.validateCorePost(req, res);
             if (res.errorMsg) {
                 return res.status(400).send({ error: res.errorMsg });
             }
             const useLongUuids = GET(policy_table, "module_config.full_app_id_supported", false) ? true : false;
-            helper.generatePolicyTable(isProduction, useLongUuids, policy_table.app_policies, true, handlePolicyTableFlow.bind(null, res, isProduction));
+            const returnPreview = true;
+            const pieces = await helper.generatePolicyTable(isProduction, useLongUuids, policy_table.app_policies, returnPreview);
+            createPolicyTableResponse(res, isProduction, pieces, returnPreview);
+        } catch (err) {
+            app.locals.log.error(err);
+            return res.parcel.setStatus(500).deliver();
         }
-
-        encryption.decryptPolicyTable(req.body.policy_table, isProduction, function(policy_table){
-            processPolicies(policy_table);
-        });
 	}
 }
 
-function getPreview (req, res, next) {
+async function getPreview (req, res, next) {
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
-    helper.generatePolicyTable(isProduction, false, {}, true, handlePolicyTableFlow.bind(null, res, isProduction));
+    
+    try {
+        const returnPreview = true;
+        const pieces = await helper.generatePolicyTable(isProduction, false, {}, returnPreview);
+        createPolicyTableResponse(res, isProduction, pieces, returnPreview);
+    } catch (err) {
+        app.locals.log.error(err);
+        return res.parcel.setStatus(500).deliver();
+    }
 }
 
-function postAppPolicy (req, res, next) {
+async function postAppPolicy (req, res, next) {
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
 	const useLongUuids = GET(req, "body.policy_table.module_config.full_app_id_supported", false) ? true : false;
     helper.validateAppPolicyOnlyPost(req, res);
     if (res.errorMsg) {
         return res.status(400).send({ error: res.errorMsg });
     }
-    helper.generatePolicyTable(isProduction, useLongUuids, req.body.policy_table.app_policies, false, handlePolicyTableFlow.bind(null, res, isProduction));
-}
 
-function handlePolicyTableFlow (res, isProduction, err, returnPreview = false, pieces) {
-    if (err) {
+    try {
+        const returnPreview = false;
+        const pieces = await helper.generatePolicyTable(isProduction, useLongUuids, req.body.policy_table.app_policies, returnPreview);
+        createPolicyTableResponse(res, isProduction, pieces, returnPreview);
+    } catch (err) {
         app.locals.log.error(err);
         return res.parcel.setStatus(500).deliver();
     }
-    //convert from this point down to asynchronous to make use of certificate library
-    createPolicyTableResponse(res, isProduction, pieces, returnPreview);
 }
 
 function createPolicyTableResponse (res, isProduction, pieces, returnPreview = false) {

@@ -11,34 +11,26 @@ const flow = app.locals.flow;
 const async = require('async');
 const sqlBricks = require('sql-bricks-postgres');
 
-function get(req, res, next) {
+async function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
 
-    let chosenFlow;
+    try {
+        let data;
 
-    if (req.query.id) { //get module config of a specific id
-        if (Number.isNaN(Number(req.query.id))) {
-            return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
-        }
-        chosenFlow = helper.getModuleConfigFlow('id', req.query.id);
-    } else { //get the most recent module config object
-        chosenFlow = helper.getModuleConfigFlow('status', isProduction);
-    }
-
-    chosenFlow(function(err, data) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.parcel
-                .setStatus(500)
-                .setMessage('Internal server error')
-                .deliver();
+        if (req.query.id) { //get module config of a specific id
+            if (Number.isNaN(Number(req.query.id))) {
+                return res.parcel.setStatus(400).setMessage("id must be an integer").deliver();
+            }
+            data = await helper.getModuleConfig('id', req.query.id);
+        } else { //get the most recent module config object
+            data = await helper.getModuleConfig('status', isProduction);
         }
         if (!certController.openSSLEnabled) { // cert gen not enabled
             data.forEach(obj => {
                 delete obj.certificate;
                 delete obj.private_key
-            })
+            });
         }
         return res.parcel
             .setStatus(200)
@@ -48,10 +40,16 @@ function get(req, res, next) {
                 }
             )
             .deliver();
-    });
+    } catch (err) {
+        app.locals.log.error(err);
+        return res.parcel
+            .setStatus(500)
+            .setMessage('Internal server error')
+            .deliver();
+    }       
 }
 
-function post(isProduction, req, res, next) {
+async function post (isProduction, req, res, next) {
     helper.validatePost(req, res);
     if (res.parcel.message) {
         app.locals.log.error(res.parcel.message);
@@ -59,152 +57,115 @@ function post(isProduction, req, res, next) {
     }
 
     if (certController.openSSLEnabled && req.body.private_key && req.body.certificate) {
-        certUtil.extractExpirationDateCertificate(req.body.certificate, function (err, expirationDate) {
-            if (err) {
-                app.locals.log.error(err);
-                return res.parcel
-                    .setMessage('An error occurred when processing the private key and certificate data. If you are providing your own, please be certain of their accuracy and validity.')
-                    .setStatus(400)
-                    .deliver();
-            }
+        let expirationDate;
+        try {
+            expirationDate = await certUtil.extractExpirationDateCertificate(req.body.certificate);
+        } catch (err) {
+            app.locals.log.error(err);
+            return res.parcel
+                .setMessage('An error occurred when processing the private key and certificate data. If you are providing your own, please be certain of their accuracy and validity.')
+                .setStatus(400)
+                .deliver();
+        }
 
-            if (expirationDate < Date.now()) { //expired cert
-                return res.parcel
-                    .setMessage('Certificate is expired')
-                    .setStatus(400)
-                    .deliver();
-            }
-            //the expiration date is valid. add it to the module config body for storage in the DB
-            req.body.expiration_ts = expirationDate;
+        if (expirationDate < Date.now()) { //expired cert
+            return res.parcel
+                .setMessage('Certificate is expired')
+                .setStatus(400)
+                .deliver();
+        }
+        //the expiration date is valid. add it to the module config body for storage in the DB
+        req.body.expiration_ts = expirationDate;
 
+        try {
             // while the keyCertBundle is not used, this is necessary to check that the private key and certificate match
-            certUtil.createKeyCertBundle(req.body.private_key, req.body.certificate)
-                .then(keyCertBundle => {
-                    saveModuleConfig(); //save here
-                })
-                .catch(err => {
-                    app.locals.log.error(err);
-                    return res.parcel.setStatus(500)
-                        .setMessage('An error occurred in creating the certificate')
-                        .deliver();
-                });
-        });
+            await certUtil.createKeyCertBundle(req.body.private_key, req.body.certificate);
+        } catch (err) {
+            app.locals.log.error(err);
+            return res.parcel.setStatus(500)
+                .setMessage('An error occurred in creating the certificate')
+                .deliver();
+        }
     }
-    else {
-        saveModuleConfig(); //save here
-    }
-
-    function saveModuleConfig () {
-        model.insertModuleConfig(isProduction, req.body, function (err) {
-            if (err) {
-                app.locals.log.error(err);
-                res.parcel
-                    .setMessage('Interal server error')
-                    .setStatus(500);
-            } else {
-                cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
-                res.parcel.setStatus(200);
-            }
-            res.parcel.deliver();
-        });
+    // save the data
+    try {
+        await model.insertModuleConfig(isProduction, req.body);
+        cache.deleteCacheData(isProduction, app.locals.version, cache.policyTableKey);
+        res.parcel.setStatus(200);
+        res.parcel.deliver();
+    } catch (err) {
+        app.locals.log.error(err);
+        res.parcel
+            .setMessage('Interal server error')
+            .setStatus(500);
+        res.parcel.deliver();
     }
 }
 
-function promoteNoId (req, res, next) {
+async function promoteNoId (req, res, next) {
     if (res.parcel.message) {
         return res.parcel.deliver();
     }
 
     // retrieve the staging config
-    const flow = helper.getModuleConfigFlow('status', false);
-
-    flow(function(err, data) {
-        if (err) {
-            app.locals.log.error(err);
-            return res.parcel
-                .setStatus(500)
-                .setMessage('Internal server error')
-                .deliver();
-        }
+    try {
+        const data = await helper.getModuleConfig('status', false);
         if (!certController.openSSLEnabled) { // cert gen not enabled
             data.forEach(obj => {
                 delete obj.certificate;
                 delete obj.private_key
-            })
+            });
         }
         // modify the body and pass the express parameters along as if we are posting to production
         req.body = data[0];
         post(true, req, res, next);
-    });
+    } catch (err) {
+        app.locals.log.error(err);
+        return res.parcel
+            .setStatus(500)
+            .setMessage('Internal server error')
+            .deliver();
+    }
 }
 
-function checkAndUpdateCertificate (cb) {
+async function checkAndUpdateCertificate () {
     if (!certController.openSSLEnabled) {
-        if (cb) {
-            cb();
-        }
         return;
     }
 
-    db.sqlCommand(sql.getAllExpiredModuleCertificates(), certCheckAndUpdateModuleConfigs);
+    const expiredModuleConfigs = await db.asyncSql(sql.getAllExpiredModuleCertificates());
 
-    function certCheckAndUpdateModuleConfigs (err, expiredModuleConfigs) {
-        if (err) {
-            app.locals.log.error(err);
-            if (cb) {
-                cb();
-            }
-            return;
-        }
+    for (let moduleConfig of expiredModuleConfigs) {
+        //cert expired. make a new one and add the new module config to the database
+        app.locals.log.info("creating new module config cert");
 
-        async.mapSeries(expiredModuleConfigs, function (moduleConfig, next) {
-            //cert expired. make a new one and add the new module config to the database
-            app.locals.log.info("creating new module config cert");
-
-            //use the existing private key to make a new cert
-            let options = certController.getCertificateOptions({
-                clientKey: moduleConfig.private_key
-            });
-
-            certController.createCertificateFlow(options, function (err, keyBundle) {
-                if (err) {
-                    app.locals.log.error(err);
-                    return next();
-                }
-
-                //new cert created! extract the key and cert and save the module config with them
-                moduleConfig.certificate = keyBundle.certificate;
-                moduleConfig.private_key = keyBundle.clientKey;
-
-                certUtil.extractExpirationDateCertificate(keyBundle.certificate, function (err, newExpDate) {
-                    if (err) {
-                        app.locals.log.error(err);
-                        return next();
-                    }
-                    //the expiration date is valid. add it to the module config body for storage in the DB
-                    moduleConfig.expiration_ts = newExpDate;
-
-                    const updateObj = {
-                        certificate: moduleConfig.certificate,
-                        private_key: moduleConfig.private_key,
-                        expiration_ts: moduleConfig.expiration_ts,
-                        updated_ts: sqlBricks('now()'),
-                    };
-
-                    cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
-                    cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
-                    db.sqlCommand(sql.updateModuleConfig(moduleConfig.id, updateObj), next);
-                });
-            });
-        }, function (err) {
-            if (err) {
-                app.locals.log.error(err);
-            }
-            if (cb) {
-                cb();
-            }
+        //use the existing private key to make a new cert
+        let options = certController.getCertificateOptions({
+            clientKey: moduleConfig.private_key
         });
+
+        const keyBundle = await certController.asyncCreateCertificate(options);
+
+        //new cert created! extract the key and cert and save the module config with them
+        moduleConfig.certificate = keyBundle.certificate;
+        moduleConfig.private_key = keyBundle.clientKey;
+
+        const newExpDate = await certUtil.extractExpirationDateCertificate(keyBundle.certificate);
+        //the expiration date is valid. add it to the module config body for storage in the DB
+        moduleConfig.expiration_ts = newExpDate;
+
+        const updateObj = {
+            certificate: moduleConfig.certificate,
+            private_key: moduleConfig.private_key,
+            expiration_ts: moduleConfig.expiration_ts,
+            updated_ts: sqlBricks('now()'),
+        };
+
+        cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
+        cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
+        await db.asyncSql(sql.updateModuleConfig(moduleConfig.id, updateObj));
     }
+    app.locals.log.info("Module certificates updated");
 }
 
 module.exports = {

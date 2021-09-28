@@ -2,18 +2,20 @@ const app = require('../app');
 const flame = app.locals.flame;
 const sql = require('./sql.js');
 
-function storePermissions (permissions, next) {
+async function storePermissions (permissions) {
     //convert the data into objects that can be directly stored in the database
     let permissionObjs = [];
     let permissionRelationObjs = [];
 
-    flame.async.map(permissions, function (perm, next) {
+
+    for (const perm of permissions) {
         permissionObjs.push({ //add permission
             "name": perm.key,
             "type": perm.type,
             "function_id": perm.function_id || null,
             "display_name": perm.name || null
         });
+
         if (perm.parent_permissions.length > 0) {
             for (let j = 0; j < perm.parent_permissions.length; j++) {
                 permissionRelationObjs.push({ //add permission relation
@@ -22,19 +24,11 @@ function storePermissions (permissions, next) {
                 });
             }
         }
-        next();
-    }, function () {
-        //insert permissions first, then permission relations
-        const insertPermissions = app.locals.db.setupSqlCommands(sql.insertPermissions(permissionObjs));
-        const insertPermissionRelations = app.locals.db.setupSqlCommands(sql.insertPermissionRelations(permissionRelationObjs));
-        const insertArray = [
-            app.locals.flow(insertPermissions, {method: 'parallel'}),
-            app.locals.flow(insertPermissionRelations, {method: 'parallel'})
-        ];
-        const insertFlow = app.locals.flow(insertArray, {method: 'series'});
-        insertFlow(next);
-    });
+    }
 
+    //insert permissions first, then permission relations
+    await app.locals.db.asyncSqls(sql.insertPermissions(permissionObjs));
+    await app.locals.db.asyncSqls(sql.insertPermissionRelations(permissionRelationObjs));
 }
 
 module.exports = {
