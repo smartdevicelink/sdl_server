@@ -6,7 +6,7 @@
             <page-side-nav/>
             <page-user-nav/>
 
-            <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
+            <main class="col-md-9 ml-md-auto col-md-10 pt-3 main-content" role="main">
                 <h4>About this Policy Server<a class="fa fa-question-circle color-primary doc-link" v-b-tooltip.hover title="Click here for more info about this page" href="https://smartdevicelink.com/en/guides/sdl-server/user-interface/about/" target="_blank"></a></h4>
 
                 <div class="functional-content" v-if="about">

@@ -5,7 +5,7 @@
             <page-side-nav/>
             <page-user-nav/>
 
-            <main v-if="app != null" class="col-sm-9 ml-sm-auto col-md-10 pt-3 main-content" role="main">
+            <main v-if="app != null" class="col-md-9 ml-md-auto col-md-10 pt-3 main-content" role="main">
                 <!--
                 m-md-2
                 -->

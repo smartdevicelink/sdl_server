@@ -5,6 +5,7 @@ const sqlApp = require('../applications/sql.js');
 const _ = require('lodash');
 const vehicleDataHelper = require('../vehicle-data/helper.js');
 const certController = require('../certificates/controller');
+const certUtil = require('../helpers/certificates');
 
 //module config
 
@@ -28,78 +29,97 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
         concatPort = ":" + settings.policyServerPort;
     }
 
+    // asynchronous and synchronous if branches need to be controlled
+    let certificateResolution;
+
     if(certController.openSSLEnabled && base.certificate && base.private_key){
-        base.certificate += '\n' + base.private_key;
+        if (settings.securityOptions.moduleConfigEncryptCertBundle) {
+            certificateResolution = certUtil.createKeyCertBundle(base.private_key, base.certificate);
+        } else {
+            certificateResolution = Promise.resolve(base.certificate + '\n' + base.private_key);
+        }
     }
     else {
-        delete base.certificate;
+        certificateResolution = Promise.resolve(undefined);
     }
 
-    var moduleConfig = {
-        "full_app_id_supported": useLongUuids,
-        "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
-        "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
-        "exchange_after_x_days": base.exchange_after_x_days,
-        "timeout_after_x_seconds": base.timeout_after_x_seconds,
-        "seconds_between_retries": retrySeconds,
-        "lock_screen_dismissal_enabled": base.lock_screen_dismissal_enabled,
-        "endpoints": {
-            "0x07": {
-                default: [ protocol + settings.policyServerHost + concatPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]
+    certificateResolution.then(result => {
+        if (settings.securityOptions.moduleConfigEncryptCertBundle) {
+            base.certificate = result.pkcs12.toString('base64');
+        } else {
+            base.certificate = result;
+        }
+    }).catch(err => {
+        // something went wrong with bundling the cert + key. fallback to default
+        console.error(err);
+        base.certificate += '\n' + base.private_key;
+    }).finally(() => {
+        var moduleConfig = {
+            "full_app_id_supported": useLongUuids,
+            "exchange_after_x_ignition_cycles": base.exchange_after_x_ignition_cycles,
+            "exchange_after_x_kilometers": base.exchange_after_x_kilometers,
+            "exchange_after_x_days": base.exchange_after_x_days,
+            "timeout_after_x_seconds": base.timeout_after_x_seconds,
+            "seconds_between_retries": retrySeconds,
+            "lock_screen_dismissal_enabled": base.lock_screen_dismissal_enabled,
+            "endpoints": {
+                "0x07": {
+                    default: [ protocol + settings.policyServerHost + concatPort + "/api/v1/" + (isProduction ? "production" : "staging") + "/policy"]
+                },
+                "0x04": {
+                    default: [base.endpoint_0x04]
+                },
+                "queryAppsUrl": {
+                    default: [base.query_apps_url]
+                },
+                "lock_screen_icon_url": {
+                    default: [base.lock_screen_default_url]
+                },
             },
-            "0x04": {
-                default: [base.endpoint_0x04]
+            "endpoint_properties": {
+                // to be populated
             },
-            "queryAppsUrl": {
-                default: [base.query_apps_url]
+            "notifications_per_minute_by_priority": {
+                "EMERGENCY": base.emergency_notifications,
+                "NAVIGATION": base.navigation_notifications,
+                "PROJECTION": base.projection_notifications,
+                "VOICECOM": base.voicecom_notifications,
+                "COMMUNICATION": base.communication_notifications,
+                "NORMAL": base.normal_notifications,
+                "NONE": base.none_notifications
             },
-            "lock_screen_icon_url": {
-                default: [base.lock_screen_default_url]
+            "subtle_notifications_per_minute_by_priority": {
+                "EMERGENCY": base.subtle_emergency_notifications,
+                "NAVIGATION": base.subtle_navigation_notifications,
+                "PROJECTION": base.subtle_projection_notifications,
+                "VOICECOM": base.subtle_voicecom_notifications,
+                "COMMUNICATION": base.subtle_communication_notifications,
+                "NORMAL": base.subtle_normal_notifications,
+                "NONE": base.subtle_none_notifications
             },
-        },
-        "endpoint_properties": {
-            // to be populated
-        },
-        "notifications_per_minute_by_priority": {
-            "EMERGENCY": base.emergency_notifications,
-            "NAVIGATION": base.navigation_notifications,
-            "PROJECTION": base.projection_notifications,
-            "VOICECOM": base.voicecom_notifications,
-            "COMMUNICATION": base.communication_notifications,
-            "NORMAL": base.normal_notifications,
-            "NONE": base.none_notifications
-        },
-        "subtle_notifications_per_minute_by_priority": {
-            "EMERGENCY": base.subtle_emergency_notifications,
-            "NAVIGATION": base.subtle_navigation_notifications,
-            "PROJECTION": base.subtle_projection_notifications,
-            "VOICECOM": base.subtle_voicecom_notifications,
-            "COMMUNICATION": base.subtle_communication_notifications,
-            "NORMAL": base.subtle_normal_notifications,
-            "NONE": base.subtle_none_notifications
-        },
-        "certificate": base.certificate,
-    };
-
-    // only have custom_vehicle_data_mapping_url present if set by OEM,
-    // according to evolution proposal
-    if(base.custom_vehicle_data_mapping_url){
-        moduleConfig.endpoints.custom_vehicle_data_mapping_url = {
-            default: [base.custom_vehicle_data_mapping_url]
+            "certificate": base.certificate,
         };
-    }
 
-    // inject endpoint properties we have from the database
-    _.forEach(endpointProperties, function (endProp, index) {
-        if (!moduleConfig.endpoint_properties[endProp.endpoint_name] && moduleConfig.endpoints[endProp.endpoint_name]) {
-            moduleConfig.endpoint_properties[endProp.endpoint_name] = {};
+        // only have custom_vehicle_data_mapping_url present if set by OEM,
+        // according to evolution proposal
+        if(base.custom_vehicle_data_mapping_url){
+            moduleConfig.endpoints.custom_vehicle_data_mapping_url = {
+                default: [base.custom_vehicle_data_mapping_url]
+            };
         }
-        if (moduleConfig.endpoint_properties[endProp.endpoint_name] && endProp.property_value) {
-            moduleConfig.endpoint_properties[endProp.endpoint_name][endProp.property_name] = endProp.property_value;
-        }
+
+        // inject endpoint properties we have from the database
+        _.forEach(endpointProperties, function (endProp, index) {
+            if (!moduleConfig.endpoint_properties[endProp.endpoint_name] && moduleConfig.endpoints[endProp.endpoint_name]) {
+                moduleConfig.endpoint_properties[endProp.endpoint_name] = {};
+            }
+            if (moduleConfig.endpoint_properties[endProp.endpoint_name] && endProp.property_value) {
+                moduleConfig.endpoint_properties[endProp.endpoint_name][endProp.property_name] = endProp.property_value;
+            }
+        });
+
+        next(null, moduleConfig);
     });
-
-    next(null, moduleConfig);
 }
 
 //consumer messages
@@ -107,6 +127,8 @@ function transformModuleConfig (isProduction, useLongUuids = false, info, next) 
 function transformMessages (info, cb) {
     const allMessages = info.messageStatuses;
     const groups = info.messageGroups;
+    const highestMessageGroupId = info.highestMessageGroupId[0] ? info.highestMessageGroupId[0].id : 0; // used to help generate a version number
+    const versionString = Number(highestMessageGroupId).toLocaleString().replace(/,/g,'.').padStart(11, "000."); // ###.###.### format up to the id of 999,999,999 
 
     const transformFlow = flame.flow([
         //hash the message groups by message_category
@@ -139,7 +161,7 @@ function transformMessages (info, cb) {
                 next();
             }, function () {
                 next(null, {
-                    "version": "000.000.001", //TODO: what to do with the versioning?
+                    "version": versionString,
                     "messages": messageObj
                 });
             });

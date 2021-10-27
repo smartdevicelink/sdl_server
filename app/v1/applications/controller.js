@@ -616,6 +616,41 @@ function queryAndStoreCategories(callback) {
     });
 }
 
+function getStagingAppStore (req, res, next) {
+	let filterObj = {
+		approval_status: 'STAGING',
+		platform: 'EMBEDDED',
+	};
+
+	if (req.query.uuid) {
+		filterObj.app_uuid = req.query.uuid;
+	}
+	if (req.query.transport_type) {
+		filterObj.transport_type = req.query.transport_type;
+	}
+
+	let chosenFlow = helper.createAppInfoFlow('multiFilter', filterObj);
+
+	const finalFlow = flow([
+		chosenFlow,
+		helper.appStoreTransformation.bind(null, req.query.min_rpc_version, req.query.min_protocol_version),
+	], { method: 'waterfall' });
+
+	finalFlow(function (err, apps) {
+		if (err) {
+			app.locals.log.error(err);
+			return res.parcel.setStatus(500)
+				.setMessage("Internal Server Error")
+				.deliver();
+		}
+		return res.parcel.setStatus(200)
+			.setData({
+				applications: apps,
+			})
+			.deliver();
+	})
+}
+
 function getAppStore (req, res, next) {
     // only let embedded apps through
 	let filterObj = {
@@ -670,4 +705,5 @@ module.exports = {
 	updateAppCertificate: updateAppCertificate,
 	checkAndUpdateCertificates: checkAndUpdateCertificates,
 	getAppStore: getAppStore,
+	getStagingAppStore: getStagingAppStore,
 };

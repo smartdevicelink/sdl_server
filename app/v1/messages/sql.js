@@ -22,7 +22,8 @@ module.exports = {
         categoryByLanguage: getMessageCategoriesByLanguage,
         categoryByMaxId: getMessageCategoriesByMaxId,
         byIds: getMessagesByIdsStagingFilter,
-        groupsByIds: getMessageGroupsByIdsStagingFilter
+        groupsByIds: getMessageGroupsByIdsStagingFilter,
+        highestGroupId: getHighestMessageGroupId,
     },
     getMessageNamesStaging: getMessageNamesStaging,
     getLanguages: getLanguages,
@@ -42,6 +43,16 @@ function getMessagesStatus (isProduction) {
             .from('view_message_text_staging')
             .toString();
     }
+}
+
+//retrieve the highest id message group found
+function getHighestMessageGroupId (isProduction) {
+    let viewName = isProduction ? 'view_message_group_production' : 'view_message_group_staging';
+
+    let sqlString = sql.select('MAX(id) AS id')
+        .from(viewName);
+
+    return sqlString.toString();
 }
 
 //retrieve message group information such as categories

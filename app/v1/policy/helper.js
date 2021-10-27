@@ -119,7 +119,8 @@ function setupModuleConfig (isProduction, useLongUuids = false) {
 function setupConsumerFriendlyMessages (isProduction) {
     const getMessages = flame.flow({
         messageStatuses: setupSqlCommand.bind(null, messagesSql.getMessages.status(isProduction)),
-        messageGroups: setupSqlCommand.bind(null, messagesSql.getMessages.group(isProduction, false, true))
+        messageGroups: setupSqlCommand.bind(null, messagesSql.getMessages.group(isProduction, false, true)),
+        highestMessageGroupId: setupSqlCommand.bind(null, messagesSql.getMessages.highestGroupId(isProduction, false))
     }, {method: 'parallel'});
 
     const makeMessages = [

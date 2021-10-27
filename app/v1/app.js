@@ -82,6 +82,7 @@ function exposeRoutes () {
 	app.put('/applications/groups', auth.validateAuth, applications.putFunctionalGroup);
 	// webengine app store
 	app.get('/applications/store', cors(), applications.getAppStore);
+	app.get('/applications/store/staging', cors(), applications.getStagingAppStore);
 	app.post('/webhook', applications.webhook); //webhook route
 	//begin policy table routes
 	app.options('/staging/policy', cors())
@@ -105,6 +106,7 @@ function exposeRoutes () {
 	app.get('/module', auth.validateAuth, moduleConfig.get);
 	app.post('/module', auth.validateAuth, moduleConfig.post);
 	app.post('/module/promote', auth.validateAuth, moduleConfig.promote);
+	app.post('/module/promoteNoId', auth.validateAuth, moduleConfig.promoteNoId);
 	app.get('/about', auth.validateAuth, about.getInfo);
 	app.post('/security/certificate', certificates.createCertificate);
 	app.post('/security/private', certificates.createPrivateKey);

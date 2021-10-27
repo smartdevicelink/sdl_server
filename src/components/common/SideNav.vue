@@ -1,5 +1,5 @@
 <template>
-    <nav class="col-sm-3 col-md-2 d-none d-sm-block nav-bg sidebar">
+    <nav class="col-sm-3 col-md-2 d-none d-md-block nav-bg sidebar">
         <ul class="nav nav-pills flex-column">
             <router-link tag="li" class="nav-item" to="/applications" active-class="active">
                 <a class="nav-link">Applications <span v-if="badge_counts.applications > 0" class="badge badge-circle badge-danger">{{ badge_counts.applications }}</span></a>
@@ -67,7 +67,7 @@ export default {
                 if(err){
                     // error
                     console.log("Error fetching functional group data.");
-                    console.log(response);
+                    console.log(err);
                 }else{
                     // success
                     response.json().then(parsed => {

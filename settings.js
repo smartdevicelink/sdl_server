@@ -65,7 +65,10 @@ module.exports = {
             emailAddress: process.env.CERTIFICATE_EMAIL_ADDRESS || null,
             hash: process.env.CERTIFICATE_HASH || null,
             days: process.env.CERTIFICATE_DAYS || 7,
-        }
+        },
+        //whether to package the module config's cert and private key into a pkcs12 bundle string using the passphrase
+        //if false, it will just be a concatenation of the certificate and the private key
+        moduleConfigEncryptCertBundle: process.env.MODULE_CONFIG_ENCRYPT_CERT_BUNDLE == "true" ? true : false
     },
     //what kind of auth to enforce? "basic" or null (no authentication)
     authType: process.env.AUTH_TYPE || null,
