@@ -330,7 +330,6 @@ async function getAppCertificateByUuid (app_uuid) {
     return result ? result : {};
 }
 
-//todo
 async function getAppCertificate (req, res, next) {
     if (!certificates.openSSLEnabled) {
         return res.parcel.setStatus(400)
