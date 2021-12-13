@@ -1,6 +1,5 @@
 //Copyright (c) 2018, Livio, Inc.
 const app = require('../app');
-const flame = app.locals.flame;
 const model = require('./model.js');
 const setupSqlCommand = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');

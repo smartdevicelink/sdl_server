@@ -81,14 +81,6 @@ module.exports = function (log) {
     });
 
     const self = {
-        /*
-        getOne(query, params, callback){
-            pool.getOne(query, params, callback);
-        },
-        getMany(query, params, callback){
-            pool.getMany(query, params, callback);
-        },
-        */
         //exported functions. these are required to implement
         //this function executes the SQL command in <query> and returns a response using the callback function
         //the callback requires an error parameter and a response from the SQL query
@@ -115,54 +107,6 @@ module.exports = function (log) {
             const promiseMethod = propagateErrors ? 'all' : 'allSettled';
             return Promise[promiseMethod](sqlStringArray.map(sql => self.asyncSql(sql)));
         },
-        sqlCommand: function (query, callback) {
-            if (typeof query !== "string") {
-                query = query.toString();
-            }
-            pool.query(query, function (err, res) {
-                if (err) {
-                    log.error(err);
-                    log.error(query);
-                }
-                //always return an array
-                callback(err, (res && res.rows) ? res.rows : []);
-            });
-        },
-        /*
-        //TODO: remove these two functions
-        //given a SQL command, sets up a function to execute the query and pass back the results
-        setupSqlCommand: function (sqlString, next) {
-            self.sqlCommand(sqlString, function (err, res) {
-                if (err) {
-                    log.error(err);
-                    log.error(sqlString);
-                }
-                next(err, res);
-            });
-        },
-        setupSqlCommands: function (sqlStringArray, propagateErrors) {
-            if (!Array.isArray(sqlStringArray)) { //if its just a single sql statement, make it into an array
-                sqlStringArray = [sqlStringArray];
-            }
-            return sqlStringArray.map(function (str) {
-                return function (next) {
-                    self.setupSqlCommand.bind(null, str)(function (err, res) {
-                        if (err) {
-                            log.error(err);
-                            log.error(sqlString);
-                        }
-                        if (propagateErrors) {
-                            next(err, res);
-                        }
-                        else {
-                            next(null, res); //do not propagate errors. if an error happens, continue anyway
-                        }
-
-                    });
-                }
-            });
-        },
-        */
         getClient: function (callback){
             // reserve a client connection ("client") and its associated release callback ("done")
             // callback(err, client, done)
@@ -185,38 +129,6 @@ module.exports = function (log) {
             // commits and releases a client from the pool
             client.query("COMMIT", function(err, result){
                 done(err);
-                callback(err, result);
-            });
-        },
-        runAsTransaction: function(logic, callback){
-            let wf = {};
-            async.waterfall([
-                function(callback){
-                    // fetch a SQL client
-                    self.getClient(callback);
-                },
-                function(client, done, callback){
-                    // start the transaction
-                    wf.client = client;
-                    wf.done = done;
-                    self.begin(client, callback);
-                },
-                function(callback){
-                    // pass the client back to the requester logic
-                    logic(wf.client, function(err, result){
-                        callback(err, result);
-                    });
-                },
-                function(result, callback){
-                    // requester has finished their logic, commit the db changes
-                    self.commit(wf.client, wf.done, function(err){
-                        callback(err, result);
-                    });
-                }
-            ], function(err, result){
-                if(err){
-                    self.rollback(wf.client, wf.done);
-                }
                 callback(err, result);
             });
         },

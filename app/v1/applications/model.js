@@ -1,7 +1,5 @@
 const app = require('../app');
 const db = app.locals.db;
-const flow = app.locals.flow;
-const flame = app.locals.flame;
 const hashify = app.locals.hashify;
 const arrayify = app.locals.arrayify;
 const log = app.locals.log;

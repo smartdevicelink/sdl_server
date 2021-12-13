@@ -3,12 +3,9 @@ const app = require('../app');
 const model = require('./model.js');
 const asyncSql = app.locals.db.asyncSql;
 const sql = require('./sql.js');
-const flow = app.locals.flow;
-const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
 const config = app.locals.config;
-const async = require('async');
 const certificates = require('../certificates/controller.js');
 const certUtil = require('../helpers/certificates.js');
 

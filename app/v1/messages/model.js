@@ -1,7 +1,6 @@
 const app = require('../app');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
 const sqlBrick = require('sql-bricks-postgres');
-const async = require('async');
 
 async function combineMessageCategoryInfo (messageInfo) {
     const filteredCategories = messageInfo.categoryByLanguage;

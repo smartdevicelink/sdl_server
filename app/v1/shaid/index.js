@@ -3,8 +3,6 @@ const shaidkit = require('shaidkit');
 const config = require('../../../settings.js');
 const package = require('../../../package.json');
 const app = require('../app');
-const flow = app.locals.flow;
-const flame = app.locals.flame;
 
 //a constant that informs the policy server the maximum number of apps returned at once from SHAID
 const MAX_APPLICATION_QUERY = 50;

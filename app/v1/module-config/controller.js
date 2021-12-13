@@ -7,8 +7,6 @@ const cache = require('../../../custom/cache');
 const certUtil = require('../helpers/certificates');
 const certController = require('../certificates/controller');
 const db = app.locals.db;
-const flow = app.locals.flow;
-const async = require('async');
 const sqlBricks = require('sql-bricks-postgres');
 
 async function get (req, res, next) {

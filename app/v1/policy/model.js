@@ -1,5 +1,4 @@
 const app = require('../app');
-const flame = app.locals.flame;
 const settings = require('../../../settings.js');
 const sqlApp = require('../applications/sql.js');
 const _ = require('lodash');

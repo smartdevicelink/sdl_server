@@ -1,5 +1,4 @@
 const app = require('../app');
-const flame = app.locals.flame;
 const sql = require('./sql.js');
 
 async function storePermissions (permissions) {

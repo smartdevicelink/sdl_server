@@ -8,7 +8,6 @@ const path = require('path');
 const config = require('../../settings'); //configuration module
 const log = require(`../../custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
-const flame = require('../../lib/flame-box');
 const hashify = require('../../lib/hashify');
 const arrayify = require('../../lib/arrayify');
 const emailer = require('../../lib/emailer');
@@ -19,11 +18,9 @@ const Cron = require('cron').CronJob;
 app.locals.config = config;
 app.locals.log = log;
 app.locals.db = db;
-app.locals.flow = flame.flow;
 app.locals.hashify = hashify;
 app.locals.arrayify = arrayify;
 app.locals.emailer = emailer;
-app.locals.flame = flame;
 app.locals.version = path.basename(__dirname);
 
 // construct base URL, e.g. "http://localhost:3000"

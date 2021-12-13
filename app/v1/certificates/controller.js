@@ -1,4 +1,3 @@
-const async = require('async');
 const pem = require('pem');
 const fs = require('fs');
 const tmp = require('tmp');

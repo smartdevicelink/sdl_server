@@ -2,7 +2,6 @@ const app = require('../app');
 const check = require('check-types');
 const model = require('./model.js');
 const helper = require('./helper.js');
-const async = require('async');
 const sql = require('./sql.js');
 const cache = require('../../../custom/cache');
 

@@ -2,7 +2,6 @@
 const check = require('check-types');
 const model = require('./model.js');
 const app = require('../app');
-const flow = app.locals.flow;
 const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 
