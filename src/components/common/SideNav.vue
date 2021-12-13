@@ -67,7 +67,7 @@ export default {
                 if(err){
                     // error
                     console.log("Error fetching functional group data.");
-                    console.log(response);
+                    console.log(err);
                 }else{
                     // success
                     response.json().then(parsed => {
