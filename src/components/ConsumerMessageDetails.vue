@@ -41,12 +41,19 @@
                         </div>
                     </div>
                     <!-- save button -->
+                    <div v-if="!isNameDefined()">
+                        <br>
+                        <p class="alert color-bg-red color-white d-table" role="alert">
+                            The name field must be defined.
+                        </p>
+                    </div>
+
                     <div>
                         <vue-ladda
                             type="submit"
                             class="btn btn-card"
                             data-style="zoom-in"
-                            v-if="!fieldsDisabled"
+                            v-if="!fieldsDisabled && isNameDefined()"
                             v-on:click="saveGroup()"
                             v-bind:loading="save_button_loading"
                             v-bind:class="{ 'btn-style-green': !message.is_deleted, 'btn-danger': message.is_deleted }">
@@ -217,7 +224,14 @@
                         });
                     }
                 });
-            }
+            },
+            "isNameDefined": function () {
+                if (!this.message.message_category) {
+                    return false; //no name defined
+                }
+
+                return true; //no issues
+            },
         },
         computed: {
             fieldsDisabled: function () {
