@@ -327,7 +327,7 @@ async function queryAndStoreApplications (queryObj, notifyOEM = true) {
 //helper function that attempts to find the associated certificate bundle in the database
 async function getAppCertificateByUuid (app_uuid) {
     const result = await app.locals.db.asyncSql(sql.getApp.certificate(app_uuid));
-    return result ? result : {};
+    return result && result.length > 0 ? result[0] : {};
 }
 
 async function getAppCertificate (req, res, next) {

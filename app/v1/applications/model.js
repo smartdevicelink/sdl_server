@@ -199,57 +199,50 @@ async function storeApp (notifyOEM, appObj) {
         }
 
         //stage 3: locales insert. this is a multi step process so it needs its own flow
-        if (!appObj.locales || appObj.locales.length === 0) {
-            // no locales. skip
-        } else {
+        if (appObj.locales && appObj.locales.length !== 0) {
             // attempt locale and tts chunks insert
             await Promise.all(appObj.locales.map(insertLocaleInfo));
             async function insertLocaleInfo (localeInfo) {
                 const localeResult = await client.getOne(sql.insertAppLocale(localeInfo, storedApp.id));
                 // continue with inserting ttschunks after retreiving the returned id
                 // use the passed in locales 
-                if (localeInfo.tts_chunks.length === 0) {
-                    // no tts chunks to process
-                } else {
+                if (localeInfo.tts_chunks.length !== 0) {
                     await client.getOne(sql.insertAppLocaleTtsChunks(localeInfo.tts_chunks, localeResult.id));
                 }
             }
         }
+
         //stage 4: call custom routine to get the byte size of the bundle at the package url if it exists
         if (appObj.transport_type === 'webengine' && appObj.package_url) {
             const data = await promisify(webengineHandler.handleBundle)(appObj.package_url);
 
             if (!data) {
-                return new Error('No object returned for the webengine bundle for uuid ' + appObj.uuid);
+                throw new Error('No object returned for the webengine bundle for uuid ' + appObj.uuid);
             }
             if (!data.url) {
-                return new Error('No url property for the webengine bundle for uuid ' + appObj.uuid);
+                throw new Error('No url property for the webengine bundle for uuid ' + appObj.uuid);
             }
             if (!data.size_compressed_bytes) {
-                return new Error('No size_compressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
+                throw new Error('No size_compressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
             }
             if (!data.size_decompressed_bytes) {
-                return new Error('No size_decompressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
+                throw new Error('No size_decompressed_bytes property for the webengine bundle for uuid ' + appObj.uuid);
             }
             // store the returned results of the custom webengine bundle handler function
             await client.getOne(sql.updateWebengineBundleInfo(storedApp.id, data));
         }
         //stage 5: sync with shaid
-        if(!storedApp.version_id){
-            // skip sync with SHAID if no app version ID is present
-        } else {
+        if (storedApp.version_id) {
             await app.locals.shaid.setApplicationApprovalVendor([storedApp]);
         }
         //stage 6: notify OEM of pending app?
-        if(!(
+        if (
             notifyOEM
             && app.locals.emailer.isSmtpConfigured()
             && storedApp.approval_status == 'PENDING'
             && app.locals.config.notification.appsPendingReview.email.frequency == "REALTIME"
             && app.locals.config.notification.appsPendingReview.email.to
-        )){
-            // don't send email
-        } else {
+        ) {
             // attempt to send email
             app.locals.emailer.send({
                 to: app.locals.config.notification.appsPendingReview.email.to,

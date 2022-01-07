@@ -1,7 +1,6 @@
 const app = require('../app');
 const sql = require('./sql.js');
 const sqlBrick = require('sql-bricks-postgres');
-const async = require('async');
 
 //generates a single-element functional group info template object
 async function generateTemplate (info) {
