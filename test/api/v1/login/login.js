@@ -11,7 +11,7 @@ common.post(
     'return a 401 when trying to login with the wrong password',
     endpoint,
     {
-    	password: 'nope'
+        password: 'nope'
     },
     (err, res, done) => {
         expect(err).to.be.null;
@@ -24,15 +24,15 @@ common.post(
     'return a 200 when trying to login with the right password',
     endpoint,
     {
-    	password: 'testing'
+        password: 'testing'
     },
     (err, res, done) => {
         expect(err).to.be.null;
         expect(res).to.have.status(200);
 
         //reset
-		common.config.authType = undefined;
-		common.config.basicAuthPassword = oldPassword;
+        common.config.authType = undefined;
+        common.config.basicAuthPassword = oldPassword;
 
         done();
     }

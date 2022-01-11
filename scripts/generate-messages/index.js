@@ -11,9 +11,9 @@ const outputFileName = 'output.log'; //the name of the output file
 //find the first message category and generate the languages table from its languages
 const languages = messages[Object.keys(messages)[0]].languages;
 const languageNameObjs = Object.keys(languages).map(function (languageName) {
-	return {
-		id: languageName
-	};
+    return {
+        id: languageName
+    };
 });
 const languageStatement = sql.insert('languages').values(languageNameObjs).toString();
 writeToBuffer(utils.formatInsertOutput(languageStatement));
@@ -22,20 +22,20 @@ writeToBuffer(utils.formatInsertOutput(languageStatement));
 //transform the language text into SQL insertion statements
 let messageObjs = [];
 for (let messageCategory in messages) {
-	const catObj = messages[messageCategory];
-	const languageObjs = Object.keys(catObj.languages).map(function (languageName) {
-		const langObj = catObj.languages[languageName];
-		return {
-			label: langObj.label,
-			language_id: languageName,
-			line1: langObj.line1,
-			line2: langObj.line2,
-			message_category: messageCategory,
-			text_body: langObj.text_body,
-			tts: langObj.tts
-		};
-	});
-	messageObjs = messageObjs.concat(languageObjs);
+    const catObj = messages[messageCategory];
+    const languageObjs = Object.keys(catObj.languages).map(function (languageName) {
+        const langObj = catObj.languages[languageName];
+        return {
+            label: langObj.label,
+            language_id: languageName,
+            line1: langObj.line1,
+            line2: langObj.line2,
+            message_category: messageCategory,
+            text_body: langObj.text_body,
+            tts: langObj.tts
+        };
+    });
+    messageObjs = messageObjs.concat(languageObjs);
 }
 
 const messageStatement = sql.insert('message_text').values(messageObjs).toString();
