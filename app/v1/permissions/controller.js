@@ -1,19 +1,14 @@
 const app = require('../app');
-const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 const helper = require('./helper.js');
 
-function get (req, res, next) {
+async function get (req, res, next) {
     //if environment is not of value "staging", then set the environment to production
     const isProduction = req.query.environment && req.query.environment.toLowerCase() === 'staging' ? false: true;
-    const findUnmappedPermissions = setupSql.bind(null, sql.findUnmappedPermissions(isProduction))
-    findUnmappedPermissions(function (err, permissions) {
-        if (err) {
-            return res.parcel
-                .setStatus(500)
-                .setMessage("Internal server error")
-                .deliver();
-        }
+    
+    try {
+        let permissions = await app.locals.db.asyncSql(sql.findUnmappedPermissions(isProduction));
+
         //get aggregate results
         let unmappedRpcCount = 0;
         let unmappedParameterCount = 0;
@@ -40,39 +35,39 @@ function get (req, res, next) {
                 unmapped_parameter_count: unmappedParameterCount
             })
             .deliver();
-    });
+    } catch (err) {
+        console.log(err);
+        return res.parcel
+            .setStatus(500)
+            .setMessage("Internal server error")
+            .deliver();
+    }
 }
 
-function post (req, res, next) {
-    updatePermissions(function (err) {
-        if (err) {
-            return res.parcel
-                .setStatus(500)
-                .setMessage("Internal server error")
-                .deliver();
-        }
+async function post (req, res, next) {
+    try {
+        await updatePermissions();
         return res.parcel
             .setStatus(200)
             .deliver();
-    });
+    } catch (err) {
+        return res.parcel
+            .setStatus(500)
+            .setMessage("Internal server error")
+            .deliver();
+    }
 }
 
-function updatePermissions (next) {
+async function updatePermissions () {
     const queryObj = {
         include_hidden: true, 
         include_parents: true
     };
-    const permissionFlow = app.locals.flow([
-        app.locals.shaid.getPermissions.bind(null, queryObj), 
-        helper.storePermissions
-    ], {method: "waterfall"});
+
+    const permissions = await app.locals.shaid.getPermissions(queryObj);
+    await helper.storePermissions(permissions);
     
-    permissionFlow(function (err) {
-        app.locals.log.info("Permission information updated");
-        if (next) {
-            next(err);
-        }
-    });  
+    app.locals.log.info("Permission information updated");
 }
 
 module.exports = {

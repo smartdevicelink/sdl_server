@@ -1,13 +1,10 @@
 //Copyright (c) 2018, Livio, Inc.
 const app = require('../app');
-const flame = app.locals.flame;
-const flow = app.locals.flow;
 const db = app.locals.db;
 const sql = require('./sql.js');
 const _ = require('lodash');
 
-//keeping this synchronous due to how small the data is. pass this to the event loop
-function transformModuleConfig (info, next) {
+function transformModuleConfig (info) {
     const base = info.base;
     const retrySeconds = info.retrySeconds;
     const endpointProperties = info.endpointProperties;
@@ -31,7 +28,7 @@ function transformModuleConfig (info, next) {
         moduleConfigs.push(baseTemplate(hashBase[id]));
     }
 
-    next(null, moduleConfigs);
+    return moduleConfigs;
 }
 
 function baseTemplate (objOverride) {
@@ -123,47 +120,36 @@ function baseTemplate (objOverride) {
 }
 
 //store the information using a SQL transaction
-function insertModuleConfig (isProduction, moduleConfig, next) {
+async function insertModuleConfig (isProduction, moduleConfig) {
     //change status
     if (isProduction) {
         moduleConfig.status = "PRODUCTION";
     } else {
         moduleConfig.status = "STAGING";
     }
+
     // process message groups synchronously (due to the SQL transaction)
-    db.runAsTransaction(function (client, callback) {
-        flame.async.waterfall([
-            //stage 1: insert module config
-            client.getOne.bind(client, sql.insertModuleConfig(moduleConfig)),
-            //stage 2: insert module config retry seconds
-            function (newModConf, next) {
-                if (moduleConfig.seconds_between_retries.length > 0) {
-                    client.getOne(sql.insertRetrySeconds(moduleConfig.seconds_between_retries, newModConf.id), function(err){
-                        next(err, newModConf);
-                    });
-                } else {
-                    next(null, newModConf);
-                }
-            },
-            //stage 3: insert module config endpoint properties
-            function (newModConf, next) {
-                //ensure that there is at least one value inside the properties
-                let foundPropertyValue = false;
+    await db.asyncTransaction(async client => {
+        //stage 1: insert module config
+        let newModConf = await client.getOne(sql.insertModuleConfig(moduleConfig));
+        //stage 2: insert module config retry seconds
+        if (moduleConfig.seconds_between_retries.length > 0) {
+            await client.getOne(sql.insertRetrySeconds(moduleConfig.seconds_between_retries, newModConf.id));
+        }
+        //stage 3: insert module config endpoint properties
+        //ensure that there is at least one value inside the properties
+        let foundPropertyValue = false;
 
-                for (let key in moduleConfig.endpoint_properties) {
-                    for (propKey in moduleConfig.endpoint_properties[key]) {
-                        foundPropertyValue = true;
-                    }
-                }
-
-                if (foundPropertyValue) {
-                    client.getOne(sql.insertEndpointProperties(moduleConfig.endpoint_properties, newModConf.id), next);
-                } else {
-                    next();
-                }
+        for (let key in moduleConfig.endpoint_properties) {
+            for (propKey in moduleConfig.endpoint_properties[key]) {
+                foundPropertyValue = true;
             }
-        ], callback);
-    }, next);
+        }
+
+        if (foundPropertyValue) {
+            await client.getOne(sql.insertEndpointProperties(moduleConfig.endpoint_properties, newModConf.id));
+        }
+    });
 }
 
 module.exports = {

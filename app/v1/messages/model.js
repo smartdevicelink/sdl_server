@@ -1,9 +1,8 @@
 const app = require('../app');
 const setupSqlCommands = app.locals.db.setupSqlCommands;
 const sqlBrick = require('sql-bricks-postgres');
-const async = require('async');
 
-function combineMessageCategoryInfo (messageInfo, next) {
+async function combineMessageCategoryInfo (messageInfo) {
     const filteredCategories = messageInfo.categoryByLanguage;
     const fallbackCategories = messageInfo.categoryByMaxId;
     const allMessages = messageInfo.messageStatuses; //for finding how many languages exist per category
@@ -48,7 +47,7 @@ function combineMessageCategoryInfo (messageInfo, next) {
         categories.push(groupsHash[category]);
     }
 
-    next(null, categories);
+    return categories;
 }
 
 function convertToInsertableGroup(messageGroupObj, statusOverride = null){
@@ -71,60 +70,34 @@ function convertToInsertableText (messageTextObj, messageGroupIdOverride = null)
     };
 }
 
-function insertMessagesWithTransaction (isProduction, rawMessageGroups, callback) {
+async function insertMessagesWithTransaction (isProduction, rawMessageGroups) {
     let wf = {},
         status = isProduction ? "PRODUCTION" : "STAGING";
 
-    app.locals.db.runAsTransaction(function (client, callback) {
+    await app.locals.db.asyncTransaction(async client => {
         // process message groups synchronously (due to the SQL transaction)
-        async.eachSeries(rawMessageGroups, function (rawMessageGroup, callback) {
-            let insertedGroup = null;
-            async.waterfall([
-                function (callback) {
-                    // clean the message group object for insertion and insert it into the db
-                    let messageGroup = convertToInsertableGroup(rawMessageGroup, status);
-                    let insert = sqlBrick.insert('message_group', messageGroup).returning('*');
-                    client.getOne(insert.toString(), callback);
-                },
-                function (group, callback) {
-                    insertedGroup = group;
-                    // filter out any unselected languages
-                    async.filter(rawMessageGroup.languages, function (obj, callback) {
-                        callback(null, (isProduction || obj.selected));
-                    }, callback);
-                },
-                function (selectedLanguages, callback) {
-                    // generate array of clean message text objects and do bulk insert
-                    let messageGroupTexts = selectedLanguages.map(function (obj) {
-                        return convertToInsertableText(obj, insertedGroup.id);
-                    });
-                    if (messageGroupTexts.length < 1) {
-                        callback(null, []);
-                        return;
-                    }
-                    let insert = sqlBrick.insert('message_text', messageGroupTexts).returning('*');
-                    client.getMany(insert.toString(), callback);
-                }
-            ], callback);
-        }, callback);
-    }, function (err,result) {
-        // done either successfully or post-rollback
-        callback(err);
+        for (let rawMessageGroup of rawMessageGroups) {
+            // clean the message group object for insertion and insert it into the db
+            let messageGroup = convertToInsertableGroup(rawMessageGroup, status);
+            const insertedGroup = await client.getOne(sqlBrick.insert('message_group', messageGroup).returning('*').toString());
+            // filter out any unselected languages
+            const selectedLanguages = rawMessageGroup.languages.filter(obj => isProduction || obj.selected);
+            // generate array of clean message text objects and do bulk insert
+            let messageGroupTexts = selectedLanguages.map(obj => convertToInsertableText(obj, insertedGroup.id));
+            if (messageGroupTexts.length < 1) {
+                continue;
+            }
+            client.getMany(sqlBrick.insert('message_text', messageGroupTexts).returning('*').toString());
+        }
     });
 }
 
 // take an array of message groups and message languages and merge them
-function mergeLanguagesIntoGroups (messageGroups, messageLanguages, callback){
-    async.each(messageGroups, function (group, callback) {
-        async.filter(messageLanguages, function (language, callback) {
-            callback(null, language.message_group_id == group.id);
-        }, function (err, languages) {
-            group.languages = languages;
-            callback();
-        });
-    }, function (err) {
-        callback(err, messageGroups);
+async function mergeLanguagesIntoGroups (messageGroups, messageLanguages) {
+    messageGroups.forEach(group => {
+        group.languages = messageLanguages.filter(language => language.message_group_id == group.id);
     });
+    return messageGroups;
 }
 
 function hashifyTemplate (template) {
@@ -145,7 +118,7 @@ function arrayifyTemplate (template) {
     return template;
 }
 
-function transformMessages (info, next) {
+function transformMessages (info) {
     let template = info[0][0]; //comes back as an array of messages
     const texts = info[1];
     const group = info[2][0];
@@ -154,7 +127,7 @@ function transformMessages (info, next) {
     });
 
     if (!group) {
-        return next(null, []);
+        return [];
     }
 
     template = hashifyTemplate(template);
@@ -186,7 +159,7 @@ function transformMessages (info, next) {
 
     template = arrayifyTemplate(template);
 
-    next(null, [template]);
+    return [template];
 }
 
 module.exports = {

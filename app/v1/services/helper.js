@@ -1,13 +1,12 @@
 const app = require('../app');
-const flame = app.locals.flame;
 const sql = require('./sql.js');
 
-function upsertTypes (services, next) {
+async function upsertTypes (services) {
     //convert the data into objects that can be directly stored in the database
     let serviceTypes = [];
     let servicePermissions = [];
 
-    flame.async.map(services, function (service, next) {
+    for (const service of services) {
         serviceTypes.push({
             "name": service.name,
             "display_name": service.display_name
@@ -20,19 +19,10 @@ function upsertTypes (services, next) {
                 });
             }
         }
-        next();
-    }, function () {
-        const upsertServiceTypes = app.locals.db.setupSqlCommands(sql.upsertServiceTypes(serviceTypes));
-        const upsertServicePermissions = app.locals.db.setupSqlCommands(sql.upsertServiceTypePermissions(servicePermissions));
+    }
 
-        const insertFlow = app.locals.flow([
-            app.locals.flow(upsertServiceTypes, {method: 'parallel'}),
-            app.locals.flow(upsertServicePermissions, {method: 'parallel'})
-        ], {method: 'series'});
-
-        insertFlow(next);
-    });
-
+    await app.locals.db.asyncSqls(sql.upsertServiceTypes(serviceTypes));
+    await app.locals.db.asyncSqls(sql.upsertServiceTypePermissions(servicePermissions));
 }
 
 module.exports = {

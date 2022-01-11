@@ -8,7 +8,6 @@ const path = require('path');
 const config = require('../../settings'); //configuration module
 const log = require(`../../custom/loggers/${config.loggerModule}/index.js`);
 const db = require(`../../custom/databases/${config.dbModule}/index.js`)(log); //pass in the logger module that's loaded
-const flame = require('../../lib/flame-box');
 const hashify = require('../../lib/hashify');
 const arrayify = require('../../lib/arrayify');
 const emailer = require('../../lib/emailer');
@@ -19,11 +18,9 @@ const Cron = require('cron').CronJob;
 app.locals.config = config;
 app.locals.log = log;
 app.locals.db = db;
-app.locals.flow = flame.flow;
 app.locals.hashify = hashify;
 app.locals.arrayify = arrayify;
 app.locals.emailer = emailer;
-app.locals.flame = flame;
 app.locals.version = path.basename(__dirname);
 
 // construct base URL, e.g. "http://localhost:3000"
@@ -117,56 +114,52 @@ function exposeRoutes () {
   app.get('/vehicle-data/type', auth.validateAuth, vehicleData.getValidTypes);
 }
 
-//do not allow routes to be exposed until these async functions are completed
-flame.async.parallel([
-	//certificate expiration check and renewal for both applications and for the module config
-	applications.checkAndUpdateCertificates,
-	moduleConfig.checkAndUpdateCertificate,
-	//get and store permission info from SHAID on startup
-	function (next) {
-		permissions.update(function () {
-			log.info("Permissions updated");
-			next();
-		});
-	},
-	function (next) {
+async function setup () {
+	//do not allow routes to be exposed until these async functions are completed
+	await Promise.all([
+		//certificate expiration check and renewal for both applications and for the module config
+		applications.checkAndUpdateCertificates()
+			.catch(err => {
+				log.error(err);
+			}),
+		moduleConfig.checkAndUpdateCertificate()
+			.catch(err => {
+				log.error(err);
+			}),
+		//get and store permission info from SHAID on startup
+		permissions.update()
+			.catch(err => {
+				log.error(err);
+			}),
 		// get and store app service type info from SHAID on startup
-		services.upsertTypes(function () {
-			log.info("App service types updated");
-			next();
-		});
-	},
-    function (next) {
+		services.upsertTypes()
+			.catch(err => {
+				log.error(err);
+			}),
 		//get and store app categories from SHAID on startup
-		applications.queryAndStoreCategories(function() {
-			log.info('App categories updated');
-			next();
-		});
-	},
-	function (next) {
+		applications.queryAndStoreCategories()
+			.catch(err => {
+				log.error(err);
+			}),
 		//get and store language code info from the GitHub SDL RPC specification on startup
-		messages.updateLanguages(function () {
-			log.info("Language list updated");
-			next();
-		});
-	},
-	function (next) {
+		messages.updateLanguages()
+			.catch(err => {
+				log.error(err);
+			}),
 		//get and store app info from SHAID on startup
-		applications.queryAndStoreApplicationsFlow({}, false)(function () {
-			log.info("App information updated");
-			next();
-		});
-	},
-	function(next) {
-		vehicleData.updateRpcSpec(function() {
-            log.info("RPC Spec updated");
-            next();
-		});
-	},
-], function () {
+		applications.queryAndStoreApplications({}, false)
+			.catch(err => {
+				log.error(err);
+			}),
+		vehicleData.updateRpcSpec()
+			.catch(err => {
+				log.error(err);
+			}),
+	]);
 	log.info("Start up complete. Exposing routes.");
 	exposeRoutes();
-});
+}
+setup();
 
 //cron job for running updates. runs once a day at midnight
 new Cron('00 00 00 * * *', permissions.update, null, true);

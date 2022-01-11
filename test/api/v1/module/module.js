@@ -44,7 +44,7 @@ common.post(
     {
         preloaded_pt: true,
         exchange_after_x_ignition_cycles: 20,
-        exchange_after_x_kilometers: 777,
+        exchange_after_x_kilometers: 200,
         exchange_after_x_days: 30,
         timeout_after_x_seconds: 15,
         seconds_between_retries: [ 10, 30, 90 ],
@@ -65,7 +65,17 @@ common.post(
             VOICECOM: 5,
             COMMUNICATION: 5,
             NORMAL: 5,
-            NONE: 0
+            NONE: 0,
+            PROJECTION: 10
+        },
+        subtle_notifications_per_minute_by_priority: {
+            EMERGENCY: 60,
+            NAVIGATION: 5,
+            VOICECOM: 5,
+            COMMUNICATION: 5,
+            NORMAL: 5,
+            NONE: 0,
+            PROJECTION: 10
         },
         lock_screen_dismissal_enabled: true
     },

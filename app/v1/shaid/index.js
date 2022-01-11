@@ -3,8 +3,6 @@ const shaidkit = require('shaidkit');
 const config = require('../../../settings.js');
 const package = require('../../../package.json');
 const app = require('../app');
-const flow = app.locals.flow;
-const flame = app.locals.flame;
 
 //a constant that informs the policy server the maximum number of apps returned at once from SHAID
 const MAX_APPLICATION_QUERY = 50;
@@ -23,32 +21,38 @@ if (process.env.SHAID_URL) {
 const shaid = new shaidkit(shaidInitObj);
 
 const self = module.exports = {
-    getCountries: function (queryObj, next) {
-        shaid.read(shaid.entity.country, queryObj, function (err, res) {
-            next(err, res.data.countries);
+    getCountries: function (queryObj) {
+        return new Promise(resolve => {
+            shaid.read(shaid.entity.country, queryObj, function (err, res) {
+                resolve(res.data.countries);
+            });
         });
     },
-    getCategories: function (queryObj, next) {
-        shaid.read(shaid.entity.category, queryObj, function (err, res) {
-            next(err, res.data.categories);
+    getCategories: function (queryObj) {
+        return new Promise(resolve => {
+            shaid.read(shaid.entity.category, queryObj, function (err, res) {
+                resolve(res.data.categories);
+            });
         });
     },
-    setApplicationApprovalVendor: function(applications, next) {
-        if(!Array.isArray(applications)){
+    setApplicationApprovalVendor: function (applications) {
+        if (!Array.isArray(applications)) {
             applications = [applications];
         }
 
-        shaid.update(
-            shaid.entity["application/approval/vendor"],
-            {
-                "applications": applications
-            },
-            function (err, res) {
-                next(err, null);
-            }
-        );
+        return new Promise(resolve => {
+            shaid.update(
+                shaid.entity["application/approval/vendor"],
+                {
+                    "applications": applications
+                },
+                function (err, res) {
+                    resolve(null);
+                }
+            );
+        });
     },
-    getApplications: function (queryObj, next) {
+    getApplications: function (queryObj) {
         //enforce limits if they do not already exist
         let enforcedLimit;
         if (queryObj.limit !== undefined && queryObj.limit <= MAX_APPLICATION_QUERY) {
@@ -61,49 +65,53 @@ const self = module.exports = {
 
         let apps = []; //the total apps when readRecurse finishes
 
-        readRecurse();
-        function readRecurse () {
-            //read the applications
-            shaid.read(shaid.entity.application, queryObj, function (err, res) {
-                const appsInQuery = res.data.applications;
-                apps = apps.concat(appsInQuery); //add to the total apps found
+        return new Promise(resolve => {
+            readRecurse();
+            function readRecurse () {
+                //read the applications
+                shaid.read(shaid.entity.application, queryObj, function (err, res) {
+                    const appsInQuery = res.data.applications;
+                    apps = apps.concat(appsInQuery); //add to the total apps found
 
-                if (appsInQuery.length === enforcedLimit) {
-                    //got max apps back. this could mean there are more we need to get
-                    if (queryObj.offset === undefined) {
-                        queryObj.offset = 0;
+                    if (appsInQuery.length === enforcedLimit) {
+                        //got max apps back. this could mean there are more we need to get
+                        if (queryObj.offset === undefined) {
+                            queryObj.offset = 0;
+                        }
+                        queryObj.offset += enforcedLimit; //increase the offset
+                        readRecurse();
                     }
-                    queryObj.offset += enforcedLimit; //increase the offset
-                    readRecurse();
-                }
-                else { //got all the rest of the apps back
-                    next(null, apps);
-                }
-            });
-        }
+                    else { //got all the rest of the apps back
+                        resolve(apps);
+                    }
+                });
+            }
+        });
     },
-    getPermissions: function (queryObj, callback) {
-        shaid.read(shaid.entity.permission, queryObj, function (err, res) {
-            //parse through the first array of objects and extract just the permissions
-            let permissions = [];
+    getPermissions: function (queryObj) {
+        return new Promise(resolve => {
+            shaid.read(shaid.entity.permission, queryObj, function (err, res) {
+                //parse through the first array of objects and extract just the permissions
+                let permissions = [];
 
-            flame.async.map(res.data.permission_categories, function (permissionBlock, next) {
-                for (let j = 0; j < permissionBlock.permissions.length; j++) {
-                    permissions.push(permissionBlock.permissions[j]);
-                }
-                next();
-            }, function () {
-                callback(null, permissions);
+                res.data.permission_categories.forEach(permissionBlock => {
+                    for (let j = 0; j < permissionBlock.permissions.length; j++) {
+                        permissions.push(permissionBlock.permissions[j]);
+                    }
+                });
+                resolve(permissions);
             });
         });
     },
-    getServices: function(queryObj, callback) {
-        shaid.read(
-            shaid.entity.service,
-            queryObj,
-            function (err, res) {
-                callback(err, res.data.services);
-            }
-        );
+    getServices: function(queryObj) {
+        return new Promise(resolve => {
+            shaid.read(
+                shaid.entity.service,
+                queryObj,
+                function (err, res) {
+                    resolve(res.data.services);
+                }
+            );
+        });
     }
 };

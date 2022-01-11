@@ -1,14 +1,11 @@
 const check = require('check-types');
 const app = require('../app');
 const model = require('./model.js');
-const setupSql = app.locals.db.setupSqlCommand;
+const asyncSql = app.locals.db.asyncSql;
 const sql = require('./sql.js');
-const flow = app.locals.flow;
-const flame = app.locals.flame;
 const log = app.locals.log;
 const db = app.locals.db;
 const config = app.locals.config;
-const async = require('async');
 const certificates = require('../certificates/controller.js');
 const certUtil = require('../helpers/certificates.js');
 
@@ -103,118 +100,93 @@ function validateWebHook (req, res) {
 //helper functions
 
 //gets back app information depending on the filters passed in
-function createAppInfoFlow (filterTypeFunc, value) {
-	const getAppFlow = app.locals.flow({
-		appBase: setupSql.bind(null, sql.getApp.base[filterTypeFunc](value)),
-		appCountries: setupSql.bind(null, sql.getApp.countries[filterTypeFunc](value)),
-		appDisplayNames: setupSql.bind(null, sql.getApp.displayNames[filterTypeFunc](value)),
-		appPermissions: setupSql.bind(null, sql.getApp.permissions[filterTypeFunc](value)),
-        appCategories: setupSql.bind(null, sql.getApp.category[filterTypeFunc](value)),
-		appAllCategories: setupSql.bind(null, sql.getApp.allCategories[filterTypeFunc](value)),
-		appServiceTypes: setupSql.bind(null, sql.getApp.serviceTypes[filterTypeFunc](value)),
-		appServiceTypeNames: setupSql.bind(null, sql.getApp.serviceTypeNames[filterTypeFunc](value)),
-		appServiceTypePermissions: setupSql.bind(null, sql.getApp.serviceTypePermissions[filterTypeFunc](value)),
-		appAutoApprovals: setupSql.bind(null, sql.getApp.autoApproval[filterTypeFunc](value)),
-		appBlacklist: setupSql.bind(null, sql.getApp.blacklist[filterTypeFunc](value)),
-		appAdministrators: setupSql.bind(null, sql.getApp.administrators[filterTypeFunc](value)),
-		appHybridPreference: setupSql.bind(null, sql.getApp.hybridPreference[filterTypeFunc](value)),
-		appPassthrough: setupSql.bind(null, sql.getApp.passthrough[filterTypeFunc](value))
-	}, {method: 'parallel', eventLoop: true});
+async function createAppInfoFlow (filterTypeFunc, value) {
+	const getAppObj = {
+		appBase: asyncSql(sql.getApp.base[filterTypeFunc](value)),
+		appCountries: asyncSql(sql.getApp.countries[filterTypeFunc](value)),
+		appDisplayNames: asyncSql(sql.getApp.displayNames[filterTypeFunc](value)),
+		appPermissions: asyncSql(sql.getApp.permissions[filterTypeFunc](value)),
+        appCategories: asyncSql(sql.getApp.category[filterTypeFunc](value)),
+		appAllCategories: asyncSql(sql.getApp.allCategories[filterTypeFunc](value)),
+		appServiceTypes: asyncSql(sql.getApp.serviceTypes[filterTypeFunc](value)),
+		appServiceTypeNames: asyncSql(sql.getApp.serviceTypeNames[filterTypeFunc](value)),
+		appServiceTypePermissions: asyncSql(sql.getApp.serviceTypePermissions[filterTypeFunc](value)),
+		appAutoApprovals: asyncSql(sql.getApp.autoApproval[filterTypeFunc](value)),
+		appBlacklist: asyncSql(sql.getApp.blacklist[filterTypeFunc](value)),
+		appAdministrators: asyncSql(sql.getApp.administrators[filterTypeFunc](value)),
+		appHybridPreference: asyncSql(sql.getApp.hybridPreference[filterTypeFunc](value)),
+		appPassthrough: asyncSql(sql.getApp.passthrough[filterTypeFunc](value))
+	};
 
-	return app.locals.flow([getAppFlow, model.constructFullAppObjs], {method: "waterfall", eventLoop: true});
+    for (let prop in getAppObj) {
+        getAppObj[prop] = await getAppObj[prop]; // resolve all promises into each property
+    }
+
+	return model.constructFullAppObjs(getAppObj);
 }
 
-function storeCategories(categories, callback) {
-    const upsertCats = app.locals.db.setupSqlCommands(sql.upsertCategories(categories));
-
-    const insertFlow = app.locals.flow([
-        app.locals.flow(upsertCats, {method: 'parallel'})
-    ], {method: 'series'});
-
-    insertFlow(callback);
+async function storeCategories (categories) {
+    await app.locals.db.asyncSqls(sql.upsertCategories(categories));
 }
 
 //application store functions
 
-function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
-    let queue = [];
-    function recStore(includeApprovalStatus, theseApps, cb){
-        const fullFlow = flow([
-            //first check if the apps need to be deleted from or stored in the database
-            flow(flame.map(theseApps, checkNeedsInsertionOrDeletion), {method: "parallel"}),
-            filterApps.bind(null, includeApprovalStatus),
-            //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
-            //should change to be accepted
-            function (appObjs, next) {
-                flame.async.map(appObjs, autoApprovalModifier, next);
-            },
-			function (appObjs, next) {
-				flame.async.map(appObjs, autoBlacklistModifier, next);
-			},
-            function (appObjs, next) {
-                flame.async.map(appObjs, model.storeApp.bind(null, notifyOEM), next);
-            }
-        ], {method: "waterfall", eventLoop: true});
+async function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
 
-        fullFlow(function (err, res) {
-            if (err) {
-                log.error(err);
-                // res returns an array with the app ID in the position that it was in in the shaid app query
-                // if the third app were to fail, then res would look like [ , , appID]
-                let appID = res[res.length - 1];
-                if(appID && queue[queue.length - 1] !== appID){ // ensures that the appID is not null and not already in the queue
-                    queue.push(appID);
-                }
-                if(res.length !== theseApps.length){
-                    let appsLeftover = theseApps.slice(res.length);
-                    return recStore(includeApprovalStatus, appsLeftover, cb);
-                }
-            }
-            cb();
-        });
+    async function recStore (includeApprovalStatus, theseApps) {
+        //first check if the apps need to be deleted from or stored in the database
+        const appResults = await Promise.all(theseApps.map(checkNeedsInsertionOrDeletion));
+        let appObjs = await filterApps(includeApprovalStatus, appResults);
+
+        //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
+        //should change to be accepted
+        appObjs = await Promise.all(appObjs.map(autoApprovalModifier));
+        appObjs = await Promise.all(appObjs.map(autoBlacklistModifier));
+
+        const succeededAppIds = (await Promise.allSettled(appObjs.map(model.storeApp.bind(null, notifyOEM)))).map(result => result.value);
+        // return all failed apps to try inserts again later
+        return appObjs.filter((appObj, index) => succeededAppIds[index] === undefined).map(appObj => appObj.uuid);
     }
-    recStore(includeApprovalStatus, apps, function(){
-        callback();
-        if(queue.length > 0){
-            attemptRetry(300000, queue);
-        }
-    });
+
+    const queue = await recStore(includeApprovalStatus, apps);
+
+    if (queue.length > 0) {
+        attemptRetry(300000, queue);
+    }
+    return;
 }
 
 //determine whether the object needs to be deleted or stored in the database
-function checkNeedsInsertionOrDeletion (appObj, next) {
-	if(appObj.deleted_ts){
+async function checkNeedsInsertionOrDeletion (appObj) {
+	if (appObj.deleted_ts) {
 		// delete!
-		db.sqlCommand(sql.purgeAppInfo(appObj), function(err, data){
-			// delete attempt made, skip it!
-			next(null, null);
-		});
-	}else if(appObj.blacklisted_ts){
+        await db.asyncSql(sql.purgeAppInfo(appObj));
+        // delete attempt made, skip it!
+        return null;
+	} else if (appObj.blacklisted_ts) {
 		// blacklist!
-		db.sqlCommand(sql.insertAppBlacklist(appObj), function(err, data){
-			// blacklist attempt made, skip it!
-			next(null, null);
-		});
-	}else{
+		await db.asyncSql(sql.insertAppBlacklist(appObj));
+		// blacklist attempt made, skip it!
+        return null;
+	} else {
 	    // check if the version exists in the database before attempting insertion
 	    const getObjStr = sql.versionCheck('app_info', {
 			app_uuid: appObj.uuid,
 			version_id: appObj.version_id
 		});
-	    db.sqlCommand(getObjStr, function (err, data) {
-			if(data.length > 0){
-				// record exists, skip it!
-				next(null, null);
-			}else{
-				next(null, appObj);
-			}
-	    });
+	    const data = await db.asyncSql(getObjStr);
+		if (data.length > 0) {
+			// record exists, skip it!
+			return null;
+		} else {
+			return appObj;
+		}
 	}
 }
 
 //any elements that are null are removed
 //furthermore, remove approval status here if necessary
-function filterApps (includeApprovalStatus, appObjs, next) {
+async function filterApps (includeApprovalStatus, appObjs) {
     let filtered = appObjs.filter(function (appObj) {
         return appObj !== null;
     });
@@ -226,130 +198,113 @@ function filterApps (includeApprovalStatus, appObjs, next) {
         }
         return appObj;
     });
-    next(null, filtered);
+    return filtered;
 }
 
 //auto changes any app's approval status to ACCEPTED if a record was found for that app's uuid in the auto approval table
-function autoApprovalModifier (appObj, next) {
-
+async function autoApprovalModifier (appObj) {
 	// check if auto-approve *all apps* is enabled
-	if(config.autoApproveAllApps){
+	if (config.autoApproveAllApps) {
 		appObj.approval_status = 'ACCEPTED';
 		appObj.encryption_required = config.autoApproveSetRPCEncryption;
-		next(null, appObj);
-		return;
+		return appObj;
 	}
 
 	// check if auto-approve this specific app is enabled
-    db.sqlCommand(sql.checkAutoApproval(appObj.uuid), function (err, res) {
-        //if res is not an empty array, then a record was found in the app_auto_approval table
-        //change the status of this appObj to ACCEPTED
-        if (res.length > 0) {
-            appObj.approval_status = 'ACCEPTED';
-			appObj.encryption_required = config.autoApproveSetRPCEncryption;
-        }
-        next(null, appObj);
-    });
+    const res = await db.asyncSql(sql.checkAutoApproval(appObj.uuid));
+    //if res is not an empty array, then a record was found in the app_auto_approval table
+    //change the status of this appObj to ACCEPTED
+    if (res.length > 0) {
+        appObj.approval_status = 'ACCEPTED';
+		appObj.encryption_required = config.autoApproveSetRPCEncryption;
+    }
+    return appObj;
 }
 
 // Auto deny new application versions of an app that is blacklisted
-function autoBlacklistModifier (appObj, next) {
-	db.sqlCommand(sql.getBlacklistedAppFullUuids(appObj.uuid), function (err, res) {
-		if (res.length > 0) {
-			appObj.approval_status = 'LIMITED';
-		}
-		next(null, appObj);
-	});
+async function autoBlacklistModifier (appObj) {
+	const res = await db.asyncSql(sql.getBlacklistedAppFullUuids(appObj.uuid));
+
+	if (res.length > 0) {
+		appObj.approval_status = 'LIMITED';
+	}
+    return appObj;
 }
 
 // checks a retry queue of app IDs to requery their information from SHAID and attempt insertion into the database
-function attemptRetry(milliseconds, retryQueue){
-    if(milliseconds > 14400000){ // do not take longer than 4 hours
+function attemptRetry (milliseconds, retryQueue) {
+    if (milliseconds > 14400000) { // do not take longer than 4 hours
         milliseconds = 14400000;
     }
     log.error("Received app with incorrectly formatted info, will attempt to requery SHAID in " + (milliseconds / 60000) + " minutes");
-    setTimeout(function(){
-        flame.async.map(retryQueue, function(appID, callback){
-            flame.async.waterfall([
-                app.locals.shaid.getApplications.bind(null, {
-                    "uuid": appID,
-					"include_deleted": true,
-					"include_blacklisted": true
-                }),
-                function(apps, callback){
-                    const fullFlow = flow([
-                        //first check if the apps need to be stored in the database
-                        flow(flame.map(apps, checkNeedsInsertionOrDeletion), {method: "parallel"}),
-                        filterApps.bind(null, false),
-                        //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
-                        //should change to be accepted
-                        function (appObjs, callback) {
-                            flame.async.map(appObjs, autoApprovalModifier, callback);
-                        },
-						function (appObjs, callback) {
-							flame.async.map(appObjs, autoBlacklistModifier, callback);
-						},
-                        function (appObjs, callback) {
-                            flame.async.map(appObjs, model.storeApp.bind(null, true), callback);
-                        }
-                    ], {method: "waterfall", eventLoop: true});
-                    fullFlow(function (err, res) {
-                        if (err) {
-                            log.error(err);
-                            // increase wait time for retry by a factor of 5
-                            attemptRetry(milliseconds * 5, res, callback);
-                        } else {
-                            log.info("App with previously malformed data successfully stored");
-                            callback();
-                        }
-                    })
-                }
-            ], callback);
-        }, function(){
-            log.info("Apps in retry queue successfully added to the database");
+    
+    setTimeout(async function () {
+        const appGetPromises = retryQueue.map(async appID => {
+            return app.locals.shaid.getApplications({
+                "uuid": appID,
+                "include_deleted": true,
+                "include_blacklisted": true
+            });
         });
+
+        const appArrays = await Promise.all(appGetPromises);
+        let apps = [];
+
+        appArrays.forEach(array => {
+            apps = apps.concat(array);
+        });
+
+        //first check if the apps need to be deleted from or stored in the database
+        const appResults = await Promise.all(apps.map(checkNeedsInsertionOrDeletion));
+
+        let appObjs = await filterApps(false, appResults);
+        //each app surviving the filter should be checked with the app_auto_approval table to see if it its status
+        //should change to be accepted
+        appObjs = await Promise.all(appObjs.map(autoApprovalModifier));
+        appObjs = await Promise.all(appObjs.map(autoBlacklistModifier));
+
+        const succeededAppIds = (await Promise.allSettled(appObjs.map(model.storeApp.bind(null, true)))).map(result => result.value);
+        const failedAppIds = appObjs.filter((appObj, index) => succeededAppIds[index] === undefined).map(appObj => appObj.uuid);
+        
+        if (failedAppIds.length > 0) {
+            // increase wait time for retry by a factor of 5
+            attemptRetry(milliseconds * 5, failedAppIds);
+        } else {
+            log.info("App with previously malformed data successfully stored");
+        }
     }, milliseconds);
 }
 
-function storeAppCertificates (insertObjs, next) {
-	app.locals.db.runAsTransaction(function (client, callback) {
-		async.mapSeries(insertObjs, function (insertObj, cb) {
-			app.locals.log.info("Updating certificate of " + insertObj.app_uuid);
-            model.updateAppCertificate(insertObj.app_uuid, insertObj.certificate, cb);
-		}, callback);
-	}, function (err, response) {
-		if(err){
-			app.locals.log.error(err);
-		}
-		app.locals.log.info("App certificates updated");
-		next();
-	});
+async function storeAppCertificates (insertObjs) {
+    await app.locals.db.asyncTransaction(async client => {
+        for (const insertObj of insertObjs) {
+            app.locals.log.info("Updating certificate of " + insertObj.app_uuid);
+            await model.updateAppCertificate(insertObj.app_uuid, insertObj.certificate);
+        }
+    }).catch(err => {
+        app.locals.log.error(err);
+    });
+
+    app.locals.log.info("App certificates updated");
 }
 
-function createFailedAppsCert(failedApp, next){
+async function createFailedAppsCert (failedApp, next) {
 	let options = certificates.getCertificateOptions({
 		serialNumber: failedApp.app_uuid,
 		clientKey: failedApp.private_key
 	});
 
-	certificates.createCertificateFlow(options, function(err, keyBundle){
-		if(err){
-			return next(err, {});
-		}
-        certUtil.createKeyCertBundle(keyBundle.clientKey, keyBundle.certificate)
-            .then(keyCertBundle => {
-                next(null, {
-                    app_uuid: failedApp.app_uuid,
-                    certificate: keyCertBundle
-                });
-            })
-            .catch(err => {
-                next(err)
-            });
-	});
+	const keyBundle = await certificates.asyncCreateCertificate(options);
+
+    const keyCertBundle = await certUtil.createKeyCertBundle(keyBundle.clientKey, keyBundle.certificate);
+    
+    return {
+        app_uuid: failedApp.app_uuid,
+        certificate: keyCertBundle
+    }
 }
 
-function appStoreTransformation (min_rpc_version, min_protocol_version, apps, next) {
+function appStoreTransformation (min_rpc_version, min_protocol_version, apps) {
     // limit the information that's returned to the caller
     if (min_rpc_version) {
         apps = apps.filter(app => {
@@ -384,7 +339,8 @@ function appStoreTransformation (min_rpc_version, min_protocol_version, apps, ne
                 size_decompressed_bytes: app.size_decompressed_bytes,
             }
         }));
-    next(null, newApps);
+
+    return newApps;
 }
 
 // compares two versions with this syntax: [major, minor, patch]
@@ -430,15 +386,15 @@ function versionCompare (v1, v2) {
 }
 
 module.exports = {
-	  validateActionPost: validateActionPost,
-	  validateAutoPost: validateAutoPost,
-	  validateAdministratorPost: validateAdministratorPost,
-	  validatePassthroughPost: validatePassthroughPost,
-	  validateHybridPost: validateHybridPost,
-	  validateRPCEncryptionPut: validateRPCEncryptionPut,
-	  validateServicePermissionPut: validateServicePermissionPut,
-	  validateFunctionalGroupPut: validateFunctionalGroupPut,
-      validateUpdateAppCertificate: validateUpdateAppCertificate,
+    validateActionPost: validateActionPost,
+    validateAutoPost: validateAutoPost,
+    validateAdministratorPost: validateAdministratorPost,
+    validatePassthroughPost: validatePassthroughPost,
+    validateHybridPost: validateHybridPost,
+    validateRPCEncryptionPut: validateRPCEncryptionPut,
+    validateServicePermissionPut: validateServicePermissionPut,
+    validateFunctionalGroupPut: validateFunctionalGroupPut,
+    validateUpdateAppCertificate: validateUpdateAppCertificate,
     validateWebHook: validateWebHook,
     checkIdIntegerBody: checkIdIntegerBody,
     storeAppCertificates: storeAppCertificates,
