@@ -1,6 +1,5 @@
 //PostgreSQL Communication Module
 const pg = require('pg'); //handles connections to the postgres database
-const async = require('async');
 const sqlBrick = require('sql-bricks-postgres');
 const promisify = require('util').promisify;
 const config = require('../../../settings.js');
@@ -157,6 +156,8 @@ module.exports = function (log) {
             }).catch(err => {
                 // error
                 self.rollback(client, done);
+                // after rolling back, re-throw the error so the server can handle it further if needed
+                throw new Error("Transaction failed.");
             });   
         }
     }

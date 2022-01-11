@@ -4,6 +4,7 @@ var sdlServer = require('../index.js');
 
 function importTest(name, path) {
     describe(name, function() {
+        this.timeout(10000);
         require(path);
     });
 }
