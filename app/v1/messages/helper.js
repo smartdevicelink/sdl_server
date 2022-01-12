@@ -20,6 +20,12 @@ function validatePromote (req, res) {
 
 function validatePost (req, res) {
     //base check
+    if (!check.string(req.body.name) || req.body.name === '') {
+        res.parcel
+            .setStatus(400)
+            .setMessage("Required field for consumer message: name");
+        return;
+    }
     if (!check.array(req.body.messages)) {
         res.parcel
             .setStatus(400)
