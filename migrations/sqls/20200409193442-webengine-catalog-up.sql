@@ -1,7 +1,7 @@
 CREATE TYPE transport_type as enum ('webengine', 'websocket');
 
 ALTER TABLE app_info
-   	ADD COLUMN IF NOT EXISTS min_rpc_version TEXT,
+    ADD COLUMN IF NOT EXISTS min_rpc_version TEXT,
     ADD COLUMN IF NOT EXISTS min_protocol_version TEXT,
     ADD COLUMN IF NOT EXISTS developer_version TEXT,
     ADD COLUMN IF NOT EXISTS package_url TEXT,
