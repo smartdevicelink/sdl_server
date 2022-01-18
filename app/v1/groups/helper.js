@@ -126,10 +126,10 @@ async function getGroupNamesStaging () {
 }
 
 module.exports = {
-	createFuncGroupFlow: createFuncGroupFlow,
-	validatePromote: validatePromote,
-	validatePromptExistence: validatePromptExistence,
-	validateFuncGroup: validateFuncGroup,
+    createFuncGroupFlow: createFuncGroupFlow,
+    validatePromote: validatePromote,
+    validatePromptExistence: validatePromptExistence,
+    validateFuncGroup: validateFuncGroup,
     getGroupNamesStaging: getGroupNamesStaging,
     generateFunctionGroupTemplates: generateFunctionGroupTemplates
 }

@@ -1,7 +1,7 @@
 //Generates the SQL commands necessary to insert this data into the database. For dev use only.
 //load the environment variables from the .env file in the same directory
 require('dotenv').config({
-	path: '../../.env'
+    path: '../../.env'
 });
 const utils = require('../utils.js');
 const sql = require('sql-bricks'); //generates SQL statements to be logged to the console
@@ -11,12 +11,12 @@ const shaid = require('../../lib/shaid'); //module for communicating with SHAID
 
 //CATEGORIES OUTPUT
 shaid.getCategories({}, function (err, res) {
-	const catObjs = res.map(function (category) {
-		return {
-		    id: category.id,
-		    display_name: category.display_name
-		};
-	});
+    const catObjs = res.map(function (category) {
+        return {
+            id: category.id,
+            display_name: category.display_name
+        };
+    });
 
 
     const categoryStatement = catObjs.map(function (category) {
@@ -32,9 +32,9 @@ WHERE NOT EXISTS (
     });
 
     writeToBuffer(categoryStatement.join(''));
-	
-	//write to file and finish
-	utils.writeToFile(outputFileName, outputBuffer);
+    
+    //write to file and finish
+    utils.writeToFile(outputFileName, outputBuffer);
 });
 
 function writeToBuffer (string) {

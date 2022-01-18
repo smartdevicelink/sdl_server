@@ -5,7 +5,7 @@ const encryption = require('../../../customizable/encryption');
 const GET = require('lodash').get;
 
 function postFromCore (isProduction) {
-	return async function (req, res, next) {
+    return async function (req, res, next) {
         // attempt decryption of the policy table if it's defined
         try {
             const policy_table = await new Promise(resolve => {
@@ -26,7 +26,7 @@ function postFromCore (isProduction) {
             app.locals.log.error(err);
             return res.parcel.setStatus(500).deliver();
         }
-	}
+    }
 }
 
 async function getPreview (req, res, next) {
@@ -44,7 +44,7 @@ async function getPreview (req, res, next) {
 
 async function postAppPolicy (req, res, next) {
     const isProduction = !req.query.environment || req.query.environment.toLowerCase() !== 'staging';
-	const useLongUuids = GET(req, "body.policy_table.module_config.full_app_id_supported", false) ? true : false;
+    const useLongUuids = GET(req, "body.policy_table.module_config.full_app_id_supported", false) ? true : false;
     helper.validateAppPolicyOnlyPost(req, res);
     if (res.errorMsg) {
         return res.status(400).send({ error: res.errorMsg });
@@ -61,7 +61,7 @@ async function postAppPolicy (req, res, next) {
 }
 
 function createPolicyTableResponse (res, isProduction, pieces, returnPreview = false) {
-	const policy_table = [
+    const policy_table = [
         {
             policy_table: {
                 module_config: pieces.moduleConfig,

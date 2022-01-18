@@ -18,63 +18,63 @@ function checkIdIntegerBody (req, res) {
 }
 
 function validateActionPost (req, res) {
-	if (!req.body.id || !req.body.approval_status) {
-		res.parcel.setStatus(400).setMessage("Id and approval status required");
-	} else if (req.body.approval_status !== 'PENDING'
-		&& req.body.approval_status !== 'STAGING'
+    if (!req.body.id || !req.body.approval_status) {
+        res.parcel.setStatus(400).setMessage("Id and approval status required");
+    } else if (req.body.approval_status !== 'PENDING'
+        && req.body.approval_status !== 'STAGING'
         && req.body.approval_status !== 'ACCEPTED'
-		&& req.body.approval_status !== 'LIMITED') {
-			res.parcel.setStatus(400).setMessage("Invalid approval status value");
-	}
-	return;
+        && req.body.approval_status !== 'LIMITED') {
+            res.parcel.setStatus(400).setMessage("Invalid approval status value");
+    }
+    return;
 }
 
 function validateServicePermissionPut (req, res) {
-	if (!req.body.id || !check.boolean(req.body.is_selected) || !check.string(req.body.service_type_name) || !check.string(req.body.permission_name)) {
-		res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name are required");
-	}
+    if (!req.body.id || !check.boolean(req.body.is_selected) || !check.string(req.body.service_type_name) || !check.string(req.body.permission_name)) {
+        res.parcel.setStatus(400).setMessage("id, is_selected, service_type_name, and permission_name are required");
+    }
     return;
 }
 
 function validateFunctionalGroupPut (req, res) {
-	if (!req.body.app_id || !check.boolean(req.body.is_selected) || !check.string(req.body.property_name)) {
-		res.parcel.setStatus(400).setMessage("app_id, is_selected, and property_name are required");
-	}
+    if (!req.body.app_id || !check.boolean(req.body.is_selected) || !check.string(req.body.property_name)) {
+        res.parcel.setStatus(400).setMessage("app_id, is_selected, and property_name are required");
+    }
     return;
 }
 
 function validateHybridPost (req, res) {
-	if (!check.string(req.body.uuid) || !check.includes(["CLOUD","MOBILE","BOTH"], req.body.hybrid_preference)) {
-		res.parcel.setStatus(400).setMessage("uuid and a valid hybrid_preference are required");
-	}
+    if (!check.string(req.body.uuid) || !check.includes(["CLOUD","MOBILE","BOTH"], req.body.hybrid_preference)) {
+        res.parcel.setStatus(400).setMessage("uuid and a valid hybrid_preference are required");
+    }
     return;
 }
 
 function validateAutoPost (req, res) {
-	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_auto_approved_enabled)) {
-		res.parcel.setStatus(400).setMessage("Uuid and auto approved required");
-	}
+    if (!check.string(req.body.uuid) || !check.boolean(req.body.is_auto_approved_enabled)) {
+        res.parcel.setStatus(400).setMessage("Uuid and auto approved required");
+    }
     return;
 }
 
 function validateRPCEncryptionPut (req, res) {
-	if (!req.body.id || !check.boolean(req.body.encryption_required)) {
-		res.parcel.setStatus(400).setMessage("id and encryption_required required");
-	}
+    if (!req.body.id || !check.boolean(req.body.encryption_required)) {
+        res.parcel.setStatus(400).setMessage("id and encryption_required required");
+    }
     return;
 }
 
 function validateAdministratorPost (req, res) {
-	if (!check.string(req.body.uuid) || !check.boolean(req.body.is_administrator_app)) {
-		res.parcel.setStatus(400).setMessage("uuid and is_administrator_app required");
-	}
+    if (!check.string(req.body.uuid) || !check.boolean(req.body.is_administrator_app)) {
+        res.parcel.setStatus(400).setMessage("uuid and is_administrator_app required");
+    }
     return;
 }
 
 function validatePassthroughPost (req, res) {
-	if (!check.string(req.body.uuid) || !check.boolean(req.body.allow_unknown_rpc_passthrough)) {
-		res.parcel.setStatus(400).setMessage("uuid and allow_unknown_rpc_passthrough required");
-	}
+    if (!check.string(req.body.uuid) || !check.boolean(req.body.allow_unknown_rpc_passthrough)) {
+        res.parcel.setStatus(400).setMessage("uuid and allow_unknown_rpc_passthrough required");
+    }
     return;
 }
 
@@ -90,39 +90,39 @@ function validateUpdateAppCertificate (req, res) {
 }
 
 function validateWebHook (req, res) {
-	if(req.headers["public_key"] != app.locals.config.shaidPublicKey){
-		// request cannot be verified as authentic
+    if(req.headers["public_key"] != app.locals.config.shaidPublicKey){
+        // request cannot be verified as authentic
         res.parcel.setStatus(401).setMessage("Unable to validate webhook with SHAID public key");
-	}
-	return;
+    }
+    return;
 }
 
 //helper functions
 
 //gets back app information depending on the filters passed in
 async function createAppInfoFlow (filterTypeFunc, value) {
-	const getAppObj = {
-		appBase: asyncSql(sql.getApp.base[filterTypeFunc](value)),
-		appCountries: asyncSql(sql.getApp.countries[filterTypeFunc](value)),
-		appDisplayNames: asyncSql(sql.getApp.displayNames[filterTypeFunc](value)),
-		appPermissions: asyncSql(sql.getApp.permissions[filterTypeFunc](value)),
+    const getAppObj = {
+        appBase: asyncSql(sql.getApp.base[filterTypeFunc](value)),
+        appCountries: asyncSql(sql.getApp.countries[filterTypeFunc](value)),
+        appDisplayNames: asyncSql(sql.getApp.displayNames[filterTypeFunc](value)),
+        appPermissions: asyncSql(sql.getApp.permissions[filterTypeFunc](value)),
         appCategories: asyncSql(sql.getApp.category[filterTypeFunc](value)),
-		appAllCategories: asyncSql(sql.getApp.allCategories[filterTypeFunc](value)),
-		appServiceTypes: asyncSql(sql.getApp.serviceTypes[filterTypeFunc](value)),
-		appServiceTypeNames: asyncSql(sql.getApp.serviceTypeNames[filterTypeFunc](value)),
-		appServiceTypePermissions: asyncSql(sql.getApp.serviceTypePermissions[filterTypeFunc](value)),
-		appAutoApprovals: asyncSql(sql.getApp.autoApproval[filterTypeFunc](value)),
-		appBlacklist: asyncSql(sql.getApp.blacklist[filterTypeFunc](value)),
-		appAdministrators: asyncSql(sql.getApp.administrators[filterTypeFunc](value)),
-		appHybridPreference: asyncSql(sql.getApp.hybridPreference[filterTypeFunc](value)),
-		appPassthrough: asyncSql(sql.getApp.passthrough[filterTypeFunc](value))
-	};
+        appAllCategories: asyncSql(sql.getApp.allCategories[filterTypeFunc](value)),
+        appServiceTypes: asyncSql(sql.getApp.serviceTypes[filterTypeFunc](value)),
+        appServiceTypeNames: asyncSql(sql.getApp.serviceTypeNames[filterTypeFunc](value)),
+        appServiceTypePermissions: asyncSql(sql.getApp.serviceTypePermissions[filterTypeFunc](value)),
+        appAutoApprovals: asyncSql(sql.getApp.autoApproval[filterTypeFunc](value)),
+        appBlacklist: asyncSql(sql.getApp.blacklist[filterTypeFunc](value)),
+        appAdministrators: asyncSql(sql.getApp.administrators[filterTypeFunc](value)),
+        appHybridPreference: asyncSql(sql.getApp.hybridPreference[filterTypeFunc](value)),
+        appPassthrough: asyncSql(sql.getApp.passthrough[filterTypeFunc](value))
+    };
 
     for (let prop in getAppObj) {
         getAppObj[prop] = await getAppObj[prop]; // resolve all promises into each property
     }
 
-	return model.constructFullAppObjs(getAppObj);
+    return model.constructFullAppObjs(getAppObj);
 }
 
 async function storeCategories (categories) {
@@ -158,30 +158,30 @@ async function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
 
 //determine whether the object needs to be deleted or stored in the database
 async function checkNeedsInsertionOrDeletion (appObj) {
-	if (appObj.deleted_ts) {
-		// delete!
+    if (appObj.deleted_ts) {
+        // delete!
         await db.asyncSql(sql.purgeAppInfo(appObj));
         // delete attempt made, skip it!
         return null;
-	} else if (appObj.blacklisted_ts) {
-		// blacklist!
-		await db.asyncSql(sql.insertAppBlacklist(appObj));
-		// blacklist attempt made, skip it!
+    } else if (appObj.blacklisted_ts) {
+        // blacklist!
+        await db.asyncSql(sql.insertAppBlacklist(appObj));
+        // blacklist attempt made, skip it!
         return null;
-	} else {
-	    // check if the version exists in the database before attempting insertion
-	    const getObjStr = sql.versionCheck('app_info', {
-			app_uuid: appObj.uuid,
-			version_id: appObj.version_id
-		});
-	    const data = await db.asyncSql(getObjStr);
-		if (data.length > 0) {
-			// record exists, skip it!
-			return null;
-		} else {
-			return appObj;
-		}
-	}
+    } else {
+        // check if the version exists in the database before attempting insertion
+        const getObjStr = sql.versionCheck('app_info', {
+            app_uuid: appObj.uuid,
+            version_id: appObj.version_id
+        });
+        const data = await db.asyncSql(getObjStr);
+        if (data.length > 0) {
+            // record exists, skip it!
+            return null;
+        } else {
+            return appObj;
+        }
+    }
 }
 
 //any elements that are null are removed
@@ -203,31 +203,31 @@ async function filterApps (includeApprovalStatus, appObjs) {
 
 //auto changes any app's approval status to ACCEPTED if a record was found for that app's uuid in the auto approval table
 async function autoApprovalModifier (appObj) {
-	// check if auto-approve *all apps* is enabled
-	if (config.autoApproveAllApps) {
-		appObj.approval_status = 'ACCEPTED';
-		appObj.encryption_required = config.autoApproveSetRPCEncryption;
-		return appObj;
-	}
+    // check if auto-approve *all apps* is enabled
+    if (config.autoApproveAllApps) {
+        appObj.approval_status = 'ACCEPTED';
+        appObj.encryption_required = config.autoApproveSetRPCEncryption;
+        return appObj;
+    }
 
-	// check if auto-approve this specific app is enabled
+    // check if auto-approve this specific app is enabled
     const res = await db.asyncSql(sql.checkAutoApproval(appObj.uuid));
     //if res is not an empty array, then a record was found in the app_auto_approval table
     //change the status of this appObj to ACCEPTED
     if (res.length > 0) {
         appObj.approval_status = 'ACCEPTED';
-		appObj.encryption_required = config.autoApproveSetRPCEncryption;
+        appObj.encryption_required = config.autoApproveSetRPCEncryption;
     }
     return appObj;
 }
 
 // Auto deny new application versions of an app that is blacklisted
 async function autoBlacklistModifier (appObj) {
-	const res = await db.asyncSql(sql.getBlacklistedAppFullUuids(appObj.uuid));
+    const res = await db.asyncSql(sql.getBlacklistedAppFullUuids(appObj.uuid));
 
-	if (res.length > 0) {
-		appObj.approval_status = 'LIMITED';
-	}
+    if (res.length > 0) {
+        appObj.approval_status = 'LIMITED';
+    }
     return appObj;
 }
 
@@ -289,12 +289,12 @@ async function storeAppCertificates (insertObjs) {
 }
 
 async function createFailedAppsCert (failedApp, next) {
-	let options = certificates.getCertificateOptions({
-		serialNumber: failedApp.app_uuid,
-		clientKey: failedApp.private_key
-	});
+    let options = certificates.getCertificateOptions({
+        serialNumber: failedApp.app_uuid,
+        clientKey: failedApp.private_key
+    });
 
-	const keyBundle = await certificates.asyncCreateCertificate(options);
+    const keyBundle = await certificates.asyncCreateCertificate(options);
 
     const keyCertBundle = await certUtil.createKeyCertBundle(keyBundle.clientKey, keyBundle.certificate);
     

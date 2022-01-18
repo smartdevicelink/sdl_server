@@ -61,8 +61,8 @@ async function postStaging (req, res, next) {
 async function promoteIds (req, res, next) {
     helper.validatePromote(req, res);
     if (res.parcel.message) {
-		return res.parcel.deliver();
-	}
+        return res.parcel.deliver();
+    }
     //make sure the data in id is an array in the end
     if (check.number(req.body.id)) {
         req.body.id = [req.body.id];

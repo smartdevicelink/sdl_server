@@ -15,7 +15,7 @@ const outputFileName = 'output.log'; //the name of the output file
 //DO NOT USE. PERMISSION DEFINITIONS NOW RECEIVED THROUGH SHAID
 /*
 const permissionStatement = permissions.permissionNames.map(function (permission) {
-	return `
+    return `
 INSERT INTO permissions (name, type)
 SELECT '${permission.name}' AS name, '${permission.type}' AS type
 WHERE NOT EXISTS (
@@ -31,15 +31,15 @@ writeToBuffer(permissionStatement.join(''));
 //FUNCTION GROUP INFO OUTPUT
 const funcGroupNames = Object.keys(funcGroups);
 const funcGroupInfoStatement = funcGroupNames.map(function (funcGroupName) {
-	const funcGroupObj = funcGroups[funcGroupName];
-	const alwaysAllowed = functionGroupInfo.alwaysAllowedObj[funcGroupName];
-	if (funcGroupObj.user_consent_prompt === undefined) {
-		funcGroupObj.user_consent_prompt = null;
-	}
-	else { //manually add quotes around the string
-		funcGroupObj.user_consent_prompt = "'" + funcGroupObj.user_consent_prompt + "'";
-	}
-	return `
+    const funcGroupObj = funcGroups[funcGroupName];
+    const alwaysAllowed = functionGroupInfo.alwaysAllowedObj[funcGroupName];
+    if (funcGroupObj.user_consent_prompt === undefined) {
+        funcGroupObj.user_consent_prompt = null;
+    }
+    else { //manually add quotes around the string
+        funcGroupObj.user_consent_prompt = "'" + funcGroupObj.user_consent_prompt + "'";
+    }
+    return `
 INSERT INTO function_group_info (property_name, user_consent_prompt, is_default, status)
 SELECT '${funcGroupName}' AS property_name, ${funcGroupObj.user_consent_prompt} AS user_consent_prompt, '${alwaysAllowed}' AS is_default, 'PRODUCTION' AS status
 WHERE NOT EXISTS (
@@ -57,7 +57,7 @@ writeToBuffer(funcGroupInfoStatement.join(''));
 /*
 const relationStatement = permissions.permissionRelations.map(function (permRelation) {
 
-	return `
+    return `
 INSERT INTO permission_relations (child_permission_name, parent_permission_name)
 SELECT '${permRelation.child_permission_name}' AS child_permission_name, '${permRelation.parent_permission_name}' AS parent_permission_name
 WHERE NOT EXISTS (
@@ -79,33 +79,33 @@ let functionGroupHmiLevels = [];
 let functionGroupParameters = [];
 
 for (let i = 0; i < funcGroupNames.length; i++) {
-	const funcGroupObj = funcGroups[funcGroupNames[i]];
-	const rpcObjs = funcGroupObj.rpcs;
-	let vehicleParameterPermissions = {};
+    const funcGroupObj = funcGroups[funcGroupNames[i]];
+    const rpcObjs = funcGroupObj.rpcs;
+    let vehicleParameterPermissions = {};
 
-	for (let rpcName in rpcObjs) {
-		const hmiLevels = rpcObjs[rpcName].hmi_levels;
-		const parameters = rpcObjs[rpcName].parameters;
-		funcGroupPermissions.push({
-			groupName: funcGroupNames[i],
-			permissionName: rpcName
-		});
-		addHmiLevels(functionGroupHmiLevels, funcGroupNames[i], rpcName, hmiLevels);
-		if (parameters && parameters.length) {
-			const addParameterPermissions = setupContext(funcGroupNames[i], rpcName);
-			addParameterPermissions(vehicleParameterPermissions, parameters);
-		}
-	}	
-	for (let permissionName in vehicleParameterPermissions) {
-		funcGroupPermissions.push({
-			groupName: funcGroupNames[i],
-			permissionName: permissionName
-		});
-	}
+    for (let rpcName in rpcObjs) {
+        const hmiLevels = rpcObjs[rpcName].hmi_levels;
+        const parameters = rpcObjs[rpcName].parameters;
+        funcGroupPermissions.push({
+            groupName: funcGroupNames[i],
+            permissionName: rpcName
+        });
+        addHmiLevels(functionGroupHmiLevels, funcGroupNames[i], rpcName, hmiLevels);
+        if (parameters && parameters.length) {
+            const addParameterPermissions = setupContext(funcGroupNames[i], rpcName);
+            addParameterPermissions(vehicleParameterPermissions, parameters);
+        }
+    }   
+    for (let permissionName in vehicleParameterPermissions) {
+        funcGroupPermissions.push({
+            groupName: funcGroupNames[i],
+            permissionName: permissionName
+        });
+    }
 }
 /*
 const funcGroupPermissionStatement = funcGroupPermissions.map(function (obj) {
-	return `
+    return `
 INSERT INTO function_group_permissions(function_group_id, permission_name)
 SELECT fgi.id AS function_group_id, ${obj.permissionName} AS permission_name
 FROM function_group_info fgi
@@ -125,7 +125,7 @@ writeToBuffer(funcGroupPermissionStatement.join(''));
 */
 //FUNCTION GROUP HMI LEVELS OUTPUT
 const functionGroupHmiLevelStatement = functionGroupHmiLevels.map(function (obj) {
-	return `
+    return `
 INSERT INTO function_group_hmi_levels(function_group_id, permission_name, hmi_level)
 SELECT id AS function_group_id, '${obj.permissionName}' AS permission_name, '${obj.hmiLevel}' AS hmi_level
 FROM function_group_info
@@ -136,7 +136,7 @@ writeToBuffer(functionGroupHmiLevelStatement.join(''));
 
 //FUNCTION GROUP PARAMETERS OUTPUT
 const functionGroupParameterStatement = functionGroupParameters.map(function (obj) {
-	return `
+    return `
 INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, '${obj.rpcName}' AS rpc_name, '${obj.parameter}' AS parameter
 FROM function_group_info
@@ -148,26 +148,26 @@ writeToBuffer(functionGroupParameterStatement.join(''));
 //returns a function that allows parameter permissions and function group parameters to be added
 //functionGroupName and rpcName is necessary for function group parameters
 function setupContext (functionGroupName, rpcName) {
-	return function (vehicleParameterPermissions, parameters) {
-		for (let i = 0; i < parameters.length; i++) {
-			vehicleParameterPermissions[parameters[i]] = null;
-			functionGroupParameters.push({
-				groupName: functionGroupName,
-				rpcName: rpcName,
-				parameter: parameters[i]
-			});
-		}
-	}
+    return function (vehicleParameterPermissions, parameters) {
+        for (let i = 0; i < parameters.length; i++) {
+            vehicleParameterPermissions[parameters[i]] = null;
+            functionGroupParameters.push({
+                groupName: functionGroupName,
+                rpcName: rpcName,
+                parameter: parameters[i]
+            });
+        }
+    }
 }
 
 function addHmiLevels (functionGroupHmiLevels, groupName, permName, hmiLevels) {
-	for (let i = 0; i < hmiLevels.length; i++) {
-		functionGroupHmiLevels.push({
-			groupName: groupName,
-			permissionName: permName,
-			hmiLevel: hmiLevels[i]
-		});
-	}
+    for (let i = 0; i < hmiLevels.length; i++) {
+        functionGroupHmiLevels.push({
+            groupName: groupName,
+            permissionName: permName,
+            hmiLevel: hmiLevels[i]
+        });
+    }
 }
 
 //write to file and finish

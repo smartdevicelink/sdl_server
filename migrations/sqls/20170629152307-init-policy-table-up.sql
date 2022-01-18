@@ -41,7 +41,7 @@ CREATE TABLE languages (
 WITH ( OIDS = FALSE );
 
 CREATE TABLE message_text (
-	"id" SERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "language_id" CHAR(5) REFERENCES languages (id) ON UPDATE CASCADE ON DELETE CASCADE,
     "message_category" TEXT NOT NULL,
     "tts" TEXT,
@@ -57,7 +57,7 @@ CREATE TABLE message_text (
 WITH ( OIDS = FALSE );
 
 CREATE TABLE function_group_info (
-	"id" SERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "property_name" TEXT NOT NULL,
     "user_consent_prompt" TEXT,
     "status" edit_status NOT NULL DEFAULT 'STAGING',
@@ -71,37 +71,37 @@ CREATE TABLE function_group_info (
 WITH ( OIDS = FALSE );
 
 CREATE TABLE rpc_names (
-	"id" SERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "rpc_name" TEXT NOT NULL,
     PRIMARY KEY (id)
 )
 WITH ( OIDS = FALSE );
 
 CREATE TABLE vehicle_data (
-	"id" SERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "component_name" TEXT NOT NULL,
     PRIMARY KEY (id)
 )
 WITH ( OIDS = FALSE );
 
 CREATE TABLE rpc_permission (
-	"function_group_id" SERIAL REFERENCES function_group_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"rpc_id" SERIAL REFERENCES rpc_names (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "function_group_id" SERIAL REFERENCES function_group_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "rpc_id" SERIAL REFERENCES rpc_names (id) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (function_group_id, rpc_id)
 )
 WITH ( OIDS = FALSE );
 
 CREATE TABLE rpc_vehicle_parameters (
-	"function_group_id" SERIAL REFERENCES function_group_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"rpc_id" SERIAL REFERENCES rpc_names (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"vehicle_id" SERIAL REFERENCES vehicle_data (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "function_group_id" SERIAL REFERENCES function_group_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "rpc_id" SERIAL REFERENCES rpc_names (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "vehicle_id" SERIAL REFERENCES vehicle_data (id) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (function_group_id, rpc_id, vehicle_id)
 )
 WITH ( OIDS = FALSE );
 
 CREATE TABLE changelog (
-	"status" edit_status NOT NULL DEFAULT 'STAGING',
-	"timestamp" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+    "status" edit_status NOT NULL DEFAULT 'STAGING',
+    "timestamp" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     PRIMARY KEY (status, timestamp)
 )
 WITH ( OIDS = FALSE );
@@ -109,7 +109,7 @@ WITH ( OIDS = FALSE );
 
 
 CREATE TABLE vendors (
-	"id" SERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "vendor_name" TEXT NOT NULL,
     "vendor_email" TEXT NOT NULL,
     PRIMARY KEY (id)
@@ -117,7 +117,7 @@ CREATE TABLE vendors (
 WITH ( OIDS = FALSE );
 
 CREATE TABLE categories (
-	"id" INT NOT NULL,
+    "id" INT NOT NULL,
     "display_name" TEXT NOT NULL,
     PRIMARY KEY (id)
 )
@@ -137,43 +137,43 @@ CREATE TABLE hmi_levels (
 WITH ( OIDS = FALSE );
 
 CREATE TABLE app_info (
-	"id" SERIAL NOT NULL,
-	"app_uuid" VARCHAR(36) NOT NULL,
-	"name" TEXT NOT NULL,
-	"vendor_id" INT REFERENCES vendors (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"platform" application_platform NOT NULL,
-	"platform_app_id" TEXT,
-  	"status" application_status NOT NULL,
-  	"can_background_alert" BOOLEAN NOT NULL,
-  	"can_steal_focus" BOOLEAN NOT NULL,
-	"default_hmi_level" TEXT NOT NULL REFERENCES hmi_levels (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"tech_email" TEXT,
-	"tech_phone" TEXT,
+    "id" SERIAL NOT NULL,
+    "app_uuid" VARCHAR(36) NOT NULL,
+    "name" TEXT NOT NULL,
+    "vendor_id" INT REFERENCES vendors (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "platform" application_platform NOT NULL,
+    "platform_app_id" TEXT,
+    "status" application_status NOT NULL,
+    "can_background_alert" BOOLEAN NOT NULL,
+    "can_steal_focus" BOOLEAN NOT NULL,
+    "default_hmi_level" TEXT NOT NULL REFERENCES hmi_levels (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "tech_email" TEXT,
+    "tech_phone" TEXT,
     "created_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     "updated_ts" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
-	"category_id" INT REFERENCES categories (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"approval_status" approval_status NOT NULL DEFAULT 'PENDING',
+    "category_id" INT REFERENCES categories (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "approval_status" approval_status NOT NULL DEFAULT 'PENDING',
     PRIMARY KEY (id)
 )
 WITH ( OIDS = FALSE );
 
 CREATE TABLE app_countries (
     "app_id" SERIAL REFERENCES app_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"country_iso" CHAR(2) REFERENCES countries (iso) ON UPDATE CASCADE ON DELETE CASCADE,
+    "country_iso" CHAR(2) REFERENCES countries (iso) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (app_id, country_iso)
 )
 WITH ( OIDS = FALSE );
 
 CREATE TABLE display_names (
     "app_id" SERIAL REFERENCES app_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"display_text" VARCHAR(100) NOT NULL,
+    "display_text" VARCHAR(100) NOT NULL,
     PRIMARY KEY (app_id, display_text)
 )
 WITH ( OIDS = FALSE );
 
 CREATE TABLE app_vehicle_permissions (
     "app_id" SERIAL REFERENCES app_info (id) ON UPDATE CASCADE ON DELETE CASCADE,
-	"vehicle_id" SERIAL REFERENCES vehicle_data (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    "vehicle_id" SERIAL REFERENCES vehicle_data (id) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (app_id, vehicle_id)
 )
 WITH ( OIDS = FALSE );

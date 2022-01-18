@@ -1,7 +1,7 @@
 -- this is only a partial down migration. full downward migration of the vendor data is not supported.
 
 CREATE TABLE vendors (
-	"id" SERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "vendor_name" TEXT NOT NULL,
     "vendor_email" TEXT NOT NULL,
     PRIMARY KEY (id)

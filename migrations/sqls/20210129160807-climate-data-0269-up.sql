@@ -9,7 +9,7 @@ INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'GetVehicleData' AS rpc_name, 'climateData' AS parameter
 FROM function_group_info
 WHERE property_name = 'VehicleInfo-3'
-	AND NOT EXISTS(
+    AND NOT EXISTS(
         SELECT 1
         FROM function_group_parameters
         WHERE property_name = 'VehicleInfo-3'
@@ -21,7 +21,7 @@ INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'OnVehicleData' AS rpc_name, 'climateData' AS parameter
 FROM function_group_info
 WHERE property_name = 'VehicleInfo-3'
-	AND NOT EXISTS(
+    AND NOT EXISTS(
         SELECT 1
         FROM function_group_parameters
         WHERE property_name = 'VehicleInfo-3'
@@ -33,7 +33,7 @@ INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'SubscribeVehicleData' AS rpc_name, 'climateData' AS parameter
 FROM function_group_info
 WHERE property_name = 'VehicleInfo-3'
-	AND NOT EXISTS(
+    AND NOT EXISTS(
         SELECT 1
         FROM function_group_parameters
         WHERE property_name = 'VehicleInfo-3'
@@ -45,7 +45,7 @@ INSERT INTO function_group_parameters(function_group_id, rpc_name, parameter)
 SELECT id AS function_group_id, 'UnsubscribeVehicleData' AS rpc_name, 'climateData' AS parameter
 FROM function_group_info
 WHERE property_name = 'VehicleInfo-3'
-	AND NOT EXISTS(
+    AND NOT EXISTS(
         SELECT 1
         FROM function_group_parameters
         WHERE property_name = 'VehicleInfo-3'
