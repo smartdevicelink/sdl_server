@@ -1,11 +1,9 @@
-var common = require('../../../common');
-var expect = common.expect;
-var endpoint = '/api/v1/module/promote';
+const common = require('../../../common');
+const expect = common.expect;
+const endpoint = '/api/v1/module/promote';
 
-common.post(
-    'should create new production module config',
-    endpoint,
-    {
+common.startTest('should create new production module config', async function () {
+    const res = await common.get(endpoint, {
         preloaded_pt: true,
         exchange_after_x_ignition_cycles: 20,
         exchange_after_x_kilometers: 200,
@@ -42,21 +40,11 @@ common.post(
             PROJECTION: 10
         },
         lock_screen_dismissal_enabled: true
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
+    });
+    expect(res).to.have.status(200);
+});
 
-common.post(
-    'should return 400 with no body specified',
-    endpoint,
-    {},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+common.startTest('should return 400 with no body specified', async function () {
+    const res = await common.post(endpoint, {});
+    expect(res).to.have.status(400);
+});

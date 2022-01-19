@@ -1,11 +1,9 @@
-var common = require('../../../common');
-var expect = common.expect;
-var endpoint = '/api/v1/production/policy';
+const common = require('../../../common');
+const expect = common.expect;
+const endpoint = '/api/v1/production/policy';
 
-common.post(
-    'should return production policy table',
-    endpoint,
-    {
+common.startTest('should return staging policy table', async function () {
+    const res = await common.post(endpoint, {
         policy_table: {
             app_policies: {},
             consumer_friendly_messages: {},
@@ -14,18 +12,12 @@ common.post(
             module_config: {},
             usage_and_error_counts: {}
         }
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
+    });
+    expect(res).to.have.status(200);
+});
 
-common.post(
-    'should return 400 with invalid policy_table',
-    endpoint,
-    {
+common.startTest('should return 400 with invalid policy_table', async function () {
+    const res = await common.post(endpoint, {
         policy_table: {
             app_policies: {},
             consumer_friendly_messages: {},
@@ -33,21 +25,12 @@ common.post(
             module_config: {},
             usage_and_error_counts: {}
         }
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+    });
+    expect(res).to.have.status(400);
+});
 
-common.post(
-    'should return 400 with no body specified',
-    endpoint,
-    {},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+common.startTest('should return 400 with no body specified', async function () {
+    const res = await common.post(endpoint, {});
+    expect(res).to.have.status(400);
+});
+
