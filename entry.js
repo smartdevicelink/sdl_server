@@ -48,7 +48,7 @@ async function reset (environment) {
     await executeCommand('db-migrate', ['reset', '-e', environment], { env: mainEnvs });
 }
 async function startServer () {
-    await executeCommand('npm', ['start'], { env: { ...process.env }});
+    await executeCommand('node', ['index.js'], { env: { ...process.env }});
 }
 async function startDev () {
     await executeCommand('./node_modules/.bin/vue-cli-service', ['serve'], { env: { ...process.env }});
