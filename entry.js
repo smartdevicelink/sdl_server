@@ -8,13 +8,6 @@ let mainEnvs = {
     DB_DATABASE: process.env.DB_DATABASE,
     DB_PORT: process.env.DB_PORT,
 }
-let testEnvs = {
-    TEST_PG_USER: process.env.TEST_PG_USER,
-    TEST_PG_PASSWORD: process.env.TEST_PG_PASSWORD,
-    TEST_PG_HOST: process.env.TEST_PG_HOST,
-    TEST_PG_DATABASE: process.env.TEST_PG_DATABASE,
-    TEST_PG_PORT: process.env.TEST_PG_PORT,
-}
 
 main();
 async function main () {

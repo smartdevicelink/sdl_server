@@ -8,6 +8,7 @@ const db = app.locals.db;
 const config = app.locals.config;
 const certificates = require('../certificates/controller.js');
 const certUtil = require('../helpers/certificates.js');
+const allSettled = require('../../../lib/allSettled');
 
 //validation functions
 function checkIdIntegerBody (req, res) {
@@ -44,7 +45,8 @@ function validateFunctionalGroupPut (req, res) {
 }
 
 function validateHybridPost (req, res) {
-    if (!check.string(req.body.uuid) || !check.includes(["CLOUD","MOBILE","BOTH"], req.body.hybrid_preference)) {
+    // Do not use check.includes!! functionality differs between node version installs!
+    if (!check.string(req.body.uuid) || !["CLOUD","MOBILE","BOTH"].includes(req.body.hybrid_preference)) {
         res.parcel.setStatus(400).setMessage("uuid and a valid hybrid_preference are required");
     }
     return;
@@ -143,7 +145,7 @@ async function storeApps (includeApprovalStatus, notifyOEM, apps, callback) {
         appObjs = await Promise.all(appObjs.map(autoApprovalModifier));
         appObjs = await Promise.all(appObjs.map(autoBlacklistModifier));
 
-        const succeededAppIds = (await Promise.allSettled(appObjs.map(model.storeApp.bind(null, notifyOEM)))).map(result => result.value);
+        const succeededAppIds = (await allSettled(appObjs.map(model.storeApp.bind(null, notifyOEM)))).map(result => result.value);
         // return all failed apps to try inserts again later
         return appObjs.filter((appObj, index) => succeededAppIds[index] === undefined).map(appObj => appObj.uuid);
     }

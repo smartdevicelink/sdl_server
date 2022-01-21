@@ -20,10 +20,10 @@ common.startTest('should add the given uuid to the app_hybrid_preference table w
     expect(res).to.have.status(200);
 });
 
-common.startTest('should return 500 with only uuid specified', async function () {
+common.startTest('should return 400 with only uuid specified', async function () {
     const uuid = (await common.get('/api/v1/applications', {id: 1})).body.data.applications[0].uuid;
     const res = await common.post(endpoint, {uuid: uuid});
-    expect(res).to.have.status(500);
+    expect(res).to.have.status(400);
 });
 
 common.startTest('should return 400 with only hybrid_preference specified', async function () {
