@@ -2,7 +2,7 @@ const common = require('../../../common');
 const expect = common.expect;
 const endpoint = '/api/v1/production/policy';
 
-common.startTest('should return staging policy table', async function () {
+common.startTest('should return production policy table', async function () {
     const res = await common.post(endpoint, {
         policy_table: {
             app_policies: {},
