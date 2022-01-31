@@ -13,7 +13,7 @@ exports.startTest = (testName, endFunction) => {
     });
 }
 
-exports.get = (endpoint, queryParams, endFunction) => {
+exports.get = (endpoint, queryParams) => {
     return new Promise((resolve, reject) => {
         chai.request(BASE_URL)
             .get(endpoint)
@@ -31,7 +31,7 @@ exports.get = (endpoint, queryParams, endFunction) => {
     });
 }
 
-exports.postWebhook = (endpoint, body, publicKey, endFunction) => {
+exports.postWebhook = (endpoint, body, publicKey) => {
     return new Promise((resolve, reject) => {
         chai.request(BASE_URL)
             .post(endpoint)
@@ -50,7 +50,7 @@ exports.postWebhook = (endpoint, body, publicKey, endFunction) => {
     });
 };
 
-exports.post = (endpoint, body, endFunction) => {
+exports.post = (endpoint, body) => {
     return new Promise((resolve, reject) => {
         chai.request(BASE_URL)
             .post(endpoint)
@@ -68,7 +68,7 @@ exports.post = (endpoint, body, endFunction) => {
     });
 };
 
-exports.put = (endpoint, body, endFunction) => {
+exports.put = (endpoint, body) => {
     return new Promise((resolve, reject) => {
         chai.request(BASE_URL)
             .put(endpoint)
