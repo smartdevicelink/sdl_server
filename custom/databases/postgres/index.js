@@ -3,6 +3,7 @@ const pg = require('pg'); //handles connections to the postgres database
 const sqlBrick = require('sql-bricks-postgres');
 const promisify = require('util').promisify;
 const config = require('../../../settings.js');
+const allSettled = require('../../../lib/allSettled');
 //get configurations from environment variables
 
 // extend the Postgres client to easily fetch a single expected result as an object
@@ -103,8 +104,8 @@ module.exports = function (log) {
             if (!Array.isArray(sqlStringArray)) { //if its just a single sql statement, make it into an array
                 sqlStringArray = [sqlStringArray];
             }
-            const promiseMethod = propagateErrors ? 'all' : 'allSettled';
-            return Promise[promiseMethod](sqlStringArray.map(sql => self.asyncSql(sql)));
+            const promiseMethod = propagateErrors ? Promise.all : allSettled;
+            return promiseMethod(sqlStringArray.map(sql => self.asyncSql(sql)));
         },
         getClient: function (callback){
             // reserve a client connection ("client") and its associated release callback ("done")

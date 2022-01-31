@@ -10,46 +10,26 @@ if (!common.config.certificateAuthority.authorityKeyFileName ||
     return;
 }
 
-common.get(
-    'should return certificate data for an app (GET)',
-    endpoint,
-    {appId: '30ea6bce-91de-4b18-8b52-68d82112eee6'},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
+common.startTest('should return certificate data for an app (GET)', async function () {
+    const uuid = (await common.get('/api/v1/applications', {id: 1})).body.data.applications[0].uuid;
+    const res = await common.get(endpoint, {appId: uuid});
+    expect(res).to.have.status(200);
+});
 
-common.post(
-    'should return certificate data for an app (POST)',
-    endpoint,
-    {appId: '30ea6bce-91de-4b18-8b52-68d82112eee6'},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
+common.startTest('should return certificate data for an app (POST)', async function () {
+    const uuid = (await common.get('/api/v1/applications', {id: 1})).body.data.applications[0].uuid;
+    const res = await common.post(endpoint, {appId: uuid});
+    expect(res).to.have.status(200);
+});
 
-common.get(
-    'should return 400 with an invalid app id (GET)',
-    endpoint,
-    {appId: '0'},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+common.startTest('should return 400 with an invalid app id (GET)', async function () {
+    const uuid = (await common.get('/api/v1/applications', {id: 1})).body.data.applications[0].uuid;
+    const res = await common.get(endpoint, {appId: '0'});
+    expect(res).to.have.status(400);
+});
 
-common.post(
-    'should return 400 with an invalid app id (POST)',
-    endpoint,
-    {appId: '0'},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+common.startTest('should return 400 with an invalid app id (POST)', async function () {
+    const uuid = (await common.get('/api/v1/applications', {id: 1})).body.data.applications[0].uuid;
+    const res = await common.post(endpoint, {appId: '0'});
+    expect(res).to.have.status(400);
+});

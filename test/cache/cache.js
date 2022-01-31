@@ -1,6 +1,6 @@
-var common = require('../common');
-var expect = common.expect;
-var cache = require('../../custom/cache');
+const common = require('../common');
+const expect = common.expect;
+const cache = require('../../custom/cache');
 
 it('should be enabled', (done) => {
     expect(common.config.cacheModule).to.not.be.null;

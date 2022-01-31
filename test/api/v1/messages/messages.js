@@ -1,98 +1,57 @@
-var common = require('../../../common');
-var expect = common.expect;
-var endpoint = '/api/v1/messages';
+const common = require('../../../common');
+const expect = common.expect;
+const endpoint = '/api/v1/messages';
 
-common.get(
-    'should get all messages',
-    endpoint,
-    {},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(res.body.data.messages).to.have.lengthOf.above(0);
-        done();
-    }
-);
+common.startTest('should get all messages', async function () {
+    const res = await common.get(endpoint, {});
+    expect(res).to.have.status(200);
+    expect(res.body.data.messages).to.have.lengthOf.above(0);
+});
 
-common.get(
-    'should get message with the given id',
-    endpoint,
-    {id: 1},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(res.body.data.messages).to.have.lengthOf(1);
-        done();
-    }
-);
+common.startTest('should get message with the given id', async function () {
+    const res = await common.get(endpoint, {id: 1});
+    expect(res).to.have.status(200);
+    expect(res.body.data.messages).to.have.lengthOf(1);
+});
 
-common.get(
-    'should not get any message with invalid id',
-    endpoint,
-    {id: 1000},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(res.body.data.messages).to.have.lengthOf(0);
-        done();
-    }
-);
+common.startTest('should not get any message with invalid id', async function () {
+    const res = await common.get(endpoint, {id: 1000});
+    expect(res).to.have.status(200);
+    expect(res.body.data.messages).to.have.lengthOf(0);
+});
 
-common.post(
-    'should create new message',
-    endpoint,
-    {
+common.startTest('should create new message', async function () {
+    const res = await common.post(endpoint, {
         messages: [
             {
                 message_category: 'Blarg',
                 is_deleted: false,
-                languages: [
-
-                ]
+                languages: []
             }
         ]
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
+    });
+    expect(res).to.have.status(200);
+});
 
-common.post(
-    'should return 400 with invalid messages',
-    endpoint,
-    {
+common.startTest('should return 400 with invalid messages', async function () {
+    const res = await common.post(endpoint, {
         messages: [
             {
                 message_category: 'Blarg',
-                languages: [
-
-                ]
+                languages: []
             },
             {
                 message_category: 'Blarg2',
                 is_deleted: false,
-                languages: [
-
-                ]
+                languages: []
             }
         ]
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+    });
+    expect(res).to.have.status(400);
+});
 
-common.post(
-    'should return 400 with no body specified',
-    endpoint,
-    {},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+common.startTest('should return 400 with no body specified', async function () {
+    const res = await common.post(endpoint, {});
+    expect(res).to.have.status(400);
+});
+

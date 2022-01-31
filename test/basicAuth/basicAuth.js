@@ -1,8 +1,8 @@
-var common = require('../common');
-var chai = common.chai;
-var BASE_URL = common.BASE_URL;
-var expect = common.expect;
-var config = common.config;
+const common = require('../common');
+const chai = common.chai;
+const BASE_URL = common.BASE_URL;
+const expect = common.expect;
+const config = common.config;
 
 it('should return 401 error when basic auth is enabled and no password header is set', (done) => {
     config.authType = 'basic';

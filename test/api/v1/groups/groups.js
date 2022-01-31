@@ -1,104 +1,57 @@
-var common = require('../../../common');
-var expect = common.expect;
-var endpoint = '/api/v1/groups';
+const common = require('../../../common');
+const expect = common.expect;
+const endpoint = '/api/v1/groups';
 
-common.get(
-    'should get all groups',
-    endpoint,
-    {},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(res.body.data.groups).to.have.lengthOf.above(0);
-        done();
-    }
-);
+common.startTest('should get all groups', async function () {
+    const res = await common.get(endpoint, {});
+    expect(res).to.have.status(200);
+    expect(res.body.data.groups).to.have.lengthOf.above(0);
+});
 
-common.get(
-    'should get group with given id',
-    endpoint,
-    {id: 1},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(res.body.data.groups).to.have.lengthOf(1);
-        done();
-    }
-);
+common.startTest('should get group with given id', async function () {
+    const res = await common.get(endpoint, {id: 1});
+    expect(res).to.have.status(200);
+    expect(res.body.data.groups).to.have.lengthOf(1);
+});
 
-common.get(
-    'should not get any groups with invalid id',
-    endpoint,
-    {id: 1000},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(res.body.data.groups).to.have.lengthOf(0);
-        done();
-    }
-);
+common.startTest('should not get any groups with invalid id', async function () {
+    const res = await common.get(endpoint, {id: 1000});
+    expect(res).to.have.status(200);
+    expect(res.body.data.groups).to.have.lengthOf(0);
+});
 
-common.post(
-    'should add new group',
-    endpoint,
-    {
+common.startTest('should add new group', async function () {
+    const res = await common.post(endpoint, {
         name: 'Blarg',
         is_default: false,
-        rpcs: [
-
-        ],
+        rpcs: [],
         user_consent_prompt: ''
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
+    });
+    expect(res).to.have.status(200);
+});
 
-common.post(
-    'should return 400 with invalid name type',
-    endpoint,
-    {
+common.startTest('should return 400 with invalid name type', async function () {
+    const res = await common.post(endpoint, {
         name: 7,
         is_default: false,
-        rpcs: [
-
-        ],
+        rpcs: [],
         user_consent_prompt: ''
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+    });
+    expect(res).to.have.status(400);
+});
 
-common.post(
-    'should return 400 with invalid is_default type',
-    endpoint,
-    {
+common.startTest('should return 400 with invalid is_default type', async function () {
+    const res = await common.post(endpoint, {
         name: 'Blarg',
         is_default: 7,
-        rpcs: [
-
-        ],
+        rpcs: [],
         user_consent_prompt: ''
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+    });
+    expect(res).to.have.status(400);
+});
 
-common.post(
-    'should return 400 with no body specified',
-    endpoint,
-    {},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+common.startTest('should return 400 with no body specified', async function () {
+    const res = await common.post(endpoint, {});
+    expect(res).to.have.status(400);
+});
+
