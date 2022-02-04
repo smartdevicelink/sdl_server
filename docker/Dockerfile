@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         git
 
-# Download SDL Core from github
+# Download SDL Server from github
 WORKDIR /usr
 
 RUN mkdir /usr/policy
