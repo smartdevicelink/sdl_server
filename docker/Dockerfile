@@ -19,11 +19,11 @@ WORKDIR /usr/policy
 RUN npm install
 RUN npm install aws-sdk node-stream-zip --save
 
-COPY .env .env
 COPY wait-for-it.sh wait-for-it.sh
 COPY keys customizable/ca
+COPY keys customizable/ssl
 COPY webengine-bundle.js customizable/webengine-bundle/index.js
 
-EXPOSE 3000
+EXPOSE 3000 443
 
 CMD ["npm", "start"]
