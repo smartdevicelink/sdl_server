@@ -1,0 +1,39 @@
+version: "3.9"
+services:
+  server:
+    build:
+      context: .
+      args:
+        - VERSION=master
+    ports:
+      - "${POLICY_SERVER_PORT:-3000}:${POLICY_SERVER_PORT:-3000}"
+      - "${POLICY_SERVER_PORT_SSL:-443}:${POLICY_SERVER_PORT_SSL:-443}"
+    volumes:
+      - data:/usr/policy
+    env_file:
+      - .env
+    environment:
+      DB_HOST: "postgres"
+      DB_PASSWORD: "${DB_PASSWORD:-postgres}"
+      DB_USER: "${DB_USER:-postgres}"
+      DB_DATABASE: "${DB_DATABASE:-postgres}"
+      CACHE_HOST: "redis"
+      CACHE_MODULE: "redis"
+      CACHE_PORT: "6379"
+    links:
+      - redis
+      - postgres
+    depends_on:
+      - redis
+      - postgres
+    command: ["./wait-for-it.sh", "postgres:5432", "--", "npm", "start"]
+  redis:
+    image: redis
+  postgres:
+    image: postgres:10.19-bullseye
+    environment:
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-postgres}"
+      POSTGRES_USER: "${DB_USER:-postgres}"
+      POSTGRES_DB: "${DB_DATABASE:-postgres}"
+volumes:
+  data:
