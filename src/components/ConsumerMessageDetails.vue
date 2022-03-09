@@ -41,7 +41,7 @@
                         </div>
                     </div>
                     <!-- save button -->
-                    <div v-if="!isNameDefined()">
+                    <div v-if="!isNameDefined">
                         <br>
                         <p class="alert color-bg-red color-white d-table" role="alert">
                             The name field must be defined.
@@ -53,7 +53,7 @@
                             type="submit"
                             class="btn btn-card"
                             data-style="zoom-in"
-                            v-if="!fieldsDisabled && isNameDefined()"
+                            v-if="!fieldsDisabled && isNameDefined"
                             v-on:click="saveGroup()"
                             v-bind:loading="save_button_loading"
                             v-bind:class="{ 'btn-style-green': !message.is_deleted, 'btn-danger': message.is_deleted }">
@@ -225,15 +225,11 @@
                     }
                 });
             },
-            "isNameDefined": function () {
-                if (!this.message.message_category) {
-                    return false; //no name defined
-                }
-
-                return true; //no issues
-            },
         },
         computed: {
+            isNameDefined: function () {
+                return !!this.message.message_category;
+            },
             fieldsDisabled: function () {
                 return (this.message.is_deleted || this.environment != 'STAGING');
             },
