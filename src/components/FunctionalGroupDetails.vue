@@ -128,7 +128,7 @@
                     </div>
                     <!-- save button -->
 
-                    <div v-if="!isNameDefined()">
+                    <div v-if="!isNameDefined">
                         <br>
                         <p class="alert color-bg-red color-white d-table" role="alert">
                             The name field must be defined.
@@ -140,7 +140,7 @@
                             type="submit"
                             class="btn btn-card"
                             data-style="zoom-in"
-                            v-if="!fieldsDisabled && isNameDefined()"
+                            v-if="!fieldsDisabled && isNameDefined"
                             v-on:click="saveGroup()"
                             v-bind:loading="save_button_loading"
                             v-bind:class="{ 'btn-style-green': !fg.is_deleted, 'btn-danger': fg.is_deleted }">
@@ -384,15 +384,11 @@ import { eventBus } from '../main.js';
                     }
                 });
             },
-            "isNameDefined": function () {
-                if (!this.fg.name) {
-                    return false; //no name defined
-                }
-
-                return true; //no issues
-            },
         },
         computed: {
+            isNameDefined: function () {
+                return !!this.fg.name;
+            },
             consentPromptOptions: function () {
                 return this.consent_prompts.map(function (consentPrompt) {
                     return consentPrompt.name;
