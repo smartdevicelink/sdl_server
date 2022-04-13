@@ -61,59 +61,59 @@ export const eventBus = new Vue();
 
 //reusable methods
 Vue.mixin({
-	methods: {
-		"httpRequest": function (action, route, options = {}, cb) {
-			if(!options){
-				options = {};
-			}
-			if(!options.headers){
-				options.headers = {};
-			}
-			if(!options.body){
-				options.body = {};
-			}
-			if(this.$session.get("BASIC_AUTH_PASSWORD")){
-				options.headers["BASIC-AUTH-PASSWORD"] = this.$session.get("BASIC_AUTH_PASSWORD");
-			}
-			if(["post","put","patch"].indexOf(action) >= 0){
-				this.$http[action](route, options.body, options)
-					.then(response => {
-						cb(null, response);
-					}, response => {
-					if(response.status == 401 && !options.preventAuthRedirect){
-						this.$session.destroy();
-						this.$router.go();
-					}else{
-						cb(response, null);
-					}
-				});
-			}else{
-				this.$http[action](route, options)
-					.then(response => {
-						cb(null, response);
-					}, response => {
-					if(response.status == 401 && !options.preventAuthRedirect){
-						this.$session.destroy();
-						this.$router.go();
-					}else{
-						cb(response, null);
-					}
-				});
-			}
-		},
-		"handleModalClick": function (loadingProp, modalName, methodName) {
-			//show a loading icon for the modal, and call the methodName passed in
-			//when finished, turn off the loading icon, hide the modal, and reload the info
-			this[loadingProp] = true;
-			this[methodName](() => {
-				this[loadingProp] = false;
-				if (modalName) {
-					this.$refs[modalName].hide();
-				}
-				this.environmentClick();
-			});
-		}
-	}
+  methods: {
+    "httpRequest": function (action, route, options = {}, cb) {
+      if(!options){
+        options = {};
+      }
+      if(!options.headers){
+        options.headers = {};
+      }
+      if(!options.body){
+        options.body = {};
+      }
+      if(this.$session.get("BASIC_AUTH_PASSWORD")){
+        options.headers["BASIC-AUTH-PASSWORD"] = this.$session.get("BASIC_AUTH_PASSWORD");
+      }
+      if(["post","put","patch"].indexOf(action) >= 0){
+        this.$http[action](route, options.body, options)
+          .then(response => {
+            cb(null, response);
+          }, response => {
+          if(response.status == 401 && !options.preventAuthRedirect){
+            this.$session.destroy();
+            this.$router.go();
+          }else{
+            cb(response, null);
+          }
+        });
+      }else{
+        this.$http[action](route, options)
+          .then(response => {
+            cb(null, response);
+          }, response => {
+          if(response.status == 401 && !options.preventAuthRedirect){
+            this.$session.destroy();
+            this.$router.go();
+          }else{
+            cb(response, null);
+          }
+        });
+      }
+    },
+    "handleModalClick": function (loadingProp, modalName, methodName) {
+      //show a loading icon for the modal, and call the methodName passed in
+      //when finished, turn off the loading icon, hide the modal, and reload the info
+      this[loadingProp] = true;
+      this[methodName](() => {
+        this[loadingProp] = false;
+        if (modalName) {
+          this.$refs[modalName].hide();
+        }
+        this.environmentClick();
+      });
+    }
+  }
 })
 
 

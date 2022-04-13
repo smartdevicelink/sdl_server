@@ -6,8 +6,8 @@ process.env.OVERRIDE_ENTRY_POINT = true; // do not run the server immediately
 const app = require('./index.js');
 
 module.exports = {
-	devServer: {
-		before: app,
+    devServer: {
+        before: app,
         port: settings.policyServerPort
     }
 }

@@ -5,6 +5,7 @@ const sql = require('./sql.js');
 const model = require('./model.js');
 const parseXml = require('xml2js').parseString;
 const request = require('request');
+const promisify = require('util').promisify;
 
 //validation functions
 
@@ -18,7 +19,6 @@ function validatePromote (req, res) {
 }
 
 function validatePost (req, res) {
-    //base check
     if (!check.array(req.body.messages)) {
         res.parcel
             .setStatus(400)
@@ -58,77 +58,41 @@ function validatePost (req, res) {
 
 //helper functions
 
-function getMessageGroups (isProduction, alwaysHideDeleted, cb) {
+async function getMessageGroups (isProduction, alwaysHideDeleted) {
     //TODO: make the language choice configurable
     const LANG_FILTER = 'en-us';
     //need two pieces of info: all categories of a certain language (just en-us)
     //and the max id of every category. The first piece is so the message text preview is
     //in the language of the user, and the second category is in case an entry for that
     //category in that language doesn't exist, so fall back to another text
-    const getMessagesFlow = app.locals.flow({
-        categoryByLanguage: setupSql.bind(null, sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
-        categoryByMaxId: setupSql.bind(null, sql.getMessages.categoryByMaxId(isProduction)),
-        messageStatuses: setupSql.bind(null, sql.getMessages.status(isProduction)),
-        messageGroups: setupSql.bind(null, sql.getMessages.group(isProduction, null, alwaysHideDeleted))
-    }, {method: 'parallel'});
+    const messageInfo = {
+        categoryByLanguage: app.locals.db.asyncSql(sql.getMessages.categoryByLanguage(isProduction, LANG_FILTER)),
+        categoryByMaxId: app.locals.db.asyncSql(sql.getMessages.categoryByMaxId(isProduction)),
+        messageStatuses: app.locals.db.asyncSql(sql.getMessages.status(isProduction)),
+        messageGroups: app.locals.db.asyncSql(sql.getMessages.group(isProduction, null, alwaysHideDeleted))
+    };
 
-    const getCategoriesFlow = app.locals.flow([
-        getMessagesFlow,
-        model.combineMessageCategoryInfo
-    ], {method: 'waterfall', eventLoop: true});
+    for (let prop in messageInfo) {
+        messageInfo[prop] = await messageInfo[prop]; // resolve all promises into each property
+    }
 
-    getCategoriesFlow(cb);
+    return await model.combineMessageCategoryInfo(messageInfo);
 }
 
 //for one id
-function getMessageDetailsFlow (id) {
-    const getInfoFlow = app.locals.flow([
-        makeCategoryTemplateFlow(),
-        setupSql.bind(null, sql.getMessages.byId(id)),
-        setupSql.bind(null, sql.getMessages.groupById(id)),
-        setupSql.bind(null, sql.getAttachedFunctionalGroupsById(id))
-    ], {method: 'parallel'});
+async function getMessageDetails (id) {
+    const info = await Promise.all([
+        makeCategoryTemplate(),
+        app.locals.db.asyncSql(sql.getMessages.byId(id)),
+        app.locals.db.asyncSql(sql.getMessages.groupById(id)),
+        app.locals.db.asyncSql(sql.getAttachedFunctionalGroupsById(id))
+    ]);
 
-    return app.locals.flow([
-        getInfoFlow,
-        model.transformMessages
-    ], {method: 'waterfall'});
+    return await model.transformMessages(info);
 }
 
-function makeCategoryTemplateFlow () {
-    const getTemplateInfo = app.locals.flow([
-        setupSql.bind(null, sql.getLanguages),
-    ], {method: 'parallel'});
-
-    return app.locals.flow([
-        getTemplateInfo,
-        generateCategoryTemplate
-    ], {method: 'waterfall', eventLoop: true});
-}
-
-//for an array of ids. filters out PRODUCTION records. meant solely for the promotion route
-//doesn't make an object out of the data
-function getMessagesDetailsSqlFlow (ids) {
-    return app.locals.flow([
-        setupSql.bind(null, sql.getMessages.groupsByIds(ids)),
-        setupSql.bind(null, sql.getMessages.byIds(ids))
-    ], {method: 'parallel'});
-}
-
-function getBaseTemplate () {
-    return {
-        id: 0,
-        message_category: "",
-        status: "",
-        is_deleted: false,
-        created_ts: 0,
-        updated_ts: 0,
-        languages: []
-    };
-}
-
-function generateCategoryTemplate (info, next) {
-    const languages = info[0];
+async function makeCategoryTemplate () {
+    const languages = await app.locals.db.asyncSql(sql.getLanguages);
 
     let template = getBaseTemplate();
 
@@ -146,66 +110,74 @@ function generateCategoryTemplate (info, next) {
             label: ""
         });
     }
-    next(null, [template]);
+    return [template];
 }
 
+//for an array of ids. filters out PRODUCTION records. meant solely for the promotion route
+//doesn't make an object out of the data
+async function getMessagesDetailsSql (ids) {
+    return await Promise.all([
+        app.locals.db.asyncSql(sql.getMessages.groupsByIds(ids)),
+        app.locals.db.asyncSql(sql.getMessages.byIds(ids)),
+    ]);
+}
+
+function getBaseTemplate () {
+    return {
+        id: 0,
+        message_category: "",
+        status: "",
+        is_deleted: false,
+        created_ts: 0,
+        updated_ts: 0,
+        languages: []
+    };
+}
 
 //language-related functions
 
-function updateLanguages (next) {
-    const messageStoreFlow = [
-        getRpcSpec,
-        parseXml,
-        extractLanguages,
-        insertLanguages
-    ];
+async function updateLanguages () {
+    const rpcSpec = await getRpcSpec();
+    const parsedSpec = await promisify(parseXml)(rpcSpec); 
+    const languages = await extractLanguages(parsedSpec);
+    await app.locals.db.asyncSqls(sql.insert.languages(languages));
 
-    function insertLanguages (languages, next) {
-        app.locals.flow(app.locals.db.setupSqlCommands(sql.insert.languages(languages)), {method: 'parallel'})(next);
-    }
+    app.locals.log.info("Language list updated");
+}
 
-    app.locals.flow(messageStoreFlow, {method: 'waterfall', eventLoop: true})(function (err, res) {
-        if (err) {
-            app.locals.log.error(err);
-        }
-        if (next) {
-           next(); //done
-        }
+async function getRpcSpec () {
+    return new Promise(resolve => {
+        request(
+            {
+                method: 'GET',
+                url: app.locals.config.rpcSpecXmlUrl
+            }, function (err, res, body) {
+                resolve(body);
+            }
+        );
     });
 }
 
-function getRpcSpec(next) {
-    request(
-        {
-            method: 'GET',
-            url: app.locals.config.rpcSpecXmlUrl
-        }, function(err, res, body) {
-            next(err, body);
-        }
-    );
-}
-
-function extractLanguages (rpcSpec, next) {
+async function extractLanguages (rpcSpec) {
     const languages = rpcSpec.interface.enum.find(function (elem) {
         return elem['$'].name === "Language";
     }).element.map(function (language) {
         return language['$'].name.toLowerCase();
     });
-    next(null, languages);
+    return languages;
 }
 
-function getMessageNamesStaging (callback) {
-    setupSql(sql.getMessageNamesStaging, function (err, names) {
-        callback(err, names.map(function (elem) {return elem.message_category;}));
-    });
+async function getMessageNamesStaging () {
+    const names = await app.locals.db.asyncSql(sql.getMessageNamesStaging);
+    return names.map(elem => elem.message_category);
 }
 
 module.exports = {
     getRpcSpec: getRpcSpec,
     getMessageGroups: getMessageGroups,
-    getMessageDetailsFlow: getMessageDetailsFlow,
-    makeCategoryTemplateFlow: makeCategoryTemplateFlow,
-    getMessagesDetailsSqlFlow: getMessagesDetailsSqlFlow,
+    getMessageDetails: getMessageDetails,
+    makeCategoryTemplate: makeCategoryTemplate,
+    getMessagesDetailsSql: getMessagesDetailsSql,
     validatePromote: validatePromote,
     validatePost: validatePost,
     updateLanguages: updateLanguages,

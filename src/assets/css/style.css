@@ -368,26 +368,26 @@ div.horizontal-divider .text {
 
 .tiles {
     display: -moz-flex;
-	display: -webkit-flex;
-	display: -ms-flex;
-	display: flex;
-	-moz-flex-wrap: wrap;
-	-webkit-flex-wrap: wrap;
-	-ms-flex-wrap: wrap;
-	flex-wrap: wrap;
-	position: relative;
-	margin: 0em 0 0 -1em;
+    display: -webkit-flex;
+    display: -ms-flex;
+    display: flex;
+    -moz-flex-wrap: wrap;
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    position: relative;
+    margin: 0em 0 0 -1em;
 }
 
 .tiles > a {
     -moz-transition: -moz-transform 0.4s ease, opacity 0.4s ease;
-	-webkit-transition: -webkit-transform 0.4s ease, opacity 0.4s ease;
-	-ms-transition: -ms-transform 0.4s ease, opacity 0.4s ease;
-	transition: transform 0.4s ease, opacity 0.4s ease;
-	position: relative;
-	width: calc(33.33333% - 1em);
+    -webkit-transition: -webkit-transform 0.4s ease, opacity 0.4s ease;
+    -ms-transition: -ms-transform 0.4s ease, opacity 0.4s ease;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+    position: relative;
+    width: calc(33.33333% - 1em);
     min-width: 340px;
-	margin: 1em 0 0 1em;
+    margin: 1em 0 0 1em;
     padding: 20px;
     color: #384F61;
     background-color: #FFFFFF;

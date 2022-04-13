@@ -2,11 +2,11 @@
 const app = require('../app');
 const sql = require('./sql.js');
 const parseXml = require('xml2js').parseString;
-const async = require('async');
 const _ = require('lodash');
 const check = require('check-types');
 const getRpcSpec = require('./../messages/helper').getRpcSpec;
 const cache = require('../../../custom/cache');
+const promisify = require('util').promisify;
 
 /**
  * Required fields are name, type, and key. All other fields are
@@ -37,55 +37,35 @@ function validatePost(req, res) {
     return;
 }
 
-function promoteCustomVehicleData(client, obj, parentObjectMapping = {}) {
-    return function(cb) {
-        let originalParentId = obj.parent_id;
-        if (obj.parent_id) {
-            let parent = parentObjectMapping[obj.parent_id];
-            if (!parent.id) {
-                return cb(`Orphaned record`);
-            }
-            //assign parent_id based on parentIdMapping.
-            obj.parent_id = parent.id;
-            obj.is_deleted = parent.is_deleted === true;
+async function promoteCustomVehicleData (client, obj, parentObjectMapping = {}) {
+    let originalParentId = obj.parent_id;
+    if (obj.parent_id) {
+        let parent = parentObjectMapping[obj.parent_id];
+        if (!parent.id) {
+            return new Error('Orphaned record');
         }
+        //assign parent_id based on parentIdMapping.
+        obj.parent_id = parent.id;
+        obj.is_deleted = parent.is_deleted === true;
+    }
 
-        async.waterfall(
-            [
-                function(callback) {
-                    //skip update if status is on production and not a child that has had its parentId changed.
-                    if (obj.status === 'PRODUCTION' && !(obj.parent_id && obj.parent_id != originalParentId)) {
-                        parentObjectMapping[obj.id] = obj;
-                        return callback(null);
-                    }
-                    client.getOne(sql.insertCustomVehicleData(obj, true), function(err, result) {
-                        if (!err && result) {
-                            parentObjectMapping[obj.id] = result;
-                        }
-                        callback(err, result);
-                    });
-                }
-            ], function(err) {
-                if (err) {
-                    return cb(err);
-                }
+    //skip update if status is on production and not a child that has had its parentId changed.
+    if (obj.status === 'PRODUCTION' && !(obj.parent_id && obj.parent_id != originalParentId)) {
+        parentObjectMapping[obj.id] = obj;
+        return;
+    }
 
-                //update children.
-                if (obj.params && obj.params.length > 0) {
-                    let functions = [];
-                    for (let param of obj.params) {
-                        functions.push(promoteCustomVehicleData(client, param, parentObjectMapping));
-                    }
-                    return async.waterfall(functions, function(err) {
-                        cb(err);
-                    });
-                } else {
-                    cb(err);
-                }
+    const result = await client.getOne(sql.insertCustomVehicleData(obj, true));
+    if (result) {
+        parentObjectMapping[obj.id] = result;
+    }
 
-            }
-        );
-    };
+    //update children.
+    if (obj.params && obj.params.length > 0) {
+        for (let param of obj.params) {
+            await promoteCustomVehicleData(client, param, parentObjectMapping);
+        }
+    }
 }
 
 /**
@@ -99,72 +79,35 @@ function promoteCustomVehicleData(client, obj, parentObjectMapping = {}) {
  *
  * This will be done as a single transaction with top level records being created first.
  *
- *
- * @param cb
  */
-function promote(cb) {
-    app.locals.db.runAsTransaction(function(client, callback) {
-        async.waterfall(
-            [
-                function(callback) {
-                    app.locals.db.sqlCommand(sql.getVehicleData(false), function(err, res) {
-                        callback(null, res);
-                    });
-                },
-                //create nested data.
-                function(data, callback) {
-                    return getNestedCustomVehicleData(data, false, callback);
-                },
-                //insert data
-                function(data, callback) {
-                    let functions = [];
-                    for (let customVehicleDataItem of data) {
-                        functions.push(promoteCustomVehicleData(client, customVehicleDataItem));
-                    }
-                    async.waterfall(functions, callback);
-                }
-            ], callback
-        );
-    }, cb);
+async function promote () {
+    await app.locals.db.asyncTransaction(async client => {
+        let data = await app.locals.db.asyncSql(sql.getVehicleData(false));
+        //create nested data.
+        data = getNestedCustomVehicleData(data, false);
 
+        //insert data
+        for (let customVehicleDataItem of data) {
+            await promoteCustomVehicleData(client, customVehicleDataItem);
+        }
+    });
 }
 
-function insertCustomVehicleDataItem(client, data, cb) {
-    async.waterfall(
-        [
-            function(callback) {
-                client.getOne(sql.insertCustomVehicleData(data, false), function(err, res) {
-                    if (err) {
-                        return cb(err, res);
-                    }
-                    callback(err, res);
-                });
-            },
-            function(res, callback) { //insert new children
-                let functions = [];
-                if (data.params) {
-                    for (let child of data.params) {
-                        child.status = 'STAGING';
-                        child.parent_id = res.id;
-                        functions.push(function(cb) {
-                            insertCustomVehicleDataItem(client, child, cb);
-                        });
-                    }
-                }
-
-                async.parallel(functions, function(err) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback(err);
-                });
-            },
-        ], cb
-    );
-
+async function insertCustomVehicleDataItem (client, data) {
+    const res = await client.getOne(sql.insertCustomVehicleData(data, false));
+    //insert new children
+    let promises = [];
+    if (data.params) {
+        for (let child of data.params) {
+            child.status = 'STAGING';
+            child.parent_id = res.id;
+            promises.push(insertCustomVehicleDataItem(client, child));
+        }
+    }
+    return Promise.all(promises);
 }
 
-function transformVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
+function transformVehicleDataItem (customVehicleDataItem, isForPolicyTable) {
     if (!isForPolicyTable) {
         return customVehicleDataItem;
     }
@@ -263,9 +206,8 @@ function transformVehicleDataItem(customVehicleDataItem, isForPolicyTable) {
  *
  * @param customVehicleDataItems
  * @param isForPolicyTable
- * @param cb
  */
-function getNestedCustomVehicleData(customVehicleDataItems, isForPolicyTable, cb) {
+function getNestedCustomVehicleData (customVehicleDataItems, isForPolicyTable) {
     let vehicleDataById = {};
     for (let customVehicleDataItem of customVehicleDataItems) {
         vehicleDataById[customVehicleDataItem.id] = customVehicleDataItem;
@@ -285,38 +227,28 @@ function getNestedCustomVehicleData(customVehicleDataItems, isForPolicyTable, cb
             result.push(transformVehicleDataItem(customVehicleDataItem, isForPolicyTable));
         }
     }
-    cb(null, result);
+    return result;
 }
 
 /**
  * Returns a list of custom vehicle data items filtered by status and optionally by id.
  * @param isProduction - If true return status = PRODUCTION otherwise status = STAGING
  * @param id - return only this id and child params.
- * @param cb
  */
-function getVehicleData(isProduction, id, cb) {
-    async.waterfall(
-        [
-            app.locals.db.sqlCommand.bind(null, sql.getVehicleData(isProduction, id)),
-            function(data, callback) {
-                getNestedCustomVehicleData(data, false, callback);
-            }
-        ], function(err, response) {
-            cb(err, response);
-        }
-    );
+async function getVehicleData (isProduction, id) {
+    const data = await app.locals.db.asyncSql(sql.getVehicleData(isProduction, id));
+    return getNestedCustomVehicleData(data, false);
 }
 
-function extractRpcSpecVersion(data, next) {
+function extractRpcSpecVersion (data) {
     data.rpcSpec = {
         version: _.get(data.xml, 'interface.$.version', null),
         min_version: _.get(data.xml, 'interface.$.minVersion', null),
         date: _.get(data.xml, 'interface.$.date', null)
     };
-    next(null, data);
 }
 
-function extractRpcSpecTypes(data, next) {
+function extractRpcSpecTypes (data) {
     let mapping = {
         'name': 'name',
         'since': 'since',
@@ -359,13 +291,16 @@ function extractRpcSpecTypes(data, next) {
     const functions = _.get(data, 'xml.interface.function');
 
     if (!enumerations) {
-        return next('enum not defined in the imported rpc spec');
+        app.locals.log.error('enum not defined in the imported rpc spec');
+        return false;
     }
     if (!structs) {
-        return next('struct not defined in the imported rpc spec');
+        app.locals.log.error('struct not defined in the imported rpc spec');
+        return false;
     }
     if (!functions) {
-        return next('function not defined in the imported rpc spec');
+        app.locals.log.error('function not defined in the imported rpc spec');
+        return false;
     }
 
     //extract enums
@@ -377,10 +312,12 @@ function extractRpcSpecTypes(data, next) {
         const enumerationAttributes = _.get(enumeration, '$', {});
 
         if (!enumerationAttributes['name']) {
-            return next('Enum must have a name defined.');
+            app.locals.log.error('Enum must have a name defined.');
+            return false;
         }
         if (!enumeration['element']) {
-            return next('Enum must have element defined.');
+            app.locals.log.error('Enum must have element defined.');
+            return false;
         }
 
         for (let key in mapping) {
@@ -397,7 +334,8 @@ function extractRpcSpecTypes(data, next) {
             const elementAttributes = _.get(element, '$', {});
 
             if (!elementAttributes['name']) {
-                return next('Element of enum must have a name defined.');
+                app.locals.log.error('Element of enum must have a name defined.');
+                return false;
             }
 
             for (let key in paramMapping) {
@@ -419,7 +357,8 @@ function extractRpcSpecTypes(data, next) {
         const attributes = _.get(struct, '$', {});
 
         if (!attributes['name']) {
-            return next('Struct must have a name defined.');
+            app.locals.log.error('Struct must have a name defined.');
+            return false;
         }
 
         for (let key in mapping) {
@@ -440,7 +379,8 @@ function extractRpcSpecTypes(data, next) {
             const elementAttributes = _.get(element, '$', {});
 
             if (!elementAttributes['name']) {
-                return next('Param of struct must have a name defined.');
+                app.locals.log.error('Param of struct must have a name defined.');
+                return false;
             }
 
             for (let key in paramMapping) {
@@ -461,7 +401,8 @@ function extractRpcSpecTypes(data, next) {
         const attributes = _.get(func, '$', {});
 
         if (!attributes['name']) {
-            return next('Struct must have a name defined.');
+            app.locals.log.error('Struct must have a name defined.');
+            return false;
         }
 
         if (!func['param']) {
@@ -486,7 +427,8 @@ function extractRpcSpecTypes(data, next) {
             const elementAttributes = _.get(element, '$', {});
 
             if (!elementAttributes['name']) {
-                return next('Param of func must have a name defined.');
+                app.locals.log.error('Param of func must have a name defined.');
+                return false;
             }
 
             for (let key in paramMapping) {
@@ -501,109 +443,75 @@ function extractRpcSpecTypes(data, next) {
 
     data.rpcSpecTypes = rpcSpecTypes;
 
-    next(null, data);
+    return true;
 }
 
-function updateRpcSpec(next) {
-
-    app.locals.db.runAsTransaction(function(client, callback) {
-        async.waterfall(
-            [
-                getRpcSpec,
-                function(rpcString, callback) {
-                    parseXml(rpcString, function(err, xml) {
-                        callback(err, { xml: xml });
-                    });
-                },
-                extractRpcSpecVersion,
-                //check rpc version exists exit if already exists.
-                function(data, callback) {
-                    let rpcSpec = data.rpcSpec;
-                    client.getOne(sql.getLatestRpcSpec(), function(err, result) {
-                        if (result && result.version) {
-                            if (rpcSpec.version === result.version) {
-                                return callback({ skipReason: 'Rpc spec no update required' });
-                            }
-                        }
-                        callback(err, data);
-                    });
-                },
-                function(data, callback) {
-                    let rpcSpec = data.rpcSpec;
-                    client.getOne(sql.insertRpcSpec(rpcSpec), function(err, result) {
-                        data.rpcSpecInsert = result;
-                        callback(err, data);
-                    });
-                },
-                extractRpcSpecTypes,
-                function(data, callback) {
-                    client.getMany(sql.insertRpcSpecType(data.rpcSpecInsert.id, data.rpcSpecTypes), function(err, result) {
-
-                        data.rpcSpecTypesByName = {};
-
-                        for (let rpcSpecType of result) {
-                            let name = rpcSpecType.name;
-                            if (rpcSpecType.message_type) {
-                                name = `${name}.${rpcSpecType.message_type}`;
-                            }
-                            data.rpcSpecTypesByName[name] = rpcSpecType;
-                        }
-                        callback(err, data);
-                    });
-                },
-                function(data, callback) {
-                    client.getOne(sql.insertRpcSpecParam(data.rpcSpecParams, data.rpcSpecTypesByName), function(err, result) {
-                        callback(err, data);
-                    });
-                }
-            ], callback);
-    }, function(err, response) {
-
-        if (err) {
-            if (err.skipReason) {
-                //warning only, spec already imported etc.
-                app.locals.log.info(err.skipReason);
-            } else {
-                app.locals.log.error(err);
+async function updateRpcSpec () {
+    await app.locals.db.asyncTransaction(async client => {
+        const rpcString = await getRpcSpec();
+        const data = {
+            xml: await promisify(parseXml)(rpcString)
+        };
+        extractRpcSpecVersion(data);
+        //check if the rpc version exists. exit if already exists.
+        const result = await client.getOne(sql.getLatestRpcSpec());
+        if (result && result.version) {
+            if (data.rpcSpec.version === result.version) {
+                app.locals.log.info('Rpc spec: no update required');
+                return;
             }
-        } else {
-            cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
-            cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
-            app.locals.log.info('New RPC Spec saved');
+        }
+        // insert rpc spec contents and return them
+        data.rpcSpecInsert = await client.getOne(sql.insertRpcSpec(data.rpcSpec));
+        const success = extractRpcSpecTypes(data);
+        if (!success) {
+            return;
         }
 
-        if (typeof next == 'function') {
-            next();
+        const insertTypesResult = await client.getMany(sql.insertRpcSpecType(data.rpcSpecInsert.id, data.rpcSpecTypes));
+        data.rpcSpecTypesByName = {};
+
+        for (let rpcSpecType of insertTypesResult) {
+            let name = rpcSpecType.name;
+            if (rpcSpecType.message_type) {
+                name = `${name}.${rpcSpecType.message_type}`;
+            }
+            data.rpcSpecTypesByName[name] = rpcSpecType;
         }
+
+        await client.getOne(sql.insertRpcSpecParam(data.rpcSpecParams, data.rpcSpecTypesByName));
+
+        // done
+        cache.deleteCacheData(true, app.locals.version, cache.policyTableKey);
+        cache.deleteCacheData(false, app.locals.version, cache.policyTableKey);
+        app.locals.log.info('New RPC Spec updated and saved');
+    }).catch(err => {
+        app.locals.log.error(err);
     });
-
 }
 
-function getTemplate(cb) {
-    return cb(
-        null,
-        {
-            'id': null,
-            'parent_id': null,
-            'status': 'STAGING',
-            'name': null,
-            'type': null,
-            'key': null,
-            'mandatory': false,
-            'min_length': null,
-            'max_length': null,
-            'min_size': null,
-            'max_size': null,
-            'min_value': null,
-            'max_value': null,
-            'array': false,
-            'params': [],
-            'is_deleted': false
-        }
-    );
+function getTemplate () {
+    return {
+        'id': null,
+        'parent_id': null,
+        'status': 'STAGING',
+        'name': null,
+        'type': null,
+        'key': null,
+        'mandatory': false,
+        'min_length': null,
+        'max_length': null,
+        'min_size': null,
+        'max_size': null,
+        'min_value': null,
+        'max_value': null,
+        'array': false,
+        'params': [],
+        'is_deleted': false
+    }
 }
 
-function getValidTypes(cb) {
+async function getValidTypes () {
 
     //primitive types and structgetVehicleDataParamTypes
     let types = [
@@ -629,21 +537,18 @@ function getValidTypes(cb) {
         }
     ];
 
-    app.locals.db.sqlCommand(sql.getEnums(), function(err, enums) {
-        if (err) {
-            return cb(err);
-        }
-        for (let item of enums) {
-            types.push(
-                {
-                    name: item.name,
-                    allow_params: false
-                }
-            );
-        }
+    const enums = await app.locals.db.asyncSql(sql.getEnums());
 
-        return cb(null, types);
-    });
+    for (let item of enums) {
+        types.push(
+            {
+                name: item.name,
+                allow_params: false
+            }
+        );
+    }
+
+    return types;
 }
 
 module.exports = {

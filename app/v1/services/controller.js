@@ -3,22 +3,15 @@ const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 const helper = require('./helper.js');
 
-
-function upsertTypes (next) {
+async function upsertTypes () {
     const queryObj = {
         include_permissions: true
     };
-    const flow = app.locals.flow([
-        app.locals.shaid.getServices.bind(null, queryObj),
-        helper.upsertTypes
-    ], {method: "waterfall"});
 
-    flow(function (err) {
-        app.locals.log.info("Service type information updated");
-        if (next) {
-            next(err);
-        }
-    });
+    const services = await app.locals.shaid.getServices(queryObj);
+    await helper.upsertTypes(services);
+    
+    app.locals.log.info("Service type information updated");
 }
 
 module.exports = {

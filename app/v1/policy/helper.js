@@ -1,6 +1,5 @@
 //Copyright (c) 2018, Livio, Inc.
 const app = require('../app');
-const flame = app.locals.flame;
 const model = require('./model.js');
 const setupSqlCommand = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
@@ -42,171 +41,158 @@ function validateAppPolicyOnlyPost (req, res) {
 }
 
 //helper functions
+async function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, returnPreview) {
+    const start = Date.now();
 
-function generatePolicyTable (isProduction, useLongUuids = false, appPolicyObj, returnPreview, cb) {
-    let makePolicyTable = {};
+    let cacheNewData = false;
+    let policyTable = await cache.getCacheData(isProduction, app.locals.version, cache.policyTableKey);
+    if (!policyTable) {
+        policyTable = {};
+    }
+
     if (appPolicyObj) { //existence of appPolicyObj implies to return the app policy object
-        makePolicyTable.appPolicies = setupAppPolicies(isProduction, useLongUuids, appPolicyObj);
+        policyTable.appPolicies = setupAppPolicies(isProduction, useLongUuids, appPolicyObj);
     }
 
-    cache.getCacheData(isProduction, app.locals.version, cache.policyTableKey, function (err, cacheData) {
-        if (GET(cacheData, "moduleConfig")
-        && GET(cacheData, "functionalGroups")
-        && GET(cacheData, "consumerFriendlyMessages")
-        && GET(cacheData, "vehicleData")) {
-            if(cacheData.moduleConfig){
-                cacheData.moduleConfig.full_app_id_supported = useLongUuids;
-            }
-            const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
-            policyTableMakeFlow(function (err, data) {
-                cacheData.appPolicies = data.appPolicies;
-                cb(err, returnPreview, cacheData);
-            });
-        } else {
-            if (returnPreview) {
-                makePolicyTable.moduleConfig = setupModuleConfig(isProduction, useLongUuids);
-                makePolicyTable.functionalGroups = setupFunctionalGroups(isProduction);
-                makePolicyTable.consumerFriendlyMessages = setupConsumerFriendlyMessages(isProduction);
-                makePolicyTable.vehicleData = setupVehicleData(isProduction);
-            }
-            const policyTableMakeFlow = flame.flow(makePolicyTable, {method: 'parallel', eventLoop: true});
-            policyTableMakeFlow(function (err, data) {
-                cache.setCacheData(isProduction, app.locals.version, cache.policyTableKey, data);
-                cb(err, returnPreview, data);
-            });
+    if (GET(policyTable, "moduleConfig")
+    && GET(policyTable, "functionalGroups")
+    && GET(policyTable, "consumerFriendlyMessages")
+    && GET(policyTable, "vehicleData")) {
+        if(policyTable.moduleConfig){
+            policyTable.moduleConfig.full_app_id_supported = useLongUuids;
         }
-    });
+    } else {
+        cacheNewData = true;
+        if (returnPreview) {
+            policyTable.moduleConfig = setupModuleConfig(isProduction, useLongUuids);
+            policyTable.functionalGroups = setupFunctionalGroups(isProduction);
+            policyTable.consumerFriendlyMessages = setupConsumerFriendlyMessages(isProduction);
+            policyTable.vehicleData = setupVehicleData(isProduction);
+        }
+    }
+
+    for (let prop in policyTable) {
+        policyTable[prop] = await policyTable[prop]; // resolve all promises into each property
+    }
+
+    if (cacheNewData) {
+        cache.setCacheData(isProduction, app.locals.version, cache.policyTableKey, policyTable);
+    }
+
+    return policyTable;
 }
 
-function setupVehicleData (isProduction) {
-    const dataFlow = flame.flow(
-        {
-            schemaVersion: setupSqlCommand.bind(null, sql.getVehicleDataSchemaVersion(isProduction)),
-            rawCustomVehicleData: setupSqlCommand.bind(null, vehicleDataSql.getVehicleData(isProduction)),
-            rawRpcSpecParams: setupSqlCommand.bind(null, sql.getRpcSpecParams()),
-            rawRpcSpecTypes: setupSqlCommand.bind(null, sql.getRpcSpecTypes()),
-        },
-        {
-            method: 'parallel'
-        }
-    );
-
-    return flame.flow(
-        [
-            dataFlow,
-            model.transformVehicleData.bind(null, isProduction)
-        ],
-        {
-            method: 'waterfall'
-        }
-    );
-}
-
-function setupModuleConfig (isProduction, useLongUuids = false) {
-    const getModuleConfig = {
-        base: setupSqlCommand.bind(null, moduleConfigSql.moduleConfig.status(isProduction)),
-        retrySeconds: setupSqlCommand.bind(null, moduleConfigSql.retrySeconds.status(isProduction)),
-        endpointProperties: setupSqlCommand.bind(null, moduleConfigSql.endpointProperties.status(isProduction)),
+async function setupVehicleData (isProduction) {
+    const data = {
+        schemaVersion: app.locals.db.asyncSql(sql.getVehicleDataSchemaVersion(isProduction)),
+        rawCustomVehicleData: app.locals.db.asyncSql(vehicleDataSql.getVehicleData(isProduction)),
+        rawRpcSpecParams: app.locals.db.asyncSql(sql.getRpcSpecParams()),
+        rawRpcSpecTypes: app.locals.db.asyncSql(sql.getRpcSpecTypes()),
     };
-    const moduleConfigGetFlow = flame.flow(getModuleConfig, {method: 'parallel'});
-    const makeModuleConfig = [
-        moduleConfigGetFlow,
-        model.transformModuleConfig.bind(null, isProduction, useLongUuids)
-    ];
-    return flame.flow(makeModuleConfig, {method: 'waterfall'});
+
+    for (let prop in data) {
+        data[prop] = await data[prop]; // resolve all promises into each property
+    }
+
+    return await model.transformVehicleData(isProduction, data);
 }
 
-function setupConsumerFriendlyMessages (isProduction) {
-    const getMessages = flame.flow({
-        messageStatuses: setupSqlCommand.bind(null, messagesSql.getMessages.status(isProduction)),
-        messageGroups: setupSqlCommand.bind(null, messagesSql.getMessages.group(isProduction, false, true)),
-        highestMessageGroupId: setupSqlCommand.bind(null, messagesSql.getMessages.highestGroupId(isProduction, false))
-    }, {method: 'parallel'});
-
-    const makeMessages = [
-        getMessages,
-        model.transformMessages
-    ];
-
-    return flame.flow(makeMessages, {method: 'waterfall'});
-}
-
-function setupFunctionalGroups (isProduction) {
-    const getFunctionGroupInfo = {
-        base: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)),
-        hmiLevels: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.hmiLevels.statusFilter(isProduction, true)),
-        parameters: setupSqlCommand.bind(null, funcGroupSql.getFuncGroup.parameters.statusFilter(isProduction, true)),
-        messageGroups: messages.getMessageGroups.bind(null, isProduction, true), //get consent prompt values (always returns a value as if in STAGING mode)
+async function setupModuleConfig (isProduction, useLongUuids = false) {
+    const moduleConfigData = {
+        base: app.locals.db.asyncSql(moduleConfigSql.moduleConfig.status(isProduction)),
+        retrySeconds: app.locals.db.asyncSql(moduleConfigSql.retrySeconds.status(isProduction)),
+        endpointProperties: app.locals.db.asyncSql(moduleConfigSql.endpointProperties.status(isProduction)),
     };
-    const funcGroupGetFlow = flame.flow(getFunctionGroupInfo, {method: 'parallel'});
-    const makeFunctionGroupInfo = [
-        funcGroupGetFlow,
-        model.transformFunctionalGroups.bind(null, isProduction)
-    ];
-    return flame.flow(makeFunctionGroupInfo, {method: 'waterfall'});
+
+    for (let prop in moduleConfigData) {
+        moduleConfigData[prop] = await moduleConfigData[prop]; // resolve all promises into each property
+    }
+
+    return await model.transformModuleConfig(isProduction, useLongUuids, moduleConfigData);
 }
 
-function setupAppPolicies (isProduction, useLongUuids = false, reqAppPolicy) {
+async function setupConsumerFriendlyMessages (isProduction) {
+    const messagesData = {
+        messageStatuses: app.locals.db.asyncSql(messagesSql.getMessages.status(isProduction)),
+        messageGroups: app.locals.db.asyncSql(messagesSql.getMessages.group(isProduction, false, true)),
+        highestMessageGroupId: app.locals.db.asyncSql(messagesSql.getMessages.highestGroupId(isProduction, false))
+    };
+
+    for (let prop in messagesData) {
+        messagesData[prop] = await messagesData[prop]; // resolve all promises into each property
+    }
+
+    return await model.transformMessages(messagesData);
+}
+
+async function setupFunctionalGroups (isProduction) {
+    const functionGroupInfo = {
+        base: app.locals.db.asyncSql(funcGroupSql.getFuncGroup.base.statusFilter(isProduction, true)),
+        hmiLevels: app.locals.db.asyncSql(funcGroupSql.getFuncGroup.hmiLevels.statusFilter(isProduction, true)),
+        parameters: app.locals.db.asyncSql(funcGroupSql.getFuncGroup.parameters.statusFilter(isProduction, true)),
+        messageGroups: messages.getMessageGroups(isProduction, true), //get consent prompt values (always returns a value as if in STAGING mode)
+    };
+
+    for (let prop in functionGroupInfo) {
+        functionGroupInfo[prop] = await functionGroupInfo[prop]; // resolve all promises into each property
+    }
+
+    return await model.transformFunctionalGroups(isProduction, functionGroupInfo);
+}
+
+async function setupAppPolicies (isProduction, useLongUuids = false, reqAppPolicy) {
     const uuids = Object.keys(reqAppPolicy);
-    let getAppPolicy = [];
+    let appObjs = [];
     if (uuids.length) {
-        getAppPolicy.push(setupSqlCommand.bind(null, sql.getBaseAppInfo(isProduction, useLongUuids, uuids)));
+        appObjs = await app.locals.db.asyncSql(sql.getBaseAppInfo(isProduction, useLongUuids, uuids));
     }
-    else {
-        getAppPolicy.push(function (callback) {
-            callback(null, []);
-        });
-    }
-    getAppPolicy.push(mapAppBaseInfo.bind(null, isProduction, useLongUuids, uuids, reqAppPolicy));
-    return flame.flow(getAppPolicy, {method: 'waterfall'});
+
+    return await mapAppBaseInfo(isProduction, useLongUuids, uuids, reqAppPolicy, appObjs);
 }
 
-function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, incomingAppObjs, appObjs, callback) {
-    const makeAppPolicyFlow = flame.flow(flame.map(appObjs, function (appObj, next) {
-        const getInfoFlow = flame.flow({
-            categories: setupSqlCommand.bind(null, sqlApps.getAppCategoriesNames(appObj.id)),
-            displayNames: setupSqlCommand.bind(null, sql.getAppDisplayNames(appObj.id)),
-            moduleNames: setupSqlCommand.bind(null, sql.getAppModules(appObj.id)),
-            funcGroupNames: setupSqlCommand.bind(null, sql.getAppFunctionalGroups(isProduction, appObj)),
-            serviceTypes: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypes.idFilter(appObj.id)),
-            serviceTypeNames: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypeNames.idFilter(appObj.id)),
-            serviceTypePermissions: setupSqlCommand.bind(null, sqlApps.getApp.serviceTypePermissions.idFilter(appObj.id)),
-            hybridPreference: setupSqlCommand.bind(null, sqlApps.getApp.hybridPreference.idFilter(appObj.id)),
-            appPassthrough: setupSqlCommand.bind(null, sqlApps.getApp.passthrough.idFilter(appObj.id)),
-            incomingAppPolicy: function(callback){
-                callback(null, incomingAppObjs[(useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)]);
-            }
-        }, {method: 'parallel'});
+async function mapAppBaseInfo (isProduction, useLongUuids = false, requestedUuids, incomingAppObjs, appObjs) {
+    const appObjPromises = appObjs.map(async appObj => {
+        const promiseObjects = { // start all promises in parallel
+            categories: app.locals.db.asyncSql(sqlApps.getAppCategoriesNames(appObj.id)),
+            displayNames: app.locals.db.asyncSql(sql.getAppDisplayNames(appObj.id)),
+            moduleNames: app.locals.db.asyncSql(sql.getAppModules(appObj.id)),
+            funcGroupNames: app.locals.db.asyncSql(sql.getAppFunctionalGroups(isProduction, appObj)),
+            serviceTypes: app.locals.db.asyncSql(sqlApps.getApp.serviceTypes.idFilter(appObj.id)),
+            serviceTypeNames: app.locals.db.asyncSql(sqlApps.getApp.serviceTypeNames.idFilter(appObj.id)),
+            serviceTypePermissions: app.locals.db.asyncSql(sqlApps.getApp.serviceTypePermissions.idFilter(appObj.id)),
+            hybridPreference: app.locals.db.asyncSql(sqlApps.getApp.hybridPreference.idFilter(appObj.id)),
+            appPassthrough: app.locals.db.asyncSql(sqlApps.getApp.passthrough.idFilter(appObj.id)),
+            incomingAppPolicy: Promise.resolve(incomingAppObjs[(useLongUuids ? appObj.app_uuid : appObj.app_short_uuid)])
+        };
 
-        flame.flow([
-            getInfoFlow,
-            model.constructAppPolicy.bind(null, appObj, useLongUuids)
-        ], {method: 'waterfall'})(next); //run it
-    }), {method: 'parallel'});
-
-    const getAllDataFlow = flame.flow({
-        policyObjs: makeAppPolicyFlow,
-        requestedUuids: function(callback){
-            callback(null, requestedUuids);
-        },
-        useLongUuids: function(callback){
-            callback(null, useLongUuids);
-        },
-        defaultFuncGroups: setupSqlCommand.bind(null, sql.getDefaultFunctionalGroups(isProduction)),
-        preDataConsentFuncGroups: setupSqlCommand.bind(null, sql.getPreDataConsentFunctionalGroups(isProduction)),
-        deviceFuncGroups: setupSqlCommand.bind(null, sql.getDeviceFunctionalGroups(isProduction)),
-        blacklistedApps: function (callback) {
-            if (requestedUuids.length > 0) {
-                setupSqlCommand(sqlApps.getBlacklistedApps(requestedUuids, useLongUuids), callback);
-            } else {
-                callback(null, []);
-            }
+        for (let prop in promiseObjects) {
+            promiseObjects[prop] = await promiseObjects[prop]; // resolve all promises into each property
         }
-    }, {method: 'parallel'});
-    flame.flow([
-        getAllDataFlow,
-        model.aggregateResults
-    ], {method: 'waterfall'})(callback);
+
+        return model.constructAppPolicy(appObj, useLongUuids, promiseObjects);
+    });
+
+    const appObjsResolved = await Promise.all(appObjPromises);
+
+    const allDataPromises = { // start all promises in parallel
+        policyObjs: appObjsResolved,
+        requestedUuids: Promise.resolve(requestedUuids),
+        useLongUuids: Promise.resolve(useLongUuids),
+        defaultFuncGroups: app.locals.db.asyncSql(sql.getDefaultFunctionalGroups(isProduction)),
+        preDataConsentFuncGroups: app.locals.db.asyncSql(sql.getPreDataConsentFunctionalGroups(isProduction)),
+        deviceFuncGroups: app.locals.db.asyncSql(sql.getDeviceFunctionalGroups(isProduction)),
+    };
+    if (requestedUuids.length > 0) {
+        allDataPromises.blacklistedApps = app.locals.db.asyncSql(sqlApps.getBlacklistedApps(requestedUuids, useLongUuids));
+    } else {
+        allDataPromises.blacklistedApps = Promise.resolve([]);
+    }
+
+    for (let prop in allDataPromises) {
+        allDataPromises[prop] = await allDataPromises[prop]; // resolve all promises into each property
+    }
+
+    return model.aggregateResults(allDataPromises);
 }
 
 module.exports = {

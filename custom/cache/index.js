@@ -1,5 +1,6 @@
 const config = require('../../settings');
 const log = require('../../custom/loggers/winston');
+const promisify = require('util').promisify;
 var cache
 try {
     cache = require(`./${config.cacheModule}`);
@@ -9,36 +10,32 @@ try {
 
 const policyTableKey = 'policyTableKey';
 
-function getCacheData(isProduction, version, key, callback) {
+async function getCacheData (isProduction, version, key) {
     if (cache) {
-        cache.get(makeKey(isProduction, version, key), callback);
-    } else {
-        callback(null, null);
+        return await promisify(cache.get)(makeKey(isProduction, version, key));
     }
+    return null;
 };
 
-function setCacheData(isProduction, version, key, value, callback) {
+async function setCacheData (isProduction, version, key, value) {
     if (cache) {
-        cache.set(makeKey(isProduction, version, key), value, callback);
-    } else if (callback) {
-        callback(null, null);
-    }
+        return await promisify(cache.set)(makeKey(isProduction, version, key), value);
+    } 
+    return null;
 };
 
-function deleteCacheData(isProduction, version, key, callback) {
+async function deleteCacheData (isProduction, version, key) {
     if (cache) {
-        cache.del(makeKey(isProduction, version, key), callback);
-    } else if (callback) {
-        callback(null, null);
+        return await promisify(cache.del)(makeKey(isProduction, version, key));
     }
+    return null;
 };
 
-function flushAll(callback) {
+async function flushAll () {
     if (cache) {
-        cache.flushall(callback);
-    } else if (callback) {
-        callback(null, null);
+        return await promisify(cache.flushall)();
     }
+    return null;
 };
 
 function makeKey(isProduction, version, key) {

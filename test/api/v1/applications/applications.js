@@ -1,39 +1,22 @@
-var common = require('../../../common');
-var expect = common.expect;
-var endpoint = '/api/v1/applications';
+const common = require('../../../common');
+const expect = common.expect;
+const endpoint = '/api/v1/applications';
 
-common.get(
-    'should return all applications',
-    endpoint,
-    {},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        //expect(res.body.data.applications).to.have.lengthOf.above(0);
-        done();
-    }
-);
+common.startTest('should return all applications', async function () {
+    const res = await common.get(endpoint, {});
+    expect(res).to.have.status(200);
+    expect(res.body.data.applications).to.have.lengthOf.above(0);
+});
 
-common.get(
-    'should return the application with the given id',
-    endpoint,
-    {id: 1},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        //expect(res.body.data.applications).to.have.lengthOf(1);
-        done();
-    }
-);
+common.startTest('should return the application with the given id', async function () {
+    const res = await common.get(endpoint, {id: 1});
+    expect(res).to.have.status(200);
+    expect(res.body.data.applications).to.have.lengthOf(1);
+});
 
-common.get(
-    'should return the applications with the given uuid',
-    endpoint,
-    {uuid: '4b5145c5-0970-4a42-ba4b-08a9ff47aea3'},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        //expect(res.body.data.applications).to.have.lengthOf.above(0);
-        done();
-    }
-);
+common.startTest('should return the application with the given uuid', async function () {
+    const uuid = (await common.get(endpoint, {id: 1})).body.data.applications[0].uuid;
+    const res = await common.get(endpoint, {uuid: uuid});
+    expect(res).to.have.status(200);
+    expect(res.body.data.applications).to.have.lengthOf.above(0);
+});

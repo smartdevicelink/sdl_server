@@ -7,36 +7,21 @@ const oldPassword = common.config.basicAuthPassword;
 common.config.authType = 'basic';
 common.config.basicAuthPassword = 'testing';
 
-common.post(
-    'return a 401 when trying to login with the wrong password',
-    endpoint,
-    {
-    	password: 'nope'
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(401);
-        done();
-    }
-);
+common.startTest('return a 401 when trying to login with the wrong password', async function () {
+    const res = await common.post(endpoint, {
+        password: 'nope'
+    });
+    expect(res).to.have.status(401);
+});
 
-common.post(
-    'return a 200 when trying to login with the right password',
-    endpoint,
-    {
-    	password: 'testing'
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
+common.startTest('return a 200 when trying to login with the right password', async function () {
+    const res = await common.post(endpoint, {
+        password: 'testing'
+    });
+    expect(res).to.have.status(200);
 
-        //reset
-		common.config.authType = undefined;
-		common.config.basicAuthPassword = oldPassword;
-
-        done();
-    }
-);
-
-
+    //reset
+    common.config.authType = undefined;
+    common.config.basicAuthPassword = oldPassword;
+});
 

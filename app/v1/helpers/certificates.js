@@ -48,22 +48,19 @@ function parseCertificate (cert) {
 }
 
 //given a key cert bundle, returns the expiration date of the cert
-function extractExpirationDateBundle (keyCertBundle, callback) {
-    readKeyCertBundle(keyCertBundle)
+function extractExpirationDateBundle (keyCertBundle) {
+    return readKeyCertBundle(keyCertBundle)
         .then(keyBundle => {
-            return extractExpirationDateCertificate(keyBundle.cert, callback);
+            return extractExpirationDateCertificate(keyBundle.cert);
         });
 }
 
 //given a cert, returns the expiration date of the cert
-function extractExpirationDateCertificate (certificate, callback) {
-    parseCertificate(certificate)
+function extractExpirationDateCertificate (certificate) {
+    return parseCertificate(certificate)
         .then(certInfo => {
-            callback(null, new Date(certInfo.validity.end));
+            return new Date(certInfo.validity.end);
         })
-        .catch(err => {
-            return callback(err);
-        });
 }
 
 module.exports = {

@@ -1,89 +1,68 @@
-var common = require('../../../common');
-var expect = common.expect;
-var endpoint = '/api/v1/policy/apps';
+const common = require('../../../common');
+const expect = common.expect;
+const endpoint = '/api/v1/policy/apps';
 
-common.post(
-    'should get staging policy objects',
-    endpoint,
-    {
+common.startTest('should get staging policy objects', async function () {
+    const apps = (await common.get('/api/v1/applications', {})).body.data.applications;
+    const first3Uuids = apps.map(app => app.uuid).slice(0, 3);
+    const appObj = {};
+    for (let uuid of first3Uuids) {
+        appObj[uuid] = {};
+    }
+
+    const res = await common.post(endpoint, {
         policy_table: {
-            app_policies: {
-                "pancakes": 1,
-                "ac0a3e87-a45a-4c29-af4c-a3a4955a5ad1": 1,
-                "dfda5c35-700e-487e-87d2-ea4b2c572802": 2
-            }
+            app_policies: appObj
         },
         environment: "staging"
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(Object.keys(res.body.data[0].policy_table.app_policies).length).to.equal(6);
-        done();
-    }
-);
+    });
 
-common.post(
-    'should get production policy objects',
-    endpoint,
-    {
+    expect(res).to.have.status(200);
+    expect(Object.keys(res.body.data[0].policy_table.app_policies).length).to.equal(6);
+});
+
+common.startTest('should get production policy objects', async function () {
+    const apps = (await common.get('/api/v1/applications', {})).body.data.applications;
+    const first3Uuids = apps.map(app => app.uuid).slice(0, 3);
+    const appObj = {};
+    for (let uuid of first3Uuids) {
+        appObj[uuid] = {};
+    }
+
+    const res = await common.post(endpoint, {
         policy_table: {
-            app_policies: {
-                "pancakes": 1,
-                "ac0a3e87-a45a-4c29-af4c-a3a4955a5ad1": 1,
-                "dfda5c35-700e-487e-87d2-ea4b2c572802": 2
-            }
+            app_policies: appObj
         },
         environment: "production"
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(Object.keys(res.body.data[0].policy_table.app_policies).length).to.equal(6);
-        done();
-    }
-);
+    });
 
-common.post(
-    'should return 400 with no app policies specified',
-    endpoint,
-    {
-        policy_table: {
+    expect(res).to.have.status(200);
+    expect(Object.keys(res.body.data[0].policy_table.app_policies).length).to.equal(6);
+});
 
-        }
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+common.startTest('should return 400 with no app policies specified', async function () {
+    const res = await common.post(endpoint, {
+        policy_table: {},
+        environment: "production"
+    });
 
-common.post(
-    'should get default permissions for invalid app uuid',
-    endpoint,
-    {
+    expect(res).to.have.status(400);
+});
+
+common.startTest('should get default permissions for invalid app uuid', async function () {
+    const res = await common.post(endpoint, {
         policy_table: {
             app_policies: {
-                "INVALID_APP": 1
+                "INVALID_APP": {}
             }
         }
-    },
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        expect(Object.keys(res.body.data[0].policy_table.app_policies).length).to.equal(4);
-        done();
-    }
-);
+    });
 
-common.post(
-    'should return 400 with no body specified',
-    endpoint,
-    {},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(400);
-        done();
-    }
-);
+    expect(res).to.have.status(200);
+    expect(Object.keys(res.body.data[0].policy_table.app_policies).length).to.equal(4);
+});
+
+common.startTest('should return 400 with no body specified', async function () {
+    const res = await common.post(endpoint, {});
+    expect(res).to.have.status(400);
+});

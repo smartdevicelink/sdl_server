@@ -2,7 +2,6 @@
 const check = require('check-types');
 const model = require('./model.js');
 const app = require('../app');
-const flow = app.locals.flow;
 const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 
@@ -134,20 +133,21 @@ function validatePost (req, res) {
 
 //helper functions
 
-function getModuleConfigFlow (property, value) {
-    const getInfoFlow = app.locals.flow({
-        base: setupSql.bind(null, sql.moduleConfig[property](value)),
-        retrySeconds: setupSql.bind(null, sql.retrySeconds[property](value)),
-        endpointProperties: setupSql.bind(null, sql.endpointProperties[property](value))
-    }, {method: 'parallel'});
+async function getModuleConfig (property, value) {
+    const info = {
+        base: app.locals.db.asyncSql(sql.moduleConfig[property](value)),
+        retrySeconds: app.locals.db.asyncSql(sql.retrySeconds[property](value)),
+        endpointProperties: app.locals.db.asyncSql(sql.endpointProperties[property](value))
+    };
 
-    return app.locals.flow([
-        getInfoFlow,
-        model.transformModuleConfig
-    ], {method: 'waterfall', eventLoop: true});
+    for (let prop in info) {
+        info[prop] = await info[prop]; // resolve all promises into each property
+    }
+
+    return model.transformModuleConfig(info);
 }
 
 module.exports = {
     validatePost: validatePost,
-    getModuleConfigFlow: getModuleConfigFlow
+    getModuleConfig: getModuleConfig
 }

@@ -7,8 +7,14 @@ const BASE_URL = 'http://' + config.policyServerHost + ':' + config.policyServer
 chai.use(chaiHttp);
 chai.use(chaiJsonSchema);
 
-exports.get = (testName, endpoint, queryParams, endFunction) => {
-    it(testName, (done) => {
+exports.startTest = (testName, endFunction) => {
+    it(testName, async () => {
+        await endFunction();
+    });
+}
+
+exports.get = (endpoint, queryParams) => {
+    return new Promise((resolve, reject) => {
         chai.request(BASE_URL)
             .get(endpoint)
             .set('Accept', 'application/json')
@@ -16,13 +22,36 @@ exports.get = (testName, endpoint, queryParams, endFunction) => {
             .query(queryParams)
             .send()
             .end( (err, res) => {
-                endFunction(err, res, done);
+                expect(err).to.be.null;
+                if (err) {
+                    return reject(err);
+                }
+                resolve(res);
+            });
+    });
+}
+
+exports.postWebhook = (endpoint, body, publicKey) => {
+    return new Promise((resolve, reject) => {
+        chai.request(BASE_URL)
+            .post(endpoint)
+            .set('Accept', 'application/json')
+            .set('Content-Type', 'application/json')
+            .set('BASIC-AUTH-PASSWORD', config.basicAuthPassword)
+            .set('public_key', publicKey)
+            .send(body)
+            .end( (err, res) => {
+                expect(err).to.be.null;
+                if (err) {
+                    return reject(err);
+                }
+                resolve(res);
             });
     });
 };
 
-exports.post = (testName, endpoint, body, endFunction) => {
-    it(testName, (done) => {
+exports.post = (endpoint, body) => {
+    return new Promise((resolve, reject) => {
         chai.request(BASE_URL)
             .post(endpoint)
             .set('Accept', 'application/json')
@@ -30,13 +59,17 @@ exports.post = (testName, endpoint, body, endFunction) => {
             .set('BASIC-AUTH-PASSWORD', config.basicAuthPassword)
             .send(body)
             .end( (err, res) => {
-                endFunction(err, res, done);
-            })
+                expect(err).to.be.null;
+                if (err) {
+                    return reject(err);
+                }
+                resolve(res);
+            });
     });
 };
 
-exports.put = (testName, endpoint, body, endFunction) => {
-    it(testName, (done) => {
+exports.put = (endpoint, body) => {
+    return new Promise((resolve, reject) => {
         chai.request(BASE_URL)
             .put(endpoint)
             .set('Accept', 'application/json')
@@ -44,8 +77,12 @@ exports.put = (testName, endpoint, body, endFunction) => {
             .set('BASIC-AUTH-PASSWORD', config.basicAuthPassword)
             .send(body)
             .end( (err, res) => {
-                endFunction(err, res, done);
-            })
+                expect(err).to.be.null;
+                if (err) {
+                    return reject(err);
+                }
+                resolve(res);
+            });
     });
 };
 

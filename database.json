@@ -1,22 +1,4 @@
 {
-  "pg-staging": {
-      "driver": "pg",
-      "user": {"ENV": "STAGING_PG_USER"},
-      "password": {"ENV": "STAGING_PG_PASSWORD"},
-      "host": {"ENV": "STAGING_PG_HOST"},
-      "database": {"ENV": "STAGING_PG_DATABASE"},
-      "port": {"ENV": "STAGING_PG_PORT"},
-      "schema": "public"
-  },
-  "pg-production": {
-      "driver": "pg",
-      "user": {"ENV": "PRODUCTION_PG_USER"},
-      "password": {"ENV": "PRODUCTION_PG_PASSWORD"},
-      "host": {"ENV": "PRODUCTION_PG_HOST"},
-      "database": {"ENV": "PRODUCTION_PG_DATABASE"},
-      "port": {"ENV": "PRODUCTION_PG_PORT"},
-      "schema": "public"
-  },
   "pg-test": {
       "driver": "pg",
       "user": {"ENV": "TEST_PG_USER"},

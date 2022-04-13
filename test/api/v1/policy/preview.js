@@ -1,25 +1,13 @@
-var common = require('../../../common');
-var expect = common.expect;
-var endpoint = '/api/v1/policy/preview';
+const common = require('../../../common');
+const expect = common.expect;
+const endpoint = '/api/v1/policy/preview';
 
-common.get(
-    'should get production policy table by default',
-    endpoint,
-    {},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
+common.startTest('should get production policy table by default', async function () {
+    const res = await common.get(endpoint, {});
+    expect(res).to.have.status(200);
+});
 
-common.get(
-    'should get policy table for given environment',
-    endpoint,
-    {environment: 'staging'},
-    (err, res, done) => {
-        expect(err).to.be.null;
-        expect(res).to.have.status(200);
-        done();
-    }
-);
+common.startTest('should get policy table for given environment', async function () {
+    const res = await common.get(endpoint, {environment: 'staging'});
+    expect(res).to.have.status(200);
+});
