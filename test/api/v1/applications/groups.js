@@ -39,24 +39,38 @@ common.startTest('should not accept an invalid application id', async function (
     expect(res).to.have.status(400);
 });
 
+common.startTest('for an app\'s possible proprietary functional group, change its selected status', async function () {
+    const res = await common.get(endpoint, {app_id: 1, is_proprietary_group: true, environment: "STAGING"});
+    expect(res).to.have.status(200);
+    expect(res.body.data.groups).to.be.an('array');
+
+    if (res.body.data.groups.length === 0) {
+        return; // do not continue the next part if no proprietary groups are found.
+    }
+
+    const firstPropertyName = res.body.data.groups[0].property_name;
+    const firstPropertySelected = res.body.data.groups[0].is_selected;
+
+    const res2 = await common.put(endpoint, {
+        app_id: 1,
+        is_selected: !firstPropertySelected, // invert the selection
+        property_name: firstPropertyName,
+    });
+
+    const res3 = await common.get(endpoint, {app_id: 1, is_proprietary_group: true, environment: "STAGING"});
+
+    expect(res3).to.have.status(200);
+    expect(res3.body.data.groups[0].is_selected).to.equal(!firstPropertySelected);
+});
+
 //GET TESTS
 
-common.startTest('should return an array of assignable non-proprietary functional groups for a valid app id', async function () {
+common.startTest('should return an array of assignable non-proprietary functional groups for an app', async function () {
     const res = await common.get(endpoint, {app_id: 1, is_proprietary_group: false, environment: "STAGING"});
     expect(res).to.have.status(200);
     expect(res.body.data.groups).to.be.an('array').that.is.not.empty;
 });
 
-common.startTest('should return an empty array for an invalid app id', async function () {
-    const res = await common.get(endpoint, {app_id: 10000, is_proprietary_group: true, environment: "STAGING"});
-    expect(res).to.have.status(200);
-    expect(res.body.data.groups).to.be.an('array').that.is.empty;
-});
 
-common.startTest('should return an empty array for a valid app id but with is_proprietary_group set to true when theres none available', async function () {
-    const res = await common.get(endpoint, {app_id: 1, is_proprietary_group: true, environment: "STAGING"});
-    expect(res).to.have.status(200);
-    expect(res.body.data.groups).to.be.an('array').that.is.empty;
-});
 
 
