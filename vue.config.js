@@ -7,7 +7,10 @@ const app = require('./index.js');
 
 module.exports = {
     devServer: {
-        before: app,
+        setupMiddlewares: (middleware, server) => {
+            app(server.app);
+            return middleware;
+        },
         port: settings.policyServerPort
     }
 }
