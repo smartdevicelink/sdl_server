@@ -26,6 +26,7 @@ function validatePost (req, res) {
         return;
     }
     for (let i = 0; i < req.body.messages.length; i++) {
+        let foundEnUsObj = false;
         const msg = req.body.messages[i];
         if (!check.string(msg.message_category) || !check.boolean(msg.is_deleted) ) {
             res.parcel
@@ -35,6 +36,9 @@ function validatePost (req, res) {
         }
         for (let j = 0; j < msg.languages.length; j++) {
             const lang = msg.languages[j];
+            if (lang.language_id === 'en-us' && lang.selected === true) {
+                foundEnUsObj = true;
+            }
             if (
                 !check.string(lang.language_id)
                 || !check.boolean(lang.selected)
@@ -52,6 +56,12 @@ function validatePost (req, res) {
                         .setMessage("Required for language: language_id, selected, and at least one of the following: line1, line2, tts, text_body, label");
                     return;
             }
+        }
+        if (!foundEnUsObj) {
+            res.parcel
+                .setStatus(400)
+                .setMessage("There must be a en-us language object defined");
+            return;
         }
     }
 }
