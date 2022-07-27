@@ -184,6 +184,11 @@
                             if (parsed.data.messages && parsed.data.messages.length) {
                                 this.message = parsed.data.messages[0];
                                 console.log(this.message);
+                                // force en-us to exist in the webpage
+                                if (this.message && this.message.languages) {
+                                    const lang = this.message.languages.find(element => element.language_id === 'en-us');
+                                    lang.selected = true;
+                                }
                             } else {
                                 console.log("No message data returned");
                             }

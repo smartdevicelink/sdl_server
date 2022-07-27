@@ -2,9 +2,10 @@
     <div v-if="item.selected" class="white-box rpc-container">
         <h5></h5>
         <h5>{{ item.language_id }}
+            <!-- Do not allow en-us to be deletable. It is required by core -->
             <i
                 v-on:click="removeLanguage()"
-                v-if="!fieldsDisabled"
+                v-if="!fieldsDisabled && item.language_id !== 'en-us'"
                 class="pointer pull-right fa fa-times hover-color-red"
                 aria-hidden="true">
             </i>
