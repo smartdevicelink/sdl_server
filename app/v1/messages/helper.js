@@ -42,18 +42,11 @@ function validatePost (req, res) {
             if (
                 !check.string(lang.language_id)
                 || !check.boolean(lang.selected)
-                || (
-                    !check.string(lang.line1)
-                    && !check.string(lang.line2)
-                    && !check.string(lang.tts)
-                    && !check.string(lang.text_body)
-                    && !check.string(lang.label)
-                    )
                 )
                 {
                     res.parcel
                         .setStatus(400)
-                        .setMessage("Required for language: language_id, selected, and at least one of the following: line1, line2, tts, text_body, label");
+                        .setMessage("Required for language: language_id, selected");
                     return;
             }
         }
