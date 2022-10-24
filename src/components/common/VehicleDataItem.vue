@@ -21,7 +21,8 @@
                 <div class="form-group row">
                     <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display.toUpperCase() }}</label>
                     <div class="col-sm-10">
-                        <input v-model="item[propName]" :disabled="fieldsDisabled || (level === 1 && item.id)" class="form-control">
+                        <input v-model="item[propName]" :disabled="fieldsDisabled || (level === 1 && item.id)" class="form-control"
+                            @input="updateNameOrKey(propName, $event.target.value)">
                     </div>
                     <p v-if="findCommonParams(item[propName]) === 'CUSTOM'">
                         <br>A parent or top level vehicle data item with this name already exists! By saving, you will overwrite the previously existing vehicle data.
@@ -55,7 +56,8 @@
                 <div class="form-group row">
                     <label class="col-sm-2 col-form-label">{{ propsDisplay[propName].display.toUpperCase() }}</label>
                     <div class="col-sm-10">
-                        <input v-model="item[propName]" :disabled="fieldsDisabled" class="form-control">
+                        <input v-model="item[propName]" :disabled="fieldsDisabled" class="form-control"
+                            @input="updateNameOrKey(propName, $event.target.value)">
                     </div>
                 </div>
             </template>
@@ -169,6 +171,12 @@
                     return this.item[propName] = null;
                 }
                 this.item[propName] = Math.max(0, Math.round(val));
+            },
+            updateNameOrKey: function (propName, val) {
+                // Checks for the invalid characters "!@#$%^&*", and whitespace characters that would be rejected by SDL Core
+                if (/[!@#$%^&*\s]/g.test(val)) {
+                    return this.item[propName] = null;
+                }
             },
             updateIntegerNumber: function (propName, val) {
                 if (val === "-") {
