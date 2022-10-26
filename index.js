@@ -40,7 +40,11 @@ function start (overrideApp) {
     }
 
     //load up the html, js and css content that makes up the UI
-    app.use(express.static(__dirname + '/dist'));
+    // do not serve the compiled version of the code if we are running in dev mode
+    // we want hot reloading managed by the webpack dev server instead
+    if (process.env.RUN_STATE !== 'dev') {
+        app.use(express.static(__dirname + '/dist'));
+    }
     //expose everything in the static folder
     app.use(express.static(__dirname + '/static'));
 

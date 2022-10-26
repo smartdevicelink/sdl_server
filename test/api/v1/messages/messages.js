@@ -26,7 +26,11 @@ common.startTest('should create new message', async function () {
             {
                 message_category: 'Blarg',
                 is_deleted: false,
-                languages: []
+                languages: [{
+                    language_id: 'en-us',
+                    selected: true,
+                    line1: ''
+                }]
             }
         ]
     });
