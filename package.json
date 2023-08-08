@@ -40,7 +40,7 @@
     "moment": "^2.29.4",
     "mustache": "^3.0.1",
     "nodemailer": "^6.6.1",
-    "pem": "^1.14.2",
+    "pem": "^1.14.8",
     "pg": "8.7.1",
     "portal-vue": "^2.1.7",
     "portfinder": "1.0.13",
