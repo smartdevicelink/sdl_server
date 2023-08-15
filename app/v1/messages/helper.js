@@ -154,7 +154,6 @@ async function getRpcSpec () {
             let aggregateResponse = '';
             response.setEncoding('utf8');
             response.on('data', (chunk) => {
-                // getting response back from SHAID
                 aggregateResponse += chunk;
             });
             response.on('end', () => {
