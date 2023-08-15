@@ -17,7 +17,7 @@ RUN git clone https://github.com/smartdevicelink/sdl_server.git /usr/policy -b $
 WORKDIR /usr/policy
 
 RUN npm install
-RUN npm install aws-sdk node-stream-zip --save
+RUN npm install request aws-sdk node-stream-zip --save
 
 COPY wait-for-it.sh wait-for-it.sh
 COPY keys customizable/ca

@@ -4,7 +4,7 @@ const setupSql = app.locals.db.setupSqlCommand;
 const sql = require('./sql.js');
 const model = require('./model.js');
 const parseXml = require('xml2js').parseString;
-const request = require('request');
+const https = require('https');
 const promisify = require('util').promisify;
 
 //validation functions
@@ -150,14 +150,17 @@ async function updateLanguages () {
 
 async function getRpcSpec () {
     return new Promise(resolve => {
-        request(
-            {
-                method: 'GET',
-                url: app.locals.config.rpcSpecXmlUrl
-            }, function (err, res, body) {
-                resolve(body);
-            }
-        );
+        https.request(app.locals.config.rpcSpecXmlUrl, { method: 'GET' }, (response) => {
+            let aggregateResponse = '';
+            response.setEncoding('utf8');
+            response.on('data', (chunk) => {
+                // getting response back from SHAID
+                aggregateResponse += chunk;
+            });
+            response.on('end', () => {
+                resolve(aggregateResponse);
+            })
+        }).end();
     });
 }
 
