@@ -1,7 +1,7 @@
 const app = require('../app');
 const config = require('../../../settings.js');
 const packageJson = require('../../../package.json'); //configuration module
-const requestjs = require('request');
+const https = require('https');
 const semver = require('semver');
 const certificateController = require('../certificates/controller.js');
 
@@ -34,25 +34,41 @@ exports.getInfo = function (req, res, next) {
     };
 
     // cannot use promisify: there are two returns we need
-    requestjs({
-        "method": "GET",
-        "uri": "https://raw.githubusercontent.com/smartdevicelink/sdl_server/master/package.json",
-        "timeout": 5000,
-        "json": true
-    }, async function (err, response, body) {
-        if (!err && response.statusCode >= 200 && response.statusCode < 300) {
-            // success!
-            data.latest_version = body.version;
-            data.is_update_available = semver.lt(data.current_version, data.latest_version);
-            data.update_type = semver.diff(data.current_version, data.latest_version);
-        }
-        if (data.certificate_authority) {
-            const isAuthorityValid = await certificateController.checkAuthorityValidity();
-            data.is_authority_valid = isAuthorityValid && data.certificate_authority;
-        }
-
-        res.parcel.setStatus(200)
-            .setData(data)
-            .deliver();
-    });
+    const httpOptions = {
+        method: "GET",
+        timeout: 5000,
+    }
+    https.request("https://raw.githubusercontent.com/smartdevicelink/sdl_server/master/package.json", httpOptions,
+        async function (response) {
+            let aggregateResponse = '';
+            response.setEncoding('utf8');
+            response.on('data', (chunk) => {
+                aggregateResponse += chunk;
+            });
+            response.on('end', async () => {
+                if (response.statusCode >= 200 && response.statusCode < 300) {
+                    // success!
+                    data.latest_version = JSON.parse(aggregateResponse).version;
+                    data.is_update_available = semver.lt(data.current_version, data.latest_version);
+                    data.update_type = semver.diff(data.current_version, data.latest_version);
+                }
+                if (data.certificate_authority) {
+                    const isAuthorityValid = await certificateController.checkAuthorityValidity();
+                    data.is_authority_valid = isAuthorityValid && data.certificate_authority;
+                }
+        
+                res.parcel.setStatus(200)
+                    .setData(data)
+                    .deliver();
+            })
+        }).on('error', async () => {
+            if (data.certificate_authority) {
+                const isAuthorityValid = await certificateController.checkAuthorityValidity();
+                data.is_authority_valid = isAuthorityValid && data.certificate_authority;
+            }
+    
+            res.parcel.setStatus(200)
+                .setData(data)
+                .deliver();
+        }).end();
 }

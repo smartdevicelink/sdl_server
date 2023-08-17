@@ -1,6 +1,6 @@
 // skeleton function for customized downloading and extracting of package information
 
-const request = require('request');
+const http = require('http');
 const fs = require('fs');
 const UUID = require('uuid');
 
