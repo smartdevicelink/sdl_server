@@ -1,9 +1,11 @@
 // skeleton function for customized downloading and extracting of package information
-const request = require('request');
+const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const UUID = require('uuid');
 const AWS = require('aws-sdk');
 const StreamZip = require('node-stream-zip');
+// assumes the bucket already exists. make sure it is set up to allow writing objects to it from remote sources!
 const BUCKET_NAME = process.env.BUCKET_NAME;
 
 if (process.env.AWS_REGION !== undefined && BUCKET_NAME !== undefined) {
@@ -32,52 +34,42 @@ exports.handleBundle = function (package_url, cb) {
     let bucketUrl = '';
     const TMP_FILE_NAME = `${UUID.v4()}.zip`;
 
-    // create a new bucket if it doesn't already exist
-    new AWS.S3().createBucket({Bucket: BUCKET_NAME, ACL: 'public-read'}, err => {
-
-        // OperationAborted errors are expected, as we are potentially 
-        // calling this API multiple times simultaneously
-        if (err && err.code !== 'OperationAborted') {
-            console.log(err);
-            return cb(err);
-        }
-        // read the URL and save it to a buffer variable
-        readUrlToBuffer(package_url)
-            .then(zipBuffer => { // submit the file contents to S3
-                compressedSize = zipBuffer.length;
-                const randomString = UUID.v4();
-                const fileName = `${randomString}.zip`;
-                bucketUrl = `https://${BUCKET_NAME}.s3.amazonaws.com/${fileName}`;
-                // make the bundle publicly accessible
-                const objectParams = {Bucket: BUCKET_NAME, ACL: 'public-read', Key: fileName, Body: zipBuffer};
-                // Create object upload promise
-                return new AWS.S3().putObject(objectParams).promise();
-            })
-            .then(() => { // unzip the contents of the bundle to get its uncompressed data information
-                return streamUrlToTmpFile(bucketUrl, TMP_FILE_NAME);
-            })
-            .then(() => {
-                return unzipAndGetUncompressedSize(TMP_FILE_NAME);
-            })
-            .then(uncompressedSize => {
-                // delete the tmp zip file
-                fs.unlink(TMP_FILE_NAME, () => {
-                    // all the information has been collected
-                    cb(null, {
-                        url: bucketUrl,
-                        size_compressed_bytes: compressedSize,
-                        size_decompressed_bytes: uncompressedSize
-                    });
-                });
-            })
-            .catch(err => {
-                console.log(err);
-                // delete the tmp zip file
-                fs.unlink(TMP_FILE_NAME, () => {
-                    cb(err);
+    // read the URL and save it to a buffer variable
+    readUrlToBuffer(package_url)
+        .then(zipBuffer => { // submit the file contents to S3
+            compressedSize = zipBuffer.length;
+            const randomString = UUID.v4();
+            const fileName = `${randomString}.zip`;
+            bucketUrl = `https://${BUCKET_NAME}.s3.amazonaws.com/${fileName}`;
+            // make the bundle publicly accessible
+            const objectParams = {Bucket: BUCKET_NAME, ACL: 'public-read', Key: fileName, Body: zipBuffer};
+            // Create object upload promise
+            return new AWS.S3().putObject(objectParams).promise();
+        })
+        .then(() => { // unzip the contents of the bundle to get its uncompressed data information
+            return streamUrlToTmpFile(bucketUrl, TMP_FILE_NAME);
+        })
+        .then(() => {
+            return unzipAndGetUncompressedSize(TMP_FILE_NAME);
+        })
+        .then(uncompressedSize => {
+            // delete the tmp zip file
+            fs.unlink(TMP_FILE_NAME, () => {
+                // all the information has been collected
+                cb(null, {
+                    url: bucketUrl,
+                    size_compressed_bytes: compressedSize,
+                    size_decompressed_bytes: uncompressedSize
                 });
             });
-    });
+        })
+        .catch(err => {
+            console.log(err);
+            // delete the tmp zip file
+            fs.unlink(TMP_FILE_NAME, () => {
+                cb(err);
+            });
+        });
 }
 
 function unzipAndGetUncompressedSize (fileName) {
@@ -109,24 +101,37 @@ function unzipAndGetUncompressedSize (fileName) {
 }
 
 function streamUrlToTmpFile (url, fileName) {
+    const urlObj = new URL(url);
     return new Promise((resolve, reject) => {
-        request(url)
-            .pipe(fs.createWriteStream(fileName))
-            .on('close', resolve);
+        function resCallback (res) {
+            res.pipe(fs.createWriteStream(fileName)).on('close', resolve);
+        }
+        if (urlObj.protocol === "https:") {
+            https.get(url, resCallback).end();
+        } else {
+            http.get(url, resCallback).end();
+        }
     });
 }
 
 function readUrlToBuffer (url) {
+    const urlObj = new URL(url);
     return new Promise((resolve, reject) => {
         let zipBuffer = [];
-
-        request(url)
-            .on('data', data => {
+        function resCallback (res) {
+            res.on('data', data => {
                 zipBuffer.push(data);
             })
             .on('close', function () { // file fully downloaded
                 // put the zip contents to a buffer 
                 resolve(Buffer.concat(zipBuffer));
             });
+        }
+
+        if (urlObj.protocol === "https:") {
+            https.get(url, resCallback).end();
+        } else {
+            http.get(url, resCallback).end();
+        }
     })
 }
