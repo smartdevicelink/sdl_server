@@ -1,4 +1,3 @@
-const request = require('request');
 const shaidkit = require('shaidkit');
 const config = require('../../../settings.js');
 const package = require('../../../package.json');
